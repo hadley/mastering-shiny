@@ -1,0 +1,21 @@
+--- 
+title: "Mastering Shiny"
+author: "Joe Cheng"
+date: "`r Sys.Date()`"
+site: bookdown::bookdown_site
+output: bookdown::gitbook
+documentclass: book
+bibliography: [book.bib, packages.bib]
+biblio-style: apalike
+link-citations: yes
+github-repo: jcheng5/shiny-book
+description: "The official guide to the Shiny web application framework for R."
+---
+
+# Introduction
+
+## What is Shiny?
+
+## Who is this book for?
+
+## Why read this book?

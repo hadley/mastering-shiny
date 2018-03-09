@@ -1,0 +1,6 @@
+# Reactive programming
+
+* lexical scoping
+* reactive primitives
+* side effects
+* reactive graph

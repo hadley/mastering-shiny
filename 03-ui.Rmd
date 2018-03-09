@@ -1,0 +1,71 @@
+# Understanding UI
+
+As you saw in the previous chapter, Shiny encourages separation of the code that generates your user interface (`ui`) from the code that drives your app's behavior (`server`). In this chapter, we'll dive much deeper into the UI side of things.
+
+## It's just HTML
+
+**Fundamentally, Shiny UI is all about generating HTML.** Almost all of the functions we'll encounter below are merely thin wrappers around HTML generating functions from the `htmltools` package. These functions not only generate HTML elements, but also perform JavaScript/CSS dependency packaging, automatically escape text, and much more.
+
+If you're used to writing your own HTML, using R functions to generate HTML for you may not sound appealing at first. If you give it a chance, though, you'll find that this approach to HTML generation comes with many benefits, while retaining all the power and flexibility of manual coding. That said, if you really want to write your own angle brackets—or if you're collaborating with a designer who wants to give you HTML—Shiny will let you do that too, as we'll see at the end of this chapter (XREF).
+
+In this chapter, though, we'll focus on the basic UI elements that are most commonly used in Shiny apps.
+
+## Inputs
+
+As we saw in the previous chapter, functions like `sliderInput`, `selectInput`, `textInput`, and `numericInput` are used to insert input controls into your UI.
+
+The first parameter of an input function is always the input ID. Generally, there is a second parameter `label` that is used to create a human-readable label for the control. Any remaining parameters are specific to the particular input function, and can be used to customize the input control.
+
+For example, a typical call to `sliderInput` might look something like this:
+
+```r
+sliderInput("min", "Limit (minimum)", min = 0, max = 100, value = 50)
+```
+
+`r knitr::include_graphics("images/03-understanding-ui/slider.png", dpi = 200)`
+
+In the server function, the value of this slider would be accessed via `input$min`.
+
+It's absolutely vital that each input have a *unique* ID. Using the same ID value for more than one input or output in the same app will result in errors or incorrect results.
+
+Shiny itself comes with a variety of input functions out of the box:
+
+- `sliderInput`
+- `selectInput`/`selectizeInput`
+- `checkboxGroupInput`/`checkboxInput`/`radioButtons`
+- `dateInput`/`dateRangeInput`
+- `fileInput`
+- `numericInput`
+- `textInput`/`passwordInput`
+- `actionButton`
+
+Each input function has its own unique look and functionality, and takes different arguments. But they all share the same two properties of 1) taking a unique input ID, and 2) exposing values to the server function via a slot in the `input` object.
+
+## Outputs
+
+
+
+## Layouts and panels
+
+* sidebar
+* tabset
+* bootstrap grid
+
+## Generating HTML
+
+* htmltools tags
+
+## Customizing with CSS and JS
+
+* Custom CSS
+* www directory
+
+## Alternate toolkits
+
+* flexdashboard
+* shinyBS
+* shinyDashboard
+* shinyjs
+* shinythemes
+
+## HTML templates

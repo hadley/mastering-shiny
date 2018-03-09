@@ -1,0 +1,10 @@
+# Graphics and visualization
+
+* Base graphics and ggplot2 with `renderPlot`
+    * Interactive graphics
+* htmlwidgets
+    * DiagrammeR
+    * DT
+    * dygraphs
+    * leaflet
+    * plotly
