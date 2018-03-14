@@ -2,5 +2,5 @@ Package: placeholder
 Type: Book
 Title: Does not matter.
 Version: 0.0.1
-Imports: bookdown
+Imports: bookdown, webshot (>= 0.5.0.9000)
 Remotes: rstudio/bookdown

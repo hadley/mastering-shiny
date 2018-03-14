@@ -6,23 +6,30 @@ As you saw in the previous chapter, Shiny encourages separation of the code that
 
 **Fundamentally, Shiny UI is all about generating HTML.** Almost all of the functions we'll encounter below are merely thin wrappers around HTML generating functions from the `htmltools` package. These functions not only generate HTML elements, but also perform JavaScript/CSS dependency packaging, automatically escape text, and much more.
 
-If you're used to writing your own HTML, using R functions to generate HTML for you may not sound appealing at first. If you give it a chance, though, you'll find that this approach to HTML generation comes with many benefits, while retaining all the power and flexibility of manual coding. That said, if you really want to write your own angle brackets—or if you're collaborating with a designer who wants to give you HTML—Shiny will let you do that too, as we'll see at the end of this chapter (XREF).
+If you're used to writing your own HTML, using R functions to generate HTML for you may not sound appealing at first. But if you give it a chance, you'll find that this approach to HTML generation comes with many benefits, while retaining all the power and flexibility of manual coding. That said, if you really want to write your own angle brackets—or if you're collaborating with a designer who wants to give you HTML—Shiny will let you do that too, as we'll see at the end of this chapter (XREF).
 
-In this chapter, though, we'll focus on the basic UI elements that are most commonly used in Shiny apps.
+To start, though, let's focus on the basic UI elements that are most commonly used in Shiny apps.
 
 ## Inputs
 
 As we saw in the previous chapter, functions like `sliderInput`, `selectInput`, `textInput`, and `numericInput` are used to insert input controls into your UI.
 
-The first parameter of an input function is always the input ID. Generally, there is a second parameter `label` that is used to create a human-readable label for the control. Any remaining parameters are specific to the particular input function, and can be used to customize the input control.
+The first parameter of an input function is always the input ID; this is a simple string that is composed of alphanumeric characters and/or underscore (no spaces, dashes, periods, or other special characters please!). Generally, there is a second parameter `label` that is used to create a human-readable label for the control. Any remaining parameters are specific to the particular input function, and can be used to customize the input control.
 
 For example, a typical call to `sliderInput` might look something like this:
 
 ```r
-sliderInput("min", "Limit (minimum)", min = 0, max = 100, value = 50)
+shiny::sliderInput("min", "Limit (minimum)", min = 0, max = 100, value = 50)
 ```
 
-`r knitr::include_graphics("images/03-understanding-ui/slider.png", dpi = 200)`
+```{r echo=FALSE, fig.height=0.2, message=FALSE}
+
+library(shiny)
+shinyApp(
+  fluidPage(shiny::sliderInput("min", "Limit (minimum)", min = 0, max = 100, value = 50)),
+  function(input, output, session) {}
+)
+```
 
 In the server function, the value of this slider would be accessed via `input$min`.
 
@@ -43,9 +50,29 @@ Each input function has its own unique look and functionality, and takes differe
 
 ## Outputs
 
+Output functions are used to tell Shiny _where_ and _how_ to place outputs that are defined in the app's server.
 
+Like inputs, outputs take a unique ID as their first argument. These IDs must be unique among all inputs _and_ outputs!
+
+Unlike inputs, outputs generally start out as empty rectangles, that need to be fed data from the server in order to actually appear.
 
 ## Layouts and panels
+
+Shiny includes several classes of UI functions that behave like neither inputs nor outputs. Rather, these functions help with the layout and formatting of your UI.
+
+### Page functions
+
+The first function you're likely to encounter in a Shiny UI is a page function. Page functions expect to be the outermost function call in your UI, and set up your web page to contain other content.
+
+The most common page function is `fluidPage`.
+
+```r
+fluidPage(..., title = NULL, theme = NULL)
+```
+
+`fluidPage` sets up your page to use the Bootstrap CSS framework. Bootstrap provides your web page with attractive settings for typography and spacing, and also preloads dozens of CSS rules that can be invoked to visually organize and enhance specific areas of your UI. We'll take advantage of quite a few of these Bootstrap rules as we proceed through this chapter.
+
+The "fluid" in `fluidPage` means the content of the page will
 
 * sidebar
 * tabset

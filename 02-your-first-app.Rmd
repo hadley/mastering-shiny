@@ -40,7 +40,7 @@ This is RStudio's Shiny app window. From here, you can click "Open in Browser" t
 
 Before you close the app, go back to your main RStudio window and look at the R console. You'll notice that the console says something like: "Listening on http://127.0.0.1:3827". This is telling you the URL where your app can be found: 127.0.0.1 is a standard address that means "this computer" and 3827 is a port number. (Your port number will likely be different, as Shiny chooses a random port number for each R session, to make it easy to run multiple Shiny apps simultaneously.) You can enter that URL into any compatible[^1] web browser to open another copy of your app.
 
-[^1]: Notably, Internet Explorer versions earlier than IE11 are not compatible when running Shiny directly from your R session. However, Shiny apps deployed on Shiny Server or ShinyApps.io can work with IE8 and later.
+[^1]: Notably, Internet Explorer versions earlier than IE11 are not compatible when running Shiny directly from your R session. However, Shiny apps deployed on Shiny Server or ShinyApps.io can work with IE10 (earlier versions of IE are no longer supported).
 
 The second thing to notice is that R is busy: the R prompt isn't visible, and the console toolbar displays a stop sign icon. While a Shiny app is running, it "blocks" the R console. You can't run new commands at the R console until after the Shiny app either stops of its own accord, or (much more commonly) is interrupted.
 
@@ -67,7 +67,7 @@ ui <- fluidPage(
 
 This example uses four functions we haven't seen before.
 
-- `fluidPage` is one of several **layout functions**, designed to take other UI objects as arguments, and renders them with some kind of modification. In this case, `fluidPage` brings in a bunch of CSS styling, from the famous Bootstrap library. It also inserts a container that is suitable for splitting into rows and columns (though we aren't ready to do that just yet). 
+- `fluidPage` is one of several **layout functions**, designed to take other UI objects as arguments, and renders them with some kind of modification. In this case, `fluidPage` brings in a bunch of CSS styling, from the famous [Bootstrap](http://getbootstrap.com/docs/3.3/) CSS library. It also inserts a container that is suitable for splitting into rows and columns (though we aren't ready to do that just yet). 
 - `selectInput` is an **input control**, which lets the user interact with the app by providing a value. In this case, it's a fancy select box with the title "Dataset" and lets you choose one of the built-in datasets that come with R.
 - `verbatimTextOutput` and `tableOutput` are **output controls**, telling Shiny *where* to put rendered output (we'll get into the *how* in a moment). `verbatimTextOutput` displays preformatted text (in HTML parlance, it uses a <pre> tag), and `tableOutput` displays tabular data (e.g. a data frame or matrix) in a nice looking HTML table.
 
