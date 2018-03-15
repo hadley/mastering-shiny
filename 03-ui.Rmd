@@ -1,3 +1,7 @@
+```{r setup,echo=FALSE}
+library(shiny)
+```
+
 # Understanding UI
 
 As you saw in the previous chapter, Shiny encourages separation of the code that generates your user interface (`ui`) from the code that drives your app's behavior (`server`). In this chapter, we'll dive much deeper into the UI side of things.
@@ -22,7 +26,7 @@ For example, a typical call to `sliderInput` might look something like this:
 shiny::sliderInput("min", "Limit (minimum)", min = 0, max = 100, value = 50)
 ```
 
-```{r echo=FALSE, fig.height=0.2, message=FALSE}
+```{r echo=FALSE, fig.height=0.2, message=FALSE, cache=TRUE}
 
 library(shiny)
 shinyApp(
@@ -72,7 +76,7 @@ fluidPage(..., title = NULL, theme = NULL)
 
 `fluidPage` sets up your page to use the Bootstrap CSS framework. Bootstrap provides your web page with attractive settings for typography and spacing, and also preloads dozens of CSS rules that can be invoked to visually organize and enhance specific areas of your UI. We'll take advantage of quite a few of these Bootstrap rules as we proceed through this chapter.
 
-The "fluid" in `fluidPage` means the content of the page will
+The "fluid" in `fluidPage` means the page's content may resize its width (but not height) as the size of the browser window changes. (The other option is "fixed", which means the page contents will never exceed 960 pixels in width.)
 
 * sidebar
 * tabset
@@ -80,7 +84,73 @@ The "fluid" in `fluidPage` means the content of the page will
 
 ## Generating HTML
 
-* htmltools tags
+To understand how UI functions in R work, let's first talk about HTML, in case you're not familiar with it (or its more general descendant, XML).
+
+HTML is a _markup language_ for describing web pages. A markup language is just a document format that contains plain text content, plus embedded instructions for annotating, or "marking up", specific sections of that content. These instructions can control the appearance, layout, and behavior of the text they mark up, and also provide structure to the document.
+
+Here's a simple snippet of HTML:
+
+```html
+This time I <em>really</em> mean it!
+```
+
+The `<em>` and `</em>` markup instructions indicate that the word `really` should be displayed with special <strong>em</strong>phasis (italics):
+
+```{r echo=FALSE}
+tags$blockquote(HTML("This time I <em>really</em> mean it!"))
+```
+
+`<em>` is an example of a _start tag_, and `</em>` (note the slash character) is an example of an _end tag_.
+
+### Inline formatting tags
+
+`em` is just one of many HTML tags that are used to format text:
+
+* `<strong>...</strong>` makes text <strong>bold</strong>
+* `<u>...</u>` makes text <u>underlined</u>
+* `<s>...</s>` makes text <s>strikeout</s>
+
+### Block tags
+
+Another class of tags is used to wrap entire blocks of text. You can use `<p>...</p>` to break text into distinct paragraphs, or `<h3>...</h3>` to turn a line into a subheading.
+
+```{css echo=FALSE}
+.sourceCode.html {
+  white-space: pre-wrap !important;
+}
+```
+
+```html
+<h3>Chapter I. Down the Rabbit-Hole</h3>
+
+<p>Alice was beginning to get very tired of sitting by her sister on the bank, and of having nothing to do: once or twice she had peeped into the book her sister was reading, but it had no pictures or conversations in it, ‘and what is the use of a book,’ thought Alice ‘without pictures or conversations?’</p>
+
+<p>So she was considering in her own mind (as well as she could, for the hot day made her feel very sleepy and stupid), whether the pleasure of making a daisy-chain would be worth the trouble of getting up and picking the daisies, when suddenly a White Rabbit with pink eyes ran close by her.</p>
+```
+
+When rendered, this HTML looks like:
+
+```{r echo=FALSE}
+tags$blockquote(
+  HTML("<h3>Chapter I. Down the Rabbit-Hole</h3>
+<p>Alice was beginning to get very tired of sitting by her sister on the bank, and of having nothing to do: once or twice she had peeped into the book her sister was reading, but it had no pictures or conversations in it, ‘and what is the use of a book,’ thought Alice ‘without pictures or conversations?’</p>
+<p>So she was considering in her own mind (as well as she could, for the hot day made her feel very sleepy and stupid), whether the pleasure of making a daisy-chain would be worth the trouble of getting up and picking the daisies, when suddenly a White Rabbit with pink eyes ran close by her.</p>")
+)
+```
+
+### Tag attributes
+
+Some tags need to do more than just demarcate some text. An `<a>` (for "anchor") tag is used to create a hyperlink. It's not enough to just wrap `<a>...</a>` around the link's text, as you also need to specify where the hyperlink points to.
+
+Start tags let you include _attributes_ that customize the appearance or behavior of the tag. In this case, we'll add an `href` attribute to our `<a>` start tag:
+
+```html
+<p>Learn more about Shiny at <a href="https://shiny.rstudio.com">this website</a>.</p>
+```
+
+```{r echo=FALSE}
+tags$blockquote(HTML('<p>Learn more about Shiny at <a href="https://shiny.rstudio.com">this website</a>.</p>'))
+```
 
 ## Customizing with CSS and JS
 
