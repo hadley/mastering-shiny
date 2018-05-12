@@ -145,14 +145,126 @@ Some tags need to do more than just demarcate some text. An `<a>` (for "anchor")
 Start tags let you include _attributes_ that customize the appearance or behavior of the tag. In this case, we'll add an `href` attribute to our `<a>` start tag:
 
 ```html
-<p>Learn more about Shiny at <a href="https://shiny.rstudio.com">this website</a>.</p>
+<p>Learn more about <strong>Shiny</strong> at <a href="https://shiny.rstudio.com">this website</a>.</p>
 ```
 
 ```{r echo=FALSE}
-tags$blockquote(HTML('<p>Learn more about Shiny at <a href="https://shiny.rstudio.com">this website</a>.</p>'))
+tags$blockquote(HTML('<p>Learn more about <strong>Shiny</strong> at <a href="https://shiny.rstudio.com">this website</a>.</p>'))
 ```
 
-## Customizing with CSS and JS
+There are [dozens of attributes](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes) that all tags accept, and hundreds of attributes that are specific to particular tags. You don't have to worry about memorizing them all--even full-time web developers don't do that. There are two attributes that are used constantly, though.
+
+The `id` attribute uniquely identifies a tag in a document. That is, no two tags in a single document should share the same `id` value, and each tag can have zero or one `id` value. As far as the web browser is concerned, the `id` attribute is completely optional and has no intrinsic effect on the appearance or behavior of the rendered tag. However, it's incredibly useful for identifying a tag for special treatment by CSS or JavaScript, and as such, plays a crucial role for Shiny apps.
+
+The `class` attribute provides a way of classifying tags in a document. Unlike `id`, any number of tags can have the same class, and each tag can have multiple classes (space separated). Again, classes don't have an intrinsic effect, but are hugely helpful for using CSS or JavaScript to target groups of tags.
+
+In the following example, we've given a `<p>` tag an id and two classes:
+
+```html
+<p id="storage-low-message" class="message warning">Storage space is running low!</p>
+```
+
+```{r echo=FALSE}
+tags$blockquote(HTML('<p id="storage-low-message" class="message warning">Storage space is running low!</p>'))
+```
+
+Here, the `id` and `class` values have had no discernible effect. But we could, for example, write CSS that any elements with the `message` class should appear at the top of the page, and that any elements with the `warning` class should have a yellow background and bold text; and we could write JavaScript that automatically dismisses the message if the storage situation improves.
+
+### Parents and children
+
+In the example above, we have a `<p>` tag that contains some text that contains `<strong>` and `<a>` tag.s We can refer to `<p>` as the _parent_ of `<strong>`/`<a>`, and `<strong>`/`<a>` as the _children_ of `<p>`. And naturally, `<strong>` and `<a>` are called _siblings_.
+
+It's often helpful to think of tags and text as forming a tree structure:
+
+```
+<p>
+├── "Learn more about"
+├── <strong>
+│   └── "Shiny"
+├── "at"
+├── <a href="...">
+│   └── "this website"
+└── "."
+```
+
+### Comments
+
+Just as you can use the `#` character to comment out a line of R code, HTML lets you comment out parts of your web page. Use `<!--` to start a comment, and `-->` to end one. Anything between these delimiters will be ignored during the rendering of the web page, although it will still be visible to anyone who looks at your raw HTML by using the browser's View Source command.
+
+```html
+<p>This HTML will be seen.</p>
+
+<!-- <p>This HTML will not.</p> -->
+
+<!--
+<p>
+Nor will this.
+</p>
+-->
+```
+
+```{r echo=FALSE}
+tags$blockquote(HTML("<p>This HTML will be seen.</p>
+
+<!-- <p>This HTML will not.</p> -->
+
+<!--
+<p>
+Nor will this.
+</p>
+-->"))
+```
+
+### Escaping
+
+Any markup language like HTML, where there are characters that have special meaning, needs to provide a way to "escape" those special characters--that is, to insert a special character into the document without invoking its special meaning.
+
+For example, the `<` character in HTML has a special meaning, as it indicates the start of a tag. What if you actually want to insert a `<` character into the rendered document--or, let's say, an entire `<p>` tag?
+
+```html
+<p>In HTML, you start paragraphs with "<p>" and end them with "</p>".</p>
+```
+
+```{r echo=FALSE}
+tags$blockquote(HTML('<p>In HTML, you start paragraphs with "<p>" and end them with "</p>".</p>'))
+```
+
+That doesn't look as we intended at all! The browser has no way of knowing that we meant the outer `<p>` and `</p>` to be interpreted as markup, and the inner `<p>` and `</p>` to be interpreted as text.
+
+Instead, we need to escape the inner tags so they become text. The escaped version of `<` is `&lt;`, and `>` is `&gt;`.
+
+```html
+<p>In HTML, you start paragraphs with "&lt;p&gt;" and end them with "&lt;/p&gt;".</p>
+```
+
+```{r echo=FALSE}
+tags$blockquote(HTML('<p>In HTML, you start paragraphs with "&lt;p&gt;" and end them with "&lt;/p&gt;".</p>'))
+```
+
+(Yes, escaped characters look pretty ugly. That's just how it is.)
+
+Each escaped character in HTML starts with `&` and ends with `;`. There are lots of valid sequences of characters that go between, but besides `lt` (less than) and `gt` (greater than), the only one you're likely to need to know is `amp`; `&amp;` is how you insert a `&` character into HTML.
+
+Escaping `<`, `>`, and `&` is mandatory if you don't want them interpreted as special characters; other characters can be expressed as escape sequences, but it's generally not necessary. Escaping `<`, `>`, and `&` is so common and crucial that every web framework contains a function for doing it (in our case it's `htmltools::htmlEscape`), but as we'll see in a moment, Shiny will usually do this for you automatically.
+
+### HTML tag vocabulary
+
+That concludes our whirlwind tour of HTML syntax. I've glossed over some minutiae, but by and large, this is all anyone needs to know about the structure of HTML documents, unless they're building a web browser.
+
+The much larger part of learning HTML is getting to know the actual tags that are available to you, what attributes they offer, and how they work with each other.
+
+### Expressing HTML in R
+
+
+
+
+
+
+## Customizing with CSS and JavaScript
+
+The native languages of the web are HTML (for content), CSS (for styling), and JavaScript (for behavior). Shiny is designed to be accessible for R users who aren't familiar with any of those languages. But if you do speak these languages, you can take full advantage of them with Shiny to customize your apps or extend the Shiny framework.
+
+
 
 * Custom CSS
 * www directory
