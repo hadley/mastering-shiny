@@ -26,7 +26,7 @@ For example, a typical call to `sliderInput` might look something like this:
 shiny::sliderInput("min", "Limit (minimum)", min = 0, max = 100, value = 50)
 ```
 
-```{r echo=FALSE, fig.height=0.2, message=FALSE, cache=TRUE}
+```{r echo=FALSE, fig.height=0.2, message=FALSE, cache=FALSE}
 
 library(shiny)
 shinyApp(

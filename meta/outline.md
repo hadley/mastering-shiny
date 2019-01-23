@@ -1,8 +1,7 @@
-This is the work-in-progress repo for the book _Mastering Shiny_ by Joe Cheng.
-
-Built with [bookdown](https://bookdown.org/yihui/bookdown/).
-
-## Table of contents
+---
+title: "Mastering Shiny - Outline"
+output: html_document
+---
 
 1. Shiny 101
     1. Your first Shiny app
