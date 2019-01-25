@@ -78,7 +78,7 @@ Think of it this way. The line `counter <- startingValue` defines a variable. To
 
 This is the way things work by default in R, and it's called _lexical scoping_. It's called "lexical" because you can figure out the relationships between different variable scopes by looking at the positions of curly braces in the source code. (In case you're curious, the other type of scoping is called "dynamic scoping" and it's also used in R, though in smaller doses. See the `base::with` function for one example of dynamic scoping.)
 
-Shiny relies heavily on lexical scoping to allow reactive inputs, expressions, outputs, and observers to have relationships with each other, as we'll see soon.
+Shiny relies heavily on lexical scoping to allow reactive inputs, expressions, outputs, and observers to have relationships with each other, as we'll soon see.
 
 ## Prerequisite 2: Side effects
 
@@ -91,6 +91,108 @@ _Side effects_ are what we call the kinds of actions in the second category. Unl
 
 As a shorthand, you can think of functions without side effects as _calculations_, and functions with side effects as _actions_.^[Computer scientists and Haskell programmers refer to functions without side effects as "pure" and functions with side effects as "impure"; though their definition of side effects includes the reading of any variable or state that isn't a function argument. For Shiny purposes, we don't need to be so strict.] 
 
-As we learn to write more complicated Shiny apps, it's important to divide your code into calculations and actions. Shiny has opinions about what reactive abstractions you should use to wrap each kind of code, and if you structure your app in accordance with those opinions you'll end up with code that's more reliable, better performing, and easier to maintain.
+As we learn to write more complicated Shiny apps, it's important to think about your code in terms of calculations and actions. Shiny has opinions about what reactive abstractions you should use to wrap each kind of code, and if you structure your app in accordance with those opinions you'll end up with code that's more reliable, better performing, and easier to maintain.
 
 
+
+## (Re-)Introducing reactive programming
+
+With those out of the way, let's talk about reactive programming.
+
+Reactive programming is primarily a style of programming that emphasizes _values that change over time_, and _calculations and actions that depend on those values_.
+
+In one sense, all programmers are used to "values that change over time"--they're called "variables", right?
+
+```{r}
+temp <- 0
+print(x)
+temp <- 10
+print(x)
+```
+
+"See, the value of `x` just changed from 10 to 20!"
+
+Yes, it's true, variables in R represent values and they can change over time. But they're not particularly designed to help you when their values change.
+
+```{r}
+temp_celsius <- 0
+temp_fahrenheit <- (temp_celsius * 9/5) + 32
+print(temp_fahrenheit)
+temp_celsius <- 10
+print(temp_fahrenheit)
+```
+
+`temp_celsius` has changed, but unless you take special action, any derived values like `temp_fahrenheit` remain unchanged and are now out of date. Reactive programming is a way of structuring your R code so that relationships between changing values (like `temp_celsius`) and the derived expressions that rely on them (like `temp_fahrenheit`) are detected and automatically maintained.
+
+(TODO: Celsius/Fahrenheit isn't the best example because ideally it'd work bidirectionally)
+
+Let's start with the reactive equivalent of variables.
+
+### Reactive values: values that change over time
+
+(TODO: Start with the most conceptually simple (reactiveVal) or the most common/useful/concrete (input)? How much to even explain here?)
+
+There are several types of reactive value objects in Shiny. By far the most common of these is **input**. Anyone who's written a single Shiny app has seen the `input` object, which is provided as an argument to your Shiny app's server function. It represents the collective input received from your app's user interface, and you access individual input values from it with the same operators you'd use for a named list, e.g. `input$x` or `input[["x"]]` for an input named `x`.
+
+The values in `input` change whenever something happens in the user interface. Because `input` is intended to be a reflection of the state of the user interface, you can read from it but you can't write to it (at least not directly, see chapter TODO). If you attempt `input$x <- 20`, you'll get an error.
+
+Don't be fooled, though: while `input$x` looks like reading a normal value from a normal list, there's something very important going on under the hood. In order to understand what that is, we need to talk about who is doing the reading.
+
+Generally, R functions and variables are totally agnostic to, and in fact ignorant of, who/what is calling or reading them. When an R function is invoked, it runs and returns a value. When a variable is read, it doesn't matter to the variable why that read is happening. In reactive programming, the situation is very different.
+
+If a read of a regular variable is asking "What's the value of `x`?", reading a reactive value is asking "What's the value of `input$x`? **And also notify me the next time `input$x` changes, okay?**"
+
+Now let's shift gears and talk about who or what the reader is, and what will happen when they're notified of changes in `input$x`.
+
+There are two fundamental types of reactive _consumers_ (what we referred to as "readers" just now) in Shiny. One type is for actions (with side effects), the other is for calculations (no side effects).
+
+### Observers: Actions that execute automatically
+
+(TODO: Why did I choose `input` over `reactiveVal` above, but now I'm choosing `observe` over `output$foo`??)
+
+An _observer_ is one type of reactive consumer. It takes a code block that has a side effect of some kind. Here's an observer that prints the value of `x` every time it changes:
+
+```{r eval=FALSE}
+observe({
+  message("We're about to print x:")
+  print(input$x)
+})
+```
+
+This code block does three things:
+
+1. Prints out the message `"We're about to print x:"`
+2. Prints the value of `input$x`
+3. Subscribes to be notified of the next change to `input$x` (this subscription happens automatically, just by reading `input$x`)
+
+When `input$x` changes, and this observer is notified, it requests that the Shiny runtime run its code block again, and the three steps above will repeat. Note that it's not just the single line `print(input$x)` that re-runs, but the entire code block. The unit of granularity for reactivity, in this case, is the whole observer rather than any particular line of code.
+
+### Reactive expressions: Smart calculations
+
+A _reactive expression_ is the other type of reactive consumer. While observers model actions that have side effects, reactive expressions model calculations that don't have side effects. (There's nothing that prevents you from putting side effects in your reactive expressions, but it's generally a bad idea.)
+
+Here's a very simple reactive expression that generates a sequence of numbers based on `input$x`.
+
+```{r eval=FALSE}
+up_to_x <- reactive({
+  seq_len(input$x)
+})
+```
+
+
+
+<!--
+The simplest type of reactive value is the `reactiveVal` object. Think of it as the reactive equivalent of a variable. Compare the syntax of a regular variable with that of a `reactiveVal`:
+
+```r
+x <- 10  # Defining a regular variable
+x <- 20  # Writing to a regular variable
+x        # Reading a regular variable
+
+y <- reactiveVal(10)  # Defining a reactiveVal
+y(20)                 # Writing to a reactiveVal
+y()                   # Reading a reactiveVal
+```
+
+This code won't work if typed directly in the R console, for reasons we'll discuss in the next section. For now, just take note of the strange syntax we need to use for `reactiveVal`. To write, we call it like a function _with_ an argument; to read, we call it like a function _without_ an argument.
+-->
