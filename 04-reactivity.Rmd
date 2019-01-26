@@ -195,11 +195,32 @@ So far we've learned that reactive expressions are _reactive_: they know when th
 
 The final important property of reactive expressions is that they _cache_ their most recent value. If you're not familiar with the term "cache", it means keeping a previously retrieved (or in this case, calculated) result in hand so that it can be used to satisfy future requests.
 
-The first time a reactive expression is called, it will execute its code body, and depending on what that code does, it might take a significant amount of time. But when the calculation is complete, the resulting value will be both returned to the caller _and_ remembered by the reactive expression. Subsequent calls to the reactive expression take essentially no time at all, as the saved value can be returned instantly. If a reactive expression depends on reactive values or expressions, then any changes to those will cause the cached value to be discarded. When that happens, the next call to the reactive expression will again result in an actual calculation, which will again be saved for subsequent calls.
+The first time a reactive expression is called, it will execute its code body, and depending on what that code does, it might take a significant amount of time. But when the calculation is complete, the resulting value will be both returned to the caller _and_ remembered by the reactive expression. Subsequent calls to the reactive expression take essentially no time at all, as the saved value can be returned instantly. If a reactive expression depends on reactive values or expressions, then any changes to those will cause the cached value to be discarded. When that happens, the next call to the reactive expression will again cause an actual calculation, whose result will then be saved for subsequent calls.
 
-These particular properties--lazy, caching, reactivity-aware, side-effect-free--work together beautifully to give us an elegant and versatile building block for creating web applications around data analyses.
+These particular properties--laziness, caching, reactivity, and lack of side effects--combine to give us an elegant and versatile building block for reactive programming.
 
-## Putting the pieces together
+### Outputs
+
+You may wonder how Shiny outputs fit into this picture. By outputs, I'm referring to code like this:
+
+```{r eval=FALSE}
+output$text <- renderText({
+  paste(up_to_x(), collapse = ", ")
+})
+```
+
+You've seen that outputs can successfully read reactive values (like inputs) and reactive expressions. So are they reactive expressions? Or are they observers?
+
+The answer is neither, per se. Reactive expressions and observers (and reactive values) are _primitives_ of reactive programming, meaning, they are fundamental building blocks. Outputs, on the other hand, are a feature of Shiny that is built on top of those reactive primitives. The details of how they are implemented are not that important, but it is important to know their characteristics.
+
+Most importantly, outputs are reactive consumers. Output code is allowed to read reactive values like `input$x` or reactive expressions like `up_to_x()`, and the output will know when those reactive dependencies change.
+
+Whereas observers execute eagerly and reactive expressions execute lazily, outputs are somewhere in between. When an output's corresponding UI element is visible in the browser, outputs execute eagerly; that is, once at startup, and once anytime their relevant inputs or reactive expressions change. However, if their UI element becomes hidden (e.g. it is located on a `tabPanel` that is not active, or `removeUI` is called to actively remove it from the page) then Shiny will automatically suspend (pause) that output from reactively executing. (In rare cases, you may prefer to process even outputs that aren't hidden. You can use the `outputOptions()` function's `suspendWhenHidden` to opt out of the automatic suspension feature on an output-by-output basis.)
+
+We also know that observers should be used for side effects (actions), and reactive expressions for their return values (calculations). Again, outputs are somewhere in between. Depending on the `renderXXX` function you use to wrap it, your render code block may need to return a value and/or perform a side effect. For example, `renderText` expects you to return a string, while `renderPrint` expects you to make calls to `print()`; and `renderPlot` expects you to either draw a plot to the active graphics device or return a plottable object (like a ggplot2 object).
+
+Though outputs allow (and may even require) side effects, this doesn't mean you should include just any side effects in your output code. Shiny assumes that the whole code block of an output exists only in service of populating that output. If your output code block contains logic whose side effects are important for reasons apart from the actual output, you should extract that logic into a separate observer. That way, you can be confident it will execute regardless of whether the output is visible or not, now or in the future.
+
 
 
 <!--
