@@ -171,7 +171,7 @@ When `input$x` changes, and this observer is notified, it requests that the Shin
 
 A _reactive expression_ is the other type of reactive consumer. While observers model actions that have side effects, reactive expressions model calculations that don't have side effects. (There's nothing that prevents you from putting side effects in your reactive expressions, but it's generally a bad idea.)
 
-Here's a very simple reactive expression that generates a sequence of numbers based on `input$x`.
+Here's a very simple reactive expression named `up_to_x` that generates a sequence of numbers based on `input$x`.
 
 ```{r eval=FALSE}
 up_to_x <- reactive({
@@ -179,6 +179,27 @@ up_to_x <- reactive({
 })
 ```
 
+The mere act of creating this reactive expression doesn't cause any code to execute. Rather, it just means that this sequence of numbers is available for retrieval, by calling `up_to_x` like a function. In the following snippet, the code contained in `up_to_x` (from the above snippet) is not executed until the line `print(up_to_x())` is reached, as this is the first time the result of `up_to_x` is actually requested. (Because of this property, we say that reactive expressions are _lazy_ as opposed to _eager_.)
+
+```{r eval=FALSE}
+observe({
+  print(up_to_x())
+})
+```
+
+This observer prints the sequence to the console whenever `up_to_x` changes (i.e. whenever `input$x` changes, because `up_to_x` reads `input$x`).
+
+Just like with reading reactive values, you can't just walk up to a reactive expression and ask for its value, and for the same reason: because `up_to_x()` is more than just "Can you calculate the current value of `up_to_x`?"; instead, it's "Can you calculate the current value of `up_to_x`? _And also notify me if something about this sequence changes?_" Reactive expressions (like reactive values) can only be called by reactive consumers.
+
+So far we've learned that reactive expressions are _reactive_: they know when the reactive values they've read have changed, and they alert their readers when their own value may have changed. They're also _lazy_: they contain code, but that code doesn't execute unless/until someone tries to actually retrieve the value of the reactive expression (by calling it like a function).
+
+The final important property of reactive expressions is that they _cache_ their most recent value. If you're not familiar with the term "cache", it means keeping a previously retrieved (or in this case, calculated) result in hand so that it can be used to satisfy future requests.
+
+The first time a reactive expression is called, it will execute its code body, and depending on what that code does, it might take a significant amount of time. But when the calculation is complete, the resulting value will be both returned to the caller _and_ remembered by the reactive expression. Subsequent calls to the reactive expression take essentially no time at all, as the saved value can be returned instantly. If a reactive expression depends on reactive values or expressions, then any changes to those will cause the cached value to be discarded. When that happens, the next call to the reactive expression will again result in an actual calculation, which will again be saved for subsequent calls.
+
+These particular properties--lazy, caching, reactivity-aware, side-effect-free--work together beautifully to give us an elegant and versatile building block for creating web applications around data analyses.
+
+## Putting the pieces together
 
 
 <!--
