@@ -223,8 +223,13 @@ Though outputs allow (and may even require) side effects, this doesn't mean you 
 
 ## Putting the pieces together
 
-With just reactive inputs/values, reactive expressions, and observers/outputs, we have a rich vocabulary for expressing calculations and outputs. With traditional object-oriented UI programming, an inordinate amount of effort and complexity comes from explicitly managing the relationships between different pieces of UI, and cascading sets of variables that depend on the UI and on each other. We want our code to be fast, correct, and easy to write/maintain, but when creating nontrivial interactive data displays, we're lucky to achieve even two out of those three.
+With traditional object-oriented UI programming, an inordinate amount of effort and complexity comes from explicitly managing the relationships between different pieces of UI, and cascading sets of variables that depend on the UI and on each other. We want our code to be fast, correct, and easy to write/maintain, but when creating nontrivial interactive data displays, we're lucky to achieve even two out of those three.
 
+In contrast, with just reactive inputs/values, reactive expressions, and observers/outputs, we have a rich vocabulary for expressing calculations and outputs, and that forms the foundation for a better way to do UI programming. As long as we can break up our logic into distinct-but-related calculations, actions, and outputs, Shiny's reactive framework will automatically handle the tedious and error-prone task of deciding what pieces need to be updated, and when.
+
+Shiny is designed to let you get started writing apps without fully understanding how reactive programming works; you generally wrap conventional looking R code in `reactive({...})` or `renderXXX({...})`, and everything "just works". This contributes to the initial impression that Shiny is "magic", which thrills beginners but triggers immediate skepticism in expert programmers. Software feels magical when the user is unable to form a mental model for how it works; the greater the gap between what the software does and the user's ability to explain it does it, the more magical the software feels.
+
+Unfortunately, magic in software usually leads to disillusionment. Without a solid mental model to reason with, it's extremely difficult to know how the software will react when you venture beyond its demos and examples. And when things don't go the way you expect, debugging is almost impossible.
 
 
 
