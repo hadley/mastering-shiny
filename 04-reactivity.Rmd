@@ -221,15 +221,61 @@ We also know that observers should be used for side effects (actions), and react
 
 Though outputs allow (and may even require) side effects, this doesn't mean you should include just any side effects in your output code. Shiny assumes that the whole code block of an output exists only in service of populating that output. If your output code block contains logic whose side effects are important for reasons apart from the actual output, you should extract that logic into a separate observer. That way, you can be confident it will execute regardless of whether the output is visible or not, now or in the future.
 
-## Putting the pieces together
+## Demystifying reactive programming
 
-With traditional object-oriented UI programming, an inordinate amount of effort and complexity comes from explicitly managing the relationships between different pieces of UI, and cascading sets of variables that depend on the UI and on each other. We want our code to be fast, correct, and easy to write/maintain, but when creating nontrivial interactive data displays, we're lucky to achieve even two out of those three.
+With traditional object-oriented UI programming, an inordinate amount of effort and complexity comes from explicitly managing the relationships between different pieces of UI, and cascading sets of variables that depend on the UI and on each other. We want our code to be fast, correct, and easy to write/maintain. But when creating complex interactive data displays using traditional techniques, we're lucky to achieve even two out of those three. (TODO: This would be more powerful with illustrative examples.)
 
 In contrast, with just reactive inputs/values, reactive expressions, and observers/outputs, we have a rich vocabulary for expressing calculations and outputs, and that forms the foundation for a better way to do UI programming. As long as we can break up our logic into distinct-but-related calculations, actions, and outputs, Shiny's reactive framework will automatically handle the tedious and error-prone task of deciding what pieces need to be updated, and when.
 
 Shiny is designed to let you get started writing apps without fully understanding how reactive programming works; you generally wrap conventional looking R code in `reactive({...})` or `renderXXX({...})`, and everything "just works". This contributes to the initial impression that Shiny is "magic", which thrills beginners but triggers immediate skepticism in expert programmers. Software feels magical when the user is unable to form a mental model for how it works; the greater the gap between what the software does and the user's ability to explain it does it, the more magical the software feels.
 
-Unfortunately, magic in software usually leads to disillusionment. Without a solid mental model to reason with, it's extremely difficult to know how the software will react when you venture beyond its demos and examples. And when things don't go the way you expect, debugging is almost impossible.
+Unfortunately, magic in software usually leads to disillusionment. Without a solid mental model to reason with, it's extremely difficult to predict how the software will act when you venture beyond the borders of its demos and examples. And when things don't go the way you expect, debugging is almost impossible. (TODO: Examples of bad magic??)
+
+But sometimes there is good magic in software. As Tom Dale said of his Ember.js JavaScript framework: "We do a lot of magic, but it's _good magic_, which means it decomposes into sane primitives." This is the quality we aspire to for Shiny, especially when it comes to reactive programming. When you peel back the layers of reactive programming, you won't find a pile of heuristics, special cases, and hacks; but rather, a clever but ultimately fairly straightforward mechanism for automatic dependency tracking, that will--I hope!--cease to feel like magic at all.
+
+### How dependency tracking works
+
+The most striking aspect of reactive programming in Shiny is that a reactive expression, observer, or output "knows" which reactive values/inputs and reactive expressions it depends on. For example:
+
+```{r eval=FALSE}
+output$plot <- renderPlot({
+  plot(head(cars, input$rows))
+})
+```
+
+When people are first exposed to Shiny code like this, the most common question is, "How does Shiny know that `output$plot` reads `input$rows`?" And the most common guess is that Shiny parses the body of the `renderPlot` code block, looking for symbols that seem to be relevant for reactivity, the same way a human being would. If that strikes you as a fragile approach, I agree. Even a change as simple as giving `input` a new name would break things:
+
+```{r eval=FALSE}
+output$plot <- renderPlot({
+  x <- input
+  plot(head(cars, x$rows))
+})
+```
+
+So, no, that's not the way Shiny works. If that approach could be called "static analysis", what Shiny actually does might be called "dynamic instrumentation".
+
+#### Reactive context
+
+Before the `plot` output begins executing, it creates an object that's internal to Shiny called a _reactive context_. The reactive context doesn't represent the `plot` output as a whole, but just a single execution of the output. If, over the life of a Shiny session, the plot is (re)rendered a dozen times, then a dozen reactive contexts will have been created.
+
+The Shiny package has a top-level variable (like a global variable, but one only visible to code inside the Shiny package) that is always pointing to the "current" or "active" reactive context. The `plot` output assigns its new context to this variable, then executes its code block, then restores the previous value of the variable. Basically like this (for illustrative purposes only) code sketch:
+
+```{r eval=FALSE}
+# Create the new context
+ctx <- ReactiveContext$new()
+
+# Set as the current context (but save the prev context)
+prev_ctx <- shiny:::currentContext
+shiny:::currentContext <- ctx
+
+# Actually run user code here
+renderPlot({ ... })
+
+# Restore the prev context
+shiny:::currentContext <- prev_ctx
+```
+
+
 
 
 
