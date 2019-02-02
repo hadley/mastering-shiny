@@ -199,6 +199,16 @@ The first time a reactive expression is called, it will execute its code body, a
 
 These particular properties--laziness, caching, reactivity, and lack of side effects--combine to give us an elegant and versatile building block for reactive programming.
 
+#### Reactive graphs
+
+Reactive expressions are unique among reactive primitives, in that they are the only construct that can be both read other objects (i.e. act as a consumer), and be read from (i.e. act as a source). Observers can read/consume values, but they cannot offer a value to anyone directly. Reactive values can be read, but since they are essentially just named values, they have no notion of reading anything else. If the reactive world was limited to reactive values and observers, you could line up all the reactive values in one column and all the observers in a second column, and then draw many-to-many relationships between the two columns.
+
+(TODO: diagram)
+
+Because reactive expressions can act as both source and consumer, you can have reactive expressions that read from/depend on other reactive expressions, and those reactive expressions can read from/depend on still other reactive expressions, and so on. So reactive expressions don't just introduce an additional flat list of connection points between values and observers, but rather, allow us to build arbitrarily deeply layered graphs of reactive objects, with values on the left edges and observers on the right edges, and networks of reactive expressions in between.
+
+These intermediate networks aren't strictly necessary for reactive programming, and in fact, many JavaScript reactive UI frameworks make do with only reactive values and observers (and outputs, introduced below). But for our purposes, reactive expressions and the intermediate networks they enable are a huge boon to both organizing our application logic and keeping our applications responsive.
+
 ### Outputs
 
 You may wonder how Shiny outputs fit into this picture. By outputs, I'm referring to code like this:
@@ -256,9 +266,9 @@ So, no, that's not the way Shiny works. If that approach could be called "static
 
 #### Reactive context
 
-Before the `plot` output begins executing, it creates an object that's internal to Shiny called a _reactive context_. The reactive context doesn't represent the `plot` output as a whole, but just a single execution of the output. If, over the life of a Shiny session, the plot is (re)rendered a dozen times, then a dozen reactive contexts will have been created.
+Before the `plot` output begins executing, it creates an object that's internal to Shiny called a _reactive context_. (As an app author, you'll never create or see one of these objects directly.) The reactive context doesn't represent the `plot` output as a whole, but just a single execution of the output. If, over the life of a Shiny session, the plot is (re)rendered a dozen times, then a dozen reactive contexts will have been created.
 
-The Shiny package has a top-level variable (like a global variable, but one only visible to code inside the Shiny package) that is always pointing to the "current" or "active" reactive context. The `plot` output assigns its new context to this variable, then executes its code block, then restores the previous value of the variable. Basically like this (for illustrative purposes only) code sketch:
+The Shiny package has a top-level variable (like a global variable, but one only visible to code inside the Shiny package) that is always pointing to the "current" or "active" reactive context. The `plot` output assigns its new context to this variable, then executes its code block, then restores the previous value of the variable. Basically like this code sketch (for illustrative purposes only):
 
 ```{r eval=FALSE}
 # Create the new context
@@ -275,6 +285,20 @@ renderPlot({ ... })
 shiny:::currentContext <- prev_ctx
 ```
 
+The purpose of the context object is to provide a rendezvous point between the reactive consumer object that is executing, and the reactive values and expressions that are being read. There are two important methods on context objects:
+
+1. `invalidate()` - Informs the context that a value or expression that it read, is now potentially out of date (invalidated); and so whatever reactive consumer object owns this context should also be considered out of date.
+2. `onInvalidated(func)` - Asks the context to invoke the given callback function in the future, if and when `invalidate()` is called.
+
+#### Intercepting reads
+
+If you've read carefully so far, you may be able to see where this is going. While a reactive consumer object (reactive expression, observer, or output) is executing, it creates a context object and puts it in a globally accessible variable, making it possible for any other code to invalidate that context at any point in the future.
+
+Reactive values and expressions use this context object to connect the dots between reactive dependencies. When a reactive source is read--using either `input$x` or `up_to_date()`--not only is the appropriate value returned, but a side effect also silently occurs. Each reactive value or expression maintains a list of contexts that depend on its current value being up-to-date; each read of the reactive value or expression causes the current context object to be added to that list.
+
+Each time a reactive value is modified, or a reactive expression is invalidated, it calls `invalidate()` on each dependent context. This invalidates the corresponding reactive consumer objects.
+
+In summary, the way Shiny "magically" establishes the connections between dependency and dependant really comes to these two simple mechanisms: each reactive consumer creates a context object and installs it in a global location during execution, and each reactive source augments every read operation with a grabbing of the context object and saving it for later invalidation. There is no way that Shiny can accidentally overlook a reactive dependency relationship, or establish one erroneously (though there are a few ways to _instruct_ Shiny to intentionally overlook reactive dependencies, as we'll see later).
 
 
 
