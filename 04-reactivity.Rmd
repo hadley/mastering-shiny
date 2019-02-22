@@ -264,7 +264,7 @@ output$plot <- renderPlot({
 
 So, no, that's not the way Shiny works. If that approach could be called "static analysis", what Shiny actually does might be called "dynamic instrumentation".
 
-#### Reactive context
+#### Reactive contexts
 
 Before the `plot` output begins executing, it creates an object that's internal to Shiny called a _reactive context_. (As an app author, you'll never create or see one of these objects directly.) The reactive context doesn't represent the `plot` output as a whole, but just a single execution of the output. If, over the life of a Shiny session, the plot is (re)rendered a dozen times, then a dozen reactive contexts will have been created.
 
@@ -299,6 +299,116 @@ Reactive values and expressions use this context object to connect the dots betw
 Each time a reactive value is modified, or a reactive expression is invalidated, it calls `invalidate()` on each dependent context. This invalidates the corresponding reactive consumer objects.
 
 In summary, the way Shiny "magically" establishes the connections between dependency and dependant really comes to these two simple mechanisms: each reactive consumer creates a context object and installs it in a global location during execution, and each reactive source augments every read operation with a grabbing of the context object and saving it for later invalidation. There is no way that Shiny can accidentally overlook a reactive dependency relationship, or establish one erroneously (though there are a few ways to _instruct_ Shiny to intentionally overlook reactive dependencies, as we'll see later).
+
+
+## The reactive graph illustrated
+
+Here's an illustrated version of a reactive graph.
+
+```{r echo=FALSE,out.width="70%"}
+knitr::include_graphics("images/04-reactivity/reactivity-graph-00.png")
+```
+
+In the diagram above, the shapes on the left are reactive inputs and values, the ones in the middle are reactive expressions, and on the right are observers and outputs. (For the rest of this discussion, we'll simply refer to outputs as observers, rather than saying "observers and/or outputs" every time.)
+
+The lines between the shapes are directional, with the arrows indicating the direction of reactivity--we'll see in a moment why this means the arrows go from left to right, instead of from right to left.
+
+Now we'll follow along, step by step, as a Shiny app is loaded and these reactive relationships are discovered, formed, destroyed, and reformed.
+
+### A session begins
+
+When a reactive app is visited and a session begins, the server function is executed and the reactive objects are created. However, Shiny has no _a priori_ knowledge of the relationships (lines) between the objects. As you can see in the following diagram, the shapes are all present but there are no lines yet.
+
+```{r echo=FALSE,out.width="70%"}
+knitr::include_graphics("images/04-reactivity/reactivity-graph-01.png")
+```
+
+Note that all of the reactive expressions and observers are a darker color. This indicates that they are in _invalidated_ state, which is the initial state for these objects. When an observer is in this state, it means it needs to be executed as soon as Shiny has a chance to. When a reactive expression is in this state, it means that the next time that reactive expression is read, its code will need to be executed (i.e., no result value is currently cached for that reactive expression).
+
+### Execution begins
+
+Now that the session has been initialized, we can begin the execution phase. In this phase, Shiny picks an observer (_not_ a reactive expression) and starts executing it. In the diagrams below, we use a green fill to indicate when a node is actively executing.
+
+```{r echo=FALSE,out.width="70%"}
+knitr::include_graphics("images/04-reactivity/reactivity-graph-02.png")
+```
+
+(You may wonder how Shiny decides which of the several invalidated observers/outputs to execute. The short answer is that you should act as if it's random. Ideally, your observers and especially outputs won't care what order they execute in, as each will function independently from the others. However, if you do have observers whose side effects must always happen in a certain relative order, you can use the `observe` function's `priority` argument to dictate that order for observers. You can also control the priority of outputs by calling the `outputOptions()` function with a `priority` argument.)
+
+### Reading a reactive expression
+
+During an observer's execution, it may read one or more reactive expressions. As soon as this occurs, a dependency/dependent relationship is established between the reactive expression and the observer, represented below by the arrow. The arrow points from left to right; this is the direction that reactivity will flow, as we'll see in a moment.
+
+As we said, all reactive expressions start out in invalidated state (represented by the grey fill), including the one this observer is now trying to access. So in order to return a value, the reactive expression needs to execute its code, which it starts doing now. We fill the reactive expression with green to represent that it's running.
+
+Note that the observer is still green: just because the reactive expression is now running, doesn't mean that the observer has finished. The observer is waiting on the reactive expression to return its value so its own execution can continue, just like a regular function call in R.
+
+```{r echo=FALSE,out.width="70%"}
+knitr::include_graphics("images/04-reactivity/reactivity-graph-03.png")
+```
+
+### Reading an input
+
+This particular reactive expression happens to read a reactive input. Again, a dependency/dependent relationship is established, so we add another arrow.
+
+Unlike reactive expressions and observers, reactive inputs have nothing to execute, since they simply represent a variable. So the input doesn't turn green, we just immediately get its current value.
+
+```{r echo=FALSE,out.width="70%"}
+knitr::include_graphics("images/04-reactivity/reactivity-graph-04.png")
+```
+
+### Reactive expression completes
+
+In our example, the reactive expression reads another reactive expression, which in turn reads another input. We'll skip over the blow-by-blow description of those steps, since they're just a repeat of what we've already described.
+
+When the reactive expression has completed executing, it saves (caches) the resulting value internally before returning it to the observer that requested it. Now that the reactive expression has finished executing, it's no longer in invalidated (grey) or running (green) state; rather, it's in idle (white) state. When a reactive expression reaches this state, it means it's up-to-date and will not re-execute its code even if other reactive expressions or observers request its value. Instead, it can instantly return the value it cached during its most recent execution.
+
+```{r echo=FALSE,out.width="70%"}
+knitr::include_graphics("images/04-reactivity/reactivity-graph-05.png")
+```
+
+### Observer completes
+
+Now that the reactive expression has returned its value to the observer, the observer can complete executing its code. When this has completed, it too enters the idle state, so we change its fill color to white.
+
+```{r echo=FALSE,out.width="70%"}
+knitr::include_graphics("images/04-reactivity/reactivity-graph-06.png")
+```
+
+### The next observer executes
+
+Now that Shiny has completed execution of the first observer, it chooses a second one to execute. Again, it turns green, and may read values from invalidated reactive expressions, which will turn green, and so on. This cycle will repeat until every invalidated observer enters the idle (white) state.
+
+```{r echo=FALSE,out.width="70%"}
+knitr::include_graphics("images/04-reactivity/reactivity-graph-07.png")
+```
+
+### Execution completes, outputs flushed
+
+At last, all of the observers have finished execution and are now idle. This round of reactive execution is complete, and nothing will happen with this session until some external force acts on the system (e.g. the user of the Shiny app moving a slider in the user interface).
+
+```{r echo=FALSE,out.width="70%"}
+knitr::include_graphics("images/04-reactivity/reactivity-graph-08.png")
+```
+
+I didn't mention it before, but when Shiny outputs finish executing, they don't immediately update the output in the browser. Instead, all of the new outputs are held until this point, at which time they are "flushed" to the browser all at once. (It'd be nice if Shiny could let the app author decide whether outputs update one by one or all at once, but as of this writing, Shiny only supports the latter.)
+
+
+```{r echo=FALSE,out.width="70%"}
+knitr::include_graphics("images/04-reactivity/reactivity-graph-09.png")
+```
+
+```{r echo=FALSE,out.width="70%"}
+knitr::include_graphics("images/04-reactivity/reactivity-graph-10.png")
+```
+
+```{r echo=FALSE,out.width="70%"}
+knitr::include_graphics("images/04-reactivity/reactivity-graph-11.png")
+```
+
+```{r echo=FALSE,out.width="70%"}
+knitr::include_graphics("images/04-reactivity/reactivity-graph-12.png")
+```
 
 
 
