@@ -10,6 +10,7 @@ The biggest drawback of reactive programming is that it is not intuitive at firs
 
 * Section \@ref(motivation) discusses the motivation behind reactive programming, and the mental shift that's required to practice it successfully.
 * Section \@ref(primitives) explains the three main building blocks of reactive programming: reactive values, reactive expressions and observers/outputs.
+* Section \@ref(example) demonstrates reactive programming in action by refactoring a real-world R script into a reactive application.
 * Section \@ref(dependency-tracking) reveals the (anticlimactically simple) mechanism that Shiny uses to determine the dependency/dependent relationships between reactive objects.
 * Section \@ref(step-through) walks step-by-step through the execution of a reactive app, via many diagrams.
 
@@ -17,18 +18,7 @@ The biggest drawback of reactive programming is that it is not intuitive at firs
 
 Reactive programming is primarily a style of programming that emphasizes _values that change over time_, and _calculations and actions that depend on those values_.
 
-In one sense, all programmers are used to "values that change over time"--they're called "variables", right?
-
-```{r}
-x <- 0
-print(x)
-x <- 10
-print(x)
-```
-
-"See, the value of `x` just changed from 0 to 10!"
-
-Yes, it's true, variables in R represent values and they can change over time. But they're not particularly designed to help you when their values change.
+In one sense, all programmers are used to "values that change over time"--they're called "variables", right? Variables in R represent values and they can change over time. But they're not particularly designed to help you when their values change.
 
 ```{r}
 temp_celsius <- 10
@@ -36,14 +26,14 @@ is_freezing <- temp_celsius <= 0
 print(is_freezing)
 ```
 
-So far so good--`temp_celsius` is `10`, and `is_freezing` is `TRUE`. But once we change `temp_celsius`:
+So far so good--the `temp_celsius` variable has the value `10`, and the `is_freezing` variable has the value `TRUE`. But once we change `temp_celsius`:
 
 ```{r}
 temp_celsius <- -3
 print(is_freezing)
 ```
 
-`temp_celsius` has changed, but unless you take special action, any derived values like `is_freezing` remain unchanged and are now out of date.
+`temp_celsius` has changed, but unless you take special action, any derived variables like `is_freezing` remain unchanged and are now out of date.
 
 Reactive programming is a way of structuring your R code so that relationships between changing values (like `temp_celsius`) and the derived expressions that rely on them (like `is_freezing`) are automatically detected and maintained.
 
@@ -201,6 +191,138 @@ Whereas observers execute eagerly and reactive expressions execute lazily, outpu
 We also know that observers should be used for side effects (actions), and reactive expressions for their return values (calculations). Again, outputs are somewhere in between. Depending on the `renderXXX` function you use to wrap it, your render code block may need to return a value and/or perform a side effect. For example, `renderText` expects you to return a string, while `renderPrint` expects you to make calls to `print()`; and `renderPlot` expects you to either draw a plot to the active graphics device or return a plottable object (like a ggplot2 object).
 
 Though outputs allow (and may even require) side effects, this doesn't mean you should include just any side effects in your output code. Shiny assumes that the whole code block of an output exists only in service of populating that output. If your output code block contains logic whose side effects are important for reasons apart from the actual output, you should extract that logic into a separate observer. That way, you can be confident it will execute regardless of whether the output is visible or not, now or in the future.
+
+## An example: CRAN download logs {#example}
+
+Now let's walk through an example of an ordinary R script for downloading, aggregating, and visualizing some data.
+
+This script downloads and parses the download logs for a specific date. The logs are in compressed CSV format and contain one row per download; on 2019-02-20, the number of rows was 3,437,899.
+
+The columns are:
+
+* `date`
+* `time`
+* `size` (in bytes)
+* `r_version`, the version of R, binary packages only
+* `r_arch`, the machine architecture (e.g. `"x86_64"` or `"i386"`), binary packages only
+* `r_os`, the operating system, binary packages only
+* `package`, the package being requested
+* `version`, the exact version of the package being requested
+* `country`
+* `ip_id`, an anonymized identifier for the IP address of the requestor
+
+After downloading the data, the script will tally the number of rows (downloads) with each value in a specified column. For example, if we specify the `package` column, then we get the number of times each package was downloaded; if we specify the `r_os` column, we get the number of downloads from each operating system.
+
+Once the tallying is done, we'll look at this data in a couple of ways. We'll zoom in on the top few most popular values (e.g. the most popular packages):
+
+```{r echo=FALSE, message=FALSE, fig.height=4, fig.width=5.5}
+print(readRDS("images/04-reactivity/top_packages.rds"))
+```
+
+And we'll also visualize all the values to get a sense of the "long tail", to show how quickly the downloads decrease as we move down the list of packages.
+
+```{r echo=FALSE, message=FALSE, fig.height=4, fig.width=5.5}
+print(readRDS("images/04-reactivity/all_downloads.rds"))
+```
+
+Now, on to the code. First, we'll load the libraries we need.
+
+```{r cache=TRUE}
+library(lubridate)
+library(readr)
+library(dplyr)
+library(ggplot2)
+library(gt)
+```
+
+Next, we'll introduce **configuration variables** that can be modified to look at different dates or tally by different dimensions, or to change the number of top values to focus on. (Not to look too far ahead, but these are values we might eventually want to turn into interactive inputs.)
+
+```{r cache=TRUE}
+# A. Configuration variables
+date <- "2019-02-20"
+dimension <- "package"  # r_version, r_arch, r_os, package, country, ip_id
+top_count <- 20L
+```
+
+Now we begin the real work of the script. **Downloading and parsing the data** will be by far the most time-consuming portions, and we'll use `readr::read_csv` to accomplish both in one step.
+
+```{r cache=TRUE,message=FALSE}
+## Downloading and parsing =========
+
+# B. Form URL for downloading
+url <- sprintf("http://cran-logs.rstudio.com/%s/%s.csv.gz", year(date), date)
+
+# C. Download/parse data
+download_data <- read_csv(url)
+```
+
+```{r echo=FALSE}
+attr(download_data, "spec") <- NULL
+str(download_data, 5)
+```
+
+Now that the data is in memory, we will perform the **data manipulation**. The implementation details here are not that important; just understand that we're taking the `download_data` data frame from above, with its 3.4 million rows, and turning it into counts of rows grouped by the dimension in question (`package`).
+
+```{r data_manip,cache=TRUE}
+## Data manipulation =========
+
+# D. Count observations, grouping by the desired dimension
+by_frequency <- download_data %>%
+  pull(dimension) %>%
+  table() %>%
+  sort(decreasing = TRUE) %>%
+  as_tibble() %>%
+  setNames(c(dimension, "downloads"))
+
+# E. Limit to the top `top_count`
+most_frequent <- by_frequency %>%
+  head(top_count)
+```
+
+Here's the resulting `by_frequency` data frame. `most_frequent` is identical, but limited to the top `r top_count` rows.
+
+```{r echo=FALSE}
+str(most_frequent)
+```
+
+Now we're ready to **plot our data**; one bar plot using `most_frequent`, and one line plot using the full `by_frequency`.
+
+```{r ggplots,cache=TRUE,results="hold"}
+## Various outputs =========
+
+# F. Plot the top values
+ggplot(most_frequent, aes_string(x = dimension)) +
+  geom_bar(aes(y = downloads / 1000), stat = "identity") +
+  ylab("Downloads (thousands)") +
+  coord_flip() +
+  scale_x_discrete(limits = rev(most_frequent[[dimension]])) +
+  ggtitle(paste0("CRAN download counts by ", dimension))
+
+# G. Plot all of the counts, by rank ("long tail")
+ggplot(by_frequency, aes(x = seq_along(downloads), y = downloads)) +
+  geom_line() +
+  xlab("Rank") +
+  scale_y_log10() +
+  ggtitle(paste0("CRAN download counts by ", dimension, " rank"))
+```
+
+You can see the entire script at [TODO: LINK].
+
+Again, the steps in this script are:
+
+|Step|Variable       |Description|
+|----|---------------|-----------|
+|A   |`date`, `dimension`, `top_count`|Configuration variables|
+|B   |`url`          |Form URL for downloading|
+|C   |`download_df`  |Download/parse data|
+|D   |`by_frequency` |Count observations, grouping by the desired dimension|
+|E   |`most_frequent`|Limit to the top `top_count`|
+|F   |               |Plot the top values|
+|G   |               |Plot all of the counts|
+
+To transform this code into a Shiny app, we need to answer a few questions:
+
+1. What are the inputs for the user to provide?
 
 ## Demystifying dependency tracking {#dependency-tracking}
 
