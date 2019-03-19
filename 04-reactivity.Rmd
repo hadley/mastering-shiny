@@ -4,7 +4,13 @@
 
 In this chapter, we'll form a mental model of reactive programming. Without reactive programming, Shiny would not exist, and in well-informed hands it is by far the most elegant, robust, and productive way we know of for creating dynamic user interfaces.
 
-The biggest drawback of reactive programming is that it is not intuitive at first. Even experienced R users can have trouble getting their heads around it as they get started with Shiny, and those with deep experience in software engineering may dismiss it as too "magical". But once we've formed an accurate mental model, you'll see that there is nothing to fear.
+The biggest drawback of reactive programming is that it is not intuitive--at first. Even experienced R users can have trouble getting their heads around reactive programming as they get started with Shiny, and those with deep experience in software engineering may feel uncomfortable with a programming paradigm with so much "magic". But once you've formed an accurate mental model, you'll see that reactive programming is actually built on some pretty simple concepts and mechanisms that you can easily reason about.
+
+### Terminology note {-}
+
+Before we go further, please be aware that the term "reactive programming" is a fairly general term in the programming world. While all reactive programming libraries/frameworks/languages are broadly about writing programs that responds to changing values, there is a huge amount of diversity in their design and implementation. For what it's worth, our approach is fairly closely aligned to [Meteor](https://www.meteor.com/) and [MobX](https://mobx.js.org/), and very different than the [ReactiveX](http://reactivex.io/) family or anything that labels itself Functional Reactive Programming.
+
+In this book, whenever we refer to "reactive programming", we are referring specifically to reactive programming as implemented in Shiny. Conversely, if you read any material about reactive programming that isn't specifically about Shiny, it's unlikely that those concepts or even terminology will be relevant to writing Shiny apps.
 
 ## Outline {-}
 
@@ -18,7 +24,7 @@ The biggest drawback of reactive programming is that it is not intuitive at firs
 
 Reactive programming is primarily a style of programming that emphasizes _values that change over time_, and _calculations and actions that depend on those values_.
 
-In one sense, all programmers are used to "values that change over time"--they're called "variables", right? Variables in R represent values and they can change over time. But they're not particularly designed to help you when their values change.
+In one sense, all programmers are used to "values that change over time": they're called "variables", right? Yes, variables in R represent values and they can change over time. But they're not particularly designed to help you when their values change.
 
 ```{r}
 temp_celsius <- 10
@@ -35,7 +41,7 @@ print(is_freezing)
 
 `temp_celsius` has changed, but unless you take special action, any derived variables like `is_freezing` remain unchanged and are now out of date.
 
-Reactive programming is a way of structuring your R code so that relationships between changing values (like `temp_celsius`) and the derived expressions that rely on them (like `is_freezing`) are automatically detected and maintained.
+Reactive programming is a way of structuring your R code so that relationships between changing values (like `temp_celsius`) and the derived expressions that rely on them (like `is_freezing`) can be automatically detected and maintained.
 
 To put it concretely, Shiny apps are interactive: users change input controls (sliders, textboxes, checkboxes), which causes logic to run on the server (reading CSVs or performing database queries, subsetting data, running simulations or models), ultimately resulting in outputs updating (plots, tables, blocks of text, downloadable PDFs). For Shiny apps to be useful, all of the relevant server logic needs to run, and any affected outputs need to update. Otherwise, the user will looking at incorrect information.
 
