@@ -308,7 +308,17 @@ ggplot(by_frequency, aes(x = seq_along(downloads), y = downloads)) +
 
 You can see the entire script at [TODO: LINK].
 
-Again, the steps in this script are:
+To transform this code into a Shiny app, we need to answer a few questions:
+
+### 1. What are the inputs for the user to provide?
+
+Fortunately, our script gathered all the configurable variables at the top: `date`, `dimension`, `top_count`. The only work for us to do here is to use `dateInput`, `selectInput`, and `numericInput`, respectively, in the UI section of our app, and then change references to these variables in the server function to `input$date`, `input$dimension`, and `input$top_count`.
+
+### 2. What are the conceptual "steps" performed in the script?
+
+You can already tell by the code comments above that I've divided the work into discrete steps. Incidentally, this is good practice anyway, as is breaking larger scripts into smaller functions (which I did not do in this case). Whatever form of subdivision you use, breaking down the problem into smaller subproblems makes our code easier to write, read, and debug.
+
+I've summarized these steps in the table below.
 
 |Step|Variable       |Description|
 |----|---------------|-----------|
@@ -320,9 +330,73 @@ Again, the steps in this script are:
 |F   |               |Plot the top values|
 |G   |               |Plot all of the counts|
 
-To transform this code into a Shiny app, we need to answer a few questions:
+This is the breakdown I'm using, but there isn't one single correct arrangement of steps; you may consider steps B and C to really be a single step, or for step D to be composed of multiple steps (e.g. for summarizing, sorting, and converting to a tibble to all be individual steps). These changes wouldn't cause any noticeable change in the readability of our code or the performance of our app.
 
-1. What are the inputs for the user to provide?
+But just because there isn't a single right answer, does _not_ mean there are no wrong answers! We'll discuss some of the factors we want to consider in a section below. [TODO: xref]
+
+### 3. For each of the steps performed: is it a _calculation_, an _output_, or a _task_?
+
+To answer this question, ask yourself two questions: Does this step return a value? And if so, is the return value the _only_ reason this task would ever be useful? If the answer to both of these questions is "yes", then you have a calculation.
+
+For example, in step C, we download and parse the data in one step. Yes, there is a return value--it's the data frame. And yes, the only reason you would call `read_csv(url)` is because you want the data frame.
+
+Note that it might be a different story if we performed the download in a separate `download.file(url, destfile)` step; in that case, downloading the data to a known location might be a useful end, in and of itself. In that case, the downloading could be considered a separate task.
+
+On the other side, step F--plotting the top values--is an output.
+
+Once we've categorized each step, we go through the fairly mechanical process of turning each calculation into a reactive expression, and each task into an observer or output. For example, steps B and C are changed from this:
+
+```{r eval=FALSE}
+# B. Form URL for downloading
+url <- sprintf("http://cran-logs.rstudio.com/%s/%s.csv.gz",
+    year(input$date), input$date)
+
+# C. Download/parse data
+download_data <- read_csv(url)
+```
+
+To this:
+
+```{r eval=FALSE}
+# B. Form URL for downloading
+url <- reactive({
+  sprintf("http://cran-logs.rstudio.com/%s/%s.csv.gz",
+    year(input$date), input$date)
+})
+
+# C. Download/parse data
+download_data <- reactive({
+  read_csv(url())
+})
+```
+
+Rather than assigning the value of `sprintf(...)` to `url`, we create a reactive expression using `reactive()`. And when the `download_data` reactive expression wants to access the URL, it uses `url()` instead of `url`.
+
+For each output, you need to take the additional step of deciding the type of the output (e.g. plot, table, or text) and choosing the output/render function pair that corresponds to that type (`plotOutput`/`renderPlot`, `tableOutput`/`renderTable`, `verbatimTextOutput`/`renderPrint`). Our step F goes from this:
+
+```{r eval=FALSE}
+# F. Plot the top values
+ggplot(most_frequent, aes_string(x = dimension)) +
+  geom_bar(aes(y = downloads / 1000), stat = "identity") +
+  ylab("Downloads (thousands)") +
+  coord_flip() +
+  scale_x_discrete(limits = rev(most_frequent[[dimension]])) +
+  ggtitle(paste0("CRAN download counts by ", dimension))
+```
+
+To this:
+
+```{r eval=FALSE}
+# F. Plot the top values
+output$plot_top_values <- renderPlot({
+  ggplot(most_frequent(), aes_string(x = dimension)) +
+    geom_bar(aes(y = downloads / 1000), stat = "identity") +
+    ylab("Downloads (thousands)") +
+    coord_flip() +
+    scale_x_discrete(limits = rev(most_frequent()[[dimension]])) +
+    ggtitle(paste0("CRAN download counts by ", dimension))
+})
+```
 
 ## Demystifying dependency tracking {#dependency-tracking}
 
