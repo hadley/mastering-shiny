@@ -6,6 +6,27 @@ library(shiny)
 
 As you saw in the previous chapter, Shiny encourages separation of the code that generates your user interface (`ui`) from the code that drives your app's behavior (`server`). In this chapter, we'll dive much deeper into the UI side of things.
 
+
+## Outline {-}
+
+1. Intro to Shiny UI
+    1. Accessible for beginners, ~~extensible~~ delightful for experts
+    2. Built on htmltools, the same substrate used for HTML reports in R Markdown
+2. Using inputs and outputs
+3. Using layout functions
+4. Writing custom HTML
+5. Building reusable UI functions
+
+* Section \@ref(aaa) describes, at a high level, the goals and philosophy of UI construction in Shiny. (multiple levels of abstraction, never straying far from our HTML roots)
+* Section \@ref(aaa) covers the basics of using inputs and outputs.
+* Section \@ref(bbb) covers page and layout functions, which you can use to arrange inputs and outputs.
+* Section \@ref(ccc) introduces the htmltools package
+* Section \@ref(motivation) discusses the motivation behind reactive programming, and the mental shift that's required to practice it successfully.
+* Section \@ref(motivation) discusses the motivation behind reactive programming, and the mental shift that's required to practice it successfully.
+* Section \@ref(motivation) discusses the motivation behind reactive programming, and the mental shift that's required to practice it successfully.
+
+
+
 ## It's just HTML
 
 **Fundamentally, Shiny UI is all about generating HTML.** Almost all of the functions we'll encounter below are merely thin wrappers around HTML generating functions from the `htmltools` package. These functions not only generate HTML elements, but also perform JavaScript/CSS dependency packaging, automatically escape text, and much more.
@@ -253,11 +274,51 @@ That concludes our whirlwind tour of HTML syntax. I've glossed over some minutia
 
 The much larger part of learning HTML is getting to know the actual tags that are available to you, what attributes they offer, and how they work with each other.
 
-### Expressing HTML in R
+[TODO: point to HTML reference]
 
+### Expressing HTML in R, with htmltools
 
+With this background knowledge in place, we can now talk about how to write HTML using R. To do this, we'll use the htmltools package. This package started life as a handful of functions in Shiny itself, and was later spun off as a standalone package when its usefulness for other packages--like rmarkdown and htmlwidgets--became clear.
 
+In htmltools, we create the same trees of parent tags and child tags/text as in raw HTML, but we express them using R function calls instead of angle brackets. For example, this HTML from an earlier example:
 
+```html
+<p id="storage-low-message" class="message warning">Storage space is running low!</p>
+```
+
+would look like this in R:
+
+```{r}
+library(htmltools)
+
+p(id="storage-low-message", class="message warning", "Storage space is running low!")
+```
+
+Look carefully and you'll notice a few things:
+
+* The `<p>` tag has become a `p()` function call.
+* The `id` and `class` attributes have become _named_ arguments to `p()`.
+* The text contained within `<p>...</p>` has become a string that is passed as an _unnamed_ argument to `p()`.
+* The end tag is gone; instead, the end of the `<p>` tag is indicated by the function call's closing parenthesis.
+
+#### Use functions to create tags
+
+The htmltools package exports the `p` function for the `<p>` tag, but because there are scores of valid HTML tags, it doesn't export a function for each one. Only the most common HTML tags have a function directly exposed in the htmltools namespace: `<p>`, `<h1>` through `<h6>`, `<a>`, `<br>`, `<div>`, `<span>`, `<pre>`, `<code>`, `<img>`, `<strong>`, `<em>`, and `<hr>`. When writing these tags, you can simply use the tag name as the function name, e.g. `div()` or `pre()`.
+
+To write any other tags, you need to prefix the tag name with `tags$`. For example, to create a `<ul>` tag, you can call `tags$ul()`. The `tags` object is a named list that htmltools provides, and it comes preloaded with almost all of the valid tags in the HTML standard.
+
+When writing a lot of HTML from R, you may find it tiresome to keep writing `tags$`. If so, you can use the `withTags` function to wrap an R expression, wherein you can omit the `tags$` prefix. In the following code, we call `ul()` and `li()`, whereas these would normally be `tags$ul()` and `tags$li()`.
+
+```{r}
+withTags(
+  ul(
+    li("Item one"),
+    li("Item two")
+  )
+)
+```
+
+Finally, in some relatively obscure cases, you may find that not even `tags` supports the tag you have in mind; this may be because the tag is newly added to HTML and has not been incorporated into htmltools yet, or because it's a tag that isn't defined in HTML per se but is still understood by browsers (e.g. the `<circle>` tag from SVG). In these cases, you can fall back to
 
 
 ## Customizing with CSS and JavaScript
