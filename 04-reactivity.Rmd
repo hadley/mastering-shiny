@@ -51,7 +51,7 @@ Conversely, for Shiny apps to respond quickly to user input, it's important that
 
 In decades past, there wouldn't even be a question about how such interactive user interfaces would be written: _event-driven programming_ was the only game in town. It's an appealingly simple paradigm: you register callback functions to be executed in response to events (e.g. a mouse click, or a textbox's value being changed). In an alternate universe where R and Shiny were each invented five years earlier, your `server.R` code might have looked like this:
 
-```{r}
+```{r results='hide'}
 function(input, output, session) {
   updatePlot <- function() {
     xvar <- input$xvar$value
@@ -170,11 +170,13 @@ These particular properties--laziness, caching, reactivity, and lack of side eff
 
 Reactive expressions are unique among reactive primitives, in that they are the only construct that can be both read other objects (i.e. act as a consumer), and be read from (i.e. act as a source). Observers can read/consume values, but they cannot offer a value to anyone directly. Reactive values can be read, but since they are essentially just named values, they have no notion of reading anything else. If the reactive world was limited to reactive values and observers, you could line up all the reactive values in one column and all the observers in a second column, and then draw many-to-many relationships between the two columns.
 
-(TODO: diagram)
+```{r echo=FALSE,out.width="40%"}
+knitr::include_graphics("images/04-reactivity/reactivity-without-expr.png")
+```
 
 Because reactive expressions can act as both source and consumer, you can have reactive expressions that read from/depend on other reactive expressions, and those reactive expressions can read from/depend on still other reactive expressions, and so on. So reactive expressions don't just introduce an additional flat list of connection points between values and observers, but rather, allow us to build arbitrarily deeply layered graphs of reactive objects, with values on the left edges and observers on the right edges, and networks of reactive expressions in between.
 
-These intermediate networks aren't strictly necessary for reactive programming, and in fact, many JavaScript reactive UI frameworks make do with only reactive values and observers (and outputs, introduced below). But for our purposes, reactive expressions and the intermediate networks they enable are a huge boon to both organizing our application logic and keeping our applications responsive.
+These intermediate networks aren't strictly necessary for reactive programming, and in fact, many JavaScript reactive UI frameworks make do with only reactive values and observers. But for our purposes, reactive expressions and the intermediate networks they enable are a huge boon to both organizing our application logic and keeping our applications responsive.
 
 ### Outputs
 
