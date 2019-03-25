@@ -171,7 +171,7 @@ These particular properties--laziness, caching, reactivity, and lack of side eff
 Reactive expressions are unique among reactive primitives, in that they are the only construct that can be both read other objects (i.e. act as a consumer), and be read from (i.e. act as a source). Observers can read/consume values, but they cannot offer a value to anyone directly. Reactive values can be read, but since they are essentially just named values, they have no notion of reading anything else. If the reactive world was limited to reactive values and observers, you could line up all the reactive values in one column and all the observers in a second column, and then draw many-to-many relationships between the two columns.
 
 ```{r echo=FALSE,out.width="40%"}
-knitr::include_graphics("images/04-reactivity/reactivity-without-expr.png")
+knitr::include_graphics("images/05-reactivity/reactivity-without-expr.png")
 ```
 
 Because reactive expressions can act as both source and consumer, you can have reactive expressions that read from/depend on other reactive expressions, and those reactive expressions can read from/depend on still other reactive expressions, and so on. So reactive expressions don't just introduce an additional flat list of connection points between values and observers, but rather, allow us to build arbitrarily deeply layered graphs of reactive objects, with values on the left edges and observers on the right edges, and networks of reactive expressions in between.
@@ -224,13 +224,13 @@ After downloading the data, the script will tally the number of rows (downloads)
 Once the tallying is done, we'll look at this data in a couple of ways. We'll zoom in on the top few most popular values (e.g. the most popular packages):
 
 ```{r echo=FALSE, message=FALSE, fig.height=4, fig.width=5.5}
-print(readRDS("images/04-reactivity/top_packages.rds"))
+print(readRDS("images/05-reactivity/top_packages.rds"))
 ```
 
 And we'll also visualize all the values to get a sense of the "long tail", to show how quickly the downloads decrease as we move down the list of packages.
 
 ```{r echo=FALSE, message=FALSE, fig.height=4, fig.width=5.5}
-print(readRDS("images/04-reactivity/all_downloads.rds"))
+print(readRDS("images/05-reactivity/all_downloads.rds"))
 ```
 
 Now, on to the code. First, we'll load the libraries we need.
@@ -481,7 +481,7 @@ In summary, the way Shiny "magically" establishes the connections between depend
 Here's an illustrated version of a reactive graph.
 
 ```{r echo=FALSE,out.width="70%"}
-knitr::include_graphics("images/04-reactivity/reactivity-graph-00.png")
+knitr::include_graphics("images/05-reactivity/reactivity-graph-00.png")
 ```
 
 In the diagram above, the shapes on the left are reactive inputs and values, the ones in the middle are reactive expressions, and on the right are observers and outputs. (For the rest of this discussion, we'll simply refer to outputs as observers, rather than saying "observers and/or outputs" every time.)
@@ -495,7 +495,7 @@ Now we'll follow along, step by step, as a Shiny app is loaded and these reactiv
 When a reactive app is visited and a session begins, the server function is executed and the reactive objects are created. However, Shiny has no _a priori_ knowledge of the relationships (lines) between the objects. As you can see in the following diagram, the shapes are all present but there are no lines yet.
 
 ```{r echo=FALSE,out.width="70%"}
-knitr::include_graphics("images/04-reactivity/reactivity-graph-01.png")
+knitr::include_graphics("images/05-reactivity/reactivity-graph-01.png")
 ```
 
 Note that all of the reactive expressions and observers are a darker color. This indicates that they are in _invalidated_ state, which is the initial state for these objects. When an observer is in this state, it means it needs to be executed as soon as Shiny has a chance to. When a reactive expression is in this state, it means that the next time that reactive expression is read, its code will need to be executed (i.e., no result value is currently cached for that reactive expression).
@@ -505,7 +505,7 @@ Note that all of the reactive expressions and observers are a darker color. This
 Now that the session has been initialized, we can begin the execution phase. In this phase, Shiny picks an observer (_not_ a reactive expression) and starts executing it. In the diagrams below, we use a green fill to indicate when a node is actively executing.
 
 ```{r echo=FALSE,out.width="70%"}
-knitr::include_graphics("images/04-reactivity/reactivity-graph-02.png")
+knitr::include_graphics("images/05-reactivity/reactivity-graph-02.png")
 ```
 
 (You may wonder how Shiny decides which of the several invalidated observers/outputs to execute. The short answer is that you should act as if it's random. Ideally, your observers and especially outputs won't care what order they execute in, as each will function independently from the others. However, if you do have observers whose side effects must always happen in a certain relative order, you can use the `observe` function's `priority` argument to dictate that order for observers. You can also control the priority of outputs by calling the `outputOptions()` function with a `priority` argument.)
@@ -519,7 +519,7 @@ As we said, all reactive expressions start out in invalidated state (represented
 Note that the observer is still green: just because the reactive expression is now running, doesn't mean that the observer has finished. The observer is waiting on the reactive expression to return its value so its own execution can continue, just like a regular function call in R.
 
 ```{r echo=FALSE,out.width="70%"}
-knitr::include_graphics("images/04-reactivity/reactivity-graph-03.png")
+knitr::include_graphics("images/05-reactivity/reactivity-graph-03.png")
 ```
 
 ### Reading an input
@@ -529,7 +529,7 @@ This particular reactive expression happens to read a reactive input. Again, a d
 Unlike reactive expressions and observers, reactive inputs have nothing to execute, since they simply represent a variable. So the input doesn't turn green, we just immediately get its current value.
 
 ```{r echo=FALSE,out.width="70%"}
-knitr::include_graphics("images/04-reactivity/reactivity-graph-04.png")
+knitr::include_graphics("images/05-reactivity/reactivity-graph-04.png")
 ```
 
 ### Reactive expression completes
@@ -539,7 +539,7 @@ In our example, the reactive expression reads another reactive expression, which
 When the reactive expression has completed executing, it saves (caches) the resulting value internally before returning it to the observer that requested it. Now that the reactive expression has finished executing, it's no longer in invalidated (grey) or running (green) state; rather, it's in idle (white) state. When a reactive expression reaches this state, it means it's up-to-date and will not re-execute its code even if other reactive expressions or observers request its value. Instead, it can instantly return the value it cached during its most recent execution.
 
 ```{r echo=FALSE,out.width="70%"}
-knitr::include_graphics("images/04-reactivity/reactivity-graph-05.png")
+knitr::include_graphics("images/05-reactivity/reactivity-graph-05.png")
 ```
 
 ### Observer completes
@@ -547,7 +547,7 @@ knitr::include_graphics("images/04-reactivity/reactivity-graph-05.png")
 Now that the reactive expression has returned its value to the observer, the observer can complete executing its code. When this has completed, it too enters the idle state, so we change its fill color to white.
 
 ```{r echo=FALSE,out.width="70%"}
-knitr::include_graphics("images/04-reactivity/reactivity-graph-06.png")
+knitr::include_graphics("images/05-reactivity/reactivity-graph-06.png")
 ```
 
 ### The next observer executes
@@ -555,7 +555,7 @@ knitr::include_graphics("images/04-reactivity/reactivity-graph-06.png")
 Now that Shiny has completed execution of the first observer, it chooses a second one to execute. Again, it turns green, and may read values from invalidated reactive expressions, which will turn green, and so on. This cycle will repeat until every invalidated observer enters the idle (white) state.
 
 ```{r echo=FALSE,out.width="70%"}
-knitr::include_graphics("images/04-reactivity/reactivity-graph-07.png")
+knitr::include_graphics("images/05-reactivity/reactivity-graph-07.png")
 ```
 
 ### Execution completes, outputs flushed
@@ -565,7 +565,7 @@ At last, all of the observers have finished execution and are now idle. This rou
 I didn't mention it before, but when Shiny outputs finish executing, they don't immediately update the output in the browser. Instead, all of the new outputs are held until this point, at which time they are "flushed" to the browser all at once. (It'd be nice if Shiny could let the app author decide whether outputs update one by one or all at once, but as of this writing, Shiny only supports the latter.)
 
 ```{r echo=FALSE,out.width="70%"}
-knitr::include_graphics("images/04-reactivity/reactivity-graph-08.png")
+knitr::include_graphics("images/05-reactivity/reactivity-graph-08.png")
 ```
 
 Let's stop here for just a moment and think about what we've done. We've read some inputs, calculated some values, and generated some outputs. But more importantly, in the course of doing that work, we also discovered the _relationships_ between these different calculations and outputs. An arrow from a reactive input to a reactive expression tells us that if the reactive input's value changes, the reactive expression's result value can no longer be considered valid. And an arrow from a reactive expression to an output means that if the reactive expression's result is no longer valid, then the output's previous result needs to be refreshed.
@@ -579,7 +579,7 @@ The previous step left off with our Shiny session in a fully idle state. Now ima
 When a reactive input or value is modified, it kicks off an _invalidation phase_, which we haven't seen up to this point. The invalidation phase starts at the changed input/value, which we'll fill with grey, our usual color for invalidation.
 
 ```{r echo=FALSE,out.width="70%"}
-knitr::include_graphics("images/04-reactivity/reactivity-graph-09.png")
+knitr::include_graphics("images/05-reactivity/reactivity-graph-09.png")
 ```
 
 ### Notifying dependents
@@ -589,7 +589,7 @@ Now, we follow the arrows that we drew earlier. Each reactive expression and obs
 In this diagram, the arrows in the lighter shade indicate the paths we took from the changed reactive input through the reactive graph. Note that we can only traverse the arrows in their indicated direction; it's impossible to move from a reactive expression leftwards to a reactive input, for example.
 
 ```{r echo=FALSE,out.width="70%"}
-knitr::include_graphics("images/04-reactivity/reactivity-graph-10.png")
+knitr::include_graphics("images/05-reactivity/reactivity-graph-10.png")
 ```
 
 ### Removing relationships
@@ -599,7 +599,7 @@ Next, each invalidated reactive expression and observer "erases" all of the arro
 (Less obvious is why we erase the arrows coming _in_ to an invalidated node, even if the node they're coming from isn't invalidated. While those arrows represent notifications that haven't yet fired, the invalidated node no longer cares about them. The only reason nodes care about notifications is so they can be invalidated; well, that invalidation has already happened due to some other dependency.)
 
 ```{r echo=FALSE,out.width="70%"}
-knitr::include_graphics("images/04-reactivity/reactivity-graph-11.png")
+knitr::include_graphics("images/05-reactivity/reactivity-graph-11.png")
 ```
 
 It may seem perverse that we put so much value on those relationships, and now we're going out of our way to erase them! But the truth is, though these particular arrows _were_ important, they are now themselves out of date. The only way to ensure that our graph stays accurate is to erase arrows when they become stale, and let Shiny rediscover the relationships around these nodes as they reexecute.
@@ -611,7 +611,7 @@ This marks the end of the invalidation phase.
 Now we're in a pretty similar situation to when the Shiny session first started; we have some invalidated reactive expressions and outputs, and we don't have any arrows coming in or out of them. It's time to do exactly what we did then: execute the invalidated outputs/observers, one at a time.
 
 ```{r echo=FALSE,out.width="70%"}
-knitr::include_graphics("images/04-reactivity/reactivity-graph-12.png")
+knitr::include_graphics("images/05-reactivity/reactivity-graph-12.png")
 ```
 
 What's different this time, though, is that not all of the reactive expressions and outputs are starting out in the invalidated state. Some parts of the graph weren't affected--neither directly nor indirectly--by the reactive input that had changed. That's great, as we won't need to reexecute those parts of the graph, even if they are used again by some of the invalidated parts!
