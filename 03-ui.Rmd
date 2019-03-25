@@ -1,5 +1,6 @@
 ```{r setup,echo=FALSE}
 library(shiny)
+library(magrittr)
 ```
 
 # Understanding UI
@@ -103,7 +104,7 @@ The "fluid" in `fluidPage` means the page's content may resize its width (but no
 * tabset
 * bootstrap grid
 
-## Generating HTML
+## Introduction to HTML
 
 To understand how UI functions in R work, let's first talk about HTML, in case you're not familiar with it (or its more general descendant, XML).
 
@@ -276,7 +277,7 @@ The much larger part of learning HTML is getting to know the actual tags that ar
 
 [TODO: point to HTML reference]
 
-### Expressing HTML in R, with htmltools
+## Generating HTML with htmltools
 
 With this background knowledge in place, we can now talk about how to write HTML using R. To do this, we'll use the htmltools package. This package started life as a handful of functions in Shiny itself, and was later spun off as a standalone package when its usefulness for other packages--like rmarkdown and htmlwidgets--became clear.
 
@@ -301,11 +302,11 @@ Look carefully and you'll notice a few things:
 * The text contained within `<p>...</p>` has become a string that is passed as an _unnamed_ argument to `p()`.
 * The end tag is gone; instead, the end of the `<p>` tag is indicated by the function call's closing parenthesis.
 
-#### Use functions to create tags
+#### Using functions to create tags
 
 The htmltools package exports the `p` function for the `<p>` tag, but because there are scores of valid HTML tags, it doesn't export a function for each one. Only the most common HTML tags have a function directly exposed in the htmltools namespace: `<p>`, `<h1>` through `<h6>`, `<a>`, `<br>`, `<div>`, `<span>`, `<pre>`, `<code>`, `<img>`, `<strong>`, `<em>`, and `<hr>`. When writing these tags, you can simply use the tag name as the function name, e.g. `div()` or `pre()`.
 
-To write any other tags, you need to prefix the tag name with `tags$`. For example, to create a `<ul>` tag, you can call `tags$ul()`. The `tags` object is a named list that htmltools provides, and it comes preloaded with almost all of the valid tags in the HTML standard.
+To write all other tags, prefix the tag name with `tags$`. For example, to create a `<ul>` tag, there's no dedicated `ul()` function, but you can call `tags$ul()`. The `tags` object is a named list that htmltools provides, and it comes preloaded with almost all of the valid tags in the HTML5 standard.
 
 When writing a lot of HTML from R, you may find it tiresome to keep writing `tags$`. If so, you can use the `withTags` function to wrap an R expression, wherein you can omit the `tags$` prefix. In the following code, we call `ul()` and `li()`, whereas these would normally be `tags$ul()` and `tags$li()`.
 
@@ -318,8 +319,54 @@ withTags(
 )
 ```
 
-Finally, in some relatively obscure cases, you may find that not even `tags` supports the tag you have in mind; this may be because the tag is newly added to HTML and has not been incorporated into htmltools yet, or because it's a tag that isn't defined in HTML per se but is still understood by browsers (e.g. the `<circle>` tag from SVG). In these cases, you can fall back to
+Finally, in some relatively obscure cases, you may find that not even `tags` supports the tag you have in mind; this may be because the tag is newly added to HTML and has not been incorporated into htmltools yet, or because it's a tag that isn't defined in HTML per se but is still understood by browsers (e.g. the `<circle>` tag from SVG). In these cases, you can fall back to the `tag()` (singular) function and pass it any tag name.
 
+```{r}
+tag("circle", list(cx="10", cy="10", r="20", stroke="blue", fill="white"))
+```
+
+(Notice that the `tag()` function alone needs its attribute and children wrapped in a separate `list()` object. This is a historical quirk, don't read into it.)
+
+#### Using named arguments to create attributes
+
+When calling a tag function, any named arguments become HTML attributes.
+
+```{r eval=FALSE}
+# From https://getbootstrap.com/docs/3.4/javascript/#collapse
+a(class="btn btn-primary", `data-toggle`="collapse", href="#collapseExample",
+  "Link with href"
+)
+```
+```{r echo=FALSE}
+# From https://getbootstrap.com/docs/3.4/javascript/#collapse
+a(class="btn btn-primary", `data-toggle`="collapse", href="#collapseExample",
+  "Link with href"
+) %>% print(browse=FALSE)
+```
+
+The preceding example includes some attributes with hyphens in their names. Be sure to quote such names using backticks, or single or double quotes. Quoting is also permitted, but not required, for simple alphanumeric names.
+
+Generally, HTML attribute values should be single-element character vectors, as in the above example. Other simple vector types like integers and logicals will be passed to `as.character()`.
+
+Another valid attribute value is `NA`. This means that the attribute should be included, but without an attribute value at all:
+
+```{r eval=FALSE}
+tags$input(type = "checkbox", checked = NA)
+```
+```{r echo=FALSE}
+tags$input(type = "checkbox", checked = NA) %>% print(browse=FALSE)
+```
+
+You can also use `NULL` as an attribute value, which means the attribute should be ignored (as if the attribute wasn't included at all). This is helpful for conditionally including attributes.
+
+```{r eval=FALSE}
+is_checked <- FALSE
+tags$input(type = "checkbox", checked = if (is_checked) NA)
+```
+```{r echo=FALSE}
+is_checked <- FALSE
+tags$input(type = "checkbox", checked = if (is_checked) NA) %>% print(browse=FALSE)
+```
 
 ## Customizing with CSS and JavaScript
 
