@@ -8,7 +8,11 @@ knit_print.shiny.tag <- function(x, ...) {
 
 ## Introduction
 
-The previous chapter showed you the higher-level UI functions that come with Shiny. In this chapter, we'll take that a couple of steps deeper by learning how our R code gets translated into the HTML that's ultimately sent to the browser. Armed with that knowledge, you'll be able to add arbitrary HTML to your Shiny apps with ease.
+The native languages of the web are HTML (for content), CSS (for styling), and JavaScript (for behavior). Shiny is designed to be accessible for R users who aren't familiar with any of those languages. But if you do speak these languages, you can take full advantage of them with Shiny to customize your apps or extend the Shiny framework.
+
+The previous chapter showed you the higher-level UI functions that come with Shiny. In this chapter, we'll take that a couple of steps deeper by learning how our R code gets translated into the HTML that's ultimately sent to the browser. Armed with that knowledge, you'll be able to add arbitrary HTML and CSS to your Shiny apps with ease.
+
+If you don't know HTML, and aren't keen to learn, you can safely skip this chapter. If you don't know HTML today but may be inclined to learn it, you should be able to make sense of this chapter and understand the relationship between Shiny UI and HTML. If you are familiar with HTML already, you should find this chapter extremely useful--and you can skip over the sections that introduce HTML and CSS.
 
 ## Outline {-}
 
@@ -323,7 +327,7 @@ One important characteristic of plain text is that htmltools assumes you want to
 div("The <strong> tag is used to create bold text.")
 ```
 
-#### Verbatim HTML
+#### Verbatim HTML {#verbatim-html}
 
 Sometimes, you may have a string that should be interpreted as HTML; similar to plain text, except that special characters like `<` and `>` should retain their special meaning and be treated as markup. You can tell htmltools that these strings should be used verbatim (not escaped) by wrapping them with `HTML()`:
 
@@ -401,6 +405,81 @@ div(
 )
 ```
 
+## Customizing with CSS {#using-css}
+
+In the previous section, we talked about HTML, the markup language that specifies the structure and content of the page. Now we'll talk about Cascading Style Sheets (CSS), the language that specifies the visual style and layout of the page. Similar to our treatment of HTML, we'll give you an extremely superficial introduction to CSS—just enough to be able to parse the syntax visually, not enough to write your own. Then we'll talk about the mechanisms available in Shiny for adding your own CSS.
+
+### Introduction to CSS
+
+As we saw in the previous sections, we use HTML to create a tree of tags and text. CSS lets us specify directives that control how that tree is rendered; each directive is called a _rule_.
+
+Here's some example CSS that includes two rules: one that causes all `<h3>` tags (level 3 headings) to turn red and italic, and one that hides all `<div class="alert">` tags in the `<footer>`:
+
+```css
+h3 {
+  color: red;
+  font-style: italic;
+}
+
+footer div.alert {
+  display: none;
+}
+```
+
+The part of the rule that precedes the opening curly brace is the _selector_; in this case, `h3`. The selector indicates which tags this rule applies to.
+
+The parts of the rule inside the curly braces are _properties_. This particular rule has two properties, each of which is terminated by a semicolon.
+
+#### CSS selectors
+
+The particular selector we used in these cases (`h3` and `footer div.alert`) are very simple, but selectors can be quite complex. You can select tags that match a specific `id` or `class`, select tags based on their parents, select tags based on whether they have sibling tags. You can combine such critieria together using "and", "or", and "not" semantics.
+
+Here are some extremely common selector patterns:
+
+* `.foo` - All tags whose `class` attributes include `foo`
+* `div.foo` - All `<div>` tags whose `class` attributes include `foo`
+* `#bar` - The tag whose `id` is `bar`
+* `div#content p:not(#intro)` - All `<p>` tags inside the `<div>` whose `id` is `content`, except the `<p>` tag whose `id` is `intro`
+
+A full introduction to CSS selectors is outside the scope of this chapter, but if you're interested in learning more, the Mozilla [tutorial on CSS selectors](https://developer.mozilla.org/en-US/docs/Learn/CSS/Introduction_to_CSS/Selectors) is a good place to start.
+
+#### CSS properties
+
+The syntax of CSS properties is very simple and intuitive. What's challenging about CSS properties is that there are so darn many of them. There are dozens upon dozens of properties that control typography, margin and padding, word wrapping and hyphenation, sizing and positioning, borders and shadows, scrolling and overflow, animation and 3D transforms... the list goes on and on.
+
+Here are some examples of common properties:
+
+* `font-family: Open Sans, Helvetica, sans-serif;`
+  Display text using the Open Sans typeface, if it's available; if not, fall back first to Helvetica, and then to the browser's default sans serif font.
+* `font-size: 14pt;`
+  Set the font size to 14 point.
+* `width: 100%; height: 400px;`
+  Set the width to 100% of the tag's container, and the height to a fixed 400 pixels.
+* `max-width: 800px;`
+  Don't let the tag grow beyond 800 pixels wide.
+
+Most of the effort in mastering CSS is in knowing what properties are available to you, and understanding when and how to use them. Again, the rest of this large topic is outside of our scope, but you can learn more from Mozilla's [CSS resources page](https://developer.mozilla.org/en-US/docs/Web/CSS).
+
+### Incorporating CSS into Shiny
+
+Shiny gives you several options for sprinkling a little CSS into your apps. Which method you choose will depend on the amount and complexity of your CSS.
+
+If you have one or two very simple rules, the easiest way to add CSS is by inserting a `<style>` tag, using `tags$style()`. This can go almost anywhere in your UI.
+
+```{r}
+ui <- fluidPage(
+  tags$style(HTML("
+    body, pre { font-size: 18pt; }
+  "))
+)
+```
+
+The `HTML()` is only strictly necessary if your CSS code includes special characters like `<`, `>`, or `&`; those characters will be escaped by default, which will lead to invalid CSS. I like to add it as a matter of habit, though you should heed the warning about untrusted input in Section \@ref(verbatim-html).
+
+The second method is to write a standalone `.css` file, and use the `includeStyle` function to add it to your UI. If you're writing more than a couple of lines of CSS, this gives you the benefit of being able to use a text editor that knows how to interpret CSS. Most text editors, including RStudio IDE, will be able to provide syntax highlighting and autocompletion when editing `.css` files.
+
+For example
+
 ## Managing JavaScript/CSS dependencies {#dependencies}
 
 One of the best things about working with HTML is the absolutely mindboggling number of open source JavaScript and/or CSS libraries that you can incorporate into your pages. Such libraries can be as simple as a few dozen styling rules in a single .css file, or as complex as 670KB of minified JavaScript for [visualizing spatial data using WebGL](https://docs.mapbox.com/mapbox-gl-js/overview/).
@@ -454,14 +533,7 @@ We can do this by passing `src=c(href="https://api.tiles.mapbox.com/mapbox-gl-js
 
 TODO
 
-## Customizing with CSS and JavaScript
 
-The native languages of the web are HTML (for content), CSS (for styling), and JavaScript (for behavior). Shiny is designed to be accessible for R users who aren't familiar with any of those languages. But if you do speak these languages, you can take full advantage of them with Shiny to customize your apps or extend the Shiny framework.
-
-
-
-* Custom CSS
-* www directory
 
 ## Alternate toolkits
 
