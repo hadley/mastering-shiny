@@ -409,13 +409,17 @@ Whether simple or complex, the first step in using any JavaScript/CSS library is
 
 This puts the onus on the webpage author to know about all the JavaScript/CSS dependencies that are used by any element of the page. For traditional web developers, that's totally normal. But for Shiny (and R Markdown, and htmlwidgets), we wanted to free R users from having to think very much about JavaScript/CSS dependencies at all.
 
-For example, the `sliderInput` that comes with Shiny happens to be implemented using a JavaScript library called [ionRangeSlider](http://ionden.com/a/plugins/ion.rangeSlider/). With the traditional approach, if you wanted to add a `sliderInput` to your Shiny app, you'd also have to make a separate declaration somewhere in your UI that you wanted to load the .js and .css files for ionRangeSlider. And you'd have to make sure that you only make that declaration once per page, lest you accidentally load a library twice, which can cause some libraries to stop working.
+For example, the `sliderInput` that comes with Shiny happens to be implemented using a JavaScript library called [ionRangeSlider](http://ionden.com/a/plugins/ion.rangeSlider/). With the traditional approach, if you wanted to add a `sliderInput` to your Shiny app, you'd also have to make a separate declaration somewhere in your UI to load the .js and .css files for ionRangeSlider. And you'd have to make sure that you only make that declaration once per page, lest you accidentally load a library twice, which can cause some libraries to stop working.
 
-We wanted instead to let R users simply call `sliderInput`, and have htmltools sort out the necessary dependencies automatically, at the page level. The `htmlDependency` function is the mechanism we use to do that.
+For Shiny, we wanted instead to have R users simply call `sliderInput()`, and let us sort out the necessary dependencies automatically. In fact, we want R users to be able to combine whatever UI objects they want, and just not think about dependencies at all.
+
+To make this possible, we created a first-class object for HTML dependencies.
 
 ### Creating HTML dependency objects
 
-An HTML dependency object is a description of a single JavaScript/CSS library. To form such an object, you call `htmlDependency` with the following arguments:
+An HTML dependency object is a description of a single JavaScript/CSS library. As a Shiny app author, you generally don't create these directly. Instead, these objects are created by package authors who want to make reusable UI functions that depend on external JavaScript/CSS—like `sliderInput()`.
+
+To form such an object, you call `htmlDependency` with the following arguments:
 
 1. `name`: The name of the library.
 2. `version`: The version number of the library. (If two or more HTML dependency objects are found with the same name but different version numbers, only the one with the latest version number will be loaded.)
