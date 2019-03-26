@@ -1,0 +1,423 @@
+# Advanced UI
+
+```{r include=FALSE}
+knit_print.shiny.tag <- function(x, ...) {
+  knit_print(as.character(x))
+}
+```
+
+## Introduction
+
+The previous chapter showed you the higher-level UI functions that come with Shiny. In this chapter, we'll take that a couple of steps deeper by learning how our R code gets translated into the HTML that's ultimately sent to the browser. Armed with that knowledge, you'll be able to add arbitrary HTML to your Shiny apps with ease.
+
+## Outline {-}
+
+* Section \@ref(introduction-to-html) is a quick but gentle guide to the basics of HTML. It won't turn you into a web designer, but you'll at least be able to understand the rest of the chapter.
+* Section \@ref(generating-html) introduces tag objects, and the family of functions that produce them. These functions give us all the flexibility of writing raw HTML, while still retaining the power and syntax of R.
+* Section \@ref(using-css) demonstrates several ways of incorporating custom CSS into your app (for example, to customize fonts and colors).
+* Section \@ref(functions) teaches you to write your own high-level UI functions, like the ones we saw in the last chapter.
+* Section \@ref(dependencies) introduces HTML dependency objects, which can be used to tell Shiny about JavaScript/CSS dependency files that should be used.
+* Section \@ref(html-template) shows how you can combine tag objects with raw .html files, using the **HTML templates** feature.
+
+## Introduction to HTML {#introduction-to-html}
+
+To understand how UI functions in R work, let's first talk about HTML, in case you're not familiar with it (or its cousin, XML). If you've worked with HTML before, feel free to skip to Section \@ref(generating-html).
+
+HTML is a _markup language_ for describing web pages. A markup language is just a document format that contains plain text content, plus embedded instructions for annotating, or "marking up", specific sections of that content. These instructions can control the appearance, layout, and behavior of the text they mark up, and also provide structure to the document.
+
+Here's a simple snippet of HTML:
+
+```html
+This time I <em>really</em> mean it!
+```
+
+The `<em>` and `</em>` markup instructions indicate that the word `really` should be displayed with special <strong>em</strong>phasis (italics):
+
+```{r echo=FALSE}
+tags$blockquote(HTML("This time I <em>really</em> mean it!"))
+```
+
+`<em>` is an example of a _start tag_, and `</em>` (note the slash character) is an example of an _end tag_.
+
+### Inline formatting tags
+
+`em` is just one of many HTML tags that are used to format text:
+
+* `<strong>...</strong>` makes text <strong>bold</strong>
+* `<u>...</u>` makes text <u>underlined</u>
+* `<s>...</s>` makes text <s>strikeout</s>
+
+### Block tags
+
+Another class of tags is used to wrap entire blocks of text. You can use `<p>...</p>` to break text into distinct paragraphs, or `<h3>...</h3>` to turn a line into a subheading.
+
+```{css echo=FALSE}
+.sourceCode.html {
+  white-space: pre-wrap !important;
+}
+```
+
+```html
+<h3>Chapter I. Down the Rabbit-Hole</h3>
+
+<p>Alice was beginning to get very tired of sitting by her sister on the bank, and of having nothing to do: once or twice she had peeped into the book her sister was reading, but it had no pictures or conversations in it, ‘and what is the use of a book,’ thought Alice ‘without pictures or conversations?’</p>
+
+<p>So she was considering in her own mind (as well as she could, for the hot day made her feel very sleepy and stupid), whether the pleasure of making a daisy-chain would be worth the trouble of getting up and picking the daisies, when suddenly a White Rabbit with pink eyes ran close by her.</p>
+```
+
+When rendered, this HTML looks like:
+
+```{r echo=FALSE}
+tags$blockquote(
+  HTML("<h3>Chapter I. Down the Rabbit-Hole</h3>
+<p>Alice was beginning to get very tired of sitting by her sister on the bank, and of having nothing to do: once or twice she had peeped into the book her sister was reading, but it had no pictures or conversations in it, ‘and what is the use of a book,’ thought Alice ‘without pictures or conversations?’</p>
+<p>So she was considering in her own mind (as well as she could, for the hot day made her feel very sleepy and stupid), whether the pleasure of making a daisy-chain would be worth the trouble of getting up and picking the daisies, when suddenly a White Rabbit with pink eyes ran close by her.</p>")
+)
+```
+
+### Tag attributes
+
+Some tags need to do more than just demarcate some text. An `<a>` (for "anchor") tag is used to create a hyperlink. It's not enough to just wrap `<a>...</a>` around the link's text, as you also need to specify where the hyperlink points to.
+
+Start tags let you include _attributes_ that customize the appearance or behavior of the tag. In this case, we'll add an `href` attribute to our `<a>` start tag:
+
+```html
+<p>Learn more about <strong>Shiny</strong> at <a href="https://shiny.rstudio.com">this website</a>.</p>
+```
+
+```{r echo=FALSE}
+tags$blockquote(HTML('<p>Learn more about <strong>Shiny</strong> at <a href="https://shiny.rstudio.com">this website</a>.</p>'))
+```
+
+There are [dozens of attributes](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes) that all tags accept, and hundreds of attributes that are specific to particular tags. You don't have to worry about memorizing them all--even full-time web developers don't do that. There are two attributes that are used constantly, though.
+
+The `id` attribute uniquely identifies a tag in a document. That is, no two tags in a single document should share the same `id` value, and each tag can have zero or one `id` value. As far as the web browser is concerned, the `id` attribute is completely optional and has no intrinsic effect on the appearance or behavior of the rendered tag. However, it's incredibly useful for identifying a tag for special treatment by CSS or JavaScript, and as such, plays a crucial role for Shiny apps.
+
+The `class` attribute provides a way of classifying tags in a document. Unlike `id`, any number of tags can have the same class, and each tag can have multiple classes (space separated). Again, classes don't have an intrinsic effect, but are hugely helpful for using CSS or JavaScript to target groups of tags.
+
+In the following example, we've given a `<p>` tag an id and two classes:
+
+```html
+<p id="storage-low-message" class="message warning">Storage space is running low!</p>
+```
+
+```{r echo=FALSE}
+tags$blockquote(HTML('<p id="storage-low-message" class="message warning">Storage space is running low!</p>'))
+```
+
+Here, the `id` and `class` values have had no discernible effect. But we could, for example, write CSS that any elements with the `message` class should appear at the top of the page, and that any elements with the `warning` class should have a yellow background and bold text; and we could write JavaScript that automatically dismisses the message if the storage situation improves.
+
+### Parents and children
+
+In the example above, we have a `<p>` tag that contains some text that contains `<strong>` and `<a>` tag.s We can refer to `<p>` as the _parent_ of `<strong>`/`<a>`, and `<strong>`/`<a>` as the _children_ of `<p>`. And naturally, `<strong>` and `<a>` are called _siblings_.
+
+It's often helpful to think of tags and text as forming a tree structure:
+
+```
+<p>
+├── "Learn more about"
+├── <strong>
+│   └── "Shiny"
+├── "at"
+├── <a href="...">
+│   └── "this website"
+└── "."
+```
+
+### Comments
+
+Just as you can use the `#` character to comment out a line of R code, HTML lets you comment out parts of your web page. Use `<!--` to start a comment, and `-->` to end one. Anything between these delimiters will be ignored during the rendering of the web page, although it will still be visible to anyone who looks at your raw HTML by using the browser's View Source command.
+
+```html
+<p>This HTML will be seen.</p>
+
+<!-- <p>This HTML will not.</p> -->
+
+<!--
+<p>
+Nor will this.
+</p>
+-->
+```
+
+```{r echo=FALSE}
+tags$blockquote(HTML("<p>This HTML will be seen.</p>
+
+<!-- <p>This HTML will not.</p> -->
+
+<!--
+<p>
+Nor will this.
+</p>
+-->"))
+```
+
+### Escaping
+
+Any markup language like HTML, where there are characters that have special meaning, needs to provide a way to "escape" those special characters--that is, to insert a special character into the document without invoking its special meaning.
+
+For example, the `<` character in HTML has a special meaning, as it indicates the start of a tag. What if you actually want to insert a `<` character into the rendered document--or, let's say, an entire `<p>` tag?
+
+```html
+<p>In HTML, you start paragraphs with "<p>" and end them with "</p>".</p>
+```
+
+```{r echo=FALSE}
+tags$blockquote(HTML('<p>In HTML, you start paragraphs with "<p>" and end them with "</p>".</p>'))
+```
+
+That doesn't look as we intended at all! The browser has no way of knowing that we meant the outer `<p>` and `</p>` to be interpreted as markup, and the inner `<p>` and `</p>` to be interpreted as text.
+
+Instead, we need to escape the inner tags so they become text. The escaped version of `<` is `&lt;`, and `>` is `&gt;`.
+
+```html
+<p>In HTML, you start paragraphs with "&lt;p&gt;" and end them with "&lt;/p&gt;".</p>
+```
+
+```{r echo=FALSE}
+tags$blockquote(HTML('<p>In HTML, you start paragraphs with "&lt;p&gt;" and end them with "&lt;/p&gt;".</p>'))
+```
+
+(Yes, escaped characters look pretty ugly. That's just how it is.)
+
+Each escaped character in HTML starts with `&` and ends with `;`. There are lots of valid sequences of characters that go between, but besides `lt` (less than) and `gt` (greater than), the only one you're likely to need to know is `amp`; `&amp;` is how you insert a `&` character into HTML.
+
+Escaping `<`, `>`, and `&` is mandatory if you don't want them interpreted as special characters; other characters can be expressed as escape sequences, but it's generally not necessary. Escaping `<`, `>`, and `&` is so common and crucial that every web framework contains a function for doing it (in our case it's `htmltools::htmlEscape`), but as we'll see in a moment, Shiny will usually do this for you automatically.
+
+### HTML tag vocabulary
+
+That concludes our whirlwind tour of HTML syntax. This is all you'll need to know to follow the discussion on the pages that follow.
+
+The much larger part of learning HTML is getting to know the actual tags that are available to you, what attributes they offer, and how they work with each other. Fortunately, there are scores of excellent, free HTML tutorials and references online; Mozilla's *[Introduction to HTML](https://developer.mozilla.org/en-US/docs/Learn/HTML/Introduction_to_HTML)* is one example.
+
+## Generating HTML with tag objects {#generating-html}
+
+With this background knowledge in place, we can now talk about how to write HTML using R. To do this, we'll use the htmltools package. The htmltools package started life as a handful of functions in Shiny itself, and was later spun off as a standalone package when its usefulness for other packages--like rmarkdown and htmlwidgets--became evident.
+
+In htmltools, we create the same trees of parent tags and child tags/text as in raw HTML, but we do so using R function calls instead of angle brackets. For example, this HTML from an earlier example:
+
+```html
+<p id="storage-low-message" class="message warning">Storage space is running low!</p>
+```
+
+would look like this in R:
+
+```{r}
+library(htmltools)
+
+p(id="storage-low-message", class="message warning", "Storage space is running low!")
+```
+
+This function call returns a tag object; when printed at the console, it displays its raw HTML code, and when included in Shiny UI, its HTML becomes part of the user interface.
+
+Look carefully and you'll notice:
+
+* The `<p>` tag has become a `p()` *function call*, and the end tag is gone. Instead, the end of the `<p>` tag is indicated by the function call's closing parenthesis.
+* The `id` and `class` attributes have become _named_ arguments to `p()`.
+* The text contained within `<p>...</p>` has become a string that is passed as an _unnamed_ argument to `p()`.
+
+Let's break down each of these bullets further.
+
+### Using functions to create tags
+
+The htmltools package exports the `p` function for the `<p>` tag, but because there are scores of valid HTML tags, it doesn't export a function for each one. Only the most common HTML tags have a function directly exposed in the htmltools namespace: `<p>`, `<h1>` through `<h6>`, `<a>`, `<br>`, `<div>`, `<span>`, `<pre>`, `<code>`, `<img>`, `<strong>`, `<em>`, and `<hr>`. When writing these tags, you can simply use the tag name as the function name, e.g. `div()` or `pre()`.
+
+To write all other tags, prefix the tag name with `tags$`. For example, to create a `<ul>` tag, there's no dedicated `ul()` function, but you can call `tags$ul()`. The `tags` object is a named list that htmltools provides, and it comes preloaded with almost all of the valid tags in the HTML5 standard.
+
+When writing a lot of HTML from R, you may find it tiresome to keep writing `tags$`. If so, you can use the `withTags` function to wrap an R expression, wherein you can omit the `tags$` prefix. In the following code, we call `ul()` and `li()`, whereas these would normally be `tags$ul()` and `tags$li()`.
+
+```{r}
+withTags(
+  ul(
+    li("Item one"),
+    li("Item two")
+  )
+)
+```
+
+Finally, in some relatively obscure cases, you may find that not even `tags` supports the tag you have in mind; this may be because the tag is newly added to HTML and has not been incorporated into htmltools yet, or because it's a tag that isn't defined in HTML per se but is still understood by browsers (e.g. the `<circle>` tag from SVG). In these cases, you can fall back to the `tag()` (singular) function and pass it any tag name.
+
+```{r}
+tag("circle", list(cx="10", cy="10", r="20", stroke="blue", fill="white"))
+```
+
+(Notice that the `tag()` function alone needs its attribute and children wrapped in a separate `list()` object. This is a historical quirk, don't read into it.)
+
+### Using named arguments to create attributes
+
+When calling a tag function, any named arguments become HTML attributes.
+
+```{r eval=FALSE}
+# From https://getbootstrap.com/docs/3.4/javascript/#collapse
+a(class="btn btn-primary", `data-toggle`="collapse", href="#collapseExample",
+  "Link with href"
+)
+```
+```{r echo=FALSE}
+# From https://getbootstrap.com/docs/3.4/javascript/#collapse
+a(class="btn btn-primary", `data-toggle`="collapse", href="#collapseExample",
+  "Link with href"
+) %>% print(browse=FALSE)
+```
+
+The preceding example includes some attributes with hyphens in their names. Be sure to quote such names using backticks, or single or double quotes. Quoting is also permitted, but not required, for simple alphanumeric names.
+
+Generally, HTML attribute values should be single-element character vectors, as in the above example. Other simple vector types like integers and logicals will be passed to `as.character()`.
+
+Another valid attribute value is `NA`. This means that the attribute should be included, but without an attribute value at all:
+
+```{r eval=FALSE}
+tags$input(type = "checkbox", checked = NA)
+```
+```{r echo=FALSE}
+tags$input(type = "checkbox", checked = NA) %>% print(browse=FALSE)
+```
+
+You can also use `NULL` as an attribute value, which means the attribute should be ignored (as if the attribute wasn't included at all). This is helpful for conditionally including attributes.
+
+```{r eval=FALSE}
+is_checked <- FALSE
+tags$input(type = "checkbox", checked = if (is_checked) NA)
+```
+```{r echo=FALSE}
+is_checked <- FALSE
+tags$input(type = "checkbox", checked = if (is_checked) NA) %>% print(browse=FALSE)
+```
+
+### Using unnamed arguments to create children
+
+Tag functions interpret unnamed arguments as children. Like regular HTML tags, each tag object can have zero, one, or more children; and each child can be one of several types of objects:
+
+#### Tag objects
+
+Tag objects can contain other tag objects. Trees of tag objects can be nested as deeply as you like.
+
+```{r}
+div(
+  p(
+    strong(
+      a(href="https://example.com", "A link")
+    )
+  )
+)
+```
+
+#### Plain text
+
+Tag objects can contain plain text, in the form of single-element character vectors.
+
+```{r}
+p("I like turtles.")
+```
+
+Note that character vectors of longer length are not supported. Use the `paste` function to collapse such vectors to a single element.
+
+```{r}
+str(LETTERS)
+div(paste(LETTERS, collapse = ", "))
+```
+
+One important characteristic of plain text is that htmltools assumes you want to treat all characters as _plain_ text, including characters that have special meaning in HTML like `<` and `>`. As such, any special characters will be automatically escaped:
+
+```{r}
+div("The <strong> tag is used to create bold text.")
+```
+
+#### Verbatim HTML
+
+Sometimes, you may have a string that should be interpreted as HTML; similar to plain text, except that special characters like `<` and `>` should retain their special meaning and be treated as markup. You can tell htmltools that these strings should be used verbatim (not escaped) by wrapping them with `HTML()`:
+
+```{r}
+html_string <- "I just <em>love</em> writing HTML!"
+div(HTML(html_string))
+```
+
+**Warning:** Be very careful when using the `HTML()` function! If the string you pass to it comes from an untrusted source, either directly or indirectly, it could compromise the security of your Shiny app via an extremely common type of security vulnerability known as Cross-Site Scripting (XSS).
+
+For example, you may ask a user of your app to provide their name, store that value in a database, and later display that name to a different user of your app. If the name is wrapped in `HTML()`, then the first user could provide a fragment of malicious HTML code in place of their name, which would then be served by Shiny to the second user. While I'm not aware of any such attacks having ever happened with a Shiny app, similar attacks have been carried out against companies as tech-savvy as Facebook, eBay, and Microsoft.
+
+It is safe to use `HTML()` if your Shiny app will only ever be run locally for a single user (not deployed on a server for multiple users), or if you are absolutely sure you know where the HTML string came from and that its contents are safe.
+
+#### Lists
+
+While each call to a tag function can have as many unnamed arguments as you want, you can also pack multiple children into a single argument by using a `list()`. The following two code snippets will generate identical results:
+
+```{r}
+tags$ul(
+  tags$li("A"),
+  tags$li("B"),
+  tags$li("C")
+)
+
+tags$ul(
+  list(
+    tags$li("A"),
+    tags$li("B"),
+    tags$li("C")
+  )
+)
+```
+
+It can sometimes be handy to use a list when generating tag function calls programmatically. The snippet below uses `lapply` to simplify the previous example:
+
+```{r}
+tags$ul(
+  lapply(LETTERS[1:3], tags$li)
+)
+```
+
+#### NULL
+
+You can use `NULL` as a tag child. `NULL` children are similar to `NULL` attributes; they're simply ignored, and are only supported to make conditional child items easier to express.
+
+In this example, we use `show_beta_warning` to decide whether or not to show a warning; if not, the result of the `if` clause will be `NULL`.
+
+```{r}
+show_beta_warning <- FALSE
+
+div(
+  h3("Welcome to my Shiny app!"),
+  if (show_beta_warning) {
+    div(class = "alert alert-warning", role = "alert",
+      "Warning: This app is in beta; some features may not work!"
+    )
+  }
+)
+```
+
+#### Mix and match
+
+Tag functions can be called with any number of unnamed arguments, and different types of children can be used within a single call.
+
+```{r}
+div(
+  "Text!",
+  strong("Tags!"),
+  HTML("Verbatim <span>HTML!</span>"),
+  NULL,
+  list(
+    "Lists!"
+  )
+)
+```
+
+
+
+## Customizing with CSS and JavaScript
+
+The native languages of the web are HTML (for content), CSS (for styling), and JavaScript (for behavior). Shiny is designed to be accessible for R users who aren't familiar with any of those languages. But if you do speak these languages, you can take full advantage of them with Shiny to customize your apps or extend the Shiny framework.
+
+
+
+* Custom CSS
+* www directory
+
+## Alternate toolkits
+
+* flexdashboard
+* shinyBS
+* shinyDashboard
+* shinyjs
+* shinythemes
+
+## HTML templates
