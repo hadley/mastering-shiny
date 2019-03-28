@@ -19,7 +19,6 @@ If you don't know HTML, and aren't keen to learn, you can safely skip this chapt
 * Section \@ref(introduction-to-html) is a quick but gentle guide to the basics of HTML. It won't turn you into a web designer, but you'll at least be able to understand the rest of the chapter.
 * Section \@ref(generating-html) introduces tag objects, and the family of functions that produce them. These functions give us all the flexibility of writing raw HTML, while still retaining the power and syntax of R.
 * Section \@ref(using-css) demonstrates several ways of incorporating custom CSS into your app (for example, to customize fonts and colors).
-* Section \@ref(functions) teaches you to write your own high-level UI functions, like the ones we saw in the last chapter.
 * Section \@ref(dependencies) introduces HTML dependency objects, which can be used to tell Shiny about JavaScript/CSS dependency files that should be used.
 * Section \@ref(html-template) shows how you can combine tag objects with raw .html files, using the **HTML templates** feature.
 
@@ -460,9 +459,11 @@ Here are some examples of common properties:
 
 Most of the effort in mastering CSS is in knowing what properties are available to you, and understanding when and how to use them. Again, the rest of this large topic is outside of our scope, but you can learn more from Mozilla's [CSS resources page](https://developer.mozilla.org/en-US/docs/Web/CSS).
 
-### Incorporating CSS into Shiny
+### Including custom CSS in Shiny
 
-Shiny gives you several options for sprinkling a little CSS into your apps. Which method you choose will depend on the amount and complexity of your CSS.
+Shiny gives you several options for adding custom CSS into your apps. Which method you choose will depend on the amount and complexity of your CSS.
+
+####Inline style tag with `tags$style`
 
 If you have one or two very simple rules, the easiest way to add CSS is by inserting a `<style>` tag, using `tags$style()`. This can go almost anywhere in your UI.
 
@@ -476,9 +477,36 @@ ui <- fluidPage(
 
 The `HTML()` is only strictly necessary if your CSS code includes special characters like `<`, `>`, or `&`; those characters will be escaped by default, which will lead to invalid CSS. I like to add it as a matter of habit, though you should heed the warning about untrusted input in Section \@ref(verbatim-html).
 
-The second method is to write a standalone `.css` file, and use the `includeStyle` function to add it to your UI. If you're writing more than a couple of lines of CSS, this gives you the benefit of being able to use a text editor that knows how to interpret CSS. Most text editors, including RStudio IDE, will be able to provide syntax highlighting and autocompletion when editing `.css` files.
+#### Standalone CSS file with `includeCSS`
 
-For example
+The second method is to write a standalone `.css` file, and use the `includeCSS` function to add it to your UI. If you're writing more than a couple of lines of CSS, this gives you the benefit of being able to use a text editor that knows how to interpret CSS. Most text editors, including RStudio IDE, will be able to provide syntax highlighting and autocompletion when editing `.css` files.
+
+For example, if you have a `custom.css` file sitting next to your `app.R`, you can do something like this:
+
+```{r eval=FALSE}
+ui <- fluidPage(
+  includeCSS("custom.css"),
+  ... # the rest of your UI
+)
+```
+
+The `includeCSS` call will return a `<style>` tag, whose body is the content of `custom.css`.
+
+If you wish for this CSS to be hoisted into the page's `<head>` tag, you can call `tags$head(includeCSS("custom.css"))`, though in practice it doesn't make a lot of difference either way.
+
+#### Standalone CSS file with `<link>` tag
+
+Perhaps you have a large amount of CSS in a standalone `.css` file, and you don't want it to be inserted directly into the HTML page, as `includeCSS` does. You can also choose to serve up the `.css` file at a separate URL, and link to it from your UI.
+
+To do this, create a `www` subdirectory in your application directory (the same directory that contains `app.R`) and put your CSS file there—for example, `www/custom.css`. Then add the following line to your UI:
+
+```{r eval=FALSE}
+tags$head(tags$link(rel="stylesheet", type="text/css", href="custom.css"))
+```
+
+(Note that the `href` attribute should _not_ include `www`; Shiny makes the contents of the `www` directory available at the root URL path.)
+
+This approach makes sense for CSS that is intended for a specific Shiny app. If you are writing CSS for a reusable component, especially one in an R package, keep reading to learn about HTML dependencies.
 
 ## Managing JavaScript/CSS dependencies {#dependencies}
 
@@ -531,16 +559,14 @@ We can do this by passing `src=c(href="https://api.tiles.mapbox.com/mapbox-gl-js
 
 ### Using HTML dependency objects
 
-TODO
+Once you've created an HTML dependency object, using it is straightforward.
+
+If you have a function that returns a tag object, have that function return a tag object and dependency instead, using a `tagList`.
+
+```{r}
+grid <- 
+```
 
 
-
-## Alternate toolkits
-
-* flexdashboard
-* shinyBS
-* shinyDashboard
-* shinyjs
-* shinythemes
 
 ## HTML templates
