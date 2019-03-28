@@ -69,7 +69,7 @@ This example uses four functions we haven't seen before.
 
 - `fluidPage` is one of several **layout functions**, designed to take other UI objects as arguments, and renders them with some kind of modification. In this case, `fluidPage` brings in a bunch of CSS styling, from the famous [Bootstrap](http://getbootstrap.com/docs/3.3/) CSS library. It also inserts a container that is suitable for splitting into rows and columns (though we aren't ready to do that just yet). 
 - `selectInput` is an **input control**, which lets the user interact with the app by providing a value. In this case, it's a fancy select box with the title "Dataset" and lets you choose one of the built-in datasets that come with R.
-- `verbatimTextOutput` and `tableOutput` are **output controls**, telling Shiny *where* to put rendered output (we'll get into the *how* in a moment). `verbatimTextOutput` displays preformatted text (in HTML parlance, it uses a <pre> tag), and `tableOutput` displays tabular data (e.g. a data frame or matrix) in a nice looking HTML table.
+- `verbatimTextOutput` and `tableOutput` are **output controls**, telling Shiny *where* to put rendered output (we'll get into the *how* in a moment). `verbatimTextOutput` displays preformatted text (in HTML parlance, it uses a `<pre>` tag), and `tableOutput` displays tabular data (e.g. a data frame or matrix) in a nice looking HTML table.
 
 Go ahead and run the app again. You'll now see a select box with a set of names, and very little else. We've defined the UI, but haven't yet told Shiny what data to put in the outputs.
 
