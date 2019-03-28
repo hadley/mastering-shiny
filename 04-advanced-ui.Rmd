@@ -564,7 +564,7 @@ Once you've created an HTML dependency object, using it is straightforward.
 If you have a function that returns a tag object, have that function return a tag object and dependency instead, using a `tagList`.
 
 ```{r}
-grid <- 
+
 ```
 
 
