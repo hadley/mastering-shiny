@@ -1,42 +1,25 @@
+# (PART\*) Creating user interfaces {-}
+
+# Basic UI
+
 ```{r setup,echo=FALSE}
 library(shiny)
 library(magrittr)
 ```
 
-# Understanding UI
-
 As you saw in the previous chapter, Shiny encourages separation of the code that generates your user interface (`ui`) from the code that drives your app's behavior (`server`). In this chapter, we'll dive much deeper into the UI side of things.
 
+All web pages are constructed out of HTML, and Shiny user interfaces are no different--although they are generally expressed using R, their ultimate job is to produce HTML. As a Shiny app author, you can choose to stay far away from the details of HTML and use high-level layout functions in R. Or, you can choose to work with HTML tags directly to achieve any level of customization you want. And these approaches are by no means exclusive; you can mix high-level functions with low-level HTML as much as you like.
+
+This chapter will focus on some of the high-level R functions that Shiny provides for input, output, and layout, while the chapter on [Advanced UI][] delves into using lower-level features for authoring HTML directly. If you're new to Shiny, you should read this chapter regardless of your level of HTML knowledge, as inputs and outputs are essential parts of any Shiny app.
 
 ### Outline {-}
 
-1. Intro to Shiny UI
-    1. Accessible for beginners, ~~extensible~~ delightful for experts
-    2. Built on htmltools, the same substrate used for HTML reports in R Markdown
-2. Using inputs and outputs
-3. Using layout functions
-4. Writing custom HTML
-5. Building reusable UI functions
+* Section \@ref(inputs) covers input controls.
+* Section \@ref(outputs) covers output containers.
+* Section \@ref(layout) covers page and layout functions, which you can use to arrange inputs and outputs.
 
-* Section \@ref(aaa) describes, at a high level, the goals and philosophy of UI construction in Shiny. (multiple levels of abstraction, never straying far from our HTML roots)
-* Section \@ref(aaa) covers the basics of using inputs and outputs.
-* Section \@ref(bbb) covers page and layout functions, which you can use to arrange inputs and outputs.
-* Section \@ref(ccc) introduces the htmltools package
-* Section \@ref(motivation) discusses the motivation behind reactive programming, and the mental shift that's required to practice it successfully.
-* Section \@ref(motivation) discusses the motivation behind reactive programming, and the mental shift that's required to practice it successfully.
-* Section \@ref(motivation) discusses the motivation behind reactive programming, and the mental shift that's required to practice it successfully.
-
-
-
-## It's just HTML
-
-**Fundamentally, Shiny UI is all about generating HTML.** Almost all of the functions we'll encounter below are merely thin wrappers around HTML generating functions from the `htmltools` package. These functions not only generate HTML elements, but also perform JavaScript/CSS dependency packaging, automatically escape text, and much more.
-
-If you're used to writing your own HTML, using R functions to generate HTML for you may not sound appealing at first. But if you give it a chance, you'll find that this approach to HTML generation comes with many benefits, while retaining all the power and flexibility of manual coding. That said, if you really want to write your own angle brackets—or if you're collaborating with a designer who wants to give you HTML—Shiny will let you do that too, as we'll see at the end of this chapter (XREF).
-
-To start, though, let's focus on the basic UI elements that are most commonly used in Shiny apps.
-
-## Inputs
+## Inputs {#inputs}
 
 As we saw in the previous chapter, functions like `sliderInput`, `selectInput`, `textInput`, and `numericInput` are used to insert input controls into your UI.
 
@@ -50,11 +33,11 @@ shiny::sliderInput("min", "Limit (minimum)", min = 0, max = 100, value = 50)
 
 ```{r echo=FALSE, fig.height=0.2, message=FALSE, cache=FALSE}
 
-library(shiny)
-shinyApp(
-  fluidPage(shiny::sliderInput("min", "Limit (minimum)", min = 0, max = 100, value = 50)),
-  function(input, output, session) {}
-)
+# library(shiny)
+# shinyApp(
+#   fluidPage(shiny::sliderInput("min", "Limit (minimum)", min = 0, max = 100, value = 50)),
+#   function(input, output, session) {}
+# )
 ```
 
 In the server function, the value of this slider would be accessed via `input$min`.
@@ -74,7 +57,7 @@ Shiny itself comes with a variety of input functions out of the box:
 
 Each input function has its own unique look and functionality, and takes different arguments. But they all share the same two properties of 1) taking a unique input ID, and 2) exposing values to the server function via a slot in the `input` object.
 
-## Outputs
+## Outputs {#outputs}
 
 Output functions are used to tell Shiny _where_ and _how_ to place outputs that are defined in the app's server.
 
@@ -82,7 +65,7 @@ Like inputs, outputs take a unique ID as their first argument. These IDs must be
 
 Unlike inputs, outputs generally start out as empty rectangles, that need to be fed data from the server in order to actually appear.
 
-## Layouts and panels
+## Layouts and panels {#layout}
 
 Shiny includes several classes of UI functions that behave like neither inputs nor outputs. Rather, these functions help with the layout and formatting of your UI.
 

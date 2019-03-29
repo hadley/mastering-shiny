@@ -1,4 +1,4 @@
-# Advanced UI
+# Advanced UI {#advanced-ui}
 
 ```{r include=FALSE}
 knit_print.shiny.tag <- function(x, ...) {
@@ -570,3 +570,5 @@ If you have a function that returns a tag object, have that function return a ta
 
 
 ## HTML templates
+
+TODO

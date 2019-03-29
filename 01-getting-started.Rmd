@@ -1,4 +1,6 @@
-# Getting started
+# (PART\*) Getting started {-}
+
+# Before we begin
 
 If you've never used Shiny before, welcome! This chapter will help you install all the software you'll need to follow along with the book.
 

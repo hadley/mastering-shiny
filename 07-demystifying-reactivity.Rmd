@@ -1,4 +1,4 @@
-# Reactive programming
+# Understanding reactive programming
 
 ```{r include=FALSE}
 source("common.R", local=TRUE)

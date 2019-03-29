@@ -1,4 +1,8 @@
-# Introduction to reactive programming
+# (PART\*) Reactive programming {-}
+
+# Reactive programming basics
+
+## Introduction
 
 In the previous chapters, we talked about creating user interfaces. Now we'll move on to discuss the server side of Shiny, where we use R code at runtime to make our user interfaces come alive!
 
