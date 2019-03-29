@@ -8,7 +8,7 @@ library(magrittr)
 As you saw in the previous chapter, Shiny encourages separation of the code that generates your user interface (`ui`) from the code that drives your app's behavior (`server`). In this chapter, we'll dive much deeper into the UI side of things.
 
 
-## Outline {-}
+### Outline {-}
 
 1. Intro to Shiny UI
     1. Accessible for beginners, ~~extensible~~ delightful for experts

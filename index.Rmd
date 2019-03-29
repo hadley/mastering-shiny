@@ -2,7 +2,9 @@
 title: "Mastering Shiny"
 author: "Joe Cheng"
 site: bookdown::bookdown_site
-output: bookdown::gitbook
+output:
+  - bookdown::gitbook
+  - rmarkdown::md_document
 documentclass: book
 bibliography: [book.bib, packages.bib]
 biblio-style: apalike

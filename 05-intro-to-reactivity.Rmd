@@ -6,7 +6,7 @@ In Shiny, you express your server logic using reactive programming. Reactive pro
 
 This chapter will provide a gentle walkthrough of reactive programming, introducing some of the most basic reactive constructs you'll use in your Shiny apps.
 
-## Outline {-}
+### Outline {-}
 
 * Section \@ref(server-function) introduces you to the _server function_, the body of which will be the site of most of your reactive programming.
 * Section \@ref(input) introduces the `input` object, the humble center of most reactive programs.

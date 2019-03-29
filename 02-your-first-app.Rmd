@@ -1,10 +1,22 @@
 # Your first Shiny app
 
+## Introduction {-}
+
 In this chapter, we'll create a simple Shiny app. Along the way, you'll learn the basic structure of a Shiny app, and how to save and run Shiny apps using the RStudio IDE. You'll also take your first steps into reactive programming.
+
+### Outline {-}
+
+* Section \@ref(create-app) presents the minimum boilerplate that's needed to get a Shiny app running.
+* Section \@ref(running) shows you how to start and stop Shiny.
+* Section \@ref(adding-ui) walks you through adding UI elements to your app.
+* Section \@ref(server-function) adds some basic behavior to the app, by adding some logic to the server function.
+* Section \@ref(reactive-expr) takes our server function logic a step further, with reactive expressions.
+
+## Create app dir and file {#create-app}
 
 There are several ways to create a Shiny app. The simplest is to create a new directory for your app, and put a single file called `app.R` in it. This `app.R` file will be used to tell Shiny both how your app should look, and how it should behave.
 
-> In RStudio IDE, you can easily create a new directory and `app.R` file in one step using **File | New File | Shiny Web App**.
+(Tip: In RStudio IDE, you can easily create a new directory and `app.R` file in one step using **File | New File | Shiny Web App**.)
 
 Open up the `app.R` file and make its contents look like this:
 
@@ -26,11 +38,11 @@ This is a complete, if trivially simple, Shiny app. Looking closely at the code 
 3. Specifies the behavior of our app by defining a `server` function. Currently empty, but we'll be back to revisit this shortly.
 4. Calls `shinyApp(ui, server)` to construct a Shiny application object from the UI and server previously defined.
 
-## Running and stopping
+## Running and stopping {#running}
 
 Run this Shiny app in RStudio now by pressing `Ctrl+Shift+Enter`, or by clicking the **Run App** button in the document toolbar; go ahead and try either.
 
-> If you're not using RStudio, you can use `setwd()` to change the current working directory to the app dir, and call `shiny::runApp()` (or alternatively, don't change the current working directory and pass the path to the app dir to `runApp()` as an argument).
+If you're not using RStudio, you can use `setwd()` to change the current working directory to the app dir, and call `shiny::runApp()` (or alternatively, don't change the current working directory and pass the path to the app dir to `runApp()` as an argument).
 
 You should see a web application launch in a new window, with only the words "Hello, world!"
 
@@ -51,7 +63,7 @@ Go ahead and stop your app using any one of these options:
 - Close the Shiny app window
 - Non-RStudio users: However you normally interrupt running R code, e.g. `Ctrl+C` or `Esc`
 
-## Adding UI controls
+## Adding UI controls {#adding-ui}
 
 Next, we'll add some inputs and outputs to our UI so it's not *quite* so minimal. Change your `ui` variable to look like this:
 
@@ -73,21 +85,21 @@ This example uses four functions we haven't seen before.
 
 Go ahead and run the app again. You'll now see a select box with a set of names, and very little else. We've defined the UI, but haven't yet told Shiny what data to put in the outputs.
 
-Layout functions and input/output controls are used for different purposes, but they're similar in a pretty fundamental way: **they're all just fancy ways to generate HTML**. If you execute any of these function calls, you'll see HTML printed out at the console. Don't be afraid to poke around to see how these various layouts and controls work under the hood. Later in this book (XREF), we'll show you how to create your own custom HTML-generating functions.
+Layout functions and input/output controls are used for different purposes, but they're similar in a pretty fundamental way: **they're all just fancy ways to generate HTML**. If you execute any of these function calls, you'll see HTML printed out at the console. Don't be afraid to poke around to see how these various layouts and controls work under the hood. Later in this book (TODO: XREF), we'll show you how to create your own custom HTML-generating functions.
 
 ### Input and output IDs
 
 Another important property that input and output controls share is that **they always take an ID string as their first argument**. In this case, we've used `"dataset"`, `"summary"`, and `"table"` as the identifiers for these inputs and outputs. We'll use these identifiers in the next step to read from inputs and write to outputs.
 
-It's absolutely critical that identifiers be unique! In a given app, you can't have two inputs named `"dataset"`, two outputs named `"plot"`, or an input and an output named `"choices"`. No matter how complex your app gets, you must make sure every ID is unique (though we'll talk about one approach to keep this manageable in the chapter on modules (XREF)).
+It's absolutely critical that identifiers be unique! In a given app, you can't have two inputs named `"dataset"`, two outputs named `"plot"`, or an input and an output named `"choices"`. No matter how complex your app gets, you must make sure every ID is unique (though we'll talk about one approach to keep this manageable in the chapter on modules (TODO: XREF)).
 
 You should also avoid using special characters in your identifiers, especially space and dash. Generally, it's best to stick to the kind of names you'd use for variables or data frame columns in R, with the added restriction of avoiding periods. (Like R, numbers and underscores may not start an identifier, but they are permitted elsewhere.)
 
-## Controlling behavior with server function
+## Adding behavior {#server-function}
 
 Next, we'll bring the outputs to life by defining them in the server function.
 
-You may be aware that Shiny uses a *reactive programming* framework to make apps interactive. We'll explore reactive programming in much more detail in a future chapter (XREF), but for now, just be aware that it often involves telling Shiny *how* to perform a computation, not ordering Shiny to actually go *do it*. It's like the difference between giving someone a recipe, versus demanding they go make you a sandwich.
+You may be aware that Shiny uses a *reactive programming* framework to make apps interactive. We'll explore reactive programming in much more detail in a future chapter (TODO: XREF), but for now, just be aware that it often involves telling Shiny *how* to perform a computation, not ordering Shiny to actually go *do it*. It's like the difference between giving someone a recipe, versus demanding they go make you a sandwich.
 
 In this simple case, we're going to tell Shiny how to fill in the `summary` and `table` outputs—we're providing the "recipes" for those outputs. Replace your empty `server` function with this:
 
@@ -126,7 +138,7 @@ Similarly, the `renderTable` we're using for the `table` output must always be u
 
 **Outputs are *reactive*; Shiny automatically knows when to recalculate them.** Because both of the rendering code blocks we wrote read `input$dataset`, whenever the value of `input$dataset` changes (i.e. the user changes their selection in the UI), both outputs will recalculate and update in the browser.
 
-## Extracting common values with reactive expressions
+## Extracting common values with reactive expressions {#reactive-expr}
 
 Even in this simple example, we have some code that's duplicated: the line
 
@@ -201,7 +213,7 @@ This looks much like the previous example, where we introduced a `getDataset` fu
 
 To summarize: while variables calculate the value only once (not often enough), and functions calculate the value every time they're called (too often), reactive expressions calculate the value only when it might have changed (just right!).
 
-We'll get into reactive programming much more in a later chapter (XREF), but even armed with a cursory knowledge of inputs, outputs, and reactive expressions, it's possible to build quite useful Shiny apps!
+We'll get into reactive programming much more in a later chapter (TODO: XREF), but even armed with a cursory knowledge of inputs, outputs, and reactive expressions, it's possible to build quite useful Shiny apps!
 
 ## Exercises
 

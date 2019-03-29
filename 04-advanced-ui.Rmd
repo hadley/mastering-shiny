@@ -14,7 +14,7 @@ The previous chapter showed you the higher-level UI functions that come with Shi
 
 If you don't know HTML, and aren't keen to learn, you can safely skip this chapter. If you don't know HTML today but may be inclined to learn it, you should be able to make sense of this chapter and understand the relationship between Shiny UI and HTML. If you are familiar with HTML already, you should find this chapter extremely useful--and you can skip over the sections that introduce HTML and CSS.
 
-## Outline {-}
+### Outline {-}
 
 * Section \@ref(introduction-to-html) is a quick but gentle guide to the basics of HTML. It won't turn you into a web designer, but you'll at least be able to understand the rest of the chapter.
 * Section \@ref(generating-html) introduces tag objects, and the family of functions that produce them. These functions give us all the flexibility of writing raw HTML, while still retaining the power and syntax of R.
