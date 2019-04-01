@@ -2,6 +2,8 @@
 
 # Basic UI
 
+## Introduction {-}
+
 ```{r setup,echo=FALSE}
 library(shiny)
 library(magrittr)
@@ -9,7 +11,7 @@ library(magrittr)
 
 As you saw in the previous chapter, Shiny encourages separation of the code that generates your user interface (`ui`) from the code that drives your app's behavior (`server`). In this chapter, we'll dive much deeper into the UI side of things.
 
-All web pages are constructed out of HTML, and Shiny user interfaces are no different--although they are generally expressed using R, their ultimate job is to produce HTML. As a Shiny app author, you can choose to stay far away from the details of HTML and use high-level layout functions in R. Or, you can choose to work with HTML tags directly to achieve any level of customization you want. And these approaches are by no means exclusive; you can mix high-level functions with low-level HTML as much as you like.
+All web pages are constructed out of HTML, and Shiny user interfaces are no different--although they are generally expressed using R, their ultimate job is to produce HTML. As a Shiny app author, you can use high-level layout functions in R that keep you far away from the details of HTML. You can also work with HTML tags directly to achieve any level of customization you want. These approaches are by no means exclusive; you can mix high-level functions with low-level HTML as much as you like.
 
 This chapter will focus on some of the high-level R functions that Shiny provides for input, output, and layout, while the chapter on [Advanced UI][] delves into using lower-level features for authoring HTML directly. If you're new to Shiny, you should read this chapter regardless of your level of HTML knowledge, as inputs and outputs are essential parts of any Shiny app.
 

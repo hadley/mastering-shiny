@@ -4,7 +4,7 @@
 source("common.R", local=TRUE)
 ```
 
-## Introduction
+## Introduction {-}
 
 In this chapter, we'll form a mental model of reactive programming. Without reactive programming, Shiny would not exist, and in well-informed hands it is by far the most elegant, robust, and productive way we know of for creating dynamic user interfaces.
 

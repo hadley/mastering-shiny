@@ -6,7 +6,7 @@ knit_print.shiny.tag <- function(x, ...) {
 }
 ```
 
-## Introduction
+## Introduction {-}
 
 The native languages of the web are HTML (for content), CSS (for styling), and JavaScript (for behavior). Shiny is designed to be accessible for R users who aren't familiar with any of those languages. But if you do speak these languages, you can take full advantage of them with Shiny to customize your apps or extend the Shiny framework.
 
@@ -22,7 +22,7 @@ If you don't know HTML, and aren't keen to learn, you can safely skip this chapt
 * Section \@ref(dependencies) introduces HTML dependency objects, which can be used to tell Shiny about JavaScript/CSS dependency files that should be used.
 * Section \@ref(html-template) shows how you can combine tag objects with raw .html files, using the **HTML templates** feature.
 
-## Introduction to HTML {#introduction-to-html}
+## HTML 101 {#introduction-to-html}
 
 To understand how UI functions in R work, let's first talk about HTML, in case you're not familiar with it (or its cousin, XML). If you've worked with HTML before, feel free to skip to Section \@ref(generating-html).
 
@@ -49,6 +49,7 @@ tags$blockquote(HTML("This time I <em>really</em> mean it!"))
 * `<strong>...</strong>` makes text <strong>bold</strong>
 * `<u>...</u>` makes text <u>underlined</u>
 * `<s>...</s>` makes text <s>strikeout</s>
+* `<code>...</code>` makes text <code>monospaced</code>
 
 ### Block tags
 
@@ -78,7 +79,7 @@ tags$blockquote(
 )
 ```
 
-### Tag attributes
+### Tags with attributes
 
 Some tags need to do more than just demarcate some text. An `<a>` (for "anchor") tag is used to create a hyperlink. It's not enough to just wrap `<a>...</a>` around the link's text, as you also need to specify where the hyperlink points to.
 
