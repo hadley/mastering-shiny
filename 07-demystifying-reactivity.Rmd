@@ -8,13 +8,13 @@ source("common.R", local=TRUE)
 
 In this chapter, we'll form a mental model of reactive programming. Without reactive programming, Shiny would not exist, and in well-informed hands it is by far the most elegant, robust, and productive way we know of for creating dynamic user interfaces.
 
-The biggest drawback of reactive programming is that it is not intuitive--at first. Even experienced R users can have trouble getting their heads around reactive programming as they get started with Shiny, and those with deep experience in software engineering may feel uncomfortable with a programming paradigm with so much "magic". But once you've formed an accurate mental model, you'll see that reactive programming is actually built on some pretty simple concepts and mechanisms that you can easily reason about.
+The biggest drawback of reactive programming is that it is not intuitive--at first. Even experienced R users can have trouble getting their heads around reactive programming as they get started with Shiny, and those with deep experience in software engineering may feel uncomfortable with a programming paradigm with so much "magic". But once you've formed an accurate mental model, you'll see that reactive programming is built on simple concepts and mechanisms that you can easily reason about.
 
 ### Terminology note {-}
 
-Before we go further, please be aware that the term "reactive programming" is a fairly general term in the programming world. While all reactive programming libraries/frameworks/languages are broadly about writing programs that responds to changing values, there is a huge amount of diversity in their design and implementation. For what it's worth, our approach is fairly closely aligned to [Meteor](https://www.meteor.com/) and [MobX](https://mobx.js.org/), and very different than the [ReactiveX](http://reactivex.io/) family or anything that labels itself Functional Reactive Programming.
+Before we go further, please be aware that the term "reactive programming" is a fairly general term in the programming world. While all reactive programming libraries/frameworks/languages are broadly about writing programs that respond to changing values, they vary enormously in their terminology, designs, and implementations.
 
-In this book, whenever we refer to "reactive programming", we are referring specifically to reactive programming as implemented in Shiny. Conversely, if you read any material about reactive programming that isn't specifically about Shiny, it's unlikely that those concepts or even terminology will be relevant to writing Shiny apps.
+In this book, whenever we refer to "reactive programming", we are referring specifically to reactive programming as implemented in Shiny. Conversely, if you read any material about reactive programming that isn't specifically about Shiny, it's unlikely that those concepts or even terminology will be relevant to writing Shiny apps. For readers who do have some experience with other reactive programming frameworks, our approach is similar to [Meteor](https://www.meteor.com/) and [MobX](https://mobx.js.org/), and very different than the [ReactiveX](http://reactivex.io/) family or anything that labels itself Functional Reactive Programming.
 
 ### Outline {-}
 
@@ -53,7 +53,7 @@ Conversely, for Shiny apps to respond quickly to user input, it's important that
 
 ### The traditional approach: Event-driven programming {#event-driven}
 
-In decades past, there wouldn't even be a question about how such interactive user interfaces would be written: _event-driven programming_ was the only game in town. It's an appealingly simple paradigm: you register callback functions to be executed in response to events (e.g. a mouse click, or a textbox's value being changed). In an alternate universe where R and Shiny were each invented five years earlier, your `server.R` code might have looked like this:
+In decades past, there wouldn't even be a question about how such interactive user interfaces would be written: _event-driven programming_ was the only game in town. It's an appealingly simple paradigm: you register callback functions to be executed in response to events (e.g. a mouse click, or a textbox's value being changed). Had Shiny been invented five years earlier, your `server.R` code might have looked like this:
 
 ```{r results='hide'}
 function(input, output, session) {
@@ -79,9 +79,9 @@ function(input, output, session) {
 
 Quite simple, right? The `updatePlot` function creates a plot using the values from `input$xvar` and `input$yvar`, and uses that plot to update `output$plot`. And then you tell Shiny to execute `updatePlot()` whenever either of those inputs changes.
 
-In that alternate universe, my life would be a lot easier, as this chapter would be a lot shorter--there'd be a lot less to explain. But please, learn from the programming world's person-millennia of experience writing user interfaces in the event-driven programming style. This kind of user interface programming is simple, but not easy! As your application adds more features, it becomes very difficult to keep track of what inputs affect what calculations, and what calculations affect each other, and what input and calculations affect what outputs and actions. Before long, you start to trade off correctness (just update everything whenever anything changes) against performance (try to update only the necessary parts, and pray you didn't miss any edge cases), because it's so difficult to optimize for both.
+In that alternate universe, my life would be a lot easier, as this chapter would be a lot shorter--there'd be a lot less to explain. Unfortunately, it would make life a lot worse for Shiny app authors. This kind of user interface programming is _simple_, but not _easy_! As your application adds more features, it becomes very difficult to keep track of what inputs affect what calculations, and what calculations affect each other, and what input and calculations affect what outputs and actions. Before long, you start to trade off correctness (just update everything whenever anything changes) against performance (try to update only the necessary parts, and pray you didn't miss any edge cases), because it's so difficult to optimize for both.
 
-Reactive programming roared into the programming mainstream in the 2010s, via the blisteringly fast-paced world of JavaScript UI frameworks. Pioneering frameworks like Knockout, Ember, and (my personal inspiration) Meteor demonstrated that reactive programming could make UI programming dramatically easier. Within a few short years, reactive programming has come to dominate UI programming on the web, with hugely popular frameworks like React, Vue.js, and Angular that are either inherently reactive or designed to work with reactive backends.
+Reactive programming roared into the programming mainstream in the 2010s, via the blisteringly fast-paced world of JavaScript UI frameworks. Pioneering frameworks like [Knockout](https://knockoutjs.com/), [Ember](https://emberjs.com/), and (my personal inspiration) Meteor demonstrated that reactive programming could make UI programming dramatically easier. Within a few short years, reactive programming has come to dominate UI programming on the web, with hugely popular frameworks like React, Vue.js, and Angular that are either inherently reactive or designed to work with reactive backends.
 
 Shiny has demonstrated that reactive programming is a particularly good fit for apps that transform and/or visualize complex data. These kinds of apps seem to naturally decompose into discrete steps, like loading data, subsetting, aggregating, predicting, etc. These steps can be individually expressed using reactive objects, which can then be managed by Shiny.
 
@@ -99,8 +99,6 @@ We'll go through these one by one, though not in that order; instead, we'll star
 
 ### Reactive values: values that change over time
 
-(TODO: Start with the most conceptually simple (reactiveVal) or the most common/useful/concrete (input)? How much to even explain here?)
-
 Before we start talking about reactive values, one pedagogically awkward little wrinkle is that reactive values come in three different flavors: inputs, `reactiveValues`, and `reactiveVal`. For this chapter's purposes, these three types are conceptually identical, so we'll mostly stick to discussing inputs.
 
 Inputs are by far the most common type of reactive value. Anyone who's written a single Shiny app has seen the `input` object, which is provided as an argument to your Shiny app's server function. It represents the collective input received from your app's user interface, and you access individual input values from it with the same operators you'd use for a named list, e.g. `input$x` or `input[["x"]]` for an input named `x`.
@@ -111,15 +109,15 @@ Don't be fooled, though: while `input$x` looks like reading a normal value from 
 
 Generally, R functions and variables are totally agnostic to, and in fact ignorant of, who/what is calling or reading them. When an R function is invoked, it runs and returns a value. When a variable is read, it doesn't matter to the variable why that read is happening. In reactive programming, the situation is very different.
 
-If a read of a regular variable is asking "What's the value of `x`?", reading a reactive value is asking "What's the value of `input$x`? **And also notify me the next time `input$x` changes, please!**"
+If a read of a regular variable is asking "What's the value of `x`?", reading a reactive value is asking "What's the value of `input$x`? **And also notify me the next time `input$x` changes, please!**" In other words, a reactive read has implications for both _now_ (returns the current value) and _later_ (notifies of the next change to the value).
 
-Now let's shift gears and talk about who exactly the reader is in this scenario, and what will happen when they're notified of changes in `input$x`.
+Because reactive reads have this additional "later" effect, the `input` object is very selective about who is allowed to access its data. Attempting to read `input$x` from anywhere but a bona fide reactive object, like a reactive expression or observer, throws an error. The actual text of this error is "Operation not allowed without an active reactive context", and it essentially means "I won't talk to you unless you give me a way to notify you that `input$x` changed".
 
-There are two fundamental types of reactive _consumers_ (what we referred to as "readers" just now) in Shiny. One type is for actions (with side effects), the other is for calculations (no side effects).
+Now let's shift gears and talk about the objects that _can_ read reactive values, and what will happen when they're notified of changes in `input$x`.
+
+There are two fundamental types of reactive readers (also known as _consumers_) in Shiny. One type is for actions (with side effects), the other is for calculations (no side effects).
 
 ### Observers: Actions that execute automatically
-
-(TODO: Why did I choose `input` over `reactiveVal` above, but now I'm choosing `observe` over `output$foo`??)
 
 _Observers_ are one type of reactive consumer. An observer takes a code block that performs an action of some kind. Here's an observer that prints the value of `x` every time it changes:
 
@@ -138,11 +136,26 @@ This code block does three things:
 
 When `input$x` changes, and this observer is notified, it requests that the Shiny runtime run its code block again, and the three steps above will repeat. Note that it's not just the single line `print(input$x)` that re-runs, but the entire code block. The unit of granularity for reactivity, in this case, is the whole observer rather than any particular line of code.
 
+Observers are reactive consumers because they know how to respond to the fact that one of their dependencies changed: they re-run their code block.
+
+Observers aren't limited to reading a single reactive value; each observer can read zero, one, or multiple reactive values.
+
+```{r eval=FALSE}
+observe({
+  message("We're about to print x:")
+  print(input$x)
+  message("And also y:")
+  print(input$y)
+})
+```
+
+This observer's entire code block will re-execute when _either_ `input$x` or `input$y` change; it doesn't wait until both have changed.
+
 ### Reactive expressions: Smart calculations
 
 _Reactive expressions_ are the other fundamental type of reactive consumer. While observers model actions that have side effects, reactive expressions model calculations that don't have side effects. (There's nothing that prevents you from putting side effects in your reactive expressions, but it's generally a bad idea.)
 
-Here's a very simple reactive expression named `up_to_x` that generates a sequence of numbers based on `input$x`.
+Here's a very simple reactive expression named `up_to_x` that generates a sequence of numbers based on `input$x`. (If you're not familiar with `seq_len`, it simply returns a sequence of increasing numbers starting from 1 to whatever number you pass it; for example, `seq_len(3)` returns `c(1L, 2L, 3L)`.)
 
 ```{r eval=FALSE}
 up_to_x <- reactive({
@@ -150,7 +163,9 @@ up_to_x <- reactive({
 })
 ```
 
-The mere act of creating this reactive expression doesn't cause any code to execute. Rather, it just means that this sequence of numbers is available for retrieval, by calling `up_to_x` like a function. In the following snippet, the code contained in `up_to_x` (from the above snippet) is not executed until the line `print(up_to_x())` is reached, as this is the first time the result of `up_to_x` is actually requested. (Because of this property, we say that reactive expressions are _lazy_ as opposed to _eager_.)
+The mere act of creating this reactive expression doesn't cause any code to execute. Rather, it just means that this sequence of numbers is available for retrieval, by calling `up_to_x()` like it's a function. In this sense, creating a reactive expression is like to declaring an R function: nothing actually happens until you call it.
+
+In the following snippet, the code contained in `up_to_x` (from the above snippet) is not executed until the line `print(up_to_x())` is reached, as this is the first time the result of `up_to_x` is actually requested. (Because of this property, we say that reactive expressions are _lazy_ as opposed to _eager_.)
 
 ```{r eval=FALSE}
 observe({
@@ -160,7 +175,7 @@ observe({
 
 This observer prints the sequence to the console whenever `up_to_x` changes (i.e. whenever `input$x` changes, because `up_to_x` reads `input$x`).
 
-Just like with reading reactive values, you can't just walk up to a reactive expression and ask for its value, and for the same reason: because `up_to_x()` is more than just "Can you calculate the current value of `up_to_x`?"; instead, it's "Can you calculate the current value of `up_to_x`? _And also notify me if something about this sequence changes?_" Reactive expressions (like reactive values) can only be called by reactive consumers.
+Just like with reading reactive values, reactive expressions are only readable by reactivity-aware consumers, and for the same reason: because `up_to_x()` is more than just "Can you calculate the current value of `up_to_x`?"; instead, it's "Can you calculate the current value of `up_to_x`? _And also notify me if something about this sequence changes?_"
 
 So far we've learned that reactive expressions are _reactive_: they know when the reactive values they've read have changed, and they alert their readers when their own value may have changed. They're also _lazy_: they contain code, but that code doesn't execute unless/until someone tries to actually retrieve the value of the reactive expression (by calling it like a function).
 
@@ -174,7 +189,7 @@ These particular properties--laziness, caching, reactivity, and lack of side eff
 
 Reactive expressions are unique among reactive primitives, in that they are the only construct that can be both read other objects (i.e. act as a consumer), and be read from (i.e. act as a source). Observers can read/consume values, but they cannot offer a value to anyone directly. Reactive values can be read, but since they are essentially just named values, they have no notion of reading anything else. If the reactive world was limited to reactive values and observers, you could line up all the reactive values in one column and all the observers in a second column, and then draw many-to-many relationships between the two columns.
 
-```{r echo=FALSE,out.width="40%"}
+```{r echo=FALSE,out.width="30%"}
 knitr::include_graphics("images/05-reactivity/reactivity-without-expr.png")
 ```
 
@@ -225,17 +240,7 @@ The columns are:
 
 After downloading the data, the script will tally the number of rows (downloads) with each value in a specified column. For example, if we specify the `package` column, then we get the number of times each package was downloaded; if we specify the `r_os` column, we get the number of downloads from each operating system.
 
-Once the tallying is done, we'll look at this data in a couple of ways. We'll zoom in on the top few most popular values (e.g. the most popular packages):
-
-```{r echo=FALSE, message=FALSE, fig.height=4, fig.width=5.5}
-print(readRDS("images/05-reactivity/top_packages.rds"))
-```
-
-And we'll also visualize all the values to get a sense of the "long tail", to show how quickly the downloads decrease as we move down the list of packages.
-
-```{r echo=FALSE, message=FALSE, fig.height=4, fig.width=5.5}
-print(readRDS("images/05-reactivity/all_downloads.rds"))
-```
+Once the tallying is done, we'll plot this data in a couple of ways. We'll zoom in on the top few most popular values (e.g. the most popular packages), and we'll also visualize all the values to get a sense of the "long tail", to show how quickly the downloads decrease as we move down the list of packages.
 
 Now, on to the code. First, we'll load the libraries we need.
 
