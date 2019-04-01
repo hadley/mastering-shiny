@@ -20,7 +20,6 @@ If you don't know HTML, and aren't keen to learn, you can safely skip this chapt
 * Section \@ref(generating-html) introduces tag objects, and the family of functions that produce them. These functions give us all the flexibility of writing raw HTML, while still retaining the power and syntax of R.
 * Section \@ref(using-css) demonstrates several ways of incorporating custom CSS into your app (for example, to customize fonts and colors).
 * Section \@ref(dependencies) introduces HTML dependency objects, which can be used to tell Shiny about JavaScript/CSS dependency files that should be used.
-* Section \@ref(html-template) shows how you can combine tag objects with raw .html files, using the **HTML templates** feature.
 
 ## HTML 101 {#introduction-to-html}
 
@@ -523,9 +522,9 @@ For Shiny, we wanted instead to have R users simply call `sliderInput()`, and le
 
 To make this possible, we created a first-class object for HTML dependencies.
 
-### Creating HTML dependency objects
+An HTML dependency object is a description of a single JavaScript/CSS library. As a Shiny app author, you generally don't create these directly. Instead, these objects are created by package authors who want to make reusable UI functions that depend on external JavaScript/CSS—like `sliderInput()`. If you're such a package author, you absolutely should be using HTML dependency objects rather than calling `tags$link()`, `tags$script()`, or `includeCSS` directly.
 
-An HTML dependency object is a description of a single JavaScript/CSS library. As a Shiny app author, you generally don't create these directly. Instead, these objects are created by package authors who want to make reusable UI functions that depend on external JavaScript/CSS—like `sliderInput()`.
+### Creating HTML dependency objects
 
 To form such an object, you call `htmlDependency` with the following arguments:
 
@@ -538,7 +537,7 @@ To form such an object, you call `htmlDependency` with the following arguments:
 Here's an example from the [leaflet.mapboxgl](https://github.com/rstudio/leaflet.mapboxgl) package:
 
 ```{r eval=FALSE}
-htmlDependency(
+mapbox_gl_dependency <- htmlDependency(
   "mapbox-gl",
   "0.53.1",
   src = "node_modules/mapbox-gl/dist",
@@ -565,11 +564,16 @@ Once you've created an HTML dependency object, using it is straightforward.
 If you have a function that returns a tag object, have that function return a tag object and dependency instead, using a `tagList`.
 
 ```{r}
-
+create_mapbox_map <- function(map_id) {
+  tagList(
+    div(id = map_id),
+    mapbox_gl_dependency
+  )
+}
 ```
 
+You can bundle any number of dependencies with your HTML this way; just add additional dependency arguments to the `tagList`.
 
 
-## HTML templates
 
-TODO
+TODO: Exercises?
