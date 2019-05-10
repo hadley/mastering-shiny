@@ -278,38 +278,32 @@ attr(download_data, "spec") <- NULL
 str(download_data, 5)
 ```
 
-Now that the data is in memory, we will perform the **data manipulation**. The implementation details here are not that important; just understand that we're taking the `download_data` data frame from above, with its 3.4 million rows, and turning it into counts of rows grouped by the dimension in question (`package`).
+Now that the data is in memory, we will perform the **data manipulation**. The implementation details here are not that important; just understand that we're taking the `download_data` data frame from above, with its 3.4 million rows, and turning it into counts of rows grouped by the dimension in question (`package`), and arranging by the number of downloads.
 
 ```{r data_manip,cache=TRUE}
 ## Data manipulation =========
 
 # D. Count observations, grouping by the desired dimension
 by_frequency <- download_data %>%
-  pull(dimension) %>%
-  table() %>%
-  sort(decreasing = TRUE) %>%
-  as_tibble() %>%
-  setNames(c(dimension, "downloads"))
+  group_by_at(dimension) %>%
+  summarise(downloads = n()) %>%
+  arrange(desc(downloads))
 
-# E. Limit to the top `top_count`
-most_frequent <- by_frequency %>%
-  head(top_count)
+by_frequency
 ```
 
-Here's the resulting `by_frequency` data frame. `most_frequent` is identical, but limited to the top `r top_count` rows.
-
-```{r echo=FALSE}
-str(most_frequent)
-```
-
-Now we're ready to **plot our data**; one bar plot using `most_frequent`, and one line plot using the full `by_frequency`.
+Now we're ready to **plot our data**; one bar plot using the top `r top_count` downloaded packages, and one line plot using the full `by_frequency`.
 
 ```{r ggplots,cache=TRUE,results="hold"}
+# E. Limit to the top `top_count`
+most_frequent <- by_frequency %>%
+  top_n(top_count)
+
 ## Various outputs =========
 
 # F. Plot the top values
 ggplot(most_frequent, aes_string(x = dimension)) +
-  geom_bar(aes(y = downloads / 1000), stat = "identity") +
+  geom_col(aes(y = downloads / 1000)) +
   ylab("Downloads (thousands)") +
   coord_flip() +
   scale_x_discrete(limits = rev(most_frequent[[dimension]])) +
