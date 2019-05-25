@@ -244,7 +244,7 @@ Once the tallying is done, we'll plot this data in a couple of ways. We'll zoom 
 
 Now, on to the code. First, we'll load the libraries we need.
 
-```{r cache=TRUE}
+```{r}
 library(lubridate)
 library(readr)
 library(dplyr)

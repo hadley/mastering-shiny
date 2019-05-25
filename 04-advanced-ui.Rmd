@@ -4,6 +4,8 @@
 knit_print.shiny.tag <- function(x, ...) {
   knit_print(as.character(x))
 }
+library(htmltools)
+library(magrittr)
 ```
 
 ## Introduction {-}
@@ -258,7 +260,7 @@ a(class="btn btn-primary", `data-toggle`="collapse", href="#collapseExample",
 ```
 ```{r echo=FALSE}
 # From https://getbootstrap.com/docs/3.4/javascript/#collapse
-a(class="btn btn-primary", `data-toggle`="collapse", href="#collapseExample",
+tags$a(class="btn btn-primary", `data-toggle`="collapse", href="#collapseExample",
   "Link with href"
 ) %>% print(browse=FALSE)
 ```
@@ -468,6 +470,8 @@ Shiny gives you several options for adding custom CSS into your apps. Which meth
 If you have one or two very simple rules, the easiest way to add CSS is by inserting a `<style>` tag, using `tags$style()`. This can go almost anywhere in your UI.
 
 ```{r}
+library(shiny)
+
 ui <- fluidPage(
   tags$style(HTML("
     body, pre { font-size: 18pt; }
