@@ -6,3 +6,4 @@ _book
 _bookdown_files
 rsconnect
 _download_cache
+shiny-book.rds
