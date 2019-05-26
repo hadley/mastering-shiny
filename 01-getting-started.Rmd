@@ -34,7 +34,7 @@ install.packages("shiny")
 
 ### Other R packages {-}
 
-This book is heavy on code, and we will often use other R packages in our examples. You can install them all now by running the following:
+This book is heavy on code, and we will often use other R packages in our examples. You can install them all now by running this code:
 
 ```{r eval=FALSE}
 install.packages(c("magrittr", "lubridate", "readr", "dplyr", "ggplot2", "gt"))

@@ -99,7 +99,7 @@ You should also avoid using special characters in your identifiers, especially s
 
 Next, we'll bring the outputs to life by defining them in the server function.
 
-You may be aware that Shiny uses a *reactive programming* framework to make apps interactive. We'll explore reactive programming in much more detail in a future chapter (TODO: XREF), but for now, just be aware that it often involves telling Shiny *how* to perform a computation, not ordering Shiny to actually go *do it*. It's like the difference between giving someone a recipe, versus demanding they go make you a sandwich.
+Shiny uses a *reactive programming* framework to make apps interactive. We'll explore reactive programming in much more detail in a future chapter (TODO: XREF), but for now, just be aware that it often involves telling Shiny *how* to perform a computation, not ordering Shiny to actually go *do it*. It's like the difference between giving someone a recipe, versus demanding they go make you a sandwich.
 
 In this simple case, we're going to tell Shiny how to fill in the `summary` and `table` outputs—we're providing the "recipes" for those outputs. Replace your empty `server` function with this:
 
@@ -126,7 +126,7 @@ output$IDENTIFIER <- renderTYPE({
 })
 ```
 
-The left-hand side of the assignment operator (`<-`), `output$IDENTIFIER`, indicates that you're providing the recipe for the Shiny output with the matching ID. (Note that the ID is provided in quotes in the UI, but without quotes in the server.)
+The left-hand side of the assignment operator (`<-`), `output$IDENTIFIER`, indicates that you're providing the recipe for the Shiny output with the matching ID. (Note that the ID is quoted in the UI, but not in the server.)
 
 The right-hand side of the assignment specifies uses a specific *render function* to wrap a code block that you provide; in the example above, we use `renderPrint` and `renderTable` wrap our app-specific logic. Each `renderXXX` function is designed to work with a particular `xxxOutput` function (and vice versa).
 
