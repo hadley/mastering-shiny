@@ -6,11 +6,11 @@ source("common.R")
 
 ## Introduction
 
-As you saw in the previous chapter, Shiny encourages separation of the code that generates your user interface (`ui`) from the code that drives your app's behavior (`server`). In this chapter, we'll dive deeper into the UI side of things.
+Now that you've got a basic app under your belt, we're going to explore the details that make it tick. As you saw in the previous chapter, Shiny encourages separation of the code that generates your user interface (`ui`) from the code that drives your app's behavior (`server`). In this chapter, we'll dive deeper into the UI side of things.
 
 All web pages are constructed out of HTML, and Shiny user interfaces are no different--although they are generally expressed using R, their ultimate job is to produce HTML. As a Shiny app author, you can use high-level layout functions in R that keep you far away from the details of HTML. You can also work with HTML tags directly to achieve any level of customization you want. These approaches are by no means exclusive; you can mix high-level functions with low-level HTML as much as you like.
 
-This chapter will focus on some of the high-level R functions that Shiny provides for input, output, and layout, while the chapter on [Advanced UI][] delves into using lower-level features for authoring HTML directly. If you're new to Shiny, you should read this chapter regardless of your level of HTML knowledge, as inputs and outputs are essential parts of any Shiny app.
+This chapter will focus on some of the high-level R functions that Shiny provides for input, output, and layout, while Chapter \@ref(advanced-ui) will delve into using lower-level features for authoring HTML directly.
 
 ### Prerequisites {-}
 
@@ -31,7 +31,7 @@ library(shiny)
 
 As we saw in the previous chapter, functions like `sliderInput()`, `selectInput()`, `textInput()`, and `numericInput()` are used to insert input controls into your UI.
 
-The first parameter of an input function is always the `inputId`; this is a simple string that is composed of alphanumeric characters and/or underscore (no spaces, dashes, periods, or other special characters allowed!). Most input function have a second parameter, `label`, that is used to create a human-readable label for the control. Any remaining parameters are specific to the particular input function, and can be used to customize the input control.
+The first parameter of an input function is always the `inputId`; this is a simple string made up of numbers, letters, and underscores (no spaces, dashes, periods, or other special characters allowed!). Most input function have a second parameter, `label`, that is used to create a human-readable label for the control. Any remaining parameters are specific to the particular input function, and can be used to customize the input control.
 
 For example, a typical call to `sliderInput` might look something like this:
 

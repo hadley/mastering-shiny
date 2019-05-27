@@ -24,7 +24,6 @@ Built with [bookdown](https://bookdown.org/yihui/bookdown/).
     1. Uploading/downloading data
     2. Interactive base/ggplot2 graphics
     3. Generating static reports from Shiny
-    4. Connecting to databases
     5. Modules
 
 4. Mastering UI
@@ -36,7 +35,8 @@ Built with [bookdown](https://bookdown.org/yihui/bookdown/).
 
 5. Mastering reactivity
     1. Reactive programming in depth
-    2. Using scopes to manage object lifetimes
+    2. Code organisation; Using scopes to manage object lifetimes
+    3. Connecting to databases
 
 5. Taming Shiny
     1. Troubleshooting and debugging techniques
