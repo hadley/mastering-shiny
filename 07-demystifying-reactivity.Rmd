@@ -1,7 +1,7 @@
 # Understanding reactive programming
 
 ```{r include=FALSE}
-source("common.R", local=TRUE)
+source("common.R")
 ```
 
 ## Introduction {-}

@@ -1,3 +1,9 @@
+knitr::opts_chunk$set(
+  comment = "#>",
+  collapse = TRUE,
+  cache = TRUE
+)
+
 # Masks readr::read_csv, and performs persistent download caching
 read_csv <- function(file, ...) {
   if (grepl("^https?://", file)) {
