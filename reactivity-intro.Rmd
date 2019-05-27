@@ -1,5 +1,3 @@
-# (PART\*) Reactive programming {-}
-
 # Reactive programming basics
 
 ## Introduction {-}

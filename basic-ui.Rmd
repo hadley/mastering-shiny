@@ -1,10 +1,8 @@
-# (PART\*) Creating user interfaces {-}
+# Basic UI
 
 ```{r}
 source("common.R")
 ```
-
-# Basic UI
 
 ## Introduction {-}
 

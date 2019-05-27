@@ -8,11 +8,14 @@ new_session: yes
 rmd_files:
   [
     "index.Rmd",
+
     "getting-started.Rmd",
     "your-first-app.Rmd",
     "basic-ui.Rmd",
-    "advanced-ui.Rmd",
     "reactivity-intro.Rmd",
+
+    "advanced-ui.Rmd",
+
     "reactivity-demystifying.Rmd"
   ]
 

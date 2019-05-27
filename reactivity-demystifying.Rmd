@@ -1,3 +1,5 @@
+# (PART\*) Mastering reactivity {-}
+
 # Understanding reactive programming
 
 ```{r include=FALSE}
