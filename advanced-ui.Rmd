@@ -10,7 +10,7 @@ library(htmltools)
 library(magrittr)
 ```
 
-## Introduction {-}
+## Introduction
 
 The native languages of the web are HTML (for content), CSS (for styling), and JavaScript (for behavior). Shiny is designed to be accessible for R users who aren't familiar with any of those languages. But if you do speak these languages, you can take full advantage of them with Shiny to customize your apps or extend the Shiny framework.
 

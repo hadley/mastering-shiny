@@ -4,7 +4,7 @@
 source("common.R")
 ```
 
-## Introduction {-}
+## Introduction
 
 As you saw in the previous chapter, Shiny encourages separation of the code that generates your user interface (`ui`) from the code that drives your app's behavior (`server`). In this chapter, we'll dive deeper into the UI side of things.
 

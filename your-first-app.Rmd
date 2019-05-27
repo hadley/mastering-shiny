@@ -1,6 +1,6 @@
 # Your first Shiny app
 
-## Introduction {-}
+## Introduction
 
 In this chapter, we'll create a simple Shiny app. Along the way, you'll learn the basic structure of a Shiny app, and how to save and run Shiny apps using the RStudio IDE. You'll also take your first steps into reactive programming.
 
