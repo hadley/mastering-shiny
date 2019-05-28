@@ -139,7 +139,16 @@ fluidPage(..., title = NULL, theme = NULL)
 
 The "fluid" in `fluidPage` means the page's content may resize its width (but not height) as the size of the browser window changes. The other option is `fixedPage()`, which means the page contents will never exceed 960 pixels in width.
 
-Inside the page function, you use more layout functions to define the basic structure of the app. Here I'll introduce you to two common structures: a page with sidebars, and a multirow app.
+Technically, this is all you need: you can put inputs and outputs directly inside `fluidPage()`:
+
+```{r, eval = FALSE}
+fluidPage(
+  sliderInput("min", "Limit (minimum)", min = 0, max = 100, value = 50),
+  plotOutput("distPlot")
+)
+```
+
+This is fine for very simple examples, but if you want your app to look good, you'll need to use more layout functions to define the basic structure of the app. Here I'll introduce you to two common structures: a page with sidebars, and a multirow app.
 
 ### Page with sidebar
 

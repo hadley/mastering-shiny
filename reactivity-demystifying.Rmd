@@ -1,6 +1,6 @@
 # (PART\*) Mastering reactivity {-}
 
-# Understanding reactive programming
+# Understanding reactive programming {#reactivity-mental-model}
 
 ```{r include=FALSE}
 source("common.R")
