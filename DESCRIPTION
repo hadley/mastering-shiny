@@ -8,6 +8,7 @@ Imports:
     lubridate,
     ggplot2,
     gt,
+    png,
     readr,
     shiny,
     webshot (>= 0.5.0.9000)
