@@ -89,6 +89,14 @@ Shiny comes with a number of built-in output functions that provide useful tools
 
 Note that `inputId`s and `outputId`s share the same names, and their IDs must be unique among all inputs _and_ outputs. This is because some controls can serve as both inputs _and_ outputs, as you'll learn about in Chapter XYZ.
 
+### Input and output IDs
+
+Another important property that input and output controls share is that **they always take an ID string as their first argument**. In this case, we've used `"dataset"`, `"summary"`, and `"table"` as the identifiers for these inputs and outputs. We'll use these identifiers in the next step to read from inputs and write to outputs.
+
+It's absolutely critical that identifiers be unique! In a given app, you can't have two inputs named `"dataset"`, two outputs named `"plot"`, or an input and an output named `"choices"`. No matter how complex your app gets, you must make sure every ID is unique (though we'll talk about one approach to keep this manageable in the chapter on modules (TODO: XREF)).
+
+You should also avoid using special characters in your identifiers, especially space and dash. Generally, it's best to stick to the kind of names you'd use for variables or data frame columns in R, with the added restriction of avoiding periods. (Like R, numbers and underscores may not start an identifier, but they are permitted elsewhere.)
+
 ## Layouts {#layout}
 
 Shiny includes several classes of UI functions that are used to layout inputs and outputs within the app. This chapter focuses on the built-in components centered around `fluidPage()` and `fixedPage()` as these provide the structure seen in the most common style of shiny apps. In future chapters you'll learn about other layout families like dashboards and dialog boxes.

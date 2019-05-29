@@ -54,7 +54,9 @@ shinyApp(ui, server)
 
 As you can see, the `server` function is a function that you (the app author) define, and pass to Shiny via the `shinyApp` function. You'll never invoke a server function yourself; rather, Shiny invokes it whenever a new session begins. A __session__ begins each time the Shiny app is loaded by a browser, either by different people, or by the same person opening multiple tabs.
 
-Almost of the reactive programming you'll do in Shiny will be directly in the server function. The server function is so important because it encapsulates the connection to a single browser session, creating a private scope for that particular session. In other words, every variable you create in the body of the server function is only accessible to a particular session. Most of the time, we'll also want our reactive interactions to be private to each session too: when user A moves a slider, you usually want outputs to update ony for user A, not user B. Therefore, we'll write our reactive logic in the server function.
+Almost of the reactive programming you'll do in Shiny will be directly in the server function[^exceptions]. The server function is so important because it encapsulates the connection to a single browser session, creating a private scope for that particular session. In other words, every variable you create in the body of the server function is only accessible to a particular session. Most of the time, we'll also want our reactive interactions to be private to each session too: when user A moves a slider, you usually want outputs to update ony for user A, not user B. Therefore, we'll write our reactive logic in the server function.
+
+[^exceptions]: The primary exception is where there's some work that can shared across multiple users. For example, all users might be looking at the same large csv file, so you might as well load it once and share it between users. We'll come back to that idea in Chapter XYZ.
 
 You might have wondered it's safe for two users to connect to a single Shiny app at the same time: how does Shiny keep track of whose inputs and outputs are whose? This happens automatically because shiny calls your server function once for each person, and because each call to an R function is independent, there's no way for the variables to get muddled up.
 
@@ -85,7 +87,7 @@ input$count <- 10
 
 The reason for this restriction is that `input` is reflects what's happening in the browser; the browser is the "single source of truth". Being able to directly modify the `input` object would introduce a second source of truth, which could then be in conflict with the state of the browser.
 
-One more important thing about `input` is that it's a bit selective about who is allowed to read it. You must be in a __reactive context__ to be able to access it. We'll come back to that idea very shortly, but it's fundamental in order for outputs to automatically update when an input changes. For example, this server function will throw an error:
+One more important thing about `input` is that it's a bit selective about who is allowed to read it. You must be in a __reactive context__ to be able to access it. We'll come back to that idea very shortly, but it's a fundamentally idea that allows outputs to automatically update when an input changes. For example, this server function will throw an error:
 
 ```{r, eval = FALSE}
 ui <- fluidPage(
@@ -121,6 +123,8 @@ server <- function(input, output, session) {
 ```
 
 This snippet assumes that the UI contains a `plotOutput("hist_plot")`. The render function you use (`renderPlot`) must match with the output function (`plotOutput`), and the output slot (`hist_plot`) must match with the output ID.
+
+ (Note that the ID is quoted in the UI, but not in the server.)
 
 ### Imperative vs. declarative
 
@@ -216,7 +220,7 @@ As a human looking at this code, you might conclude that when `input$bins` chang
 
 Shiny doesn't try to be this clever. Instead, an output's render code block is always executed in its entirety, whether it's two lines of code or two hundred. In this way, each output represents an indivisible unit.
 
-### Reactive expressions
+### Reactive expressions {#reactive-expressions-intro}
 
 If you read the code above carefully you might have noticed that we're actually generating the random numbers in two different places. The table and the histogram are actually displaying the results from two unrelated datasets! To fix that problem we need to introduce one more big idea: the reactive expression. 
 
@@ -245,6 +249,52 @@ knitr::include_graphics("diagrams/reactivity-intro/input-reactive-output.png", d
 ```
 
 Reactive expressions are extremely important for creating efficient shiny apps because they are only updated when their inputs change. This means that you can use them to encapsulate expensive operations so that they are only re-computed the minimal number of times. If you have every used a tool like `make`, this might seem familiar.
+
+
+
+But often in reactive programming, neither of these choices satisfy. Using a variable won't work:
+
+```{r, eval = FALSE}
+# Don't do this!
+server <- function(input, output, session) {
+  dataset <- get(input$dataset, "package:datasets", inherits = FALSE)
+
+  output$summary <- renderPrint({
+    summary(dataset)
+  })
+  
+  output$table <- renderTable({
+    dataset
+  })
+}
+```
+
+In this code, we're attempting to calculate the value of `dataset` just once, as the session starts. But the value of `input$dataset` may change over time. We noted a few paragraphs ago that Shiny outputs are reactive (they re-execute as necessary); the same cannot be said for free-floating code like this. So the result of extracting a variable like this is tha the `dataset` variable will assume some value at startup based on the initial value of `input$dataset`, and stay at that value forever. This is clearly not what we want, and is such an easy trap to fall into that in fact Shiny detects this condition and throws an error immediately.
+
+If using a variable won't work, how about a function? This will work, and takes care of the code duplication, but it does result in duplicated effort:
+
+```{r, eval = FALSE}
+# Don't do this!
+server <- function(input, output, session) {
+  getDataset <- function() {
+    get(input$dataset, "package:datasets", inherits = FALSE)
+  }
+
+  output$summary <- renderPrint({
+    summary(getDataset())
+  })
+  
+  output$table <- renderTable({
+    getDataset()
+  })
+}
+```
+
+We get the correct behavior this time, at least—we're calling `getDataset()` from within our output code, so Shiny will know to recalculate the outputs when `input$dataset` changes. However, for each change to `input$dataset`, `getDataset` is going to be called twice, and its work is therefore going to be performed twice. (In this example, the work being done in `getDataset` is totally trivial so it doesn't actually matter; just imagine we're doing a more expensive operation like retrieving a dataset from a web service or database, or fitting a model over a large dataset, or performing simulations.)
+
+To summarize: while variables calculate the value only once (not often enough), and functions calculate the value every time they're called (too often), reactive expressions calculate the value only when it might have changed (just right!).
+
+
 
 ## Reactivity roadblocks
 

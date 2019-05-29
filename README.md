@@ -36,7 +36,7 @@ Built with [bookdown](https://bookdown.org/yihui/bookdown/).
 5. Mastering reactivity
     1. Reactive programming in depth
     2. Code organisation; Using scopes to manage object lifetimes
-    3. Connecting to databases
+    3. Sharing working between users; Connecting to databases
 
 5. Taming Shiny
     1. Troubleshooting and debugging techniques

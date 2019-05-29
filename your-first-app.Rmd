@@ -13,7 +13,6 @@ In this chapter, we'll create a simple Shiny app. Along the way, you'll learn th
 library(shiny)
 ```
 
-
 ### Outline {-}
 
 * Section \@ref(create-app) presents the minimum boilerplate that's needed to 
@@ -28,7 +27,6 @@ library(shiny)
   
 * Section \@ref(reactive-expr) takes our server function logic a step further, 
   with reactive expressions.
-
 
 ## Create app dir and file {#create-app}
 
@@ -49,38 +47,46 @@ server <- function(input, output, session) {
 shinyApp(ui, server)
 ```
 
-This is a complete, if trivially simple, Shiny app. Looking closely at the code above, our `app.R` does four things:
+This is a complete, if trivial, Shiny app. Looking closely at the code above, our `app.R` does four things:
 
-1.  Calls `library(shiny)` to load the package.
+1.  Calls `library(shiny)` to load the shiny package.
 
-2.  Defines the user interface (UI) for our app—in this case, nothing but the 
-    words "Hello, world!"
+2.  Defines the user interface (or **UI** for short) for our app. 
+    In this case, it's nothing but the words "Hello, world!".
 
 3.  Specifies the behavior of our app by defining a `server` function. 
     It's currently empty, but we'll be back to revisit this shortly.
     
-4.  Calls `shinyApp(ui, server)` to construct a Shiny application object from 
-    the UI and server previously defined.
+4.  Runs `shinyApp(ui, server)` to construct a Shiny application object from 
+    the UI object and server function.
 
 ## Running and stopping {#running}
 
-Run this Shiny app in RStudio now by pressing `Ctrl+Shift+Enter`, or by clicking the **Run App** button in the document toolbar; go ahead and try either.
+Run this Shiny app in RStudio[^not-rstudio] now by pressing `Ctrl+Shift+Enter`, or by clicking the **Run App** button in the document toolbar. You should see a web application launch in a new window, with only the words "Hello, world!":
 
-If you're not using RStudio, you can use `setwd()` to change the current working directory to the app dir, and call `shiny::runApp()` (or alternatively, don't change the current working directory and pass the path to the app dir to `runApp()` as an argument).
+[^not-rstudio]: If you're not using RStudio, you can use `setwd()` to change the current working directory to the app dir, and call `shiny::runApp()` (or alternatively, don't change the current working directory and pass the path to the app dir to `runApp()` as an argument).
 
-You should see a web application launch in a new window, with only the words "Hello, world!"
-
-```{r, echo = FALSE}
+```{r, echo = FALSE, out.width = NULL}
 knitr::include_graphics("images/02-your-first-shiny-app/helloworld.png")
 ```
 
-This is RStudio's Shiny app window. From here, you can click "Open in Browser" to view the app in your system default web browser, which can be helpful for testing or debugging. (If you prefer to always launch straight into your system default web browser, or alternatively, in RStudio's Viewer pane, you can use the Run App button's dropdown menu to choose one of those instead.)
+This is RStudio's Shiny app window. From here, you can click "Open in Browser" to view the app in your system default web browser, which can be helpful for testing or debugging. If you prefer to always launch straight into your system default web browser, or RStudio's Viewer pane, you can use the Run App button's dropdown menu to choose one of those instead:
 
-Before you close the app, go back to your main RStudio window and look at the R console. You'll notice that the console says something like: "Listening on http://127.0.0.1:3827". This is telling you the URL where your app can be found: 127.0.0.1 is a standard address that means "this computer" and 3827 is a port number. (Your port number will likely be different, as Shiny chooses a random port number for each R session, to make it easy to run multiple Shiny apps simultaneously.) You can enter that URL into any compatible[^ie] web browser to open another copy of your app.
+```{r, echo = FALSE, out.width = NULL}
+knitr::include_graphics("images/02-your-first-shiny-app/run-app.png")
+```
+
+Before you close the app, go back to your main RStudio window and look at the R console. You'll notice that the console says something like:
+
+```{r}
+#> Listening on http://127.0.0.1:3827
+```
+
+This is telling you the URL where your app can be found: 127.0.0.1 is a standard address that means "this computer" and 3827 is randomly assigned port number. You can enter that URL into any compatible[^ie] web browser to open another copy of your app.
 
 [^ie]: Notably, Internet Explorer versions earlier than IE11 are not compatible when running Shiny directly from your R session. However, Shiny apps deployed on Shiny Server or ShinyApps.io can work with IE10 (earlier versions of IE are no longer supported).
 
-The second thing to notice is that R is busy: the R prompt isn't visible, and the console toolbar displays a stop sign icon. While a Shiny app is running, it "blocks" the R console. You can't run new commands at the R console until after the Shiny app either stops of its own accord, or (much more commonly) is interrupted.
+The second thing to notice is that R is busy: the R prompt isn't visible, and the console toolbar displays a stop sign icon. While a Shiny app is running, it "blocks" the R console. This means that you can't run new commands at the R console until after the Shiny app either stops of its own accord, or (much more commonly) is interrupted.
 
 Go ahead and stop your app using any one of these options:
 
@@ -96,9 +102,9 @@ Go ahead and stop your app using any one of these options:
 
 ## Adding UI controls {#adding-ui}
 
-Next, we'll add some inputs and outputs to our UI so it's not *quite* so minimal. Change your `ui` variable to look like this:
+Next, we'll add some inputs and outputs to our UI so it's not *quite* so minimal. Change your `ui` object to look like this:
 
-```{r, eval = FALSE}
+```{r}
 ui <- fluidPage(
   selectInput("dataset", label = "Dataset",
     choices = ls("package:datasets")
@@ -124,27 +130,28 @@ This example uses four functions we haven't seen before.
   moment). `verbatimTextOutput()` displays code  and `tableOutput` displays 
   tables. You'll learn more about outputs in Section \@ref(outputs).
 
+Layout functions, inputs, and outputs are used for different purposes, but they fundamentally the same under the covers: they're all just fancy ways to generate HTML, and if you call any of them outside of a shiny app, you'll see HTML printed out at the console. Don't be afraid to poke around to see how these various layouts and controls work under the hood. You'll learn more of the details in Chapter \@ref(advanced-ui).
+
+```{r, eval = FALSE, echo = FALSE}
+server <- function(input, output, session) {}
+shinyApp(ui, server)
+```
+
 Go ahead and run the app again. You'll now see a select box with a set of names, and very little else. We've defined the UI, but haven't yet told Shiny what data to put in the outputs.
 
-Layout functions, inputs, and outputs are used for different purposes, but they fundamentally the same under the covers: **they're all just fancy ways to generate HTML**. If you call any of these functions directly outside of a shiny app, you'll see HTML printed out at the console. Don't be afraid to poke around to see how these various layouts and controls work under the hood. You'll learn more of the details in Chapter \@ref(advanced-ui).
-
-### Input and output IDs
-
-Another important property that input and output controls share is that **they always take an ID string as their first argument**. In this case, we've used `"dataset"`, `"summary"`, and `"table"` as the identifiers for these inputs and outputs. We'll use these identifiers in the next step to read from inputs and write to outputs.
-
-It's absolutely critical that identifiers be unique! In a given app, you can't have two inputs named `"dataset"`, two outputs named `"plot"`, or an input and an output named `"choices"`. No matter how complex your app gets, you must make sure every ID is unique (though we'll talk about one approach to keep this manageable in the chapter on modules (TODO: XREF)).
-
-You should also avoid using special characters in your identifiers, especially space and dash. Generally, it's best to stick to the kind of names you'd use for variables or data frame columns in R, with the added restriction of avoiding periods. (Like R, numbers and underscores may not start an identifier, but they are permitted elsewhere.)
+```{r, echo = FALSE, out.width = NULL}
+knitr::include_graphics("images/02-your-first-shiny-app/inputs.png")
+```
 
 ## Adding behavior {#server-function}
 
 Next, we'll bring the outputs to life by defining them in the server function.
 
-Shiny uses a *reactive programming* framework to make apps interactive. You'll learn about reactive programming in detail in Chapter \@ref(reactivity-intro), but for now, just be aware that it often involves telling Shiny *how* to perform a computation, not ordering Shiny to actually go *do it*. It's like the difference between giving someone a recipe instead of demanding that they go make you a sandwich.
+Shiny uses a *reactive programming* framework to make apps interactive. You'll learn more about reactive programming in Chapter \@ref(reactivity-intro), but for now, just be aware that it often involves telling Shiny *how* to perform a computation, not ordering Shiny to actually go *do it*. It's like the difference between giving someone a recipe instead of demanding that they go make you a sandwich.
 
 In this simple case, we're going to tell Shiny how to fill in the `summary` and `table` outputs—we're providing the "recipes" for those outputs. Replace your empty `server` function with this:
 
-```{r, eval = FALSE}
+```{r}
 server <- function(input, output, session) {
   output$summary <- renderPrint({
     dataset <- get(input$dataset, "package:datasets", inherits = FALSE)
@@ -167,19 +174,23 @@ output$IDENTIFIER <- renderTYPE({
 })
 ```
 
-The left-hand side of the assignment operator (`<-`), `output$IDENTIFIER`, indicates that you're providing the recipe for the Shiny output with the matching ID. (Note that the ID is quoted in the UI, but not in the server.)
+The left-hand side of the assignment operator (`<-`), `output$IDENTIFIER`, indicates that you're providing the recipe for the Shiny output with the matching ID. The right-hand side of the assignment specifies uses a specific *render function* to wrap a code block that you provide; in the example above, we use `renderPrint` and `renderTable` wrap our app-specific logic. 
 
-The right-hand side of the assignment specifies uses a specific *render function* to wrap a code block that you provide; in the example above, we use `renderPrint` and `renderTable` wrap our app-specific logic. Each `renderXXX` function is designed to work with a particular `xxxOutput` function (and vice versa).
+Each `renderXXX` function is designed to work with a particular type of output that's passed to an `xxxOutput` function. In this case, we're using `renderPrint()` to capture and display the outut from `summary()` output, and `renderTable()` to display the actual data frame in a table.
 
-Each `renderXXX` function also has expectations about what kind of objects should be returned (or what actions taken, like plotting or printing to the console) from its code block.
+Run the app again and play around, watching what happens to the output when you change an input.
 
-In this case, we're using `renderPrint()` for the `summary` output. `renderPrint()` is designed to be used with `verbatimTextOutput()`. Whenever `renderPrint()` executes its code body, it captures any output that would normally go to the R console, and sends it to the `verbatimTextOutput()`.
+```{r, eval = FALSE, echo = FALSE}
+shinyApp(ui, server)
+```
 
-Similarly, the `renderTable()` we're using for the `table` output must always be used with `tableOutput()`. `renderTable()` doesn't care about what's printed to the R console, but it does want its code to return either `NULL`, or a data frame or matrix.
+```{r, echo = FALSE, out.width = NULL}
+knitr::include_graphics("images/02-your-first-shiny-app/outputs.png")
+```
 
-**Outputs are *reactive* which means that Shiny automatically knows when to recalculate them.** Because both of the rendering code blocks we wrote read `input$dataset`, whenever the value of `input$dataset` changes (i.e. the user changes their selection in the UI), both outputs will recalculate and update in the browser.
+**Outputs are *reactive* which means that Shiny automatically knows when to recalculate them.** Because both of the rendering code blocks we wrote read `input$dataset`, whenever the value of `input$dataset` changes (i.e. the user changes their selection in the UI), both outputs will recalculate and update in the browser. Shiny takes care of this detail so that you don't need to worry about it.
 
-## Extracting common values with reactive expressions {#reactive-expr}
+## Reducing duplication with reactive expressions {#reactive-expr}
 
 Even in this simple example, we have some code that's duplicated: the line
 
@@ -189,49 +200,9 @@ dataset <- get(input$dataset, "package:datasets", inherits = FALSE)
 
 is present in both outputs. In every kind of programming, it's poor practice to have duplicated code; it can be computationally wasteful, and more importantly, it increases the difficulty of maintaining or debugging the code.
 
-In traditional R scripting, we use two techniques to deal with duplicated code: either we capture the value using a *variable* (if we only need to do the calculation once), or capture the computation itself using a *function* (if we need to perform the calculation multiple times, possibly based on different inputs).
+In traditional R scripting, we use two techniques to deal with duplicated code: either we capture the value using a *variable* (if we only need to do the calculation once), or capture the computation itself using a *function* (if we need to perform the calculation multiple times, possibly based on different inputs). 
 
-But often in reactive programming, neither of these choices satisfy. Using a variable won't work:
-
-```{r, eval = FALSE}
-# Don't do this!
-server <- function(input, output, session) {
-  dataset <- get(input$dataset, "package:datasets", inherits = FALSE)
-
-  output$summary <- renderPrint({
-    summary(dataset)
-  })
-  
-  output$table <- renderTable({
-    dataset
-  })
-}
-```
-
-In this code, we're attempting to calculate the value of `dataset` just once, as the session starts. But the value of `input$dataset` may change over time. We noted a few paragraphs ago that Shiny outputs are reactive (they re-execute as necessary); the same cannot be said for free-floating code like this. So the result of extracting a variable like this is tha the `dataset` variable will assume some value at startup based on the initial value of `input$dataset`, and stay at that value forever. This is clearly not what we want, and is such an easy trap to fall into that in fact Shiny detects this condition and throws an error immediately.
-
-If using a variable won't work, how about a function? This will work, and takes care of the code duplication, but it does result in duplicated effort:
-
-```{r, eval = FALSE}
-# Don't do this!
-server <- function(input, output, session) {
-  getDataset <- function() {
-    get(input$dataset, "package:datasets", inherits = FALSE)
-  }
-
-  output$summary <- renderPrint({
-    summary(getDataset())
-  })
-  
-  output$table <- renderTable({
-    getDataset()
-  })
-}
-```
-
-We get the correct behavior this time, at least—we're calling `getDataset()` from within our output code, so Shiny will know to recalculate the outputs when `input$dataset` changes. However, for each change to `input$dataset`, `getDataset` is going to be called twice, and its work is therefore going to be performed twice. (In this example, the work being done in `getDataset` is totally trivial so it doesn't actually matter; just imagine we're doing a more expensive operation like retrieving a dataset from a web service or database, or fitting a model over a large dataset, or performing simulations.)
-
-Reactive programming needs a different mechanism than variables or functions, for reusing calculated values. Fortunately, Shiny provides just that in the form of **reactive expressions**, created by wrapping a block of code with `reactive({...})`. You assign the reactive expression object to a variable, and *call the variable like a function* to retrieve its value.
+Unfortunately neither of these approaches work here (for resaons you'll learn about in Section \@ref(reactive-expressions-intro)), and we need new mechnaism: **reactive expressions**, created by wrapping a block of code with `reactive({...})`. You assign the reactive expression object to a variable, and *call the variable like a function* to retrieve its value.
 
 ```{r, eval = FALSE}
 # Much better
@@ -250,9 +221,7 @@ server <- function(input, output, session) {
 }
 ```
 
-This looks much like the previous example, where we introduced a `getDataset()` function. But a reactive expression behaves differently than a function: it only runs its code the first time it is called (e.g. from `renderPrint` and `renderTable`), then caches the resulting value until reactivity gives it a reason to believe its cached result is no longer valid (in this case, a change to `input$dataset` would be the only reason). Once that happens, the next time it's called, it will execute its code again, and cache the resulting value, and so on.
-
-To summarize: while variables calculate the value only once (not often enough), and functions calculate the value every time they're called (too often), reactive expressions calculate the value only when it might have changed (just right!).
+While it looks like you're calling a function, a reactive expression has an important difference: it only runs its code the first time it is called (e.g. from `renderPrint()` and `renderTable()`), then caches the resulting value until it needs to be updated (for example, if `input$dataset` changed). Once that happens, the next time it's called, it will execute its code again, and cache the resulting value, and so on.
 
 We'll come back to reactive programming multiple times, but even armed with a cursory knowledge of inputs, outputs, and reactive expressions, it's possible to build quite useful Shiny apps!
 
