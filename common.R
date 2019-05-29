@@ -1,7 +1,7 @@
 knitr::opts_chunk$set(
   comment = "#>",
   collapse = TRUE,
-  cache = TRUE
+  cache = FALSE
 )
 
 # Masks readr::read_csv, and performs persistent download caching
@@ -23,3 +23,18 @@ read_csv <- function(file, ...) {
   }
   readr::read_csv(file, ...)
 }
+
+
+# Custom printing ---------------------------------------------------------
+knit_print <- knitr::knit_print
+
+knit_print.shiny.tag.list <- function(x, options = list(), ...) {
+
+  if (isTRUE(options$raw_html)) {
+    x <- htmltools::htmlEscape(x)
+    knitr::asis_output(paste0("<pre><code>", x, "</code></pre>"))
+  }
+}
+registerS3method("knit_print", "shiny.tag.list", knit_print.shiny.tag.list)
+
+

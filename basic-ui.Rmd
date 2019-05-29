@@ -111,7 +111,9 @@ Shiny comes with a number of built-in output functions that provide useful tools
 * Output text with `textOutput()`, and code with `verbatimTextOutput()`.
 * Generate tables of data with `tableOutput()` and `dataTableOutput()` 
 
-## Input and output IDs
+## Inputs and output 
+
+### IDs
 
 Note that both input and output controls share is that **they always take an ID string as their first argument**. It's absolutely critical that identifiers be unique! In a given app, you can't have two inputs named `"dataset"`, two outputs named `"plot"`, or an input and an output named `"choices"`. No matter how complex your app gets, you must ensure that every ID is unique. Later on, in Chapter XYZ, you'll learn about shiny modules, which provides a convenient toolkit to handle this restriction as your app grows.
 
@@ -236,3 +238,13 @@ knitr::include_graphics("diagrams/basic-ui/multirow.png", dpi = 300)
 ```
 
 Column widths must add up to 12, but this still gives you substantial flexibility. You can easily create 2-, 3-, or 4- column layouts (more than that starts to get cramped), or sidebars that are narrower or wider than the default in `sidebarLayout()`.
+
+## Under the hood
+
+They're just functions that return HTML.
+
+```{r, raw_html = TRUE}
+fluidPage()
+```
+
+So if you notice a common pattern in your apps you can easily construct your own function. Producing with inputs and outputs is a little trickier in a function because of the need for unique IDs. Fixing this problem is the motivation for Shiny modules, which we'll come back to in Chapter XYZ.
