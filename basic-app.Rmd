@@ -121,7 +121,7 @@ Layout functions, inputs, and outputs are used for different purposes, but they 
 Go ahead and run the app again. You'll now see a select box with a set of names, and very little else. We've defined the UI, but haven't yet told Shiny what data to put in the outputs.
 
 ```{r, echo = FALSE, out.width = NULL}
-app_screenshot(ui, NULL, "basic-app/ui", height = 300)
+ui_screenshot(ui, "basic-app/ui", height = 300)
 ```
 
 ## Adding behavior {#server-function}
@@ -162,7 +162,8 @@ Each `renderXXX` function is designed to work with a particular type of output t
 Run the app again and play around, watching what happens to the output when you change an input.
 
 ```{r, echo = FALSE, out.width = NULL}
-app_screenshot(ui, server, "basic-app/server", height = 300)
+app <- testApp(ui, server)
+app_screenshot(app, "basic-app/server", height = 300)
 ```
 
 **Outputs are *reactive* which means that Shiny automatically knows when to recalculate them.** Because both of the rendering code blocks we wrote read `input$dataset`, whenever the value of `input$dataset` changes (i.e. the user changes their selection in the UI), both outputs will recalculate and update in the browser. Shiny takes care of this detail so that you don't need to worry about it.
