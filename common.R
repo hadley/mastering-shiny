@@ -65,21 +65,31 @@ testApp <- function(ui, server = NULL) {
   shinytest::ShinyDriver$new(app_dir)
 }
 
-ui_screenshot <- function(ui, name, width = 600, height = 400) {
+ui_screenshot <- function(ui, name, width = 600, height = NA) {
   app_screenshot(testApp(ui, NULL), name, width = width, height = height)
 }
 
 
 # When knitr is running, used cached version if it exists
-app_screenshot <- function(app, name, width = 600, height = 400) {
+app_screenshot <- function(app, name, width = 600, height = NA) {
   path <- file.path("screenshots", paste0(name, ".png"))
 
   if (!isTRUE(getOption("knitr.in.progress")) || !file.exists(path)) {
+    if (is.na(height)) {
+      height <- app_height(app)
+    }
     app$setWindowSize(width, height)
     app$takeScreenshot(path)
   }
 
   knitr::include_graphics(path, dpi = 72)
+}
+
+app_height <- function(app) {
+  wd <- app$.__enclos_env__$private$web
+  obj <- wd$findElement("body")
+  rect <- obj$getRect()
+  rect$height
 }
 
 app_record <- function(app) {

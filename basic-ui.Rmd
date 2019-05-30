@@ -49,7 +49,7 @@ ui <- fluidPage(
 )
 ```
 ```{r, echo = FALSE, output.width = NULL}
-ui_screenshot(ui, "basic-ui/free-text", height = 150)
+ui_screenshot(ui, "basic-ui/free-text")
 ```
 
 ### Numeric inputs
@@ -64,7 +64,7 @@ ui <- fluidPage(
 )
 ```
 ```{r, echo = FALSE, output.width = NULL}
-ui_screenshot(ui, "basic-ui/numeric", height = 300)
+ui_screenshot(ui, "basic-ui/numeric")
 ```
 
 Generally, only use sliders if there's a relatively small ranges of values, and the precise value is not so important. Attempting to precisely select a number on a slider is an exercise in frustration!
@@ -82,7 +82,7 @@ ui <- fluidPage(
 )
 ```
 ```{r, echo = FALSE, output.width = NULL}
-ui_screenshot(ui, "basic-ui/limited-choices", height = 300)
+ui_screenshot(ui, "basic-ui/limited-choices")
 ```
 
 Radio buttons have two advantages. Firstly, they show all possible options, making them most suitable for short lists. Through the `choiceNames`/`choiceValues` parameters they can be arbitrary HTML:
@@ -100,7 +100,7 @@ ui <- fluidPage(
 )
 ```
 ```{r, echo = FALSE, output.width = NULL}
-ui_screenshot(ui, "basic-ui/radio-icon", height = 150)
+ui_screenshot(ui, "basic-ui/radio-icon")
 ```
 
 The primary advantage of `selectInput()` is that it doesn't show all options at once, making it more suitable for longer options. You can also set `multiple = TRUE` to allow multiple selections
@@ -118,7 +118,7 @@ ui <- fluidPage(
 app <- testApp(ui)
 app$setInputs(state = "Texas")
 app$setInputs(`state-selectized` = "Cali")
-app_screenshot(app, "basic-ui/limited-choices-multi", height = 400)
+app_screenshot(app, "basic-ui/limited-choices-multi")
 ```
 ```{r, echo = FALSE, out.width = NULL}
 knitr::include_graphics("images/basic-ui/multi-select.png", dpi = 300)
