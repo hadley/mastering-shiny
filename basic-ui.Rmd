@@ -12,20 +12,9 @@ All web pages are constructed out of HTML, and Shiny user interfaces are no diff
 
 This chapter will focus on some of the high-level R functions that Shiny provides for input, output, and layout, while Chapter \@ref(advanced-ui) will delve into using lower-level features for authoring HTML directly.
 
-### Prerequisites {-}
-
 ```{r setup}
 library(shiny)
 ```
-
-### Outline {-}
-
-* Section \@ref(inputs) covers input controls.
-
-* Section \@ref(outputs) covers output containers.
-
-* Section \@ref(layout) covers layout functions, which you can use 
-  to arrange inputs and outputs.
 
 ## Inputs {#inputs}
 

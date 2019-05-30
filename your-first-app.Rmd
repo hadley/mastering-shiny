@@ -4,29 +4,15 @@
 source("common.R")
 ```
 
-
 ## Introduction
 
 In this chapter, we'll create a simple Shiny app. Along the way, you'll learn the basic structure of a Shiny app, and how to save and run Shiny apps using the RStudio IDE. You'll also take your first steps into reactive programming.
 
+We'll start by showing you the minimum boilerplate needed to get a Shiny app running, then you'll learn how to run it, and how to stop it when you're done. Next you'll learn the two key components of every shiny app: the **UI** (short for user interface) which defines how your app _looks_, and the **server function** which defines how you app _works_. Shiny uses reactive programming to automatically update app outputs when the inputs change; we'll finish off the chapter by learning the third important reactive component: reactive expressions.
+
 ```{r setup}
 library(shiny)
 ```
-
-### Outline {-}
-
-* Section \@ref(create-app) presents the minimum boilerplate that's needed to 
-  get a Shiny app running.
-  
-* Section \@ref(running) shows you how to start and stop Shiny.
-
-* Section \@ref(adding-ui) walks you through adding UI elements to your app.
-
-* Section \@ref(server-function) adds some basic behavior to the app by adding
-  some logic to the server function.
-  
-* Section \@ref(reactive-expr) takes our server function logic a step further, 
-  with reactive expressions.
 
 ## Create app dir and file {#create-app}
 
