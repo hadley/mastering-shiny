@@ -202,6 +202,8 @@ As a human looking at this code, you might conclude that when `input$bins` chang
 
 Shiny doesn't try to be this clever. Instead, an output's render code block is always executed in its entirety, whether it's two lines of code or two hundred. In this way, each output represents an indivisible unit.
 
+### Side effects
+
 ### Reactive expressions {#reactive-expressions-intro}
 
 If you read the code above carefully you might have noticed that we're actually generating the random numbers in two different places. The table and the histogram are actually displaying the results from two unrelated datasets! To fix that problem we need to introduce one more big idea: the reactive expression. 
@@ -276,7 +278,9 @@ We get the correct behavior this time, at least—we're calling `getDataset()` f
 
 To summarize: while variables calculate the value only once (not often enough), and functions calculate the value every time they're called (too often), reactive expressions calculate the value only when it might have changed (just right!).
 
+## Controlling effect flow
 
+Buttons and observers.
 
 ## Reactivity roadblocks
 

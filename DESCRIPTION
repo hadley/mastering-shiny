@@ -10,7 +10,9 @@ Imports:
     gt,
     png,
     readr,
+    rlang,
     shiny,
+    shinytest,
     webshot (>= 0.5.0.9000)
 Remotes: 
     rstudio/bookdown,

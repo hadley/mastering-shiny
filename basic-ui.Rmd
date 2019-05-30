@@ -8,9 +8,7 @@ source("common.R")
 
 Now that you've got a basic app under your belt, we're going to explore the details that make it tick. As you saw in the previous chapter, Shiny encourages separation of the code that generates your user interface (`ui`) from the code that drives your app's behavior (`server`). In this chapter, we'll dive deeper into the UI side of things.
 
-All web pages are constructed out of HTML, and Shiny user interfaces are no different--although they are generally expressed using R, their ultimate job is to produce HTML. As a Shiny app author, you can use high-level layout functions in R that keep you far away from the details of HTML. You can also work with HTML tags directly to achieve any level of customization you want. These approaches are by no means exclusive; you can mix high-level functions with low-level HTML as much as you like.
-
-This chapter will focus on some of the high-level R functions that Shiny provides for input, output, and layout, while Chapter \@ref(advanced-ui) will delve into using lower-level features for authoring HTML directly.
+This chapter will focus on some of the high-level R functions that Shiny provides for input, output, and layout. Combining what you learned in the last chapter with what you learn here will allow you to create a wide range of simple apps, where the connections between the inputs and outputs are straightforward. In the next chapter, you'll learn more with 
 
 ```{r setup}
 library(shiny)
@@ -73,13 +71,17 @@ The sections below illustate their basic usage. There's no attempt to exhaustive
 
 ### Numeric inputs
 
-```{r, eval = FALSE}
-fluidPage(
+```{r}
+ui <- fluidPage(
   numericInput("num", "Number one", 0, min = 0, max = 100, step = 5),
   sliderInput("num2", "Number two", 0, min = 0, max = 100, step = 5),
   sliderInput("rng", "Range", c(10, 20), min = 0, max = 100, step = 5)
 )
 ```
+```{r, echo = FALSE}
+app_screenshot(ui, NULL, "basic-ui/numeric", height = 300)
+```
+
 
 ### Limited choices
 
@@ -174,6 +176,10 @@ This is fine for very simple examples, but if you want your app to look good, yo
 <https://shiny.rstudio.com/gallery/shiny-theme-selector.html>
 
 ### Under the hood
+
+All web pages are constructed out of HTML, and Shiny user interfaces are no different---although they are generally expressed using R, their ultimate job is to produce HTML. As a Shiny app author, you can use high-level layout functions in R that keep you far away from the details of HTML. You can also work with HTML tags directly to achieve any level of customization you want. These approaches are by no means exclusive; you can mix high-level functions with low-level HTML as much as you like.
+
+while Chapter \@ref(advanced-ui) will delve into using lower-level features for authoring HTML directly.
 
 They're just functions that return HTML.
 

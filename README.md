@@ -57,3 +57,16 @@ Built with [bookdown](https://bookdown.org/yihui/bookdown/).
     4. R Markdown integration
     6. Reactivity implementation details
     7. Reproducibility
+
+## Images
+
+There are three directories for images:
+
+* `diagrams/` contains omnigraffle diagrams. Source of truth is `.graffle` 
+  files. Can delete all subdirectories.
+  
+* `screenshots/` contains programmatic screenshots. Source of truth is 
+  book code. Can delete all subdirectories.
+  
+* `images/` contains images created some other way. Images are source of
+  truth and should not be deleted.

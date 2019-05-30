@@ -40,4 +40,40 @@ knit_print.shiny.tag.list <- function(x, options = list(), ...) {
 }
 registerS3method("knit_print", "shiny.tag.list", knit_print.shiny.tag.list)
 
+# Screenshot generation
+
+# Generate a ShinyDriver from ui and a server function
+testApp <- function(ui, server = NULL) {
+  if (is.null(server)) {
+    server <- function(input, output, session) {}
+  }
+
+  app_dir <- tempfile()
+  dir.create(app_dir)
+  saveRDS(ui, file.path(app_dir, "ui.rds"))
+  saveRDS(server, file.path(app_dir, "server.rds"))
+
+  app <- rlang::expr({
+    library(shiny)
+    ui <- readRDS("ui.rds")
+    server <- readRDS("server.rds")
+
+    shinyApp(ui, server)
+  })
+  cat(rlang::expr_text(app), file = file.path(app_dir, "app.R"))
+
+  shinytest::ShinyDriver$new(app_dir)
+}
+
+app_screenshot <- function(ui, server, name, width = 600, height = 400) {
+  path <- file.path("screenshots", paste0(name, ".png"))
+
+  if (!file.exists(path)) {
+    app <- testApp(ui, server)
+    app$setWindowSize(width, height)
+    app$takeScreenshot(path)
+  }
+
+  knitr::include_graphics(path, dpi = 72)
+}
 

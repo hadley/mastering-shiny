@@ -53,13 +53,13 @@ Run this Shiny app in RStudio[^not-rstudio] now by pressing `Ctrl+Shift+Enter`, 
 [^not-rstudio]: If you're not using RStudio, you can use `setwd()` to change the current working directory to the app dir, and call `shiny::runApp()` (or alternatively, don't change the current working directory and pass the path to the app dir to `runApp()` as an argument).
 
 ```{r, echo = FALSE, out.width = NULL}
-knitr::include_graphics("images/02-your-first-shiny-app/helloworld.png")
+knitr::include_graphics("images/basic-app/helloworld.png")
 ```
 
 This is RStudio's Shiny app window. From here, you can click "Open in Browser" to view the app in your system default web browser, which can be helpful for testing or debugging. If you prefer to always launch straight into your system default web browser, or RStudio's Viewer pane, you can use the Run App button's dropdown menu to choose one of those instead:
 
 ```{r, echo = FALSE, out.width = NULL}
-knitr::include_graphics("images/02-your-first-shiny-app/run-app.png")
+knitr::include_graphics("images/basic-app/run-app.png")
 ```
 
 Before you close the app, go back to your main RStudio window and look at the R console. You'll notice that the console says something like:
@@ -118,15 +118,10 @@ This example uses four functions we haven't seen before.
 
 Layout functions, inputs, and outputs are used for different purposes, but they fundamentally the same under the covers: they're all just fancy ways to generate HTML, and if you call any of them outside of a shiny app, you'll see HTML printed out at the console. Don't be afraid to poke around to see how these various layouts and controls work under the hood. You'll learn more of the details in Chapter \@ref(advanced-ui).
 
-```{r, eval = FALSE, echo = FALSE}
-server <- function(input, output, session) {}
-shinyApp(ui, server)
-```
-
 Go ahead and run the app again. You'll now see a select box with a set of names, and very little else. We've defined the UI, but haven't yet told Shiny what data to put in the outputs.
 
 ```{r, echo = FALSE, out.width = NULL}
-knitr::include_graphics("images/02-your-first-shiny-app/inputs.png")
+app_screenshot(ui, NULL, "basic-app/ui", height = 300)
 ```
 
 ## Adding behavior {#server-function}
@@ -166,12 +161,8 @@ Each `renderXXX` function is designed to work with a particular type of output t
 
 Run the app again and play around, watching what happens to the output when you change an input.
 
-```{r, eval = FALSE, echo = FALSE}
-shinyApp(ui, server)
-```
-
 ```{r, echo = FALSE, out.width = NULL}
-knitr::include_graphics("images/02-your-first-shiny-app/outputs.png")
+app_screenshot(ui, server, "basic-app/server", height = 300)
 ```
 
 **Outputs are *reactive* which means that Shiny automatically knows when to recalculate them.** Because both of the rendering code blocks we wrote read `input$dataset`, whenever the value of `input$dataset` changes (i.e. the user changes their selection in the UI), both outputs will recalculate and update in the browser. Shiny takes care of this detail so that you don't need to worry about it.
