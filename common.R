@@ -1,3 +1,6 @@
+# load shiny first to avoid any conflict messages later
+library(shiny)
+
 knitr::opts_chunk$set(
   comment = "#>",
   collapse = TRUE,
