@@ -8,3 +8,4 @@ _download_cache
 shiny-book.rds
 *_cache
 *_files
+shiny-book.*
