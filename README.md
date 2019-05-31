@@ -36,6 +36,10 @@ Built with [bookdown](https://bookdown.org/yihui/bookdown/).
     1. Dashboards
     1. Shiny gadgets
     1. Dynamic UI
+    1. User feedback
+        * [Progress bars](https://shiny.rstudio.com/articles/progress.html)
+        * [Validation](https://shiny.rstudio.com/articles/validation.html)
+        * [Notifications](https://shiny.rstudio.com/articles/notifications.html)
     1. Custom HTML
     1. htmlwidgets
 
