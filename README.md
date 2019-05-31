@@ -22,21 +22,30 @@ Built with [bookdown](https://bookdown.org/yihui/bookdown/).
 
 3. Shiny in action
     1. Uploading/downloading data
-    2. Interactive base/ggplot2 graphics
-    3. Generating static reports from Shiny
-    5. Modules
+    1. Generating static reports from Shiny
+    1. Tables
+    1. Graphics
+       * `renderPlot()`
+       * `renderCachedPlot()`
+       * [Interactive plots](https://shiny.rstudio.com/articles/plot-interaction.html)
+       * [`renderImage()`](https://shiny.rstudio.com/articles/images.html)
+    1. Multipage apps and modules
+    1. Programming the tidyverse
 
 4. Mastering UI
     1. Dashboards
-    2. Shiny gadgets
-    3. Dynamic UI
-    4. Custom HTML
-    5. htmlwidgets
+    1. Shiny gadgets
+    1. Dynamic UI
+    1. Custom HTML
+    1. htmlwidgets
 
 5. Mastering reactivity
     1. Reactive programming in depth
-    2. Code organisation; Using scopes to manage object lifetimes
-    3. Sharing working between users; Connecting to databases
+    1. Code organisation; Using scopes to manage object lifetimes
+    1. [Execution scheduling](https://shiny.rstudio.com/articles/execution-scheduling.html)
+        * `isolate()`
+        * `actionButton()`
+    1. Sharing working between users; Connecting to databases
 
 5. Taming Shiny
     1. Troubleshooting and debugging techniques
