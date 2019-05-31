@@ -1,11 +1,21 @@
 language: r
 cache: packages
-pandoc_version: 1.19.2.1
+cache:
+  packages: true
+  directories:
+  - _bookdown_files
+  - $HOME/.npm
 
-before_script:
-  - chmod +x ./_build.sh
-  - chmod +x ./_deploy.sh
+pandoc_version: 2.1.1
 
 script:
-  - ./_build.sh
-  - ./_deploy.sh
+- Rscript -e 'bookdown::render_book("index.Rmd", quiet = TRUE)'
+
+before_cache:
+- nvm install stable
+- npm install netlify-cli -g
+
+deploy:
+  provider: script
+  script: netlify deploy --prod --dir _book
+  skip_cleanup: true
