@@ -40,17 +40,23 @@ Next, we'll give a quick overview of the most important controls. The goal is to
 
 ### Free text
 
-To collect free text use `textInput()`, and to input password use `passwordInput()`.
+To collect small amounts of text use `textInput()`; for passwords use `passwordInput()`; for larger amounts of text, use `textAreaInput()`.
 
 ```{r}
 ui <- fluidPage(
   textInput("name", "What's your name?"),
-  passwordInput("passowrd", "What's your password?")
+  passwordInput("password", "What's your password?"),
+  textAreaInput("story", "Tell me about yourself", rows = 3, cols = 80)
 )
 ```
 ```{r, echo = FALSE, output.width = NULL}
-ui_screenshot(ui, "basic-ui/free-text")
+app <- testApp(ui)
+app$setInputs(name = "Joe")
+app$setInputs(password = "mypassword")
+app_screenshot(app, "basic-ui/free-text")
 ```
+
+If you want to ensure that the text has certain properties you can use `validate()`, which we'll come back to in Chapter XYZ. 
 
 ### Numeric inputs
 
@@ -68,6 +74,22 @@ ui_screenshot(ui, "basic-ui/numeric")
 ```
 
 Generally, only use sliders if there's a relatively small ranges of values, and the precise value is not so important. Attempting to precisely select a number on a slider is an exercise in frustration!
+
+### Dates
+
+Dates have two controls that provide a helpful calendar picker, and ensure that the user picks a valid date.
+
+```{r}
+ui <- fluidPage(
+  dateInput("dob", "When were you born?"),
+  dateRangeInput("holdiay", "When do you want to go on vacation next?")
+)
+```
+```{r, echo = FALSE, output.width = NULL}
+ui_screenshot(ui, "basic-ui/date")
+```
+
+You'll typically also want to consider setting `format`, `language`, and `weekstart` to make sure that the dates appear in a natural way to your users.
 
 ### Limited choices
 
@@ -124,33 +146,90 @@ app_screenshot(app, "basic-ui/limited-choices-multi")
 knitr::include_graphics("images/basic-ui/multi-select.png", dpi = 300)
 ```
 
+The equivalent to a multi-select `radioButtons()` is `checkboxInputGroup()`:
+
+```{r}
+ui <- fluidPage(
+  checkboxGroupInput("animal", "What animals do you like?", animals)
+)
+```
+```{r, echo = FALSE, output.width = NULL}
+ui_screenshot(ui, "basic-ui/multi-radio")
+```
+
 ### Yes/no questions
 
-- To collect the answer to yes/no questions, try `checkboxInput()` 
-  or `checkboxGroupInput()`.
+To retrieve the answer to a single yes/no question, use `checkboxInput()`:
 
-### Dates
-
-To pick a date or a range of dates, try `dateInput()` and
-  `dateRangeInput()`.
+```{r}
+ui <- fluidPage(
+  checkboxInput("cleanup", "Clean up?")
+)
+```
+```{r, echo = FALSE, output.width = NULL}
+ui_screenshot(ui, "basic-ui/yes-no")
+```
 
 ## Outputs {#outputs}
 
 Output functions are used to tell Shiny _where_ and _how_ to place outputs that are defined in the app's server. Like inputs, outputs take a unique ID as their first argument, and are paired with server code. Outputs generally start out as empty rectangles and need to be fed data from the server in order to actually appear.
 
-Shiny comes with a number of built-in output functions that provide useful tools:
+Outputs have few arguments because, by and large, they just create recepticles for output. We'll show you the main output functions below, along with the `render` functions that they're usually coupled with.
 
-* Show the user images with `imageOutput()`, and plots with `plotOutput()`.
-* Output text with `textOutput()`, and code with `verbatimTextOutput()`.
-* Generate tables of data with `tableOutput()` and `dataTableOutput()` 
+### Text
 
-## Inputs and output 
+Output regular text with `textOutput()`, and code with `verbatimTextOutput()`. On the server side they are coupled with `renderText()` which displays text returned by the code and `renderPrint()` which displays any text _printed_ by the code.
 
-### IDs
+```{r}
+ui <- fluidPage(
+  textOutput("text"),
+  verbatimTextOutput("code")
+)
+server <- function(input, output, session) {
+  output$text <- renderText("Hello friend!")
+  output$code <- renderPrint(summary(1:10))
+}
+```
+```{r, echo = FALSE, output.width = NULL}
+app_screenshot(testApp(ui, server), "basic-ui/output-text")
+```
 
-Note that both input and output controls share is that **they always take an ID string as their first argument**. It's absolutely critical that identifiers be unique! In a given app, you can't have two inputs named `"dataset"`, two outputs named `"plot"`, or an input and an output named `"choices"`. No matter how complex your app gets, you must ensure that every ID is unique. Later on, in Chapter XYZ, you'll learn about shiny modules, which provides a convenient toolkit to handle this restriction as your app grows.
+### Tables
 
-You should also avoid using special characters in your identifiers, especially space and dash. Generally, it's best to stick to the kind of names you'd use for variables or data frame columns in R, with the added restriction of avoiding periods. (Like R, numbers and underscores may not start an identifier, but they are permitted elsewhere.)
+Two options built in to shiny. `tableOutput()` and `renderTable()` render a static table of data. All the data is shown. `dataTableOutput()` and `renderDataTable()` render a dynamic table, suitable for any size of dataset. The data is dynamically sent from the server as needed.
+
+```{r}
+ui <- fluidPage(
+  tableOutput("static"),
+  dataTableOutput("dynamic")
+)
+server <- function(input, output, session) {
+  output$static <- renderTable(head(mtcars))
+  output$dynamic <- renderDataTable(mtcars, options = list(pageLength = 5))
+}
+```
+```{r, echo = FALSE, output.width = NULL}
+app_screenshot(testApp(ui, server), "basic-ui/output-table")
+```
+
+
+### Plots
+
+Display R graphics (base and ggplot2) with `plotOutput()` and `renderPlot()`:
+
+```{r}
+ui <- fluidPage(
+  plotOutput("plot", width = "400px")
+)
+server <- function(input, output, session) {
+  output$plot <- renderPlot(plot(1:5))
+}
+```
+```{r, echo = FALSE, output.width = NULL}
+app_screenshot(testApp(ui, server), "basic-ui/output-plot")
+```
+
+`plotOutput()` has a number of arguments like `click`, `dblclick`, and `hover`. If you pass these a string, `click = "plot_click"`, they'll create a reactive output that you can use to handle user events. More on that in Chapter XYZ.
 
 ## Layouts {#layout}
 
