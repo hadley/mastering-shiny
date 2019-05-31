@@ -1,5 +1,7 @@
 bookdown::gitbook:
   css: style.css
+  includes:
+    in_header: [ga_script.html]
   config:
     toc:
       collapse: section
