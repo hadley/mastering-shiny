@@ -52,11 +52,17 @@ testApp <- function(ui, server = NULL) {
   dir.create(app_dir)
   saveRDS(ui, file.path(app_dir, "ui.rds"))
   saveRDS(server, file.path(app_dir, "server.rds"))
+  saveRDS(resource_paths_get(), file.path(app_dir, "resources.rds"))
 
   app <- rlang::expr({
     library(shiny)
+
     ui <- readRDS("ui.rds")
     server <- readRDS("server.rds")
+    resources <- readRDS("resources.rds")
+    for (prefix in names(resources)) {
+      shiny::addResourcePath(prefix, resources[[prefix]])
+    }
 
     shinyApp(ui, server)
   })
@@ -94,4 +100,12 @@ app_height <- function(app) {
 
 app_record <- function(app) {
   shinytest::recordTest(app$.__enclos_env__$private$path)
+}
+
+
+# Resource paths ----------------------------------------------------------
+
+resource_paths_get <- function() {
+  resources <- shiny:::.globals$resources
+  vapply(resources, "[[", "directoryPath", FUN.VALUE = character(1))
 }
