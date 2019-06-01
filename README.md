@@ -25,7 +25,6 @@ Built with [bookdown](https://bookdown.org/yihui/bookdown/).
     1. Generating static reports from Shiny
     1. Tables
     1. Graphics
-       * `renderPlot()`
        * `renderCachedPlot()`
        * [Interactive plots](https://shiny.rstudio.com/articles/plot-interaction.html)
        * [`renderImage()`](https://shiny.rstudio.com/articles/images.html)
@@ -50,26 +49,22 @@ Built with [bookdown](https://bookdown.org/yihui/bookdown/).
         * `isolate()`
         * `actionButton()`
     1. Sharing working between users; Connecting to databases
+    1. Async programming with promises
+    1. Reactivity implementation details
 
 5. Taming Shiny
-    1. Troubleshooting and debugging techniques
-    3. Testing with shinytest
-
-6. Shiny in production
+    1. Troubleshooting and debugging
+    1. Testing with shinytest
+    1. Managing dependencies with packrat
+    1. Performance and scalability
+       *  Load testing with shinyloadtest
     1. Deployment options
-    2. Managing dependencies with packrat
-    3. Performance and scalability
-    4. Load testing with shinyloadtest
-    5. Improving rendering performance with renderCachedPlot
-    6. Async programming with promises
 
 7. Appendix
     1. Bookmarkable state
-    2. Progress indicators
-    3. Server-side selectize and DT
-    4. R Markdown integration
-    6. Reactivity implementation details
-    7. Reproducibility
+    1. Server-side selectize and DT
+    1. R Markdown integration
+    1. Reproducibility
 
 ## Images
 
