@@ -13,6 +13,7 @@ Imports:
     rlang,
     shiny,
     shinytest,
+    shinythemes,
     webshot (>= 0.5.0.9000)
 Remotes: 
     rstudio/bookdown,
