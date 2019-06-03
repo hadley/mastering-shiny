@@ -44,11 +44,16 @@ Built with [bookdown](https://bookdown.org/yihui/bookdown/).
 
 5. Mastering reactivity
     1. Reactive programming in depth
-    1. Code organisation; Using scopes to manage object lifetimes
-    1. [Execution scheduling](https://shiny.rstudio.com/articles/execution-scheduling.html)
+       * [Execution scheduling](https://shiny.rstudio.com/articles/execution-scheduling.html)
+    1. Side-effects
         * `isolate()`
         * `actionButton()`
-    1. Sharing working between users; Connecting to databases
+    1. Scoping
+       * Code organisation
+       * [Using scopes to manage object lifetimes](https://shiny.rstudio.com/articles/scoping.html)
+       * Sharing working between users
+       * Making an app in a function
+       * Connecting to databases
     1. Async programming with promises
     1. Reactivity implementation details
 
