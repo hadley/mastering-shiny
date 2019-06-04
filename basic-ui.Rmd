@@ -190,6 +190,34 @@ We'll come back to two input controls in later chapters:
 * We'll cover `actionButton()` when we discuss buttons, controlling 
   side-effects, and initiating "actions" in Chapter XYZ.
 
+### Exercises
+
+1.  When space is at a premium, it's useful to label text boxes using a 
+    placeholder that appears _inside_ the text entry area. How do you call 
+    `inputText()` to generate the UI below?
+    
+    ```{r, echo = FALSE, output.width = NULL}
+    ui <- fluidPage(
+      textInput("name", NULL, placeholder = "Your name")
+    )
+    ui_screenshot(ui, "basic-ui/placeholder")
+    ```
+
+1.  Carefully read the documentation for `sliderInput()` to figure out how to 
+    create a date slider, as shown below.
+
+    ```{r, echo = FALSE, output.width = NULL}
+    today <- Sys.Date()
+    ui <- fluidPage(
+      sliderInput("delivery", "When should we deliver?", today, min = today, max = today + 7, step = 1, round = TRUE)
+    )
+    ui_screenshot(ui, "basic-ui/date-slider")
+    ```
+
+1.  If you have a moderately long list, it's useful to create sub-headings that
+    break the list up into pieces. Read the documentation for `selectInput()` 
+    to figure out how. (Hint: the underlying HTML is called `<optgroup>`.)
+  
 ## Outputs {#outputs}
 
 Output functions in the UI specification create placeholders that are filled by the server function. Like inputs, outputs take a unique ID as their first argument: if your UI specification creates an output with ID `"plot"`, you'll access it in the server function with `output$plot`. Each `output` function on the frontend is coupled with a `render` function in the backend, like `output$plot <- renderPlot({...})`. 
@@ -278,6 +306,10 @@ app_screenshot(testApp(ui, server), "basic-ui/output-plot")
 By default, `plotOutput()` will take up the full width of the element it's embedded within (more on that shortly), and will be 400 pixels high. You can override these defaults with the `height` and `width` arguments.
 
 Plots are specially because they can also act as inputs. `plotOutput()` has a number of arguments like `click`, `dblclick`, and `hover`. If you pass these a string, like `click = "plot_click"`, they'll create a reactive input (`input$plot_click`) that you can use to handle user interaction on the plot. We'll come back to that idea in Chapter XYZ.
+
+### Exercises
+
+
 
 ## Layouts {#layout}
 
@@ -459,6 +491,8 @@ ui_screenshot(theme_demo("united"), "basic-ui/theme-united")
 ```
 
 As you can see, theming your app is quite straightforward: you just need to use the `theme` argument to `fluidPage()`. To find out what themes are available, and what they look like, take a look at the shiny theme selector app at <https://shiny.rstudio.com/gallery/shiny-theme-selector.html>.
+
+### Exercises
 
 ## Under the hood
 
