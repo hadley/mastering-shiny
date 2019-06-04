@@ -128,7 +128,7 @@ ui_screenshot(ui, "basic-app/ui")
 
 Next, we'll bring the outputs to life by defining them in the server function.
 
-Shiny uses a *reactive programming* framework to make apps interactive. You'll learn more about reactive programming in Chapter \@ref(reactivity-intro), but for now, just be aware that it often involves telling Shiny *how* to perform a computation, not ordering Shiny to actually go *do it*. It's like the difference between giving someone a recipe instead of demanding that they go make you a sandwich.
+Shiny uses a *reactive programming* framework to make apps interactive. You'll learn more about reactive programming in Chapter \@ref(basic-reactivity), but for now, just be aware that it often involves telling Shiny *how* to perform a computation, not ordering Shiny to actually go *do it*. It's like the difference between giving someone a recipe instead of demanding that they go make you a sandwich.
 
 In this simple case, we're going to tell Shiny how to fill in the `summary` and `table` outputs—we're providing the "recipes" for those outputs. Replace your empty `server` function with this:
 

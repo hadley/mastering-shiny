@@ -12,7 +12,7 @@ rmd_files:
     "getting-started.Rmd",
     "basic-app.Rmd",
     "basic-ui.Rmd",
-    "reactivity-intro.Rmd",
+    "basic-reactivity.Rmd",
 
     "advanced-ui.Rmd",
 
