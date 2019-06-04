@@ -6,7 +6,7 @@ source("common.R")
 
 ## Introduction
 
-In the the last chapter, we talked about creating user interfaces. Now we'll move on to discuss the server side of Shiny, where you use R code at runtime to make your user interface come to life!
+In the the last chapter, we talked about creating the user interfaces. Now we'll move on to discuss the server side of Shiny, where you use R code at runtime to make your user interface come to life!
 
 In Shiny, you express your server logic using reactive programming. Reactive programming is an elegant and powerful programming paradigm, but it can be disorienting at first because it's a very different paradigm to writing a script. The key idea of reactive programming is to specify a graph of dependencies so that when an input changes, all outputs are automatically updated. This makes the flow of an app considerably simpler, but it takes a while to get your head around how it all fits together.
 
@@ -34,42 +34,42 @@ server <- function(input, output, session) {
 shinyApp(ui, server)
 ```
 
-As you can see, the `server` function is a function that you (the app author) define, and pass to Shiny via the `shinyApp` function. You'll never invoke a server function yourself; rather, Shiny invokes it whenever a new session begins. A __session__ begins each time the Shiny app is loaded by a browser, either by different people, or by the same person opening multiple tabs.
-
-Almost of the reactive programming you'll do in Shiny will be directly in the server function[^exceptions]. The server function is so important because it encapsulates the connection to a single browser session, creating a private scope for that particular session. In other words, every variable you create in the body of the server function is only accessible to a particular session. Most of the time, we'll also want our reactive interactions to be private to each session too: when user A moves a slider, you usually want outputs to update ony for user A, not user B. Therefore, we'll write our reactive logic in the server function.
+As you can see, `server()` is function that you  define, and pass to `shinyApp()`, along with the UI. You'll never call a server function yourself; rather, Shiny invokes it whenever a new session begins, and almost of the reactive programming you'll do in Shiny will be directly in the server function[^exceptions]. 
 
 [^exceptions]: The primary exception is where there's some work that can shared across multiple users. For example, all users might be looking at the same large csv file, so you might as well load it once and share it between users. We'll come back to that idea in Chapter XYZ.
 
-You might have wondered it's safe for two users to connect to a single Shiny app at the same time: how does Shiny keep track of whose inputs and outputs are whose? This happens automatically because shiny calls your server function once for each person, and because each call to an R function is independent, there's no way for the variables to get muddled up.
+To understand the server function, it's important to understand the idea of a __session__, which begins each time the Shiny app is loaded in a browser, either by different people, or by the same person opening multiple tabs. The server function encapsulates the connection to a single browser session, creating a private scope for that particular session. In other words, every variable you create inside the server function is only accessible to a single session. This ensures that when user A moves a slider, outputs update only for user A, not user B. 
 
-### Server function parameters
-
-Server functions always take three parameters: `input`, `output`, and `session`[^session-optional]. You'll never create these objects yourself; rather, they are created by Shiny when a session begins. Each combination of `input`, `output`, and `session` connects back to a specific session, and we'll use these objects to communicate back and forth with the browser.
+Server functions always take three parameters: `input`, `output`, and `session`[^session-optional]. You'll never create these objects yourself; rather, they are created by Shiny when a session begins. Each combination of `input`, `output`, and `session` connects back to a specific session, and we'll use these objects to communicate back and forth with the browser. For the moment, we'll focus on `input` and `output`, and leave `session` for later chapters.
 
 [^session-optional]: For legacy reasons, `session` is optional, but you should always include it.
-
-For the moment, we'll focus on `input` and `output`, and leave `session` for later chapters.
 
 ### Input {#input}
 
 The `input` object is a list-like object that contains all the input data sent from the browser, stored by input ID. If your UI contains a numeric input control with an input ID of `count`:
 
-```{r, eval = FALSE}
-numericInput("count", label = "Number of values", value = 100)
+```{r}
+ui <- fluidPage(
+  numericInput("count", label = "Number of values", value = 100)
+)
 ```
 
-then `input$count` will initially contain the value `100`. As the user changes the value in the browser, `input$count` will be updated automatically by Shiny.
+then you can access the value of the `count` input using `input$count`. It will initially contain the value `100`, and will be automatically updated as the user changes the value in the browser.
 
-Unlike a typical R list, `input` objects are read-only. The following line will not work:
+Unlike a typical list, `input` objects are read-only. If you attempt to modify an input inside the server function, you'll get an error:
 
 ```{r, eval = FALSE}
-# Throws an error
-input$count <- 10
+server <- function(input, output, session) {
+  input$count <- 10  
+}
+
+shinyApp(ui, server)
+#> Error: Attempted to assign value to a read-only reactivevalues object
 ```
 
-The reason for this restriction is that `input` is reflects what's happening in the browser; the browser is the "single source of truth". Being able to directly modify the `input` object would introduce a second source of truth, which could then be in conflict with the state of the browser.
+The reason for this restriction is that `input` is reflects what's happening in the browser; the browser is the "single source of truth". Being able to directly modify the `input` object would introduce a second source of truth, which could then be in conflict with the state of the browser. Later on, in Chapter XYZ, we'll show you how to work around this limitation with `updateNumericInput()` and friends.
 
-One more important thing about `input` is that it's a bit selective about who is allowed to read it. You must be in a __reactive context__ to be able to access it. We'll come back to that idea very shortly, but it's a fundamentally idea that allows outputs to automatically update when an input changes. For example, this server function will throw an error:
+One more important thing about `input`: it's a selective about who is allowed to read it. You must be in a __reactive context__ to be able to access it. We'll come back to that idea very shortly, but it's a fundamentally idea that allows outputs to automatically update when an input changes. For example, this server function will throw an error:
 
 ```{r, eval = FALSE}
 ui <- fluidPage(
@@ -86,7 +86,7 @@ shinyApp(ui, server)
 #> a reactive expression or observer.
 ```
 
-To new Shiny app authors, this is an extremely surprising limitation! But rest assured that `input`'s selectivity is a feature, not a bug. To explain why, we'll first need to talk about outputs.
+This is likely to be very surprising when you first start using Shiny. But this selectivity is extremely important as it allows shiny to automatically figure out how inputs and outputs are connected in order to automatically figure out what needs to be updated when ever an input changes.
 
 ### Output {#output}
 
@@ -95,6 +95,10 @@ Shiny UIs not only contain inputs, but also outputs. The various `*Output` UI fu
 You use the `output` object by wrapping a code block with a render function, then assigning all of that to a slot on the `output` object. Like this:
 
 ```{r, eval = FALSE}
+ui <- fluidPage(
+  plotOutput("hist_plot")
+)
+
 server <- function(input, output, session) {
   output$hist_plot <- renderPlot({
     # Choose 100 random values from a normal distribution,
@@ -106,7 +110,7 @@ server <- function(input, output, session) {
 
 This snippet assumes that the UI contains a `plotOutput("hist_plot")`. The render function you use (`renderPlot`) must match with the output function (`plotOutput`), and the output slot (`hist_plot`) must match with the output ID.
 
- (Note that the ID is quoted in the UI, but not in the server.)
+(Note that the ID is quoted in the UI, but not in the server.)
 
 ### Imperative vs. declarative
 
@@ -153,11 +157,17 @@ Let's see what happens if we add a few more inputs and outputs. In this next exa
 library(shiny)
 
 ui <- fluidPage(
-  numericInput("count", label = "Number of values", value = 100),
-  numericInput("bins", label = "Bins", value = 10),
-  plotOutput("hist_plot"),
-  numericInput("rows", label = "Rows to show", 10),
-  tableOutput("value_table")
+  fluidRow(
+    column(4, 
+      numericInput("count", label = "Number of values", value = 100),
+      numericInput("bins", label = "Bins", value = 10)
+    ),
+    column(8, plotOutput("hist_plot"))
+  ),
+  fluidRow(
+    column(4, numericInput("rows", label = "Rows to show", value = 5)),
+    column(8, tableOutput("value_table"))
+  )
 )
 
 server <- function(input, output, session) {
@@ -165,7 +175,7 @@ server <- function(input, output, session) {
     # Choose input$count random values from a normal distribution,
     # and create a histogram
     values <- rnorm(input$count)
-    hist(values, breaks = input$bins)
+    hist(values, breaks = input$bins, xlim = c(-3, 3))
   })
   
   output$value_table <- renderTable({
@@ -202,41 +212,13 @@ As a human looking at this code, you might conclude that when `input$bins` chang
 
 Shiny doesn't try to be this clever. Instead, an output's render code block is always executed in its entirety, whether it's two lines of code or two hundred. In this way, each output represents an indivisible unit.
 
-### Side effects
-
 ### Reactive expressions {#reactive-expressions-intro}
 
 If you read the code above carefully you might have noticed that we're actually generating the random numbers in two different places. The table and the histogram are actually displaying the results from two unrelated datasets! To fix that problem we need to introduce one more big idea: the reactive expression. 
 
-A reactive expression is created using `reactive()`. It ordinary R code, and makes it reactive so that it automatically updates when it's inputs change. To use a reactive input, you call it like a function.
+But first let's look at two approaches that don't work.
 
-```{r}
-server <- function(input, output, session) {
-  values <- reactive({
-    rnorm(input$count)
-  })
-  
-  output$hist_plot <- renderPlot({
-    hist(values(), breaks = input$bins)
-  })
-  
-  output$value_table <- renderTable({
-    data.frame(head(values(), input$rows))
-  })
-}
-```
-
-This leads to the following reactivity diagram. You can see that we're starting to develop a more complex graph. We'll come back to exactly how events flow through this graph, and how Shiny ensures that it does the smallest amount of work in Chapter \@ref(reactivity-mental-model).
-
-```{r, echo = FALSE, out.width = NULL}
-knitr::include_graphics("diagrams/basic-reactivity/input-reactive-output.png", dpi = 300)
-```
-
-Reactive expressions are extremely important for creating efficient shiny apps because they are only updated when their inputs change. This means that you can use them to encapsulate expensive operations so that they are only re-computed the minimal number of times. If you have every used a tool like `make`, this might seem familiar.
-
-
-
-But often in reactive programming, neither of these choices satisfy. Using a variable won't work:
+Using a variable won't work:
 
 ```{r, eval = FALSE}
 # Don't do this!
@@ -276,11 +258,57 @@ server <- function(input, output, session) {
 
 We get the correct behavior this time, at least—we're calling `getDataset()` from within our output code, so Shiny will know to recalculate the outputs when `input$dataset` changes. However, for each change to `input$dataset`, `getDataset` is going to be called twice, and its work is therefore going to be performed twice. (In this example, the work being done in `getDataset` is totally trivial so it doesn't actually matter; just imagine we're doing a more expensive operation like retrieving a dataset from a web service or database, or fitting a model over a large dataset, or performing simulations.)
 
+
+A reactive expression is created using `reactive()`. It ordinary R code, and makes it reactive so that it automatically updates when it's inputs change. To use a reactive input, you call it like a function.
+
+```{r}
+server <- function(input, output, session) {
+  values <- reactive({
+    rnorm(input$count)
+  })
+  
+  output$hist_plot <- renderPlot({
+    hist(values(), breaks = input$bins)
+  })
+  
+  output$value_table <- renderTable({
+    data.frame(head(values(), input$rows))
+  })
+}
+```
+
+This leads to the following reactivity diagram. You can see that we're starting to develop a more complex graph. We'll come back to exactly how events flow through this graph, and how Shiny ensures that it does the smallest amount of work in Chapter \@ref(reactivity-mental-model).
+
+```{r, echo = FALSE, out.width = NULL}
+knitr::include_graphics("diagrams/basic-reactivity/input-reactive-output.png", dpi = 300)
+```
+
+Reactive expressions are extremely important for creating efficient shiny apps because they are only updated when their inputs change. This means that you can use them to encapsulate expensive operations so that they are only re-computed the minimal number of times. If you have every used a tool like `make`, this might seem familiar.
+
 To summarize: while variables calculate the value only once (not often enough), and functions calculate the value every time they're called (too often), reactive expressions calculate the value only when it might have changed (just right!).
+
 
 ## Controlling effect flow
 
+### Side effects
+
 Buttons and observers.
+
+### Timed invalidation
+
+```{r}
+ui <- fluidPage(
+  textOutput("time")
+)
+server <- function(input, output, session) {
+  time <- reactive({
+    invalidateLater(1000)
+    as.character(Sys.time())
+  })
+  
+  output$time <- renderText(time())
+}
+```
 
 ## Reactivity roadblocks
 
