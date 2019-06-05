@@ -18,35 +18,39 @@ library(shiny)
 
 ## The server function
 
-The typical Shiny app boilerplate looks like this:
+As you've seen, the typical Shiny app boilerplate looks like this:
 
 ```{r, eval = FALSE}
 library(shiny)
 
 ui <- fluidPage(
-  # UI goes here
+  # Front-end interface
 )
 
 server <- function(input, output, session) {
-  # Server logic goes here
+  # Back-end logic
 }
 
 shinyApp(ui, server)
 ```
 
-As you can see, `server()` is function that you  define, and pass to `shinyApp()`, along with the UI. You'll never call a server function yourself; rather, Shiny invokes it whenever a new session begins, and almost of the reactive programming you'll do in Shiny will be directly in the server function[^exceptions]. 
+As you learned in the last chapter, the front-end is a single object containing HTML code. It is fixed and static, and presented to the same to every user of your app.
+
+The backend is more complex: `server()` is function that you define and pass to `shinyApp()`, along with the UI. You'll never call a server function yourself; rather, Shiny invokes it whenever a new session begins, and almost of the reactive programming you'll do in Shiny will be inside the server function[^exceptions]. 
 
 [^exceptions]: The primary exception is where there's some work that can shared across multiple users. For example, all users might be looking at the same large csv file, so you might as well load it once and share it between users. We'll come back to that idea in Chapter XYZ.
 
-To understand the server function, it's important to understand the idea of a __session__, which begins each time the Shiny app is loaded in a browser, either by different people, or by the same person opening multiple tabs. The server function encapsulates the connection to a single browser session, creating a private scope for that particular session. In other words, every variable you create inside the server function is only accessible to a single session. This ensures that when user A moves a slider, outputs update only for user A, not user B. 
+To understand why shiny has a server function, you need to first understand the idea of browser __session__, which captures the state of one live instance of a shiny app. A session begins each time the Shiny app is loaded in a browser, either by different people, or by the same person opening multiple tabs. 
 
-Server functions always take three parameters: `input`, `output`, and `session`[^session-optional]. You'll never create these objects yourself; rather, they are created by Shiny when a session begins. Each combination of `input`, `output`, and `session` connects back to a specific session, and we'll use these objects to communicate back and forth with the browser. For the moment, we'll focus on `input` and `output`, and leave `session` for later chapters.
+The server function is called once for each browser session, creating a private scope for that particular session, encapsulating the unique state. Every variable created inside the server function is only accessible to a single session. This ensures that when user A moves a slider, outputs update only for user A, not user B. 
+
+Server functions take three parameters: `input`, `output`, and `session`[^session-optional]. You'll never create these objects yourself; instead, they're created by Shiny when the session begins. Each combination of the three arguments connects back to a specific session, and you use those objects to communicate back and forth with the browser. For the moment, we'll focus on `input` and `output`, and leave `session` for later chapters.
 
 [^session-optional]: For legacy reasons, `session` is optional, but you should always include it.
 
 ### Input {#input}
 
-The `input` object is a list-like object that contains all the input data sent from the browser, stored by input ID. If your UI contains a numeric input control with an input ID of `count`:
+The `input` object is a list-like object that contains all the input data sent from the browser, stored by input ID. For example, if your UI contains a numeric input control with an input ID of `count`:
 
 ```{r}
 ui <- fluidPage(
@@ -54,7 +58,7 @@ ui <- fluidPage(
 )
 ```
 
-then you can access the value of the `count` input using `input$count`. It will initially contain the value `100`, and will be automatically updated as the user changes the value in the browser.
+then you can access the value of that input with `input$count`. It will initially contain the value `100`, and it will be automatically updated as the user changes the value in the browser.
 
 Unlike a typical list, `input` objects are read-only. If you attempt to modify an input inside the server function, you'll get an error:
 
@@ -67,15 +71,13 @@ shinyApp(ui, server)
 #> Error: Attempted to assign value to a read-only reactivevalues object
 ```
 
-The reason for this restriction is that `input` is reflects what's happening in the browser; the browser is the "single source of truth". Being able to directly modify the `input` object would introduce a second source of truth, which could then be in conflict with the state of the browser. Later on, in Chapter XYZ, we'll show you how to work around this limitation with `updateNumericInput()` and friends.
+This error occurs because `input` reflects what's happening in the browser, where the browser is the "single source of truth". If you could modify the value in R, it would be possible to have introduce inconsistencies where the input slider said one thing in the browser, and `input$count` said something different. That would make programming very complicated.
 
-One more important thing about `input`: it's a selective about who is allowed to read it. You must be in a __reactive context__ to be able to access it. We'll come back to that idea very shortly, but it's a fundamentally idea that allows outputs to automatically update when an input changes. For example, this server function will throw an error:
+It is possible, however, to change the value in the browser using `updateNumericInput()` and friends, and then `input$count` will update accordingly. We'll come back to that idea in Chapter XYZ, where we discuss dynamic user interfaces.
+
+One more important thing about `input`: it's selective about who is allowed to read it. You must be in a __reactive context__ to be able to access it. We'll come back to that idea very shortly, but it's a fundamentally important idea that allows outputs to automatically update when an input changes. For example, this server function will also fail:
 
 ```{r, eval = FALSE}
-ui <- fluidPage(
-  numericInput("count", label = "Number of values", value = 100)
-)
-
 server <- function(input, output, session) {
   message("The value of input$count is ", input$count)
 }
@@ -83,48 +85,88 @@ server <- function(input, output, session) {
 shinyApp(ui, server)
 #> Error: Operation not allowed without an active reactive context. 
 #> (You tried to do something that can only be done from inside 
-#> a reactive expression or observer.
+#> a reactive expression or observer.)
 ```
 
-This is likely to be very surprising when you first start using Shiny. But this selectivity is extremely important as it allows shiny to automatically figure out how inputs and outputs are connected in order to automatically figure out what needs to be updated when ever an input changes.
+This is likely to surprise you when you first start using Shiny. But this selectivity is extremely important as it allows shiny to automatically figure out how inputs and outputs are connected in order to automatically figure out what needs to be updated when ever an input changes.
 
 ### Output {#output}
 
-Shiny UIs not only contain inputs, but also outputs. The various `*Output` UI functions---`plotOutput()`, `tableOutput()`, `verbatimTextOutput()`, and friends---merely insert empty boxes, or placeholders, into your UI. The `output` object is how you tell Shiny how to populate these empty boxes.
+Shiny UIs inputs and outputs. As you've seen in the last chapter, the various `*Output` UI functions---`plotOutput()`, `tableOutput()`, `textOutput()`, and friends---merely insert empty boxes, or placeholders, into your UI. The `output` object allows you to populate these these empty boxes.
 
-You use the `output` object by wrapping a code block with a render function, then assigning all of that to a slot on the `output` object. Like this:
+You always use the `output` object in concert with a `render` function. The render function does two things:
+
+* It sets up a reactive context that automatically tracks what inputs 
+  you use.
+  
+* It converts the output of your R code into HTML suitable for display
+  in the output control.
+
+Take an even simpler example:
 
 ```{r, eval = FALSE}
 ui <- fluidPage(
-  plotOutput("hist_plot")
+  textOutput("greeting")
 )
 
 server <- function(input, output, session) {
-  output$hist_plot <- renderPlot({
-    # Choose 100 random values from a normal distribution,
-    # and create a histogram
-    hist(rnorm(100))
+  output$greeting <- renderText({
+    "Hello human!"
   })
 }
 ```
 
-This snippet assumes that the UI contains a `plotOutput("hist_plot")`. The render function you use (`renderPlot`) must match with the output function (`plotOutput`), and the output slot (`hist_plot`) must match with the output ID.
-
 (Note that the ID is quoted in the UI, but not in the server.)
+
+Like the `input`, the `output` is picky about how you access it. If you forget the `render` function you'll get an error:
+
+```{r, eval = FALSE}
+server <- function(input, output, session) {
+  output$greeting <- "Hello human"
+}
+shinyApp(ui, server)
+#> Error: Unexpected character output for greeting
+```
+
+And if you attempt to read from an output you'll get an error:
+
+```{r, eval = FALSE}
+server <- function(input, output, session) {
+  message("The greeting is ", output$greeting)
+}
+shinyApp(ui, server)
+#> Error: Reading objects from shinyoutput object not allowed.
+```
 
 ### Imperative vs. declarative
 
-You might read this code and think it means, "Render the plot `hist(rnorm(100L))`, and fill `plotOutput("hist_plot")` with it." But this intuition is wrong, in a subtle but important way. This code does not _instruct_ Shiny to render the plot and send it to the browser, but instead, tells Shiny _how it could_ render the plot, if and when Shiny wanted to. This is the difference between _imperative_ programming, which is what you're probably used to, and _declarative_ programming, which is what Shiny uses.
+When looking at 
+
+```{r}
+server <- function(input, output, session) {
+  output$greeting <- renderText({
+    "Hello human!"
+  })
+}
+```
+
+It's easy to read this as generate the text then send it to `output$greeting`. But this intuition is wrong, in a subtle but important way. This code does not _instruct_ Shiny to render the plot and send it to the browser, but instead, tells Shiny _how it could_ render the plot, if it needs to. 
+
+This is the difference between __imperative__ programming, where you tell R what you want it to do, and it immediately does it, and and _declarative_ programming, where you tell R what your primary goal is, and it figure out the best way to achieve it. 
+
+This is like the difference between base graphics where you tell R: draw a line here, draw some points there, and ggplot2, where you describe how you want to map variables in your data to visual properties.
 
 Imperative programming is about issuing specific commands, to be carried out immediately. Declarative programming is about expressing some higher-level goals or constraints, and relying on someone else (in this case, Shiny) to decide how and/or when to translate that into action.
 
-Imperative says: "Go make me a sandwich."
+Imperative code say: "Make me a sandwich."
 
-Declarative says: "Ensure there is a sandwich in the refrigerator at all times." (Sorry, sometimes Declarative can be a demanding jerk.)
+Declarative code says: "Ensure there is a sandwich in the refrigerator whenever I look inside of it." (Sorry, sometimes Declarative can be a passive-aggressive jerk.)
 
-You may actually be more familiar with declarative programming than you think. SQL and regular expressions are examples of declarative programming. Excel formulas are too.
+The correct, declarative reading of the code snippet above is "Whenever you want to render the `greeting` output, know that it's text coming from the R code "greeting". 
 
-The correct, declarative reading of the code snippet above is "Whenever you want to render the `hist` output, be sure to do it as a plot, and the logic for doing so is `hist(rnorm(100L))`." It's totally up to Shiny whether and when to actually render the plot; maybe right away, maybe quite a bit later, maybe many times, maybe never. This isn't to imply that Shiny is capricious and arbitrary, only that it's Shiny's responsibility, not yours, to decide when render logic is actually executed.
+It's totally up to Shiny whether and when to actually render the plot; maybe right away, maybe quite a bit later, maybe many times, maybe never. This isn't to imply that Shiny is capricious and arbitrary, only that it's Shiny's responsibility, not yours, to decide when render logic is actually executed.
+
+Much like ggplot2, 95% of the time this is tremendously freeing: you describe your overall goals, and shiny and ggplot2 achieve them without further intervention. The downside is that 5% of the time where you just want to say "DO THIS! DO IT NOW" and you can't figure out how to describe your simple instructions into a set of motivations that ggplot2 or shiny can understand.
 
 ## Using inputs and outputs together {#inputs-and-outputs}
 
@@ -292,9 +334,25 @@ To summarize: while variables calculate the value only once (not often enough), 
 
 ### Side effects
 
-Buttons and observers.
+Simulation example - if the simulation is slow, you don't want to kick it off as soon as you make one little change. Two approaches: you could throttle, or you could make a button.
+
+
+```{r, eval = FALSE}
+data <- eventReactive(input$go, {
+  rnorm(input$n, input$mean, input$sd)
+})
+```
+
+```{r, eval = FALSE}
+data <- eventReactive(
+  throttle(list(input$n, input$mean, input$sd), 250), 
+  rnorm(input$n, input$mean, input$sd)
+)
+```
 
 ### Timed invalidation
+
+The flip side is that sometimes you need to update the app when something outside has changed. i.e. you need to invalid more often that the reactivity graph would otherwise suggest.
 
 ```{r}
 ui <- fluidPage(
@@ -309,6 +367,8 @@ server <- function(input, output, session) {
   output$time <- renderText(time())
 }
 ```
+
+Later on you'll learn about tools like `reactiveFileReader()`
 
 ## Reactivity roadblocks
 
