@@ -364,7 +364,7 @@ knitr::include_graphics("images/basic-app/fluid-page.png", dpi = 300)
 
 It looks very boring (there's no content!), but behind the scenes, `fluidPage()` is doing a lot of work. The page function sets up all the HTML, CSS, and JS that shiny needs. `fluidPage()` uses a layout system called **Bootstrap**, <https://getbootstrap.com>, that provides attractive defaults[^bs3]. Later on, in Chapter XYZ, we'll talk about how you can use a little knowledge of bootstrap to gain greater control of the visual appearance of your in order to make your app look more polished.
 
-[^bs3]: Currently shiny uses bootstrap v3, <https://getbootstrap.com/docs/3.4/>, but the shiny team is planning to update to v4, the latest version, in the near future.
+[^bs3]: Currently shiny uses bootstrap 3.3.7, <https://getbootstrap.com/docs/3.3/>, but the shiny team is planning to update to 4.0.0, the latest version, in the near future.
 
 Technically, `fluidPage()` is all you need for an app, because you can put inputs and outputs directly inside of it. While this is fine to learn the basics of shiny, dumping all the inputs and outputs in one place doesn't look very good, so for more complicated apps, you need to learn more layout functions. Here I'll introduce you to two common structures, a page with sidebar and a multirow app, and then we'll finish off with a quick discussion of themes.
 
