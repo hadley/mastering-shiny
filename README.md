@@ -56,6 +56,8 @@ Built with [bookdown](https://bookdown.org/yihui/bookdown/).
        * Connecting to databases
     1. Async programming with promises
     1. Reactivity implementation details
+       * `reactiveValues()`
+       * `isolate()`
 
 5. Taming Shiny
     1. Troubleshooting and debugging

@@ -104,7 +104,7 @@ You always use the `output` object in concert with a `render` function. The rend
 
 Take an even simpler example:
 
-```{r, eval = FALSE}
+```{r}
 ui <- fluidPage(
   textOutput("greeting")
 )
@@ -138,62 +138,102 @@ shinyApp(ui, server)
 #> Error: Reading objects from shinyoutput object not allowed.
 ```
 
-### Imperative vs. declarative
+### Connecting inputs to outputs
 
-When looking at 
+Let's make this a "real" app by connecting an input and output together.
 
 ```{r}
-server <- function(input, output, session) {
-  output$greeting <- renderText({
-    "Hello human!"
-  })
-}
-```
-
-It's easy to read this as generate the text then send it to `output$greeting`. But this intuition is wrong, in a subtle but important way. This code does not _instruct_ Shiny to render the plot and send it to the browser, but instead, tells Shiny _how it could_ render the plot, if it needs to. 
-
-This is the difference between __imperative__ programming, where you tell R what you want it to do, and it immediately does it, and and _declarative_ programming, where you tell R what your primary goal is, and it figure out the best way to achieve it. 
-
-This is like the difference between base graphics where you tell R: draw a line here, draw some points there, and ggplot2, where you describe how you want to map variables in your data to visual properties.
-
-Imperative programming is about issuing specific commands, to be carried out immediately. Declarative programming is about expressing some higher-level goals or constraints, and relying on someone else (in this case, Shiny) to decide how and/or when to translate that into action.
-
-Imperative code say: "Make me a sandwich."
-
-Declarative code says: "Ensure there is a sandwich in the refrigerator whenever I look inside of it." (Sorry, sometimes Declarative can be a passive-aggressive jerk.)
-
-The correct, declarative reading of the code snippet above is "Whenever you want to render the `greeting` output, know that it's text coming from the R code "greeting". 
-
-It's totally up to Shiny whether and when to actually render the plot; maybe right away, maybe quite a bit later, maybe many times, maybe never. This isn't to imply that Shiny is capricious and arbitrary, only that it's Shiny's responsibility, not yours, to decide when render logic is actually executed.
-
-Much like ggplot2, 95% of the time this is tremendously freeing: you describe your overall goals, and shiny and ggplot2 achieve them without further intervention. The downside is that 5% of the time where you just want to say "DO THIS! DO IT NOW" and you can't figure out how to describe your simple instructions into a set of motivations that ggplot2 or shiny can understand.
-
-## Using inputs and outputs together {#inputs-and-outputs}
-
-The above rendering logic, `hist(rnorm(100))`, isn't very exciting; the user can't interact with this app in any way (unless you count reloading the browser, which would generate a new batch of values). Let's modify the output to use the input. The complete app is below:
-
-```{r, eval = FALSE}
-library(shiny)
-
 ui <- fluidPage(
-  numericInput("count", label = "Number of values", value = 100),
-  plotOutput("hist_plot")
+  textInput("name", "What's your name?"),
+  textOutput("greeting")
 )
 
 server <- function(input, output, session) {
-  output$hist_plot <- renderPlot({
-    # Choose input$count random values from a normal distribution,
-    # and create a histogram
-    hist(rnorm(input$count))
+  output$greeting <- renderText({
+    paste0("Hello ", input$name, "!")
   })
 }
-
-shinyApp(ui, server)
 ```
 
-Run this app, and you'll notice that as you change the `count` input, the output updates immediately. This is reactive programming at work! When one thing (`input$count`) changes, other things (`output$hist_plot`) automatically and immediately respond.
+It's hard to show exactly how this works in a static book, but if you run the app, and type in the name box, you'll notice that the greeting updates automatically as you type:
 
-Let's see what happens if we add a few more inputs and outputs. In this next example, we've added a new input that affects the histogram: `input$bins` is used to specify the number of bins in the histogram. We've also added a table output, that limits itself to displaying the first `input$rows` of the data.
+```{r, echo = FALSE, out.width = "25%", fig.show="hold"}
+app <- testApp(ui, server)
+app_screenshot(app, "basic-reactivity/connection-1", width = 200)
+app$setInputs(name = "J")
+app_screenshot(app, "basic-reactivity/connection-2", width = 200)
+app$setInputs(name = "Jo")
+app_screenshot(app, "basic-reactivity/connection-3", width = 200)
+app$setInputs(name = "Joe")
+app_screenshot(app, "basic-reactivity/connection-4", width = 200)
+```
+
+(If you're running the live app, notice that you have to type fairly slowly for the output to update one letter at a time. That's because shiny uses a technique called __debouncing__, which means that it waits for XYZ ms before sending an update. That reduces the amount of needless work that Shiny needs to do, without appreciably reducing the response time of the app.)
+
+This is the magic of shiny: you don't need to specify when the output code is run because Shiny automatically figures it out for you.
+
+## Reactive programming
+
+How does the server function work? What exactly is going on in the body of the function?
+
+```{r, eval = FALSE}
+output$greeting <- renderText({
+  paste0("Hello ", input$name, "!")
+})
+```
+
+It's easy to read the code above as: paste together "hello" and the user's name, then send it to `output$greeting`. But this mental model is wrong, in a subtle but important way. You only issue the instruction once, but Shiny performs the action multiple times.
+
+That's because this code does not _instruct_ Shiny how to fill the output and send it to the browser, but instead, tells Shiny _how it could_ fill the the ouput, if it needs to. It's totally up to Shiny whether and when to actually run the code; maybe right away, maybe quite a bit later, maybe many times, maybe never. This isn't to imply that Shiny is capricious and arbitrary, only that it's Shiny's responsibility, not yours, to decide when render logic is actually executed.
+
+A better reading of the above code is: Whenever you want to render the `greeting` output, compute it's value by pasting together "Hello" and the user's name. 
+
+### Imperative vs. declarative
+
+This is the difference between imperative and declarative programming:
+
+* When programming __imperatively__, you issue a specific command and it's 
+  carried out immediately.
+
+* When programming __declarative__ programming, you expressing some 
+  higher-level goals or constraints, and rely on someone else (in this case, 
+  Shiny) to decide how and/or when to translate that into action.
+
+Imperative code say: "Make me a sandwich". Declarative code says: "Ensure there is a sandwich in the refrigerator whenever I look inside of it." (Sorry, sometimes Declarative can be a passive-aggressive jerk.)
+
+### Laziness
+
+This has an important consequence when creating shiny apps. What happens if you accidental mispell an output? We can make it even more obvious by throwing an error inside of the `render` function:
+
+```{r}
+server <- function(input, output, session) {
+  output$greetnig <- renderText({
+    stop("This is an error!")
+  })
+}
+```
+
+This code will never generate an error, because it will never be run. Later, we'll come back to exactly what's going on, but for now just remember that Shiny is a lazy as possible, and because there's no output called "greetni", it will never run the code. This is a great feature in general, but occassionally makes debugging hard: if you're working on a shiny app, and you just can't figure out why you're code is never run, make sure that your UI and server functions are using the same names.
+
+The vast majority of the time this is tremendously freeing: you describe your overall goals, and shiny achieve them without further intervention. The downside is that 5% of the time where you just want to say "DO THIS! DO IT NOW" and you can't figure out how to describe your simple instructions into a set of motivations. (If you've ever struggled with getting a ggplot2 legend to look exactly the way you want, you've encountered this problem).
+
+The most confusing thing in shiny is that the order of the code in your server function is unrelated to the order in which it is executed. However, if the order is very different you'll get confused, so it's a good idea to make sure that each reactive environment only refers to reactive variables that have been defined above it.
+
+### The reactive graph
+
+As your shiny apps get more complex, you'll find that carefully drawing out the graph of reactive inputs and outputs helps you to understand what's going on. The following diagram introduces you to the basic conventions we'll use throughout this book.
+
+```{r, echo = FALSE, out.width = NULL}
+knitr::include_graphics("diagrams/basic-reactivity/input-output.png", dpi = 300)
+```
+
+We'll come back to this idea again and again.
+
+### More inputs and outputs
+
+### Reducing duplication
+
+## Controlling event flow
 
 ```{r, eval = FALSE}
 library(shiny)
@@ -233,11 +273,6 @@ shinyApp(ui, server)
 
 By careful inspection of the code, we can see that `input$count` affects both outputs, while `input$bins` affects only the plot and `input$rows` affects only the table. Run the app, and you'll see that Shiny knows this too. If you change `input$bins`, the plot is affected but the table is not. If you change `input$rows`, the table is affected but the plot is not. 
 
-As your shiny apps get more complex, you'll find that carefully drawing out the graph of reactive inputs and outputs helps you to understand what's going on. The following diagram introduces you to the basic conventions we'll use throughout this book.
-
-```{r, echo = FALSE, out.width = NULL}
-knitr::include_graphics("diagrams/basic-reactivity/input-output.png", dpi = 300)
-```
 
 The point of this example is to demonstrate that Shiny doesn't simply re-render all of its outputs whenever an input has changed. Somehow, without a lot of help from us, Shiny figures out which inputs should affect which outputs. This is the most "magical" aspect of reactive programming, and we'll eventually pull back the curtain; for now, just trust that it works.
 
@@ -329,13 +364,9 @@ Reactive expressions are extremely important for creating efficient shiny apps b
 
 To summarize: while variables calculate the value only once (not often enough), and functions calculate the value every time they're called (too often), reactive expressions calculate the value only when it might have changed (just right!).
 
+### Waiting longer
 
-## Controlling effect flow
-
-### Side effects
-
-Simulation example - if the simulation is slow, you don't want to kick it off as soon as you make one little change. Two approaches: you could throttle, or you could make a button.
-
+Simulation example - if the simulation is slow, you don't want to kick it off as soon as you make one little change. Two approaches: you could debounce (i.e. only update when you've paused your modifications), or you could make a button.
 
 ```{r, eval = FALSE}
 data <- eventReactive(input$go, {
@@ -345,31 +376,43 @@ data <- eventReactive(input$go, {
 
 ```{r, eval = FALSE}
 data <- eventReactive(
-  throttle(list(input$n, input$mean, input$sd), 250), 
+  debounce(list(input$n, input$mean, input$sd), 250), 
   rnorm(input$n, input$mean, input$sd)
 )
 ```
 
+
+## Outside the app
+
+### Side-effects
+
+* Saving a file to disk
+* Talking to a web API
+* Updating a database record
+
+`observeEvent()`
+
+
 ### Timed invalidation
 
-The flip side is that sometimes you need to update the app when something outside has changed. i.e. you need to invalid more often that the reactivity graph would otherwise suggest.
+The flip side is that sometimes you need to update the app when something outside the app has changed. i.e. you need to invalid more often that the reactivity graph would otherwise suggest.
 
 ```{r}
 ui <- fluidPage(
   textOutput("time")
 )
 server <- function(input, output, session) {
-  time <- reactive({
-    invalidateLater(1000)
+  time <- reactiveTimer()
+  
+  
+  output$time <- renderText({
+    time()
     as.character(Sys.time())
   })
-  
-  output$time <- renderText(time())
 }
 ```
 
+
+### Polling for changes
+
 Later on you'll learn about tools like `reactiveFileReader()`
-
-## Reactivity roadblocks
-
-
