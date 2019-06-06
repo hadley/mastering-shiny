@@ -58,7 +58,7 @@ ui <- fluidPage(
   textAreaInput("story", "Tell me about yourself", rows = 3, cols = 80)
 )
 ```
-```{r, echo = FALSE, output.width = NULL}
+```{r, echo = FALSE, out.width = NULL}
 app <- testApp(ui)
 app$setInputs(name = "Joe")
 app$setInputs(password = "mypassword")
@@ -78,7 +78,7 @@ ui <- fluidPage(
   sliderInput("rng", "Range", value = c(10, 20), min = 0, max = 100)
 )
 ```
-```{r, echo = FALSE, output.width = NULL}
+```{r, echo = FALSE, out.width = NULL}
 ui_screenshot(ui, "basic-ui/numeric")
 ```
 
@@ -94,7 +94,7 @@ ui <- fluidPage(
   dateRangeInput("holdiay", "When do you want to go on vacation next?")
 )
 ```
-```{r, echo = FALSE, output.width = NULL}
+```{r, echo = FALSE, out.width = NULL}
 ui_screenshot(ui, "basic-ui/date")
 ```
 
@@ -112,7 +112,7 @@ ui <- fluidPage(
   radioButtons("animal", "What's your favourite animal?", animals)
 )
 ```
-```{r, echo = FALSE, output.width = NULL}
+```{r, echo = FALSE, out.width = NULL}
 ui_screenshot(ui, "basic-ui/limited-choices")
 ```
 
@@ -130,7 +130,7 @@ ui <- fluidPage(
   )
 )
 ```
-```{r, echo = FALSE, output.width = NULL}
+```{r, echo = FALSE, out.width = NULL}
 ui_screenshot(ui, "basic-ui/radio-icon")
 ```
 
@@ -144,7 +144,7 @@ ui <- fluidPage(
   )
 )
 ```
-```{r, eval = FALSE, echo = FALSE, output.width = NULL}
+```{r, eval = FALSE, echo = FALSE, out.width = NULL}
 # Doesn't work: https://github.com/rstudio/shinytest/issues/262
 app <- testApp(ui)
 app$setInputs(state = "Texas")
@@ -162,7 +162,7 @@ ui <- fluidPage(
   checkboxGroupInput("animal", "What animals do you like?", animals)
 )
 ```
-```{r, echo = FALSE, output.width = NULL}
+```{r, echo = FALSE, out.width = NULL}
 ui_screenshot(ui, "basic-ui/multi-radio")
 ```
 
@@ -176,7 +176,7 @@ ui <- fluidPage(
   checkboxInput("shutdown", "Shutdown?")
 )
 ```
-```{r, echo = FALSE, output.width = NULL}
+```{r, echo = FALSE, out.width = NULL}
 ui_screenshot(ui, "basic-ui/yes-no")
 ```
 
@@ -196,7 +196,7 @@ We'll come back to two input controls in later chapters:
     placeholder that appears _inside_ the text entry area. How do you call 
     `inputText()` to generate the UI below?
     
-    ```{r, echo = FALSE, output.width = NULL}
+    ```{r, echo = FALSE, out.width = NULL}
     ui <- fluidPage(
       textInput("name", NULL, placeholder = "Your name")
     )
@@ -206,7 +206,7 @@ We'll come back to two input controls in later chapters:
 1.  Carefully read the documentation for `sliderInput()` to figure out how to 
     create a date slider, as shown below.
 
-    ```{r, echo = FALSE, output.width = NULL}
+    ```{r, echo = FALSE, out.width = NULL}
     today <- Sys.Date()
     ui <- fluidPage(
       sliderInput("delivery", "When should we deliver?", today, min = today, max = today + 7, step = 1, round = TRUE)
@@ -238,7 +238,7 @@ server <- function(input, output, session) {
   output$code <- renderPrint(summary(1:10))
 }
 ```
-```{r, echo = FALSE, output.width = NULL}
+```{r, echo = FALSE, out.width = NULL}
 app_screenshot(testApp(ui, server), "basic-ui/output-text")
 ```
 
@@ -283,7 +283,7 @@ server <- function(input, output, session) {
   output$dynamic <- renderDataTable(mtcars, options = list(pageLength = 5))
 }
 ```
-```{r, echo = FALSE, output.width = NULL}
+```{r, echo = FALSE, out.width = NULL}
 app_screenshot(testApp(ui, server), "basic-ui/output-table")
 ```
 
@@ -299,7 +299,7 @@ server <- function(input, output, session) {
   output$plot <- renderPlot(plot(1:5))
 }
 ```
-```{r, echo = FALSE, output.width = NULL}
+```{r, echo = FALSE, out.width = NULL}
 app_screenshot(testApp(ui, server), "basic-ui/output-plot")
 ```
 
@@ -415,7 +415,7 @@ server <- function(input, output, server) {
   })
 }
 ```
-```{r, echo = FALSE, output.width = NULL}
+```{r, echo = FALSE, out.width = NULL}
 app <- testApp(ui, server)
 app$expectUpdate("hist")
 app_screenshot(app, "basic-ui/sidebar", width = 800)
