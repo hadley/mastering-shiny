@@ -7,6 +7,8 @@ knitr::opts_chunk$set(
   cache = FALSE
 )
 
+options(digits = 3)
+
 # Masks readr::read_csv, and performs persistent download caching
 read_csv <- function(file, ...) {
   if (grepl("^https?://", file)) {
