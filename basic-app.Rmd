@@ -1,4 +1,4 @@
-# Your first Shiny app
+# Your first Shiny app {#basic-app}
 
 ```{r, include = FALSE}
 source("common.R")
@@ -180,7 +180,7 @@ is present in both outputs. In every kind of programming, it's poor practice to 
 
 In traditional R scripting, we use two techniques to deal with duplicated code: either we capture the value using a *variable* (if we only need to do the calculation once), or capture the computation itself using a *function* (if we need to perform the calculation multiple times, possibly based on different inputs). 
 
-Unfortunately neither of these approaches work here (for resaons you'll learn about in Section \@ref(reactive-expressions-intro)), and we need new mechnaism: **reactive expressions**, created by wrapping a block of code with `reactive({...})`. You assign the reactive expression object to a variable, and *call the variable like a function* to retrieve its value.
+Unfortunately neither of these approaches work here (for reasons you'll learn about in Section \@ref(reactive=roadblocks)), and we need new mechnaism: **reactive expressions**, created by wrapping a block of code with `reactive({...})`. You assign the reactive expression object to a variable, and *call the variable like a function* to retrieve its value.
 
 ```{r, eval = FALSE}
 # Much better
