@@ -44,20 +44,21 @@ registerS3method("knit_print", "shiny.tag.list", knit_print.shiny.tag.list)
 
 # Screenshot generation
 
-# Generate a ShinyDriver from ui and a server function
-testApp <- function(ui, server = NULL) {
+makeApp <- function(ui, server = NULL, app_dir = tempfile(), deps = character()) {
   if (is.null(server)) {
     server <- function(input, output, session) {}
   }
 
-  app_dir <- tempfile()
   dir.create(app_dir)
   saveRDS(ui, file.path(app_dir, "ui.rds"))
   saveRDS(server, file.path(app_dir, "server.rds"))
   saveRDS(resource_paths_get(), file.path(app_dir, "resources.rds"))
 
+  deps <- lapply(rlang::syms(deps), function(dep) expr(library(!!dep)))
+
   app <- rlang::expr({
     library(shiny)
+    !!!deps
 
     ui <- readRDS("ui.rds")
     server <- readRDS("server.rds")
@@ -70,7 +71,18 @@ testApp <- function(ui, server = NULL) {
   })
   cat(rlang::expr_text(app), file = file.path(app_dir, "app.R"))
 
+  app_dir
+}
+
+# Generate a ShinyDriver from ui and a server function
+testApp <- function(ui, server = NULL) {
+  app_dir <- makeApp(ui, server)
   shinytest::ShinyDriver$new(app_dir)
+}
+
+deployApp <- function(ui, server, name, deps = character()) {
+  app_dir <- makeApp(ui, server, deps = deps)
+  rsconnect::deployApp(app_dir, appName = name, server = "shinyapps.io")
 }
 
 ui_screenshot <- function(ui, name, width = 600, height = NA) {

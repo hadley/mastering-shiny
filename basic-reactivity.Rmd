@@ -136,11 +136,6 @@ shinyApp(ui, server)
 
 You must always write to an output with a render function.
 
-### Reactive expressions
-
-Inputs and outputs are directly connected to HTML components in your UI. You can also create your own reactive expressions that extract out repeated code within an app.
-
-Reactive expressions are extremely important for creating efficient shiny apps because they are only updated when their inputs change. This means that you can use them to encapsulate expensive operations so that they are only re-computed the minimal number of times. If you have every used a tool like `make`, this might seem familiar.
 
 ## Reactive programming
 
@@ -234,7 +229,11 @@ This graph tells you that whenever `name` is changed, `greeting` will be automat
 knitr::include_graphics("diagrams/basic-reactivity/graph-1a.png", dpi = 300)
 ```
 
-As you saw in Chapter \@ref(basic-app), reactive expressions allow you to extract out repeated computation. There's not much point in using one for this simple app, but I will, just to show you what the new reactive graph looks like:
+### Reactive expressions
+
+As you saw in Chapter \@ref(basic-app), reactive expressions allow you to extract out repeated computation. They are extremely important for creating efficient shiny apps because they are only updated when their inputs change. This means that you can use them to encapsulate expensive operations so that they are only re-computed the minimal number of times. This is the same basic idea as tools like `make`, which help you define the dependencies between bigger components of your workflow.
+
+There's not much point in using one for this simple app, but I will, just to show you what the new reactive graph looks like:
 
 ```{r}
 server <- function(input, output, session) {
@@ -252,7 +251,11 @@ Reactive expressions take inputs and produce outputs so they have a shape that c
 knitr::include_graphics("diagrams/basic-reactivity/graph-2a.png", dpi = 300)
 ```
 
+We'll see shortly that reactive expressions are also a powerful tool for simplifying the reactive graph.
+
 In our experience, as your app gets more complicated, it's often useful to make a quick high-level sketch of the reactive graph. Later on, in Chapter XYZ, you'll learn about Shiny's reactlog which will draw the graph for you, and animate how it changes as you run the app.
+
+### Execution order
 
 Note that the order of the code in the server function does not affect the graph. In this simple example, we could flip the order of the two lines:
 
@@ -265,12 +268,40 @@ server <- function(input, output, session) {
 
 This app behaves identically to the previous app, but it's confusing for humans to understand because the output refers to a reactive expression that's created later in the code. Don't do this! Instead, make sure that reactive expressions and outputs only refer to things defined early in the app, not later. This will make your code easier to understand.
 
+The order in which reactive code is run is determined only by the reactive graph, not by the layout in the server function.
+
+### Observers
+ 
+So far, we've focussed on what's happening inside the app. But sometimes you need to reach outside of the app and cause side-effects to happen elsewhere in the world. This includes things like saving a file to disk, sending data to a web API, updating a database, or printing to screen.
+
+These don't affect your app, so you can't use `renderText()`, and you can't put them directly inside your server function, you'll get an error about attempting to access a reactive value outside of a reactive context (and even if you didn't, it would only be run once.) 
+
+To solve this problem Shiny provides `observeEvent()`. `observeEvent()` has two important arguments: `eventExpr()` and `handlerExpr()`. The first argument defines the when, and the second argument defines the what. The place you'll use `observeEvent()` most often in your early days of shiny app is to help you debug:
+
+```{r}
+server <- function(input, output, session) {
+  text <- reactive(paste0("Hello ", input$name, "!"))
+  
+  output$greeting <- renderText(text())
+  observeEvent(
+    input$name, message("Greeting performed"),
+    label = "message"
+  )
+}
+```
+
+Note that I used the optional `label` argument here. This doesn't change the behaviour of the observer, it just sets a label that will appear in diagrams.
+
+```{r, echo = FALSE, out.width = NULL}
+knitr::include_graphics("diagrams/basic-reactivity/graph-3.png", dpi = 300)
+```
+
 ## Case study: simulating data
 
 Let's put all these ideas together and explore a more complex app. The goal of this app is to generate random data from two normal distributions, display the data with a histogram, and perform a t-test. This is what the UI looks like:
 
 ```{r}
-ui <- fluidPage(
+ui <- fixedPage(
   fluidRow(
     column(4, 
       "Distribution 1",
@@ -303,10 +334,10 @@ ui_screenshot(ui, "basic-reactivity/case-study-1", width = 800, height = 300)
 You've seen all these components before, we've just used more of them in a single app than in any previous example. Similarly, the server function doesn't introduce any new ideas:
 
 ```{r}
-library(ggplot2)
-
 server <- function(input, output, session) {
-  output$hist <- renderPlot({
+  library(ggplot2)
+
+    output$hist <- renderPlot({
     x1 <- rnorm(input$n_1, input$mean_1, input$sd_1)
     x2 <- rnorm(input$n_2, input$mean_2, input$sd_2)
     
@@ -332,7 +363,11 @@ server <- function(input, output, session) {
 }
 ```
 
-Before you continue, I recommend running this app and trying it out.
+Before you continue, I recommend openning this app and trying it out: <https://hadley.shinyapps.io/basic-reactivity-cs/>
+
+```{r, eval = FALSE}
+deployApp(ui, server, name = "basic-reactivity-cs", deps = "ggplot2")
+```
 
 ### Outputs are atomic
 
@@ -483,27 +518,3 @@ x2 <- reactive({
 ```
 
 Later on you'll learn about tools like `reactiveFileReader()`
-
-## Reaching outside of shiny
- 
-So far, we've focussed on what's happening inside the app. But sometimes you need to reach outside of the app and cause side-effects to happen elsewhere in the world. This includes things like:
-
-* Saving a file to disk.
-* Talking to a web API.
-* Updating a database record.
-* Printing to screen.
-
-These don't affect your app, so you can't use `renderText()`, and you can't call them directly. And if you put directly inside your server function, you'll get an error about attempting to access a reactive value outside of a reactive context (and even if you didn't, it would only be run once.)
-
-To solve this problem Shiny provides `observeEvent()`, it works similarly to `reactiveEvent()` except it acts like an ouput instead of a reactive expression. That means, rather than returning a meaningful value, the code inside must do something.
-
-The place you'll use `observeEvent()` most often in your early days of shiny app is to help you debug:
-
-```{r}
-observeEvent(x1(), message("x1 has updated"))
-observeEvent(x2(), message("x2 has updated"))
-```
-
-As you learn how reactivity works, you'll find you need this crutch less and less, but in the early days it can be extremely useful.
-
-

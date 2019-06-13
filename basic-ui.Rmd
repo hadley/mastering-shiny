@@ -368,6 +368,8 @@ It looks very boring (there's no content!), but behind the scenes, `fluidPage()`
 
 Technically, `fluidPage()` is all you need for an app, because you can put inputs and outputs directly inside of it. While this is fine to learn the basics of shiny, dumping all the inputs and outputs in one place doesn't look very good, so for more complicated apps, you need to learn more layout functions. Here I'll introduce you to two common structures, a page with sidebar and a multirow app, and then we'll finish off with a quick discussion of themes.
 
+<!-- When to used fixedPage()? Probably most of the time, because it constrains the width. If you want you app to be full page, use fluidPage() -->
+
 ### Page with sidebar
 
 `sidebarLayout()` makes it easy to create a two-column layout with inputs on the left and outputs on the right. The basic code looks like this:
