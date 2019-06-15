@@ -246,6 +246,8 @@ server <- function(input, output, session) {
 
 This yields exactly the same reactive graph, so the order in which the code is run is exactly the same. However, it's confusing for humans to understand because the output refers to a reactive expression that's created later in the code. Don't do this! Instead, make sure that reactive expressions and outputs only refer to things defined early in the app, not later. This will make your code easier to understand.
 
+Same is true for functions; can refer to function that hasn't been created
+
 This is so important and a little surprising, so I'll say it again: the order in which reactive code is run is determined only by the reactive graph, not by the layout in the server function.
 
 ### Reactive expressions
@@ -301,7 +303,9 @@ server <- function(input, output, session) {
   text <- reactive(paste0("Hello ", input$name, "!"))
   
   output$greeting <- renderText(text())
-  observeEvent(input$name, message("Greeting performed"))
+  observeEvent(input$name, {
+    message("Greeting performed")
+  })
 }
 ```
 
@@ -381,7 +385,7 @@ server <- function(input, output, session) {
 
 Before you continue reading, I recommend opening the app and having a quick play: <https://hadley.shinyapps.io/basic-reactivity-cs/>. 
 
-```{r, eval = FALSE}
+```{r, eval = FALSE, echo = FALSE}
 deployApp(ui, server, name = "basic-reactivity-cs", deps = "ggplot2")
 ```
 
@@ -457,6 +461,8 @@ knitr::include_graphics("diagrams/basic-reactivity/case-study-2.png", dpi = 300)
 
 This simpler graph makes it easier to understand the app because you can understand connected components in isolation; the values of the distribution parameters only affect the output via `x1` and `x2`. This rewrite also make the app much more efficient since it does much less computation. Now when you change the `breaks` or `range`, only the plot changes, not the underlying data.
 
+TODO: draw out as three separate diagrams. Or draw boxes and allude to modules?
+
 ## Controlling timing of evaluation
 
 You should now be familiar with the basic ideas of reactivity: the server function that provides `input` and `output`, and the reactive graph that describes how code is executed. To finish up, we'll discuss two more advanced techniques that allow you to either increase or decrease how often a reactive expression is executed. Here I'll show how to use the basic techiques; in Chapter XYZ, we'll come back to the code that makes them tick.
@@ -470,8 +476,11 @@ Imagine we change the default value of `n` to 1 million. This gives us a much mo
 There are two ways we could slow down the number of computations that Shiny performs. Firstly, we could use `debounce()` to reduce the number of events. The below code waits for 250 ms of no activity before recalculating. This means that nothing will happen while the user is rapidly modifying the controls, but will only recompute once they have paused.
 
 ```{r, eval = FALSE}
-x1 <- eventReactive(
-  debounce(list(input$n_1, input$mean_1, input$sd_1), 250), 
+params1 <- debounce(
+  reactive(list(input$n_1, input$mean_1, input$sd_1)),
+  250
+)
+x1 <- eventReactive(params1,
   rnorm(input$n_1, input$mean_1, input$sd_1)
 )
 ```

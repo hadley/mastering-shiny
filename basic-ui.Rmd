@@ -49,7 +49,7 @@ Next, we'll give a quick overview of the most important controls. The goal is to
 
 Collect small amounts of text with `textInput()`, passwords with `passwordInput()`[^password], and paragraphs of text with `textAreaInput()`.
 
-[^password]: Be very careful when collecting confidential information from the user. You need to take great care not to accidentally expose the secret, so we don't recommend using passwords unless you have had some training in secure programming.
+[^password]: All `passwordInput()` does is hide what the user is typing, so that someone looking over their should can't read it. It's up to you to make sure that any password are not accidentally exposes, so we don't recommend using passwords unless you have had some training in secure programming.
 
 ```{r}
 ui <- fluidPage(
