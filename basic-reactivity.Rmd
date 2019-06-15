@@ -255,8 +255,8 @@ This is so important and a little surprising, so I'll say it again: the order in
 There's one more important component that can appear in the reactive graph: the reactive expression, which allows you to extract out repeated computation. Reactive expressions have a flavour of both inputs and outputs:
 
 * Like inputs, you can use the results of a reactive expression in an output.
-* Like outputs, reactive expressions depend on inputs and are updated 
-  automatically when the inputs change. 
+* Like outputs, reactive expressions depend on inputs and automatically know
+  when they need updating.
   
 In reactive programming, reactive expressions play a similar role to functions in ordinary analysis code: they are tools to reduce duplication.
   
@@ -290,6 +290,44 @@ Reactive expressions are important for two reasons:
   
 We'll see an example of both abilities of reactive expression in the next section, when we explore a case study using a more realistic app.
 
+### Reactive roadblocks {#reactive-roadblocks}
+
+When you first start working with reactive code, you'll be tempted to draw on your existing tools for reducing duplication in code, creating new variables and writing functions. Unfortunately neither of these techniques work when attempting to reduce duplication in reactive expressions.
+
+If you try and use a variable:
+
+```{r, eval = FALSE}
+x1 <- rnorm(input$n_1, input$mean_1, input$sd_1)
+x2 <- rnorm(input$n_2, input$mean_2, input$sd_2)
+
+output$ttest <- renderText({
+  test <- t.test(x1, x2)
+  ...
+})
+```
+
+you'll get an error because you're attempting to access input values outside of a reactive context. Even if that did work, `x1` and `x2` will only be computed once, when the function runs.
+
+If you try and use a function, it works:
+
+```{r, eval = FALSE}
+x1 <- function() rnorm(input$n_1, input$mean_1, input$sd_1)
+x2 <- function() rnorm(input$n_2, input$mean_2, input$sd_2)
+
+output$ttest <- renderText({
+  test <- t.test(x1(), x2())
+  ...
+})
+```
+
+But it has the same problem as the original code: any input will cause all outputs to be recomputed, and the t-test and the histogram will be run on separate samples.
+
+In brief: while variables calculate the value only once (not often enough), and functions calculate the value every time they're called (too often), reactive expressions calculate the value only when it might have changed (just right!).
+
+You might be familiar with the rule of three from programming: whenever you copy and paste something three times, you should turn it into a function. This is important because it reduces the amount of duplication of in your code, which makes it easier to understand and easier to update as your requirements change. 
+
+In Shiny, however, I think you should adopt the rule of one: whenever you copy and paste something _once_, you should consider extracting out the repeated code into a reactive expression. The rule is stricter for Shiny, because reactive expressions don't just make it easier for humans to understand the code, it also improves Shiny's ability to efficiently rerun code, and perform the minimal amount of work to update the outputs when an input changes. Later on, we'll see how to use shiny modules to extract out repeated code across multiple apps.
+
 ### Observers
  
 So far, we've focussed on what's happening inside the app. But sometimes you need to reach outside of the app and cause side-effects to happen elsewhere in the world. This might be saving a file to a shared network drive, sending data to a web API, updating a database, or (most commonly) printing a debugging message at the console. These actions don't affect how your app looks, so you can't use an output and a `render` function. Instead you need to use an **observer**.
@@ -320,7 +358,7 @@ knitr::include_graphics("diagrams/basic-reactivity/graph-3.png", dpi = 300)
 Now that you understand the basic components of reactivity, and how to visualise them using the reactive graph, let's put all the ideas together and explore a more complex app. The goal of this app is to simulate random data from two normal distributions, display the data with a histogram, and perform a t-test. This is what the UI looks like:
 
 ```{r}
-ui <- fixedPage(
+ui <- fluidPage(
   fluidRow(
     column(4, 
       "Distribution 1",
@@ -461,36 +499,48 @@ knitr::include_graphics("diagrams/basic-reactivity/case-study-2.png", dpi = 300)
 
 This simpler graph makes it easier to understand the app because you can understand connected components in isolation; the values of the distribution parameters only affect the output via `x1` and `x2`. This rewrite also make the app much more efficient since it does much less computation. Now when you change the `breaks` or `range`, only the plot changes, not the underlying data.
 
-TODO: draw out as three separate diagrams. Or draw boxes and allude to modules?
+```{r, echo = FALSE, out.width = NULL}
+knitr::include_graphics("diagrams/basic-reactivity/case-study-3.png", dpi = 300)
+```
+
+We'll come back to this idea in Chapter XYZ, when we discuss modules. Modules allow you to extract out repeated code and guarantee that it's isolated from other code in the app. Modules are an extremely useful and powerful technique for more complex apps.
 
 ## Controlling timing of evaluation
 
 You should now be familiar with the basic ideas of reactivity: the server function that provides `input` and `output`, and the reactive graph that describes how code is executed. To finish up, we'll discuss two more advanced techniques that allow you to either increase or decrease how often a reactive expression is executed. Here I'll show how to use the basic techiques; in Chapter XYZ, we'll come back to the code that makes them tick.
 
-<!-- Create another small example -->
+To explore the basic idea, we're going to zoom in on a small portion of the whole, and just draw from a single distribution and display the results in a plot.
 
-### Waiting longer
-
-Imagine we change the default value of `n` to 1 million. This gives us a much more accurate simulation, but the plot and t.test take much longer to run. As soon as the computation takes longer than 50ms it's worth re-thinking the design of your app. Otherwise you'll end up with a bunch of work cued up, that the user actually doesn't care about.
-
-There are two ways we could slow down the number of computations that Shiny performs. Firstly, we could use `debounce()` to reduce the number of events. The below code waits for 250 ms of no activity before recalculating. This means that nothing will happen while the user is rapidly modifying the controls, but will only recompute once they have paused.
-
-```{r, eval = FALSE}
-params1 <- debounce(
-  reactive(list(input$n_1, input$mean_1, input$sd_1)),
-  250
+```{r}
+ui <- fluidPage(
+  fluidRow(
+    column(3, 
+      numericInput("n", label = "n", value = 1000, min = 1),
+      numericInput("mean", label = "µ", value = 0, step = 0.1),
+      numericInput("sd", label = "σ", value = 0.5, min = 0.1, step = 0.1)
+    ),
+    column(9, plotOutput("hist"))
+  )
 )
-x1 <- eventReactive(params1,
-  rnorm(input$n_1, input$mean_1, input$sd_1)
-)
+
+
+draw_histogram <- function(x, binwidth = 0.1, xlim = c(-3, 3)) {
+  df <- data.frame(x = x)
+  ggplot(df, aes(x)) + 
+    geom_histogram(binwidth = binwidth) + 
+    coord_cartesian(xlim = xlim)
+}
+
+server <- function(input, output, session) {
+  x <- reactive(rnorm(input$n, input$mean, input$sd))
+  output$hist <- renderPlot(draw_histogram(x()))
+}
 ```
-
-Another approach would be to require the user to click a button when they want to recompute. The idea is very similar: we use `eventReactive()` to split apart the trigger from the result.
-
-```{r, eval = FALSE}
-x1 <- eventReactive(
-  input$simulate, 
-  rnorm(input$n_1, input$mean_1, input$sd_1)
+```{r, echo = FALSE, out.width = NULL}
+app_screenshot(
+  testApp(ui, server, deps = "ggplot2"), 
+  "basic-reactivity/simulation-2", 
+  width = 900
 )
 ```
 
@@ -501,54 +551,62 @@ x1 <- eventReactive(
 The flip side is that sometimes you need to update the app when something outside the app has changed. i.e. you need to invalid more often that the reactivity graph would otherwise suggest. You could imagine wanting to make our simulation app emphasise that the underlying data is random, and constantly update the plot.
 
 ```{r}
-timer <- reactiveTimer(250)
-x1 <- reactive({
-  timer()
-  rnorm(input$n_1, input$mean_1, input$sd_1)
-})
-x2 <- reactive({
-  timer()
-  rnorm(input$n_2, input$mean_2, input$sd_2)
-})
+server <- function(input, output, session) {
+  x <- reactive({
+    invalidateLater(250)
+    rnorm(input$n, input$mean, input$sd)
+  })
+  
+  output$hist <- renderPlot(draw_histogram(x()))
+}
+
 ```
 
-Later on you'll learn about tools like `reactiveFileReader()`
+### Simulate on click
 
-## 
-### Reactive roadblocks {#reactive-roadblocks}
+```{r}
+ui <- fluidPage(
+  fluidRow(
+    column(3, 
+      numericInput("n", label = "n", value = 1000, min = 1),
+      numericInput("mean", label = "µ", value = 0, step = 0.1),
+      numericInput("sd", label = "σ", value = 0.5, min = 0.1, step = 0.1),
+      actionButton("simulate", "Simulate!")
+    ),
+    column(9, plotOutput("hist"))
+  )
+)
+server <- function(input, output, session) {
+  x <- eventReactive(input$simulate, {
+    rnorm(input$n, input$mean, input$sd)
+  })
+  output$hist <- renderPlot(draw_histogram(x()))
+}
+```
+```{r, echo = FALSE, out.width = "33%", fig.show="hold"}
+app <- testApp(ui, server, deps = "ggplot2")
+app_screenshot(app, "basic-reactivity/actionButton-1", width = 900)
+app$setInputs(simulate = "click")
+app_screenshot(app, "basic-reactivity/actionButton-2", width = 900)
+app$setInputs(simulate = "click")
+app_screenshot(app, "basic-reactivity/actionButton-3", width = 900)
+```
 
-When you first start working with reactive code, you'll be tempted to draw on your existing tools for reducing duplication in code, creating new variables and writing functions. Unfortunately neither of these techniques work when attempting to reduce duplication in reactive expressions.
+### Debouncing
 
-If you try and use a variable:
+Imagine we change the default value of `n` to 1 million. This gives us a much more accurate simulation, but the plot and t.test take much longer to run. As soon as the computation takes longer than 50ms it's worth re-thinking the design of your app. Otherwise you'll end up with a bunch of work cued up, that the user actually doesn't care about.
+
+There are two ways we could slow down the number of computations that Shiny performs. Firstly, we could use `debounce()` to reduce the number of events. The below code waits for 250 ms of no activity before recalculating. This means that nothing will happen while the user is rapidly modifying the controls, but will only recompute once they have paused.
 
 ```{r, eval = FALSE}
-x1 <- rnorm(input$n_1, input$mean_1, input$sd_1)
-x2 <- rnorm(input$n_2, input$mean_2, input$sd_2)
-
-output$ttest <- renderText({
-  test <- t.test(x1, x2)
-  ...
-})
+server <- function(input, output, session) {
+  params <- debounce(
+    reactive(list(input$n, input$mean, input$sd)),
+    250
+  )
+  x <- eventReactive(params(), {
+    rnorm(input$n, input$mean, input$sd)
+  })
+  output$hist <- renderPlot(draw_histogram(x()))
+}
 ```
-
-you'll get an error because you're attempting to access input values outside of a reactive context. Even if that did work, `x1` and `x2` will only be computed once, when the function runs.
-
-If you try and use a function, it works:
-
-```{r, eval = FALSE}
-x1 <- function() rnorm(input$n_1, input$mean_1, input$sd_1)
-x2 <- function() rnorm(input$n_2, input$mean_2, input$sd_2)
-
-output$ttest <- renderText({
-  test <- t.test(x1(), x2())
-  ...
-})
-```
-
-But it has the same problem as the original code: any input will cause all outputs to be recomputed, and the t-test and the histogram will be run on separate samples.
-
-In brief: while variables calculate the value only once (not often enough), and functions calculate the value every time they're called (too often), reactive expressions calculate the value only when it might have changed (just right!).
-
-You might be familiar with the rule of three from programming: whenever you copy and paste something three times, you should turn it into a function. This is important because it reduces the amount of duplication of in your code, which makes it easier to understand and easier to update as your requirements change. 
-
-In Shiny, however, I think you should adopt the rule of one: whenever you copy and paste something _once_, you should consider extracting out the repeated code into a reactive expression. The rule is stricter for Shiny, because reactive expressions don't just make it easier for humans to understand the code, it also improves Shiny's ability to efficiently rerun code, and perform the minimal amount of work to update the outputs when an input changes. Later on, we'll see how to use shiny modules to extract out repeated code across multiple apps.

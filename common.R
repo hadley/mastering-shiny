@@ -75,8 +75,8 @@ makeApp <- function(ui, server = NULL, app_dir = tempfile(), deps = character())
 }
 
 # Generate a ShinyDriver from ui and a server function
-testApp <- function(ui, server = NULL) {
-  app_dir <- makeApp(ui, server)
+testApp <- function(ui, server = NULL, ...) {
+  app_dir <- makeApp(ui, server, ...)
   shinytest::ShinyDriver$new(app_dir)
 }
 
