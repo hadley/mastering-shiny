@@ -660,8 +660,10 @@ server <- function(input, output, session) {
 }
 ```
 
-The key difference between `observeEvent()` and `eventReactive()` is that observe event creates an observer which you don't assign to a variable, and you can't use in other reactive expressions or outputs. It turns out that reactive outputs are actually a special type of observer, so they look the same in the reactive graph:
+The key difference between `observeEvent()` and `eventReactive(oh ok)` is that observe event creates an observer which you don't assign to a variable, and you can't use in other reactive expressions or outputs. It turns out that reactive outputs are actually a special type of observer, so they look the same in the reactive graph:
 
 ```{r, echo = FALSE, out.width = NULL}
 knitr::include_graphics("diagrams/basic-reactivity/graph-3.png", dpi = 300)
 ```
+
+Outputs are also used for their side-effects: updating the HTML in the users browser. 
