@@ -285,6 +285,10 @@ Reactive expressions have a flavour of both inputs and outputs:
 * Like outputs, reactive expressions depend on inputs and automatically know
   when they need updating.
 
+```{r, echo = FALSE, out.width = NULL}
+knitr::include_graphics("diagrams/basic-reactivity/producers-consumers.png", dpi = 300)
+```
+
 To see these benefits we're going to explore a more complex app, but first, lets set the stage.
 
 ### The motivation
