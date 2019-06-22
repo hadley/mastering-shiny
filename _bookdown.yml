@@ -13,6 +13,7 @@ rmd_files:
     "basic-app.Rmd",
     "basic-ui.Rmd",
     "basic-reactivity.Rmd",
+    "basic-case-study.Rmd",
 
     "advanced-ui.Rmd",
 
