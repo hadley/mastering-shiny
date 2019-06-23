@@ -17,7 +17,9 @@ rmd_files:
 
     "advanced-ui.Rmd",
 
-    "reactivity-demystifying.Rmd"
+    "advanced-reactivity.Rmd",
+    "reactivity-demystifying.Rmd",
+    "dependency-tracking.Rmd",
   ]
 
 
