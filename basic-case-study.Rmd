@@ -6,119 +6,247 @@ source("common.R")
 
 ## Introduction
 
-Now let's walk through an example of an ordinary R script for downloading, aggregating, and visualizing some data.
+In the last three chapters, we've introduced you to a bunch of new concepts. To help them sink in, we'll walk through how you might take an existing R script and turn it into a shiny app. This will help you start to see how the pieces fit together, and give you some useful tools to help analyse your own apps.
 
-This script downloads and parses the download logs for a specific date. The logs are in compressed CSV format and contain one row per download; on 2019-02-20, the number of rows was 3,437,899.
+In this chapter, as well as shiny, we're going to use code from the tidyverse for analysis.
 
-The columns are:
+```{r setup, message = FALSE}
+library(tidyverse)
+library(lubridate)
+library(shiny)
+```
 
-* `date`
-* `time`
-* `size` (in bytes)
-* `r_version`, the version of R, binary packages only
-* `r_arch`, the machine architecture (e.g. `"x86_64"` or `"i386"`), binary packages only
-* `r_os`, the operating system, binary packages only
-* `package`, the package being requested
-* `version`, the exact version of the package being requested
-* `country`
+## Motivation
+
+Our goal is to analyses some data about R package downloads from the RStudio CRAN mirror. The raw data is available from <http://cran-logs.rstudio.com>; it is extracted and anonymous from the raw log data.
+
+The complete data set is large so it is broken up into one csv file for each day. There are many things we might do with this data, but here we're going to look at the most downloaded packages, as well as exploring how the number of downloads tails of for less popular packages.
+
+### Download
+
+We'll start by downloading a single file. The files are quite large, so downloading takes a long time. This means it's worth writing a little code to only download it if needed. This makes the code both efficient and means that we can run it on a new computer if needed[^git].
+
+[^git]: If you're using git, I'd recommend adding `cran-logs/` to your `.gitignore`. Since you can easily redownload them when needed there's no need to track separately, and git generally isn't well designed for large data files.
+
+```{r}
+dir.create("cran-logs", showWarnings = FALSE)
+url <- "http://cran-logs.rstudio.com/2019/2019-02-20.csv.gz"
+path <- "cran-logs/2019-02-20.csv.gz"
+
+if (!file.exists(path)) {
+  download.file(url, path, method = "libcurl", quiet = TRUE)
+}
+
+# Size in MB
+file.size("cran-logs/2019-02-20.csv.gz") / (1024 ^ 2)
+```
+
+This is a useful pattern which we're going to rely on later, so we'll wrap it up into a function:
+
+```{r}
+read_cran_log <- function(date) {
+  date <- ymd(date)
+  url <- sprintf(
+    "http://cran-logs.rstudio.com/%s/%s.csv.gz", 
+    year(date),
+    date
+  )
+  path <- paste0("cran-logs/", date, ".csv.gz")
+
+  if (!file.exists(path)) {
+    download.file(url, path, method = "libcurl", quiet = TRUE)
+  }
+  
+  vroom::vroom("cran-logs/2019-02-20.csv.gz", delim = ",")
+}
+```
+
+### Read and inspect
+
+Then we can read it in and look at it. Here I use [vroom](https://vroom.r-lib.org), which is generally a fast and convenient way to read in flat files:
+
+```{r}
+logs <- vroom::vroom("cran-logs/2019-02-20.csv.gz", delim = ",")
+logs
+```
+
+There are 3,437,899 rows and 10 columns: 
+
+* `date` and `time`, when the package was downloaded.
+
+* download `size`, in bytes.
+
+* `r_version`, the version of R.
+
+* `r_arch`, the machine architecture (e.g. `"x86_64"`, 64-bit, or `"i386"`,
+  32-bit).
+
+* `r_os`, the operating system.
+
+* `package`, the package being requested.
+
+* `version`, the exact version of the package being requested.
+
+* `country`, imputed from the IP address using geo location. (Geo-location
+  is not always terribly accurate, should be pretty robust at the country
+  level.)
+
 * `ip_id`, an anonymized identifier for the IP address of the requestor
 
-After downloading the data, the script will tally the number of rows (downloads) with each value in a specified column. For example, if we specify the `package` column, then we get the number of times each package was downloaded; if we specify the `r_os` column, we get the number of downloads from each operating system.
+`r_version`, `r_arch`, `r_os` are only present for binary packages. Binary packages are what are usually installed on windows and mac; binary packages are not available for linux, instead source packages are downloaded and compiled locally.
 
-Once the tallying is done, we'll plot this data in a couple of ways. We'll zoom in on the top few most popular values (e.g. the most popular packages), and we'll also visualize all the values to get a sense of the "long tail", to show how quickly the downloads decrease as we move down the list of packages.
+### Aggregate
 
-Now, on to the code. First, we'll load the libraries we need.
+After downloading the data, the script will tally the number of rows (downloads) with each value in a specified column. For example, if we specify the `package` column, then we get the number of times each package was downloaded; if we specify the `r_os` column, we get the number of downloads from each operating system. 
 
-```{r, message = FALSE}
-library(lubridate)
-library(readr)
-library(dplyr)
-library(ggplot2)
-library(gt)
-```
-
-Next, we'll introduce **configuration variables** that can be modified to look at different dates or tally by different dimensions, or to change the number of top values to focus on. (Not to look too far ahead, but these are values we might eventually want to turn into interactive inputs.)
-
-```{r cache=TRUE}
-# A. Configuration variables
-date <- "2019-02-20"
-dimension <- "package"  # r_version, r_arch, r_os, package, country, ip_id
-top_count <- 20L
-```
-
-Now we begin the real work of the script. **Downloading and parsing the data** will be by far the most time-consuming portions, and we'll use `readr::read_csv` to accomplish both in one step.
-
-```{r cache=TRUE,message=FALSE}
-## Downloading and parsing =========
-
-# B. Form URL for downloading
-url <- sprintf("http://cran-logs.rstudio.com/%s/%s.csv.gz", year(date), date)
-
-# C. Download/parse data
-download_data <- read_csv(url)
-```
-
-```{r echo=FALSE}
-attr(download_data, "spec") <- NULL
-str(download_data, 5)
-```
-
-Now that the data is in memory, we will perform the **data manipulation**. The implementation details here are not that important; just understand that we're taking the `download_data` data frame from above, with its 3.4 million rows, and turning it into counts of rows grouped by the dimension in question (`package`).
-
-```{r data_manip,cache=TRUE}
-## Data manipulation =========
+```{r}
+dimension <- "package"
 
 # D. Count observations, grouping by the desired dimension
-by_frequency <- download_data %>%
-  pull(dimension) %>%
-  table() %>%
-  sort(decreasing = TRUE) %>%
-  as_tibble() %>%
-  setNames(c(dimension, "downloads"))
-
-# E. Limit to the top `top_count`
-most_frequent <- by_frequency %>%
-  head(top_count)
+by_frequency <- logs %>% count(.data[[dimension]], sort = TRUE)
+by_frequency
 ```
 
-Here's the resulting `by_frequency` data frame. `most_frequent` is identical, but limited to the top `r top_count` rows.
+The implementation details here are not that important; just understand that we're taking the `download_data` data frame from above, with its 3.4 million rows, and turning it into counts of rows grouped by the dimension in question (`package`). You might not have seen the form `.data[[var]]` before: this is the recommended way to refer to a variable that is recorded as a string.  
 
-```{r echo=FALSE}
-str(most_frequent)
-```
+### Visualise
 
-Now we're ready to **plot our data**; one bar plot using `most_frequent`, and one line plot using the full `by_frequency`.
+Once the tallying is done, we'll plot this data in a couple of ways. We'll zoom in on the most popular packages and show exactly how many times they were downloaded:
 
-```{r ggplots,cache=TRUE,results="hold"}
-## Various outputs =========
+```{r ggplots}
+most_frequent <- by_frequency %>% head(20)
 
 # F. Plot the top values
-ggplot(most_frequent, aes_string(x = dimension)) +
-  geom_bar(aes(y = downloads / 1000), stat = "identity") +
-  ylab("Downloads (thousands)") +
+most_frequent %>% 
+  ggplot(aes(fct_reorder(.data[[dimension]], n), n / 1000)) +
+  geom_col() +
   coord_flip() +
-  scale_x_discrete(limits = rev(most_frequent[[dimension]])) +
-  ggtitle(paste0("CRAN download counts by ", dimension))
-
-# G. Plot all of the counts, by rank ("long tail")
-ggplot(by_frequency, aes(x = seq_along(downloads), y = downloads)) +
-  geom_line() +
-  xlab("Rank") +
-  scale_y_log10() +
-  ggtitle(paste0("CRAN download counts by ", dimension, " rank"))
+  labs(
+    x = dimension,
+    y = "Downloads (000s)",
+    title = paste0("CRAN download counts by ", dimension)
+  )
 ```
 
-You can see the entire script at [TODO: LINK].
+We might also consider looking at the least frequent:
+
+```{r}
+by_frequency %>% tail(-20)
+```
+
+And we'll also visualize all the values to get a sense of the "long tail", i.e. how quickly the number of downloads decrease as we move down the list of packages.
+
+```{r}
+# G. Plot all of the counts, by rank ("long tail")
+by_frequency %>% 
+  ggplot(aes(seq_along(n), n)) +
+  geom_line() +
+  scale_y_log10() +
+  labs(
+    x = "Rank",
+    title = paste0("CRAN download counts by ", dimension, " rank")
+  )
+```
 
 ## Making an app
 
 To transform this code into a Shiny app, we need to answer a few questions:
 
-### 1. What are the inputs for the user to provide?
+* What are the inputs and outputs?
+* What should the app look like?
+* How are the inputs and outputs connected together?
 
-Fortunately, our script gathered all the configurable variables at the top: `date`, `dimension`, `top_count`. The only work for us to do here is to use `dateInput`, `selectInput`, and `numericInput`, respectively, in the UI section of our app, and then change references to these variables in the server function to `input$date`, `input$dimension`, and `input$top_count`.
+### What are the inputs and outputs?
 
-### 2. What are the conceptual "steps" performed in the script?
+We've written this script with a few obvious knobs:
+
+* `date`: the date to download and explore
+* `dimension`: which variable we want to group the data by
+* `top_count`: how many categories to show individually.
+
+Next we need to figure out which input control we'd use for each:
+
+* `date`: `dateIntput("date")`
+* `dimension`: `selectInput("dimension", c("package", "r_version", "r_arch", "r_os", "country", "ip_id"))`
+* `top_count`: `numericInput("top_count", value = 20, min = 1)`
+
+What are the outputs from the script?
+
+We have two plots.
+
+We'll also show a table of the least popular.
+
+### What should the app look like?
+
+This is enough information to create the front-end of the app. We just need to think about how to layout the inputs and outputs. Often the easiest way to do this is to make a few quick sketches by hand. This allows you to easily explore the basic layout before starting to write code.
+
+```{r}
+variables <- c("package", "r_version", "r_arch", "r_os", "country")
+
+ui <- fluidPage(
+  fluidRow(
+    column(4, dateInput("date", "Date", value = "2019-02-20")),
+    column(4, selectInput("by", "Grouped by", choices = variables)),
+    column(4, numericInput("n", "Top", value = 20, min = 0))
+  ),
+  fluidRow(
+    column(4, plotOutput("top_n")),
+    column(4, tableOutput("bottom")),
+    column(4, plotOutput("rank"))
+  )
+)
+```
+
+
+### How are the inputs and outputs connected?
+
+```{r}
+server <- function(input, output, session) {
+  logs <- reactive({
+    note <- showNotification("Reading data", duration = NULL)
+    on.exit(removeNotification(note))
+    read_cran_log(input$date)
+  })
+  
+  freq <- reactive({
+    message("Counting")
+    logs() %>% count(.data[[input$by]], sort = TRUE)
+  })
+  
+  output$top_n <- renderPlot({
+    print(head(freq(), input$n))
+    
+    freq() %>% 
+      head(input$n) %>% 
+      ggplot(aes(fct_reorder(.data[[input$by]], n), n / 1000)) +
+      geom_col() +
+      coord_flip() +
+      labs(
+        x = dimension,
+        y = "Downloads (000s)",
+        title = paste0("CRAN download counts by ", input$by)
+      )
+  })
+  
+  output$next_n <- renderTable({
+    freq()[(input$n + 1):(input$n * 2), ]
+  })
+  
+  output$rank <- renderPlot({
+    freq() %>% 
+      ggplot(aes(seq_along(n), n)) +
+      geom_line() +
+      coord_flip() +
+      scale_y_log10() +
+      labs(
+        x = "Rank",
+        title = paste0("CRAN download counts by ", input$by, " rank")
+      )
+  })
+}
+```
+
+### Break down
 
 You can already tell by the code comments above that I've divided the work into discrete steps. Incidentally, this is good practice anyway, as is breaking larger scripts into smaller functions (which I did not do in this case). Whatever form of subdivision you use, breaking down the problem into smaller subproblems makes our code easier to write, read, and debug.
 
@@ -134,70 +262,7 @@ I've summarized these steps in the table below.
 |F   |               |Plot the top values|
 |G   |               |Plot all of the counts|
 
-This is the breakdown I'm using, but there isn't one single correct arrangement of steps; you may consider steps B and C to really be a single step, or for step D to be composed of multiple steps (e.g. for summarizing, sorting, and converting to a tibble to all be individual steps). These changes wouldn't cause any noticeable change in the readability of our code or the performance of our app.
+This is the breakdown I'm using, but there isn't one single correct arrangement of steps; you may consider steps B and C to really be a single step. These changes wouldn't cause any noticeable change in the readability of our code or the performance of our app.
 
-But just because there isn't a single right answer, does _not_ mean there are no wrong answers! We'll discuss some of the factors we want to consider in a section below. [TODO: xref]
+But just because there isn't a single right answer, does _not_ mean there are no wrong answers! We'll discuss some of the factors we want to consider in a section below.
 
-### 3. For each of the steps performed: is it a _calculation_, an _output_, or a _task_?
-
-To answer this question, ask yourself two questions: Does this step return a value? And if so, is the return value the _only_ reason this task would ever be useful? If the answer to both of these questions is "yes", then you have a calculation.
-
-For example, in step C, we download and parse the data in one step. Yes, there is a return value--it's the data frame. And yes, the only reason you would call `read_csv(url)` is because you want the data frame.
-
-Note that it might be a different story if we performed the download in a separate `download.file(url, destfile)` step; in that case, downloading the data to a known location might be a useful end, in and of itself. In that case, the downloading could be considered a separate task.
-
-On the other side, step F--plotting the top values--is an output.
-
-Once we've categorized each step, we go through the fairly mechanical process of turning each calculation into a reactive expression, and each task into an observer or output. For example, steps B and C are changed from this:
-
-```{r eval=FALSE}
-# B. Form URL for downloading
-url <- sprintf("http://cran-logs.rstudio.com/%s/%s.csv.gz",
-    year(input$date), input$date)
-
-# C. Download/parse data
-download_data <- read_csv(url)
-```
-
-To this:
-
-```{r eval=FALSE}
-# B. Form URL for downloading
-url <- reactive({
-  sprintf("http://cran-logs.rstudio.com/%s/%s.csv.gz",
-    year(input$date), input$date)
-})
-
-# C. Download/parse data
-download_data <- reactive({
-  read_csv(url())
-})
-```
-
-Rather than assigning the value of `sprintf(...)` to `url`, we create a reactive expression using `reactive()`. And when the `download_data` reactive expression wants to access the URL, it uses `url()` instead of `url`.
-
-For each output, you need to take the additional step of deciding the type of the output (e.g. plot, table, or text) and choosing the output/render function pair that corresponds to that type (`plotOutput`/`renderPlot`, `tableOutput`/`renderTable`, `verbatimTextOutput`/`renderPrint`). Our step F goes from this:
-
-```{r eval=FALSE}
-# F. Plot the top values
-ggplot(most_frequent, aes_string(x = dimension)) +
-  geom_bar(aes(y = downloads / 1000), stat = "identity") +
-  ylab("Downloads (thousands)") +
-  coord_flip() +
-  scale_x_discrete(limits = rev(most_frequent[[dimension]])) +
-  ggtitle(paste0("CRAN download counts by ", dimension))
-```
-
-To this:
-
-```{r eval=FALSE}
-# F. Plot the top values
-output$plot_top_values <- renderPlot({
-  ggplot(most_frequent(), aes_string(x = dimension)) +
-    geom_bar(aes(y = downloads / 1000), stat = "identity") +
-    ylab("Downloads (thousands)") +
-    coord_flip() +
-    scale_x_discrete(limits = rev(most_frequent()[[dimension]])) +
-    ggtitle(paste0("CRAN download counts by ", dimension))
-})
-```
