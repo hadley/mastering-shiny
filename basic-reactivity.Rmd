@@ -497,7 +497,9 @@ server <- function(input, output, session) {
 }
 ```
 
-But it has the same problem as the original code: any input will cause all outputs to be recomputed, and the t-test and the histogram will be run on separate samples.
+But it has the same problem as the original code: any input will cause all outputs to be recomputed, and the t-test and the histogram will be run on separate samples. Reactive expressions automatically cache their results, and only update when their inputs change[^memoise].
+
+[^memoise]: If you're familiar with memoisation, this is a similar idea.
 
 While variables calculate the value only once (the porridge is too cold), and functions calculate the value every time they're called (the porridge is too hot), reactive expressions calculate the value only when it might have changed (the porridge is just right!).
 
