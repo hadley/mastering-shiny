@@ -1,4 +1,4 @@
-# Case study: CRAN download logs {#basic-case-study}
+# CRAN download logs {#cran-downloads}
 
 ```{r include=FALSE}
 source("common.R")
@@ -93,7 +93,7 @@ There are 3,437,899 rows and 10 columns:
 
 * `ip_id`, an anonymized identifier for the IP address of the requestor
 
-`r_version`, `r_arch`, `r_os` are only present for binary packages. Binary packages are what are usually installed on windows and mac; binary packages are not available for linux, instead source packages are downloaded and compiled locally.
+`r_version`, `r_arch`, `r_os` are only present for binary packages. Binary packages are what is usually installed on windows and mac computers. Binary packages are not available for linux computers, instead they download source packages and then compile locally.
 
 ### Aggregate
 
@@ -263,6 +263,8 @@ I've summarized these steps in the table below.
 |G   |               |Plot all of the counts|
 
 This is the breakdown I'm using, but there isn't one single correct arrangement of steps; you may consider steps B and C to really be a single step. These changes wouldn't cause any noticeable change in the readability of our code or the performance of our app.
+
+We could also consider breaking `read_cran_log()` up into smaller pieces. That would make it possible for the downloading and reading to be cache separately. I don't think it would help for this app, but in general, if you find existing functions do too much work (so you can't efficiently capture intermediates) you might need to think about breaking into smaller pieces.
 
 But just because there isn't a single right answer, does _not_ mean there are no wrong answers! We'll discuss some of the factors we want to consider in a section below.
 
