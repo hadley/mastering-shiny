@@ -4,11 +4,17 @@
 source("common.R")
 ```
 
+<!--
+Case study ideas:
+https://openintro.shinyapps.io/CLT_mean/
+https://gallery.shinyapps.io/correlation_game/
+-->
+
 ## Introduction
 
-In the last three chapters, we've introduced you to a bunch of new concepts. To help them sink in, we'll walk through how you might take an existing R script and turn it into a shiny app. This will help you start to see how the pieces fit together, and give you some useful tools to help analyse your own apps.
+In the last three chapters, we've introduced you to a bunch of new concepts. To help them sink in, we'll now walk through how you might take an existing R script and turn it into a shiny app. This will help you start to see how the pieces fit together, and give you some useful tools to help analyse your own code.
 
-In this chapter, as well as shiny, we're going to use code from the tidyverse for analysis.
+In this chapter, we're going to supplement Shiny with the tidyverse and lubridate packages.
 
 ```{r setup, message = FALSE}
 library(tidyverse)
@@ -18,9 +24,9 @@ library(shiny)
 
 ## Motivation
 
-Our goal is to analyses some data about R package downloads from the RStudio CRAN mirror. The raw data is available from <http://cran-logs.rstudio.com>; it is extracted and anonymous from the raw log data.
+Our goal is to analyse some data about R package downloads from <http://cran-logs.rstudio.com>. This dataset records every time a package is installed from the RStudio CRAN mirror.
 
-The complete data set is large so it is broken up into one csv file for each day. There are many things we might do with this data, but here we're going to look at the most downloaded packages, as well as exploring how the number of downloads tails of for less popular packages.
+The complete data set is very large so it is broken up into one csv file for each day. There are many things we might do with this data, but here we're going to look at the most downloaded packages, as well as exploring how the number of downloads tails of for less popular packages.
 
 ### Download
 
