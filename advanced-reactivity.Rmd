@@ -1,2 +1,15 @@
 # (PART\*) Mastering reactivity {-}
 
+# Introduction {-}
+
+With traditional object-oriented UI programming, an inordinate amount of effort and complexity comes from explicitly managing the relationships between different pieces of UI, and updating the cascading sets of variables that depend on the UI and on each other. We want our code to be fast, correct, and easy to write/maintain. But when creating complex interactive data displays using traditional techniques, we're lucky to achieve even two out of those three. 
+
+In contrast, with just reactive inputs/values, reactive expressions, and observers/outputs, we have a rich vocabulary for expressing calculations and outputs, and that forms the foundation for a better way to do UI programming. As long as we can break up our logic into distinct-but-related calculations, actions, and outputs, Shiny's reactive framework will automatically handle the tedious and error-prone task of deciding what pieces need to be updated, and when.
+
+Shiny is designed to let you get started writing apps without fully understanding how reactive programming works; you generally wrap conventional looking R code in `reactive({...})` or `renderXXX({...})`, and everything "just works". This contributes to the initial impression that Shiny is "magic", which thrills beginners but triggers immediate skepticism in expert programmers. Software feels magical when the user is unable to form a mental model for how it works; the greater the gap between what the software does and the user's ability to explain it does it, the more magical the software feels.
+
+Unfortunately, magic in software usually leads to disillusionment. Without a solid mental model to reason with, it's extremely difficult to predict how the software will act when you venture beyond the borders of its demos and examples. And when things don't go the way you expect, debugging is almost impossible.
+
+But sometimes there is good magic in software. As Tom Dale said of his Ember.js JavaScript framework: "We do a lot of magic, but it's _good magic_, which means it decomposes into sane primitives." This is the quality we aspire to for Shiny, especially when it comes to reactive programming. When you peel back the layers of reactive programming, you won't find a pile of heuristics, special cases, and hacks; but rather, a clever but ultimately fairly straightforward mechanism. 
+
+The goal of the chapters in this part of the book is to equip you with a solid understand of reactivity which will--I hope!--make it cease to feel like magic at all.

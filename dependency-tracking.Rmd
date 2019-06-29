@@ -4,15 +4,8 @@
 source("common.R")
 ```
 
-With traditional object-oriented UI programming, an inordinate amount of effort and complexity comes from explicitly managing the relationships between different pieces of UI, and cascading sets of variables that depend on the UI and on each other. We want our code to be fast, correct, and easy to write/maintain. But when creating complex interactive data displays using traditional techniques, we're lucky to achieve even two out of those three. (TODO: This would be more powerful with illustrative examples.)
 
-In contrast, with just reactive inputs/values, reactive expressions, and observers/outputs, we have a rich vocabulary for expressing calculations and outputs, and that forms the foundation for a better way to do UI programming. As long as we can break up our logic into distinct-but-related calculations, actions, and outputs, Shiny's reactive framework will automatically handle the tedious and error-prone task of deciding what pieces need to be updated, and when.
 
-Shiny is designed to let you get started writing apps without fully understanding how reactive programming works; you generally wrap conventional looking R code in `reactive({...})` or `renderXXX({...})`, and everything "just works". This contributes to the initial impression that Shiny is "magic", which thrills beginners but triggers immediate skepticism in expert programmers. Software feels magical when the user is unable to form a mental model for how it works; the greater the gap between what the software does and the user's ability to explain it does it, the more magical the software feels.
-
-Unfortunately, magic in software usually leads to disillusionment. Without a solid mental model to reason with, it's extremely difficult to predict how the software will act when you venture beyond the borders of its demos and examples. And when things don't go the way you expect, debugging is almost impossible. (TODO: Examples of bad magic??)
-
-But sometimes there is good magic in software. As Tom Dale said of his Ember.js JavaScript framework: "We do a lot of magic, but it's _good magic_, which means it decomposes into sane primitives." This is the quality we aspire to for Shiny, especially when it comes to reactive programming. When you peel back the layers of reactive programming, you won't find a pile of heuristics, special cases, and hacks; but rather, a clever but ultimately fairly straightforward mechanism for automatic dependency tracking, that will--I hope!--cease to feel like magic at all.
 
 ## How dependency tracking works
 
@@ -210,3 +203,34 @@ knitr::include_graphics("images/05-reactivity/reactivity-graph-12.png")
 ```
 
 What's different this time, though, is that not all of the reactive expressions and outputs are starting out in the invalidated state. Some parts of the graph weren't affected--neither directly nor indirectly--by the reactive input that had changed. That's great, as we won't need to reexecute those parts of the graph, even if they are used again by some of the invalidated parts!
+
+## Applications
+
+Consider the following simple app:
+  
+```{r}
+library(shiny)
+
+ui <- fluidPage(
+  selectInput("choice", "A or B?", c("a", "b")),
+  numericInput("a", "a", 0),
+  numericInput("b", "b", 10),
+  textOutput("out")
+)
+
+server <- function(input, output, session) {
+  output$out <- renderText({
+    if (input$choice == "a") {
+      input$a
+    } else {
+      input$b
+    }
+  }) 
+}
+```
+
+What does the reactive graph to look like? You might expect to look like this:
+
+But in fact, the graph either looks like this or that, depending on the value of `input$choice`.
+
+This is because shiny dynamically constructs the graph.
