@@ -4,8 +4,7 @@
 source("common.R")
 ```
 
-
-
+<!-- TODO: redraw diagrams in omnigraffle with reactlog colours -->
 
 ## How dependency tracking works
 
@@ -17,7 +16,7 @@ output$plot <- renderPlot({
 })
 ```
 
-When people are first exposed to Shiny code like this, the most common question is, "How does Shiny know that `output$plot` reads `input$rows`?" And the most common guess is that Shiny parses the body of the `renderPlot` code block, looking for symbols that seem to be relevant for reactivity, the same way a human being would. If that strikes you as a fragile approach, I agree. Even a change as simple as giving `input` a new name would break things:
+When people are first exposed to Shiny code like this, the most common question is, "How does Shiny know that `output$plot` reads `input$rows`?" And the most common guess is that Shiny parses the body of the `renderPlot()` code block, looking for symbols that seem to be relevant for reactivity, the same way a human being would. If that strikes you as a fragile approach, I agree. Even a change as simple as giving `input` a new name would break things:
 
 ```{r eval=FALSE}
 output$plot <- renderPlot({
@@ -26,11 +25,11 @@ output$plot <- renderPlot({
 })
 ```
 
-So, no, that's not the way Shiny works. If that approach could be called "static analysis", what Shiny actually does might be called "dynamic instrumentation".
+So, no, that's not the way Shiny works. In computer science, that approach is called __static analysis__, because it looks at the code without running it. Instead, Shiny using __dynamic instrumentation__, where as the code is run it collects additional information about what's going on.
 
 ### Reactive contexts
 
-Before the `plot` output begins executing, it creates an object that's internal to Shiny called a _reactive context_. (As an app author, you'll never create or see one of these objects directly.) The reactive context doesn't represent the `plot` output as a whole, but just a single execution of the output. If, over the life of a Shiny session, the plot is (re)rendered a dozen times, then a dozen reactive contexts will have been created.
+Before the `plot` output begins executing, it creates an object that's internal to Shiny called a __reactive context__. As an app author, you'll never create or see one of these objects directly, but they're very important in the implementation of Shiny. The reactive context doesn't represent the `plot` output as a whole, but just a single execution of the output. If, over the life of a Shiny session, the plot is (re)rendered a dozen times, then a dozen reactive contexts will have been created.
 
 The Shiny package has a top-level variable (like a global variable, but one only visible to code inside the Shiny package) that is always pointing to the "current" or "active" reactive context. The `plot` output assigns its new context to this variable, then executes its code block, then restores the previous value of the variable. Basically like this code sketch (for illustrative purposes only):
 
@@ -49,20 +48,24 @@ renderPlot({ ... })
 shiny:::currentContext <- prev_ctx
 ```
 
-The purpose of the context object is to provide a rendezvous point between the reactive consumer object that is executing, and the reactive values and expressions that are being read. There are two important methods on context objects:
+The purpose of the context object is to provide a rendezvous point between the reactive consumer that is executing, and the reactive producers that it's reading from. There are two important methods on context objects:
 
-1. `invalidate()` - Informs the context that a value or expression that it read, is now potentially out of date (invalidated); and so whatever reactive consumer object owns this context should also be considered out of date.
-2. `onInvalidated(func)` - Asks the context to invoke the given callback function in the future, if and when `invalidate()` is called.
+1. `invalidate()` - Informs the context that a producter that it read from
+    is now potentially out of date (invalidated); and so whatever reactive 
+    consumer owns the context should also be considered out of date.
+
+2. `onInvalidated(func)` - Asks the context to invoke the given callback
+    function in the future, if and when `invalidate()` is called.
 
 ### Intercepting reads
 
-If you've read carefully so far, you may be able to see where this is going. While a reactive consumer object (reactive expression, observer, or output) is executing, it creates a context object and puts it in a globally accessible variable, making it possible for any other code to invalidate that context at any point in the future.
+You might be able to see where this is going. While a reactive consumer is executing, it creates a context object and puts it in a globally accessible variable, making it possible for any other code to invalidate that context at any point in the future.
 
-Reactive values and expressions use this context object to connect the dots between reactive dependencies. When a reactive source is read--using either `input$x` or `up_to_date()`--not only is the appropriate value returned, but a side effect also silently occurs. Each reactive value or expression maintains a list of contexts that depend on its current value being up-to-date; each read of the reactive value or expression causes the current context object to be added to that list.
+Reactive values and expressions use this context object to connect the dots between reactive dependencies. When a reactive producer is read--using either `input$x` or `up_to_date()`--not only is the appropriate value returned, but a side effect also silently occurs. Each reactive value or expression maintains a list of contexts that depend on its current value being up-to-date; each read of the reactive value or expression causes the current context object to be added to that list.
 
 Each time a reactive value is modified, or a reactive expression is invalidated, it calls `invalidate()` on each dependent context. This invalidates the corresponding reactive consumer objects.
 
-In summary, the way Shiny "magically" establishes the connections between dependency and dependant really comes to these two simple mechanisms: each reactive consumer creates a context object and installs it in a global location during execution, and each reactive source augments every read operation with a grabbing of the context object and saving it for later invalidation. There is no way that Shiny can accidentally overlook a reactive dependency relationship, or establish one erroneously (though there are a few ways to _instruct_ Shiny to intentionally overlook reactive dependencies, as we'll see later).
+In summary, the way Shiny "magically" establishes the connections between dependency and dependant really comes to these two simple mechanisms: each reactive consumer creates a context object and installs it in a global location during execution, and each reactive producer augments every read operation by a grabbing the context object so it can be later invalidated. There is no way that Shiny can accidentally overlook a reactive dependency relationship, or establish one erroneously (though there are a few ways to _instruct_ Shiny to intentionally overlook reactive dependencies, as we'll see later).
 
 ## A step-by-step tour of reactive execution {#step-through}
 
@@ -71,8 +74,6 @@ Here's an illustrated version of a reactive graph.
 ```{r echo=FALSE,out.width="70%"}
 knitr::include_graphics("images/05-reactivity/reactivity-graph-00.png")
 ```
-
-In the diagram above, the shapes on the left are reactive inputs and values, the ones in the middle are reactive expressions, and on the right are observers and outputs. (For the rest of this discussion, we'll simply refer to outputs as observers, rather than saying "observers and/or outputs" every time.)
 
 The lines between the shapes are directional, with the arrows indicating the direction of reactivity--we'll see in a moment why this means the arrows go from left to right, instead of from right to left.
 
@@ -90,7 +91,7 @@ Note that all of the reactive expressions and observers are a darker color. This
 
 ### Execution begins
 
-Now that the session has been initialized, we can begin the execution phase. In this phase, Shiny picks an observer (_not_ a reactive expression) and starts executing it. In the diagrams below, we use a green fill to indicate when a node is actively executing.
+Now that the session has been initialized, we can begin the execution phase. In this phase, Shiny picks an invalidated observer (_not_ a reactive expression) and starts executing it. In the diagrams below, we use a green fill to indicate when a node is actively executing.
 
 ```{r echo=FALSE,out.width="70%"}
 knitr::include_graphics("images/05-reactivity/reactivity-graph-02.png")
@@ -124,7 +125,7 @@ knitr::include_graphics("images/05-reactivity/reactivity-graph-04.png")
 
 In our example, the reactive expression reads another reactive expression, which in turn reads another input. We'll skip over the blow-by-blow description of those steps, since they're just a repeat of what we've already described.
 
-When the reactive expression has completed executing, it saves (caches) the resulting value internally before returning it to the observer that requested it. Now that the reactive expression has finished executing, it's no longer in invalidated (grey) or running (green) state; rather, it's in idle (white) state. When a reactive expression reaches this state, it means it's up-to-date and will not re-execute its code even if other reactive expressions or observers request its value. Instead, it can instantly return the value it cached during its most recent execution.
+When the reactive expression has completed executing, it saves (caches) the resulting value internally before returning it to the observer that requested it. Now that the reactive expression has finished executing, it's no longer in invalidated (grey) or running (green) state; rather, it's in idle (white) state. When a reactive expression reaches this state, it means it's up-to-date and will not re-execute its code; instead, it will instantly return the cached value.
 
 ```{r echo=FALSE,out.width="70%"}
 knitr::include_graphics("images/05-reactivity/reactivity-graph-05.png")
@@ -150,7 +151,9 @@ knitr::include_graphics("images/05-reactivity/reactivity-graph-07.png")
 
 At last, all of the observers have finished execution and are now idle. This round of reactive execution is complete, and nothing will happen with this session until some external force acts on the system (e.g. the user of the Shiny app moving a slider in the user interface). In reactive terms, this session is now at rest.
 
-I didn't mention it before, but when Shiny outputs finish executing, they don't immediately update the output in the browser. Instead, all of the new outputs are held until this point, at which time they are "flushed" to the browser all at once. (It'd be nice if Shiny could let the app author decide whether outputs update one by one or all at once, but as of this writing, Shiny only supports the latter.)
+I didn't mention it before, but when Shiny outputs finish executing, they don't immediately update the output in the browser. Instead, all of the new outputs are held until this point, at which time they are "flushed" to the browser all at once[^flushing]. 
+
+[^flushing]: It'd be nice if Shiny could let the app author decide whether outputs update one by one or all at once, but as of this writing, Shiny only supports the latter.
 
 ```{r echo=FALSE,out.width="70%"}
 knitr::include_graphics("images/05-reactivity/reactivity-graph-08.png")
@@ -204,7 +207,11 @@ knitr::include_graphics("images/05-reactivity/reactivity-graph-12.png")
 
 What's different this time, though, is that not all of the reactive expressions and outputs are starting out in the invalidated state. Some parts of the graph weren't affected--neither directly nor indirectly--by the reactive input that had changed. That's great, as we won't need to reexecute those parts of the graph, even if they are used again by some of the invalidated parts!
 
+## The react log
+
 ## Applications
+
+### Conditional dependency
 
 Consider the following simple app:
   
@@ -234,3 +241,12 @@ What does the reactive graph to look like? You might expect to look like this:
 But in fact, the graph either looks like this or that, depending on the value of `input$choice`.
 
 This is because shiny dynamically constructs the graph.
+
+### Auto-update checkbox
+
+```{r, eval = FALSE}
+if (input$autorefresh) {
+  invalidateLater(1000)
+}
+```
+
