@@ -1,6 +1,6 @@
 # Understanding reactive programming {#reactivity-mental-model}
 
-```{r include=FALSE}
+```{r setup, include=FALSE}
 source("common.R")
 ```
 
@@ -14,7 +14,7 @@ The biggest drawback of reactive programming is that it is not intuitive--at fir
 
 Before we go further, please be aware that the term "reactive programming" is a fairly general term in the programming world. While all reactive programming libraries/frameworks/languages are broadly about writing programs that respond to changing values, they vary enormously in their terminology, designs, and implementations.
 
-In this book, whenever we refer to "reactive programming", we are referring specifically to reactive programming as implemented in Shiny. Conversely, if you read any material about reactive programming that isn't specifically about Shiny, it's unlikely that those concepts or even terminology will be relevant to writing Shiny apps. For readers who do have some experience with other reactive programming frameworks, our approach is similar to [Meteor](https://www.meteor.com/) and [MobX](https://mobx.js.org/), and very different than the [ReactiveX](http://reactivex.io/) family or anything that labels itself Functional Reactive Programming.
+In this book, whenever we refer to "reactive programming", we are referring specifically to reactive programming as implemented in Shiny. Conversely, if you read any material about reactive programming that isn't specifically about Shiny, it's unlikely that those concepts or even terminology will be relevant to writing Shiny apps. For readers who do have some experience with other reactive programming frameworks, our approach is similar to [Meteor](https://www.meteor.com/) and [MobX](https://mobx.js.org/), and very different than the [ReactiveX](http://reactivex.io/) family or anything that labels itself Functional Reactive Programming (often called FRP for short).
 
 ### Outline {-}
 
@@ -33,14 +33,14 @@ In one sense, all programmers are used to "values that change over time": they'r
 ```{r}
 temp_celsius <- 10
 is_freezing <- temp_celsius <= 0
-print(is_freezing)
+is_freezing
 ```
 
-So far so good--the `temp_celsius` variable has the value `10`, and the `is_freezing` variable has the value `TRUE`. But once we change `temp_celsius`:
+So far so good: the `temp_celsius` variable has the value `10`, and the `is_freezing` variable has the value `TRUE`. But once we change `temp_celsius`:
 
 ```{r}
 temp_celsius <- -3
-print(is_freezing)
+is_freezing
 ```
 
 `temp_celsius` has changed, but unless you take special action, any derived variables like `is_freezing` remain unchanged and are now out of date.
@@ -79,7 +79,7 @@ function(input, output, session) {
 
 Quite simple, right? The `updatePlot` function creates a plot using the values from `input$xvar` and `input$yvar`, and uses that plot to update `output$plot`. And then you tell Shiny to execute `updatePlot()` whenever either of those inputs changes.
 
-In that alternate universe, my life would be a lot easier, as this chapter would be a lot shorter--there'd be a lot less to explain. Unfortunately, it would make life a lot worse for Shiny app authors. This kind of user interface programming is _simple_, but not _easy_! As your application adds more features, it becomes very difficult to keep track of what inputs affect what calculations, and what calculations affect each other, and what input and calculations affect what outputs and actions. Before long, you start to trade off correctness (just update everything whenever anything changes) against performance (try to update only the necessary parts, and pray you didn't miss any edge cases), because it's so difficult to optimize for both.
+Unfortunately, this kind of programming is _simple_, not _easy_! As your application adds more features, it becomes very difficult to keep track of what inputs affect what calculations, and what calculations affect each other, and what input and calculations affect what outputs and actions. Before long, you start to trade off correctness (just update everything whenever anything changes) against performance (try to update only the necessary parts, and pray you didn't miss any edge cases), because it's so difficult to optimize for both.
 
 Reactive programming roared into the programming mainstream in the 2010s, via the blisteringly fast-paced world of JavaScript UI frameworks. Pioneering frameworks like [Knockout](https://knockoutjs.com/), [Ember](https://emberjs.com/), and (my personal inspiration) Meteor demonstrated that reactive programming could make UI programming dramatically easier. Within a few short years, reactive programming has come to dominate UI programming on the web, with hugely popular frameworks like React, Vue.js, and Angular that are either inherently reactive or designed to work with reactive backends.
 
@@ -99,7 +99,8 @@ We'll go through these one by one, though not in that order; instead, we'll star
 
 ### Reactive values: values that change over time
 
-Before we start talking about reactive values, one pedagogically awkward little wrinkle is that reactive values come in three different flavors: inputs, `reactiveValues()`, and `reactiveVal()`. For this chapter's purposes, these three types are conceptually identical, so we'll mostly stick to discussing inputs.
+Before we start talking about reactive values, one pedagogically awkward little wrinkle is that reactive values come in three different flavors: inputs, `reactiveValues()`, and `reactiveVal()`. These three types are conceptually identical, but their implementations are slightly different.
+
 
 ```{r}
 consoleReactive(TRUE)
@@ -111,6 +112,34 @@ observe(message("`x` is ", vals$x))
 vals$x <- 20
 
 vals$x <- 30
+
+consoleReactive(FALSE)
+```
+
+```{r}
+library(rlang)
+`%<R-%` <- function(name, value = NULL, env = parent.frame()) {
+  name <- as.character(ensym(name))
+  rv <- shiny::reactiveVal(value, name)
+  
+  if (env_has(env, name)) {
+    env_unbind(env, name)
+  }
+  env_bind_active(env, !!name := rv)
+  
+  invisible()
+}
+
+consoleReactive(TRUE)
+
+temp_celsius %<R-% 20
+temp_celsius
+
+is_freezing <- reactive(temp_celsius <= 0)
+is_freezing()
+
+temp_celsius <- -1
+is_freezing()
 
 consoleReactive(FALSE)
 ```
@@ -165,11 +194,11 @@ This observer's entire code block will re-execute when _either_ `input$x` or `in
 
 ### Reactive expressions: Smart calculations
 
-_Reactive expressions_ are the other fundamental type of reactive consumer. While observers model actions that have side effects, reactive expressions model calculations that don't have side effects. (There's nothing that prevents you from putting side effects in your reactive expressions, but it's generally a bad idea.)
+_Reactive expressions_ are the other fundamental type of reactive consumer. While observers model actions that have side effects, reactive expressions model calculations that return values. (There's nothing that prevents you from putting side effects in your reactive expressions, but it's generally a bad idea.)
 
 Here's a very simple reactive expression named `up_to_x` that generates a sequence of numbers based on `input$x`. (If you're not familiar with `seq_len`, it simply returns a sequence of increasing numbers starting from 1 to whatever number you pass it; for example, `seq_len(3)` returns `c(1L, 2L, 3L)`.)
 
-```{r eval=FALSE}
+```{r, eval = FALSE}
 up_to_x <- reactive({
   seq_len(input$x)
 })
