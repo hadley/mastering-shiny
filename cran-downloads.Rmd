@@ -22,7 +22,7 @@ library(lubridate)
 library(shiny)
 ```
 
-## Motivation
+## Motivation {#cran-downloads-motivation}
 
 Our goal is to analyse some data about R package downloads from <http://cran-logs.rstudio.com>. This dataset records every time a package is installed from the RStudio CRAN mirror.
 
