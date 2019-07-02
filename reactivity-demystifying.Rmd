@@ -99,29 +99,42 @@ We'll go through these one by one, though not in that order; instead, we'll star
 
 ### Reactive values: values that change over time
 
-Before we start talking about reactive values, one pedagogically awkward little wrinkle is that reactive values come in three different flavors: inputs, `reactiveValues`, and `reactiveVal`. For this chapter's purposes, these three types are conceptually identical, so we'll mostly stick to discussing inputs.
+Before we start talking about reactive values, one pedagogically awkward little wrinkle is that reactive values come in three different flavors: inputs, `reactiveValues()`, and `reactiveVal()`. For this chapter's purposes, these three types are conceptually identical, so we'll mostly stick to discussing inputs.
 
-Inputs are by far the most common type of reactive value. Anyone who's written a single Shiny app has seen the `input` object, which is provided as an argument to your Shiny app's server function. It represents the collective input received from your app's user interface, and you access individual input values from it with the same operators you'd use for a named list, e.g. `input$x` or `input[["x"]]` for an input named `x`.
+```{r}
+consoleReactive(TRUE)
 
-The values in `input` change whenever something happens in the user interface. Because `input` is intended to be a reflection of the state of the user interface, you can read from it but you can't write to it (at least not directly, see chapter TODO). If you attempt `input$x <- 20`, you'll get an error.
+vals <- reactiveValues()
+vals$x <- 10
+observe(message("`x` is ", vals$x))
+
+vals$x <- 20
+
+vals$x <- 30
+
+consoleReactive(FALSE)
+```
+
+
+Inputs are by far the most common type of reactive value. You've already seen the `input` object, which is provided as an argument to your Shiny app's server function. It represents the collective input received from your app's user interface, and you access individual input values from it with the same operators you'd use for a named list, e.g. `input$x` or `input[["x"]]` for an input named `x`. The values in `input` change whenever something happens in the user interface. Because `input` is intended to be a reflection of the state of the user interface, you can read from it but you can't write to it.
 
 Don't be fooled, though: while `input$x` looks like reading a normal value from a normal list, there's something very important going on under the hood. In order to understand what that is, we need to talk about who is doing the reading.
 
 Generally, R functions and variables are totally agnostic to, and in fact ignorant of, who/what is calling or reading them. When an R function is invoked, it runs and returns a value. When a variable is read, it doesn't matter to the variable why that read is happening. In reactive programming, the situation is very different.
 
-If a read of a regular variable is asking "What's the value of `x`?", reading a reactive value is asking "What's the value of `input$x`? **And also notify me the next time `input$x` changes, please!**" In other words, a reactive read has implications for both _now_ (returns the current value) and _later_ (notifies of the next change to the value).
+If a read of a regular variable is asking "What's the value of `x`?", reading a reactive value is asking "What's the value of `input$x`? **And please notify me the next time `input$x` changes!**" In other words, a reactive read has implications for both _now_ (returns the current value) and _later_ (notifies of the next change to the value).
 
 Because reactive reads have this additional "later" effect, the `input` object is very selective about who is allowed to access its data. Attempting to read `input$x` from anywhere but a bona fide reactive object, like a reactive expression or observer, throws an error. The actual text of this error is "Operation not allowed without an active reactive context", and it essentially means "I won't talk to you unless you give me a way to notify you that `input$x` changed".
 
 Now let's shift gears and talk about the objects that _can_ read reactive values, and what will happen when they're notified of changes in `input$x`.
 
-There are two fundamental types of reactive readers (also known as _consumers_) in Shiny. One type is for actions (with side effects), the other is for calculations (no side effects).
+There are two fundamental types of reactive readers (also known as **consumers**) in Shiny. One type is for actions (with side effects), the other is for calculations (no side effects).
 
 ### Observers: Actions that execute automatically
 
 _Observers_ are one type of reactive consumer. An observer takes a code block that performs an action of some kind. Here's an observer that prints the value of `x` every time it changes:
 
-```{r eval=FALSE}
+```{r}
 observe({
   message("We're about to print x:")
   print(input$x)
@@ -132,15 +145,14 @@ This code block does three things:
 
 1. Prints out the message `"We're about to print x:"`
 2. Prints the value of `input$x`
-3. Subscribes to be notified of the next change to `input$x` (this subscription happens automatically, just by reading `input$x`)
+3. Subscribes to be notified of the next change to `input$x` 
+   (this subscription happens automatically, just by reading `input$x`)
 
-When `input$x` changes, and this observer is notified, it requests that the Shiny runtime run its code block again, and the three steps above will repeat. Note that it's not just the single line `print(input$x)` that re-runs, but the entire code block. The unit of granularity for reactivity, in this case, is the whole observer rather than any particular line of code.
-
-Observers are reactive consumers because they know how to respond to the fact that one of their dependencies changed: they re-run their code block.
+When `input$x` changes, and this observer is notified, it requests that the Shiny runtime run its code block again, and the three steps above will repeat. Observers are reactive consumers because they know how to respond to one of their dependencies changed: they re-run their code block.
 
 Observers aren't limited to reading a single reactive value; each observer can read zero, one, or multiple reactive values.
 
-```{r eval=FALSE}
+```{r}
 observe({
   message("We're about to print x:")
   print(input$x)

@@ -9,6 +9,46 @@ knitr::opts_chunk$set(
 
 options(digits = 3)
 
+# Reactive console simulation  -------------------------------------------------
+# See discussion at https://github.com/rstudio/shiny/issues/2518
+
+reactive_console_funs <- list(
+  reactiveVal = function(value = NULL, label = NULL) {
+    if (missing(label)) {
+      call <- sys.call()
+      label <- shiny:::rvalSrcrefToLabel(attr(call, "srcref", exact = TRUE))
+    }
+
+    rv <- shiny::reactiveVal(value, label)
+    function(x) {
+      if (missing(x)) {
+        rv()
+      } else {
+        on.exit(shiny:::flushReact(), add = TRUE, after = FALSE)
+        rv(x)
+      }
+    }
+  },
+  reactiveValues = function(...) {
+    rv <- shiny::reactiveValues(...)
+    class(rv) <- c("rv_flush_on_write", class(rv))
+    rv
+  },
+  `$<-.rv_flush_on_write` = function(x, name, value) {
+    on.exit(shiny:::flushReact(), add = TRUE, after = FALSE)
+    NextMethod()
+  }
+)
+
+consoleReactive <- function(state) {
+  if (state) {
+    options(shiny.suppressMissingContextError = TRUE)
+    attach(reactive_console_funs, name = "reactive_console", warn.conflicts = FALSE)
+  } else {
+    options(shiny.suppressMissingContextError = FALSE)
+    detach("reactive_console")
+  }
+}
 
 # Custom printing ---------------------------------------------------------
 knit_print <- knitr::knit_print
