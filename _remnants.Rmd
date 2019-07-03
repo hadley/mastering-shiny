@@ -69,15 +69,3 @@ This is the way things work by default in R, and it's called _lexical scoping_. 
 Shiny relies heavily on lexical scoping to allow reactive inputs, expressions, outputs, and observers to have relationships with each other, as we'll soon see.
 
 ## Prerequisite 2: Side effects
-
-You can think of all R functions as falling into one of two categories:
-
-1. **Functions that are only interesting for the result that they return**, e.g. `c()`, `list()`, `lm()`, `predict()`, `read.csv()`, `ls()`.
-2. **Functions that perform some kind of action** (besides calculating a result), e.g. `print()`, `plot()`, `write.csv()`, `rm()`, `install.packages()`.
-
-_Side effects_ are what we call the kinds of actions in the second category. Unlike with pharmaceuticals, where side effects are always unintentional and usually negative, we simply mean any effects apart from a function's return value. Changing a file on disk is a side effect. Printing words to the console is a side effect. Sending a message to another computer is a side effect.
-
-As a shorthand, you can think of functions without side effects as _calculations_, and functions with side effects as _actions_.^[Computer scientists and Haskell programmers refer to functions without side effects as "pure" and functions with side effects as "impure"; though their definition of side effects includes the reading of any variable or state that isn't a function argument. For Shiny purposes, we don't need to be so strict.] 
-
-As we learn to write more complicated Shiny apps, it's important to think about your code in terms of calculations and actions. Shiny has opinions about what reactive abstractions you should use to wrap each kind of code, and if you structure your app in accordance with those opinions you'll end up with code that's more reliable, better performing, and easier to maintain.
-

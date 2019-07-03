@@ -1,8 +1,26 @@
 # (PART\*) Getting started {-}
 
+```{r include=FALSE}
+source("common.R")
+```
+
 # Before we begin
 
 If you've never used Shiny before, welcome! This chapter will help you install all the software you'll need to follow along with the book.
+
+## What you will learn
+
+Shiny is designed to let you get started writing apps without fully understanding how reactive programming works; you generally wrap conventional looking R code in `reactive({...})` or `renderXXX({...})`, and everything "just works". This contributes to the initial impression that Shiny is "magic", which thrills beginners but triggers immediate skepticism in expert programmers. Software feels magical when the user is unable to form a mental model for how it works; the greater the gap between what the software does and the user's ability to explain it does it, the more magical the software feels.
+
+Unfortunately, magic in software usually leads to disillusionment. Without a solid mental model to reason with, it's extremely difficult to predict how the software will act when you venture beyond the borders of its demos and examples. And when things don't go the way you expect, debugging is almost impossible.
+
+But sometimes there is good magic in software. As Tom Dale said of his Ember.js JavaScript framework: "We do a lot of magic, but it's _good magic_, which means it decomposes into sane primitives." This is the quality we aspire to for Shiny, especially when it comes to reactive programming. When you peel back the layers of reactive programming, you won't find a pile of heuristics, special cases, and hacks; but rather, a clever but ultimately fairly straightforward mechanism. 
+
+Shiny has demonstrated that reactive programming is a particularly good fit for apps that transform and/or visualize complex data. These kinds of apps seem to naturally decompose into discrete steps, like loading data, subsetting, aggregating, predicting, etc. These steps can be individually expressed using reactive objects, which can then be managed by Shiny.
+
+## What you won't learn
+
+I'll do my best to show off best practices for data science, R programming, and software engineering, but the focus of this book is on making effective Shiny apps and understanding the underlying theory of reactivity.
 
 ## Prerequisites {#prerequisites}
 
@@ -51,3 +69,22 @@ https://www.rstudio.com/resources/cheatsheets/
 ## If you get stuck
 
 Got a problem you can't figure out, or a question this book (and Google) can't answer? You can find help at our community site: https://community.rstudio.com/c/shiny.
+
+## Acknowledgements
+
+This book was written in [bookdown](http://bookdown.org/) inside [RStudio](http://www.rstudio.com/ide/). The [website](http://mastering-shiny.org/) is hosted with [netlify](http://netlify.com/), and automatically updated after every commit by [travis-ci](https://travis-ci.org/). The complete source is available from [GitHub](https://github.com/jcheng/shiny-book). 
+
+```{r, echo = FALSE}
+ruler <- function(width = getOption("width")) {
+  x <- seq_len(width)
+  y <- dplyr::case_when(
+    x %% 10 == 0 ~ as.character((x %/% 10) %% 10),
+    x %% 5 == 0  ~ "+",
+    TRUE         ~ "-"
+  )
+  cat(y, "\n", sep = "")
+  cat(x %% 10, "\n", sep = "")
+}
+
+ruler()
+```
