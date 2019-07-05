@@ -1,4 +1,4 @@
-# Understanding reactive programming {#reactivity-mental-model}
+# Understanding reactivity {#reactivity-mental-model}
 
 ```{r setup, include=FALSE}
 source("common.R")
@@ -6,138 +6,174 @@ source("common.R")
 
 ## Introduction
 
-In this chapter, we'll form a mental model of reactive programming. Without reactive programming, Shiny would not exist, and in well-informed hands it is by far the most elegant, robust, and productive way we know of for creating dynamic user interfaces.
+In this chapter, we'll form a mental model of reactive programming. Shiny wouldn't exist without reactive programming, as is by far the most elegant, robust, and productive way of of creating dynamic user interfaces.
 
-With traditional object-oriented UI programming, an inordinate amount of effort and complexity comes from explicitly managing the relationships between different pieces of UI, and updating the cascading sets of variables that depend on the UI and on each other. We want our code to be fast, correct, and easy to write/maintain. But when creating complex interactive data displays using traditional techniques, we're lucky to achieve even two out of those three. 
+Before reactive programming entered the mainstream, most people use traditional OO programming to create user interfaces. This requires an inordinate amount of effort and complexity because you must explicitly manage the relationships between different pieces of UI, and carefully update the cascading sets of variables that depend on the UI and on each other. This makes it very hard to create code that's fast, correct, and easy to write and maintain. 
 
-In contrast, with just reactive inputs/values, reactive expressions, and observers/outputs, we have a rich vocabulary for expressing calculations and outputs, and that forms the foundation for a better way to do UI programming. As long as we can break up our logic into distinct-but-related calculations, actions, and outputs, Shiny's reactive framework will automatically handle the tedious and error-prone task of deciding what pieces need to be updated, and when.
+In contrast, with just reactive values (inputs), reactive expressions, and observers (outputs), we have a rich vocabulary for expressing calculations and actions that forms the foundation for a better way to do UI programming. As long as we can break up our logic into distinct-but-related calculations, actions, and outputs, Shiny's reactive framework will automatically handle the tedious and error-prone task of deciding what pieces need to be updated when.
 
-The biggest drawback of reactive programming is that it is not intuitive--at first. Even experienced R users can have trouble getting their heads around reactive programming as they get started with Shiny, and those with deep experience in software engineering may feel uncomfortable with a programming paradigm with so much "magic". But once you've formed an accurate mental model, you'll see that reactive programming is built on simple concepts and mechanisms that you can easily reason about.
+The biggest drawback of reactive programming is that it's a fundamentally new programming paradigm. Even experienced R users can have trouble getting their heads around reactive programming, and those with deep experience in software engineering may feel uncomfortable with with so much "magic". But once you've formed an accurate mental model, you'll see that there's nothing up Shiny's sleeves: the magic comes from simple concepts combined in consistent ways.
+
+In this chapter, we'll talk about why reactive programming is so important, a little bit about it's recent history, and start to discuss the underlying data structures that allows Shiny to implement it.
 
 ## Why reactive programming? {#motivation}
 
-Reactive programming is primarily a style of programming that emphasizes _values that change over time_, and _calculations and actions that depend on those values_. To put it concretely, Shiny apps are interactive: users change input controls (sliders, textboxes, checkboxes), which causes logic to run on the server (reading CSVs or performing database queries, subsetting data, running simulations or models), ultimately resulting in outputs updating (plots, tables, blocks of text, downloadable PDFs). For Shiny apps to be useful, we need two things:
+Reactive programming is a style of programming that emphasizes values that change over time, and calculations and actions that depend on those values. 
 
-* Every time an input changes, automatically re-run all expressions and outputs
-  that depend on that value. This ensures that 
+Shiny apps are interactive: users change input controls (sliders, textboxes, checkboxes), which causes logic to run on the server (reading CSVs or performing database queries, subsetting data, running simulations or models), ultimately resulting in outputs updating (plots, tables, blocks of text, downloadable PDFs). For Shiny apps to be useful, we need two things:
+
+* To ensure that input and output stay in sync, all expressions and outputs 
+  that depend on an input value must be automatically updated every time it
+  changes.
   
-* Conversely, for Shiny apps to respond quickly to user input, it's important 
-  that _only_ the relevant logic runs, and _only_ the affected outputs update. 
-  It'd be a frustratingly poor user experience if, say, changing a plot y-axis 
-  from linear to log scale caused the expensive logic behind a totally 
-  unrelated summary table to be rerun.
+* To ensure that apps respond quickly to user input, _only_ the relevant 
+  expressions should run, and _only_ the affected outputs should update. It'd 
+  be a frustrating experience if, say, changing a plot y-axis from linear to 
+  log scale caused the expensive logic behind a totally unrelated summary 
+  table to be rerun.
 
-To see how reactive programming solve these problems, lets take it back to a very simple example, eliminating all additional complexity of a web app, and focussing on the underlying code.
+It's relatively easy to satisify one of the two conditions, but much harder to satisfy both. To see why, and to see how we might attack the basic problem with other styles of programming lets take it back to a very simple example, eliminating all additional complexity of a web app, and focussing on the underlying code.
 
 ### Why can't you use variables?
 
-In one sense, all programmers are used to "values that change over time": they're called "variables", right? Yes, variables in R represent values and they can change over time. But they're not particularly designed to help you when their values change.
+In one sense, all programmers are used to "values that change over time": they're called "variables". And yes, variables in R represent values and they can change over time. But they're not particularly designed to help you when their values change. Take this simple example of converting a temperature in Celsius to Fahrentheit:
 
 ```{r}
-temp_celsius <- 10
-is_freezing <- temp_celsius <= 0
-is_freezing
+temp_c <- 10
+temp_f <- (temp_c + 32) * 9 / 5 
+temp_f
 ```
 
-So far so good: the `temp_celsius` variable has the value `10`, and the `is_freezing` variable has the value `TRUE`. But if you change `temp_celsius`, then `is_freezing` does not update:
+So far so good: the `temp_c` variable has the value `10`, and the `temp_f` variable has the value 75.6. But changing `temp_c` does not affect `temp_f`:
 
 ```{r}
-temp_celsius <- -3
-is_freezing
+temp_c <- 30
+temp_f
 ```
+
+Variables can change over time, but they never change automatically as 
 
 ### What about functions?
 
-You could instead attack this problem by using functions:
+You could instead attack this problem with a function:
 
 ```{r}
-temp_celsius <- 10
-is_freezing <- function() {
-  message("Computing freezing point") 
-  temp_celsius <= 0
+temp_c <- 10
+temp_f <- function() {
+  message("Converting") 
+  (temp_c + 32) * 9 / 5 
 }
-is_freezing()
+temp_f()
 
 temp_celsius <- -3
-is_freezing() 
+temp_f() 
 ```
 
-This solves the first problem that reactivity is trying to solve: whenever you access `is_freezing()` you get the latest computation. It doesn't, however solve the second problem of trying to do as little computation as possible because every time you call `is_freezing()` it recomputes:
+(This is a slightly weird function because it doesn't have any arguments, but instead accesses `temp_c` from its enclosing environment, but it's perfectly valid R code.)
+
+This solves the first problem that reactivity is trying to solve: whenever you access `temp_f()` you get the latest computation. It doesn't, however solve the second problem of trying to do as little computation as possible. Every time you call `temp_f()` it recomputes:
 
 ```{r}
-is_freezing() 
+temp_f() 
 ```
 
-That isn't a problem here, but in real apps, this would add substantial cognitivie overhead: you'd constantly need to be thinking about how to minimise computation.
+That isn't a problem here in this trivial example, but minimising recomputation is a substantial challenge in real apps.
 
 ### Event-driven programming {#event-driven}
 
-In decades past, there wouldn't even be a question about how such interactive user interfaces would be written: _event-driven programming_ was the only game in town. It's an appealingly simple paradigm: you register callback functions to be executed in response to events (e.g. a mouse click, or a textbox's value being changed). Had Shiny been invented five years earlier, the code above might have looked like this:
+Since neither of the built-in tools of variables or functions work, we have to create something new. In previous decades, there wouldn't have been any question about what we should add: we'd implement something to support _event-driven programming_. It's an appealingly simple paradigm: you register callback functions to be executed in response to events (e.g. a mouse click, or a textbox's value being changed). 
 
-```{r, eval = FALSE}
-temp_celsius <- dynamic_value(10)
-
-temp_celsius$onUpdate({
-  message("Computing freezing point") 
-  is_freezing <<- temp_celsius$get() <= 0
-})
-
-is_freezing
-#> [1] FALSE
-
-temp_celsius$set(-3)
-is_freezing
-#> [1] TRUE
+```{r, echo = FALSE}
+DynamicValue <- R6::R6Class("DynamicValue", list(
+  value = NULL,
+  on_update = NULL,
+  get = function() self$value,
+  set = function(value) {
+    self$value <- value
+    if (!is.null(self$on_update)) 
+      self$on_update()
+    invisible(self)
+  },
+  onUpdate = function(action) {
+    self$on_update <- rlang::as_function(rlang::enquo(action))
+    invisible(self)
+  }
+))
 ```
 
-Note that we can no longer rely on an ordinary variable, and instead have to create an (imaginary) `dynamic_value`. This object has three important methods: `get()` and `set()` allows you access and change the underlying value, while `onUpdate()` lets you run code every time the value changes. Here we're using `<<-` to update the value of `is_freezing` in the global environment every time the temperature changes.
+Had Shiny been invented five years earlier, we might have written something like this:
+
+```{r}
+temp_c <- DynamicValue$new()
+temp_c$onUpdate({
+  message("Converting") 
+  temp_f <<- (temp_c$get() + 32) * 9 / 5 
+})
+
+temp_c$set(10)
+temp_f
+
+temp_c$set(-3)
+temp_f
+```
+
+Note that we can no longer rely on an ordinary variable, and instead have to create an (imaginary) `DynamicValue`. This object has three important methods: `get()` and `set()` to access and change the underlying value, and `onUpdate()` lets you register code to run every time the value is modified. Here we're using `<<-` to update the value of `temp_f()` in the global environment every time the temperature changes.
 
 Unfortunately, this kind of programming is _simple_, not _easy_! As your application adds more features, it becomes very difficult to keep track of what inputs affect what calculations, and what calculations affect each other, and what input and calculations affect what outputs and actions. Before long, you start to trade off correctness (just update everything whenever anything changes) against performance (try to update only the necessary parts, and pray you didn't miss any edge cases), because it's so difficult to optimize for both.
 
 ### Reactive programming
 
-Reactive programming elegantly solves both problems by combining features of each of the solutions above. Now we can show you some real Shiny code. We're going to do this using a special Shiny mode, enabling the reactive console so you that you can experiment directly with reactivity outside of an app. This mode is usually disabled because it makes a certain class of problems harder to spot in apps, and it's not worth enabling because its primary use is for understand reactivity; it's not otherwise useful tool.
+Reactive programming elegantly solves both problems by combining features of each of the solutions above. Now we can show you some real Shiny code. We're going to do this using a special Shiny mode, enabling the reactivity in the console so you that you can experiment with it directly, outside of an app. This mode is isn't enabled by default because it makes a certain class of bug harder to spot in an app, and it's primary benefit is to help you understand reactivity.
 
 ```{r, cache = FALSE}
 library(shiny)
 consoleReactive(TRUE)
 ```
 
-Like the event-driven programming example, we still need some way to indicate that we have a special dynamic variable. In Shiny that function is `reactiveVal()`. It creates a __reactive value__ that behaves specially. You can retrieve it's current value by calling like a function, and you can set it's value by calling it with a single argument:
+As with event-driven programming, we still need some way to indicate that we have a special dynamic variable: `shiny::reactiveVal()`. This creates a single __reactive value__ that has a special syntax for getting and setting its value[^mutable-cell]. You use it much like a reactive expression, but it has the additional property that you can set its value.
+
+[^mutable-cell]: If you've programmed in languages like rust or clojure this might look familiar: this is a mutable cell.
 
 ```{r}
-temp_celsius <- reactiveVal(10)
-temp_celsius()
-temp_celsius(20)
-temp_celsius()
+temp_c <- reactiveVal(10)
+temp_c()   # get
+temp_c(20) # set
+temp_c()   # get
 ```
 
-Now we can create a reactive expression that depends on this value. A reactive expression automatically tracks all of its dependencies:
+Now we can create a reactive expression that depends on this value. As you've seen previously, a reactive expression automatically tracks all of its dependencies:
 
 ```{r}
-is_freezing <- reactive({
-  message("Computing freezing point") 
-  temp_celsius() <= 0
+temp_f <- reactive({
+  message("Converting") 
+  (temp_c() + 32) * 9 / 5 
 })
-is_freezing()
+temp_f()
 ```
 
 So that later if `temp_celsius` changes, `is_freezing()` will be up to date:
 
 ```{r}
-temp_celsius(-3)
-is_freezing()
+temp_c(-3)
+temp_f()
+temp_f()
 ```
 
-Importantly, note accessing it again does not trigger recomputation. It's this property that ensures Shiny apps do as little work as possible.
-
-```{r}
-is_freezing()
-```
+Notice that the conversion only happens if we request the value of `temp_f()`, and the computation happens only once. Shiny strives to be as lazy as possible!
 
 In the next chapter you'll learn precisely how this dependency tracking works.
 
-## Reactive programming in Javascript
+## A brief history of reactive programming 
+
+<!--
+https://www.cocoawithlove.com/blog/reactive-programming-what-and-why.html#appendix-a-little-bit-of-history
+-->
+
+The chances are you've already actually done a bunch of reactive programming outside of R already: 
+
+Spreadsheets. Original and most popular instantiation of reactivity. When you update a cell all of it dependencies automatically update.
+
+FRP, 1997. Mostly of research interest.
 
 Reactive programming roared into the programming mainstream in the 2010s, via the blisteringly fast-paced world of JavaScript UI frameworks. Pioneering frameworks like [Knockout](https://knockoutjs.com/), [Ember](https://emberjs.com/), and (Joe Cheng's personal inspiration) Meteor demonstrated that reactive programming could make UI programming dramatically easier. Within a few short years, reactive programming has come to dominate UI programming on the web, with hugely popular frameworks like React, Vue.js, and Angular that are either inherently reactive or designed to work with reactive backends.
 
