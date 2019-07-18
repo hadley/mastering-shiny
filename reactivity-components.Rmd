@@ -56,20 +56,6 @@ vals$y <- 100
 vals$x
 ```
 
-Generally, you don't need to use `reactiveValues()` yourself. But then can be useful for achieving specific types of coordination that would otherwise be inaccessible, particularly maintaining state. You need to be extra careful when reading to and writing from `reactiveValues()` because unlike the rest of Shiny, there's nothing to stop you from getting caught in an infinite loop.
-
-```{r}
-count <- function(signal) {
-  val <- reactiveVal(0)
-  
-  observeEvent(signal(), {
-    val(val() + 1)
-  })
-
-  reactive(val())
-}
-```
-
 The big difference between reactive values and ordinary R values is that reactive values tracks who accesses them. And then when the value changes, it automatically lets everyone know that there's been a change. If a read of a regular variable is asking "What's the value of `x`?", reading a reactive value is asking "What's the value of `input$x`? **And please notify me the next time `input$x` changes!**" In other words, a reactive read has implications for both _now_ (returns the current value) and _later_ (notifies of the next change to the value).
 
 We'll come back to that in detail in Chapter \@ref(dependency-tracking).
@@ -104,17 +90,6 @@ This observer does two things. It prints out a message giving the current value 
 
 It's important to understand that the subscription is not permanent, but happens multiple times, and it happens dynamically. That means that you can conditionally subscribe. TODO: Add example.
 
-```{r}
-y <- reactiveVal()
-observe({
-  if (y() < 10) {
-    y(y() + 1)
-    print(y())
-  }
-})
-
-y(5)
-```
 
 
 Observers aren't limited to reading a single reactive value; each observer can read zero, one, or multiple reactive values. 
@@ -155,6 +130,10 @@ The first time a reactive expression is called, it will execute its code body, a
 
 These particular properties--laziness, caching, reactivity, and lack of side effects--combine to give us an elegant and versatile building block for reactive programming.
 
+## Inputs and outputs
+
+### Inputs
+
 ### Outputs
 
 You may wonder how Shiny outputs fit into this picture. By outputs, I'm referring to code like this:
@@ -178,4 +157,103 @@ We also know that observers should be used for side effects (actions), and react
 Generally, you shouldn't use arbitrary side effects in an output. Outputs are designed to capture output side-effects like printing and plotting. In an ideal world might not be necessary.
 
 Though outputs allow (and may even require) side effects, this doesn't mean you should include just any side effects in your output code. Shiny assumes that the whole code block of an output exists only in service of populating that output. If your output code block contains logic whose side effects are important for reasons apart from the actual output, you should extract that logic into a separate observer. That way, you can be confident it will execute regardless of whether the output is visible or not, now or in the future.
+
+## Creating components
+
+<https://github.com/hadley/shinySignals/>
+
+### Isolate
+
+Generally, you don't need to use `reactiveValues()` yourself. But then can be useful for achieving specific types of coordination that would otherwise be inaccessible, particularly maintaining state. You need to be extra careful when reading to and writing from `reactiveValues()` because unlike the rest of Shiny, there's nothing to stop you from getting caught in an infinite loop.
+
+```{r}
+count <- function(signal) {
+  val <- reactiveVal(0)
+  
+  observe({
+    signal()
+    val(val() + 1)
+  })
+
+  reactive(val())
+}
+```
+
+```{r}
+count <- function(signal) {
+  val <- reactiveVal(0)
+  
+  observeEvent(signal(), {
+    val(val() + 1)
+  })
+
+  reactive(val())
+}
+```
+
+```{r}
+count <- function(signal) {
+  val <- reactiveVal(0)
+  
+  observe({
+    signal()
+    val(isolate(val()) + 1)
+  })
+
+  reactive(val())
+}
+```
+
+Whenever you modify a reactive value based on a previous value you'll need to use isolate to avoid getting stuck in an infinite loop.
+
+### Temporal dependence
+
+```{r}
+dropRepeats <- function(signal) {
+  val <- reactiveVal()
+
+  observe({
+    cur_val <- isolate(val())
+    new_val <- signal()
+    if (!identical(cur_val, new_val)) {
+      val(new_val)
+    }
+  })
+  
+  reactive(val)
+}
+```
+
+<https://plotly-r.com/linking-views-with-shiny.html#reactive-vals>
+
+```{r}
+brush <- function(n, mode = "|") {
+  selected <- reactiveVal(rep(FALSE, n))
+  
+  list(
+    brush = function(new) {
+      selected(do.call(mode, isolate(selected()), new))
+    },
+    reset = function() {
+      selected(rep(FALSE, n))
+    },
+    selected = reactive(selected)
+  )
+}
+```
+
+
+### Combining reactives
+
+
+```{r}
+merge <- function(signal1, signal2) {
+  val <- reactiveVal()
+
+  observe(val(signal1()))
+  observe(val(signal2()))
+
+  reactive(val())
+}
+```
 
