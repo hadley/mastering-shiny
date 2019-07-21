@@ -194,7 +194,7 @@ We'll come back to two input controls in later chapters:
 
 1.  When space is at a premium, it's useful to label text boxes using a 
     placeholder that appears _inside_ the text entry area. How do you call 
-    `inputText()` to generate the UI below?
+    `textInput()` to generate the UI below?
     
     ```{r, echo = FALSE, out.width = NULL}
     ui <- fluidPage(
@@ -305,7 +305,7 @@ app_screenshot(testApp(ui, server), "basic-ui/output-plot")
 
 By default, `plotOutput()` will take up the full width of the element it's embedded within (more on that shortly), and will be 400 pixels high. You can override these defaults with the `height` and `width` arguments.
 
-Plots are specially because they can also act as inputs. `plotOutput()` has a number of arguments like `click`, `dblclick`, and `hover`. If you pass these a string, like `click = "plot_click"`, they'll create a reactive input (`input$plot_click`) that you can use to handle user interaction on the plot. We'll come back to that idea in Chapter XYZ.
+Plots are special because they can also act as inputs. `plotOutput()` has a number of arguments like `click`, `dblclick`, and `hover`. If you pass these a string, like `click = "plot_click"`, they'll create a reactive input (`input$plot_click`) that you can use to handle user interaction on the plot. We'll come back to that idea in Chapter XYZ.
 
 ### Exercises
 
