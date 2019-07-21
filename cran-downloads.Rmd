@@ -26,7 +26,7 @@ library(shiny)
 
 Our goal is to analyse some data about R package downloads from <http://cran-logs.rstudio.com>. This dataset records every time a package is installed from the RStudio CRAN mirror.
 
-The complete data set is very large so it is broken up into one csv file for each day. There are many things we might do with this data, but here we're going to look at the most downloaded packages, as well as exploring how the number of downloads tails of for less popular packages.
+The complete data set is very large so it is broken up into one csv file for each day. There are many things we might do with this data, but here we're going to look at the most downloaded packages, as well as exploring how the number of downloads tails off for less popular packages.
 
 ### Download
 
