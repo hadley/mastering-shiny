@@ -194,7 +194,7 @@ We'll come back to two input controls in later chapters:
 
 1.  When space is at a premium, it's useful to label text boxes using a 
     placeholder that appears _inside_ the text entry area. How do you call 
-    `inputText()` to generate the UI below?
+    `textInput()` to generate the UI below?
     
     ```{r, echo = FALSE, out.width = NULL}
     ui <- fluidPage(
