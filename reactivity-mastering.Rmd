@@ -1,9 +1,1 @@
 # (PART\*) Mastering reactivity {-}
-
-# Introduction {-}
-
-The initial impression of Shiny is often that it's "magic". This is great when you get started because you can make simple apps very very quickly. But magic in software usually leads to disillusionment. Without a solid mental model to reason with, it's extremely difficult to predict how the software will act when you venture beyond the borders of its demos and examples. And when things don't go the way you expect, debugging is almost impossible.
-
-Fortunately shiny is "good" magic. As Tom Dale said of his Ember.js JavaScript framework: "We do a lot of magic, but it's _good magic_, which means it decomposes into sane primitives." This is the quality we aspire to for Shiny, especially when it comes to reactive programming. When you peel back the layers of reactive programming, you won't find a pile of heuristics, special cases, and hacks; but rather, a clever but ultimately fairly straightforward mechanism.
-
-In this part of the book, you'll dive in to the details of reactivity, learning why reactivity is necessary, how it works underneath the covers, and how you might use the atoms of reactivity to create your own building blocks.
