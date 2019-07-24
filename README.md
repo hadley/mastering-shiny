@@ -15,6 +15,7 @@ Built with [bookdown](https://bookdown.org/yihui/bookdown/).
     1. Case study
 
 1. Shiny in action
+    1. Workflow / organising your app.
     1. Tables
     1. Graphics
        * `renderCachedPlot()`
