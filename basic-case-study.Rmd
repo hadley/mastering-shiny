@@ -1,0 +1,298 @@
+# Case study: emergency room injuries {#basic-case-study}
+
+```{r include=FALSE}
+source("common.R")
+```
+
+## Introduction
+
+In the last three chapters, we've introduced you to a bunch of new concepts. To help them sink in, we'll now walk through how you might create a shiny app to facilitate the exploration of a datasets.
+
+In this chapter, we're going to supplement Shiny with the tidyverse and vroom packages.
+
+```{r setup, message = FALSE}
+library(tidyverse)
+library(vroom)
+library(shiny)
+```
+
+## The data
+
+We're going to explore a year's worth of data from the Data from National Electronic Injury Surveillance System (NEISS). This is a long-term study that captures accidents from a representative probability sample of all hospitals in the United States. Collected by Consumer Product Safety Commission. 
+
+You can find out more about this dataset at <https://github.com/hadley/neiss>, and see the code used to create this extract at <>.
+
+The main dataset we'll look at is `injuries`:
+
+```{r, message = FALSE}
+injuries <- vroom::vroom("neiss/injuries.tsv.gz")
+injuries
+```
+
+* `trmt_date`, date that person was seen in the hospital.
+* `age`, `sex`, and `race` give demographic information about the person
+* `body_part` and `diag` give information about the injury
+* `location` is the place where it occurred
+* `prod_code` is the primary product associated with the injury.
+* `weight` is statistical weight giving the estimated number of people who
+  would suffer this injury if scaled to the entire population of the US.
+* `narrative` is a brief story about how the accident occurred.
+
+We'll pair it with two other data frames for additional context: `products` lets us look up the product name from the produce code, and population tells us the total population of the US for each age and sex combination.
+
+```{r, message = FALSE}
+products <- vroom::vroom("neiss/products.tsv")
+products
+
+population <- vroom::vroom("neiss/population.tsv")
+population
+```
+
+## Exploration
+
+Let's take a look at the product code associated with the most injuries - 1842, "stairs or steps". First we'll pull out just this subset of the data:
+
+```{r}
+selected <- injuries %>% filter(prod_code == 1842)
+nrow(selected)
+```
+
+And then perform some basic summaries - steps are most often associated with stairs, to the ankle, at home. Note that I'm weighting my counts with the `weight` variable: that allows us to interpret the counts as estimate number across the whole US.
+
+```{r}
+selected %>% count(diag, wt = weight, sort = TRUE)
+
+selected %>% count(body_part, wt = weight, sort = TRUE)
+
+selected %>% count(location, wt = weight, sort = TRUE)
+```
+
+We can also explore the pattern across age and sex. Here I also standardise by population so we can get the estimate number of injuries per 10,000 people of that age-sex group.
+
+```{r}
+summary <- selected %>% 
+  count(age, sex, wt = weight) %>% 
+  left_join(population, by = c("age", "sex")) %>% 
+  mutate(rate = n / population * 1e4)
+summary
+```
+
+```{r}
+summary %>% 
+  ggplot(aes(age, n, colour = sex)) + 
+  geom_line() + 
+  labs(y = "Estimated number of injuries")
+```
+
+Interestingly, the number of injuries is much higher for women.
+
+```{r}
+summary %>% 
+  ggplot(aes(age, rate, colour = sex)) + 
+  geom_line(na.rm = TRUE) + 
+  labs(y = "Injuries per 10,000 people")
+```
+
+There are three broad patterns here: there's a big spike when children are learning to walk, and roughly constant rate from 20 to 70, and then a gradual increase. This pair of plots shows why considering the rate is so important: the number of injuries to older people declines sharply, but that mostly reflects the fact that fewer people are alive. (Note that the rates only go up to age 80; I couldn't find population data for 80-100.)
+
+We can take a look at a random sample of the narratives to see if that holds true:
+
+```{r}
+selected %>% 
+  sample_n(10) %>% 
+  pull(narrative)
+```
+
+It would be very nice if we could easily do this exploration for each product code, without having to retype the code. So lets make a shiny app!
+
+## Front-end
+
+```{r}
+ui <- fluidPage(
+  fluidRow(
+    column(4, 
+      selectInput("code", "Product", setNames(products$prod_code, products$title))
+    )
+  ),
+  fluidRow(
+    column(4, tableOutput("diag")),
+    column(4, tableOutput("body_part")),
+    column(4, tableOutput("location"))
+  ),
+  fluidRow(
+    column(12, plotOutput("age_sex"))
+  )
+)
+```
+
+```{r}
+server <- function(input, output, session) {
+  selected <- reactive(injuries %>% filter(prod_code == input$code))
+  
+  output$diag <- renderTable(
+    selected() %>% count(diag, wt = weight, sort = TRUE)  
+  )
+  output$body_part <- renderTable(
+    selected() %>% count(body_part, wt = weight, sort = TRUE)  
+  )
+  output$location <- renderTable(
+    selected() %>% count(location, wt = weight, sort = TRUE)  
+  )
+
+  summary <- reactive({
+    selected() %>% 
+      count(age, sex, wt = weight) %>% 
+      left_join(population, by = c("age", "sex")) %>% 
+      mutate(rate = n / population * 1e4)
+  })
+  
+  output$age_sex <- renderPlot({
+    summary() %>% 
+      ggplot(aes(age, n, colour = sex)) + 
+      geom_line() + 
+      labs(y = "Estimated number of injuries")
+  })
+}
+```
+
+### Polish tables
+
+```{r}
+count_top <- function(df, var, n = 5) {
+  df %>%
+    mutate({{ var }} := fct_lump(fct_infreq({{ var }}), n = n)) %>%
+    group_by({{ var }}) %>% 
+    summarise(n = as.integer(sum(weight)))
+}
+
+server <- function(input, output, session) {
+  selected <- reactive(injuries %>% filter(prod_code == input$code))
+  
+  output$diag <- renderTable(count_top(selected(), diag), width = "100%")
+  output$body_part <- renderTable(count_top(selected(), body_part), width = "100%")
+  output$location <- renderTable(count_top(selected(), location), width = "100%")
+
+  summary <- reactive({
+    selected() %>% 
+      count(age, sex, wt = weight) %>% 
+      left_join(population, by = c("age", "sex")) %>% 
+      mutate(rate = n / population * 1e4)
+  })
+  
+  output$age_sex <- renderPlot({
+    summary() %>% 
+      ggplot(aes(age, n, colour = sex)) + 
+      geom_line() + 
+      labs(y = "Estimated number of injuries")
+  })
+}
+```
+
+### Rate vs count
+
+```{r}
+ui <- fluidPage(
+  fluidRow(
+    column(4, 
+      selectInput("code", "Product", setNames(products$prod_code, products$title))
+    ),
+    column(4, selectInput("y", "Y axis", c("count", "rate")))
+  ),
+  fluidRow(
+    column(4, tableOutput("diag")),
+    column(4, tableOutput("body_part")),
+    column(4, tableOutput("location"))
+  ),
+  fluidRow(
+    column(12, plotOutput("age_sex"))
+  )
+)
+
+server <- function(input, output, session) {
+  selected <- reactive(injuries %>% filter(prod_code == input$code))
+  
+  output$diag <- renderTable(count_top(selected(), diag), width = "100%")
+  output$body_part <- renderTable(count_top(selected(), body_part), width = "100%")
+  output$location <- renderTable(count_top(selected(), location), width = "100%")
+
+  summary <- reactive({
+    selected() %>% 
+      count(age, sex, wt = weight) %>% 
+      left_join(population, by = c("age", "sex")) %>% 
+      mutate(rate = n / population * 1e4)
+  })
+  
+  output$age_sex <- renderPlot({
+    if (input$y == "count") {
+      summary() %>% 
+        ggplot(aes(age, n, colour = sex)) + 
+        geom_line() + 
+        labs(y = "Estimated number of injuries")
+    } else {
+      summary() %>% 
+        ggplot(aes(age, rate, colour = sex)) + 
+        geom_line(na.rm = TRUE) + 
+        labs(y = "Injuries per 10,000 people")
+    }
+  })
+}
+```
+
+### Narrative
+
+```{r}
+ui <- fluidPage(
+  fluidRow(
+    column(6, 
+      selectInput("code", "Product", setNames(products$prod_code, products$title), width = "100%")
+    ),
+    column(2, selectInput("y", "Y axis", c("count", "rate")))
+  ),
+  fluidRow(
+    column(4, tableOutput("diag")),
+    column(4, tableOutput("body_part")),
+    column(4, tableOutput("location"))
+  ),
+  fluidRow(
+    column(12, plotOutput("age_sex"))
+  ),
+  fluidRow(
+    column(2, actionButton("story", "Tell me a story")),
+    column(10, textOutput("narrative"))
+  )
+)
+
+server <- function(input, output, session) {
+  selected <- reactive(injuries %>% filter(prod_code == input$code))
+  
+  output$diag <- renderTable(count_top(selected(), diag), width = "100%")
+  output$body_part <- renderTable(count_top(selected(), body_part), width = "100%")
+  output$location <- renderTable(count_top(selected(), location), width = "100%")
+
+  summary <- reactive({
+    selected() %>% 
+      count(age, sex, wt = weight) %>% 
+      left_join(population, by = c("age", "sex")) %>% 
+      mutate(rate = n / population * 1e4)
+  })
+  
+  output$age_sex <- renderPlot({
+    if (input$y == "count") {
+      summary() %>% 
+        ggplot(aes(age, n, colour = sex)) + 
+        geom_line() + 
+        labs(y = "Estimated number of injuries")
+    } else {
+      summary() %>% 
+        ggplot(aes(age, rate, colour = sex)) + 
+        geom_line(na.rm = TRUE) + 
+        labs(y = "Injuries per 10,000 people")
+    }
+  })
+  
+  output$narrative <- renderText({
+    input$story
+    selected() %>% pull(narrative) %>% sample(1)
+  })
+}
+```
