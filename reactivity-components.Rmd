@@ -90,7 +90,7 @@ This observer does two things. It prints out a message giving the current value 
 
 It's important to understand that the subscription is not permanent, but happens multiple times, and it happens dynamically. That means that you can conditionally subscribe. TODO: Add example.
 
-
+Note that observers force eager evaluation of the reactive expressions that they refer to.
 
 Observers aren't limited to reading a single reactive value; each observer can read zero, one, or multiple reactive values. 
 
