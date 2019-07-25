@@ -2,10 +2,13 @@ library(tidyverse)
 library(vroom)
 library(shiny)
 
-injuries <- vroom::vroom("injuries.tsv.gz")
-products <- vroom::vroom("products.tsv")
-population <- vroom::vroom("population.tsv")
+if (!exists("injuries")) {
+  injuries <- vroom::vroom("injuries.tsv.gz")
+  products <- vroom::vroom("products.tsv")
+  population <- vroom::vroom("population.tsv")
+}
 
+#<< ui
 ui <- fluidPage(
   fluidRow(
     column(6,
@@ -21,7 +24,9 @@ ui <- fluidPage(
     column(12, plotOutput("age_sex"))
   )
 )
+#>>
 
+#<< server
 server <- function(input, output, session) {
   selected <- reactive(injuries %>% filter(prod_code == input$code))
 
@@ -49,5 +54,6 @@ server <- function(input, output, session) {
       labs(y = "Estimated number of injuries")
   })
 }
+#>>
 
 shinyApp(ui, server)

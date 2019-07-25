@@ -143,3 +143,50 @@ resource_paths_get <- function() {
   resources <- shiny:::.globals$resources
   vapply(resources, "[[", "directoryPath", FUN.VALUE = character(1))
 }
+
+
+# Code extraction ---------------------------------------------------------
+
+section_get <- function(path, name) {
+  lines <- vroom::vroom_lines(path)
+  start <- which(lines == paste0("#<< ", name))
+
+  if (length(start) == 0) {
+    stop("Couldn't find '#<<", name, "'", call. = FALSE)
+  }
+  if (length(start) > 1) {
+    stop("Found multiple '#<< ", name, "'", call. = FALSE)
+  }
+
+  # need to build stack of #<< #>> so we can have nested components
+
+  end <- which(lines == "#>>")
+  end <- end[end > start]
+
+  if (length(end) == 0) {
+    stop("Couldn't find '#>>", call. = FALSE)
+  }
+  end <- end[[1]]
+
+  lines[(start + 1):(end - 1)]
+}
+
+section_strip <- function(path) {
+  lines <- vroom::vroom_lines(path)
+  sections <- grepl("^#(>>|<<)", lines)
+  lines[!sections]
+}
+
+section_child <- function(path, name) {
+  lines <- section_get(path, name)
+  out <- tempfile()
+
+  write_lines <- function(...) {
+    cat(paste0(..., "\n", collapse = ""), sep = "", file = out, append = TRUE)
+  }
+  write_lines("```{r}")
+  write_lines(lines)
+  write_lines("```")
+
+  out
+}
