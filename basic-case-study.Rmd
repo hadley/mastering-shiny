@@ -111,12 +111,12 @@ I'll start simple with one input (the product code), three tables, and one plot.
 
 Here I decided to have one row for the inputs (accepting that I'm probably going to add more inputs before this app is done), one row for all three tables (giving each table 4 columns, 1/3 of the 12 column width), and then one row for the plot:
 
-```{r child = section_child("neiss/prototype.R", "ui")}
+```{r code = section_get("neiss/prototype.R", "ui")}
 ```
 
 The server function relatively straghtforward: I convert the `selected` and `summary` variables to reactive expressions. This is a reasonable general pattern: you've typically create variables in your data analysis as a way of decomposing the analysis into steps, and avoiding having to recompute things multiple times, and reactive expressions play the same role in Shiny apps. Often it's a good idea to spend a little time cleaning up your analysis code before you start your Shiny app, so you can think about these problems in regular R code, before you add the additional complexity of reactivity.
 
-```{r child = section_child("neiss/prototype.R", "server")}
+```{r code = section_get("neiss/prototype.R", "server")}
 ```
 
 Note in this case `summary` isn't strictly necessary; because it's only used by a single reactive consumer. But it's good practice to keep computing and plotting separate as it makes the flow of the app easier to understand, and will make it easier to generalise in the future.

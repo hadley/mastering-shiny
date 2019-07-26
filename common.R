@@ -176,17 +176,3 @@ section_strip <- function(path) {
   sections <- grepl("^#(>>|<<)", lines)
   lines[!sections]
 }
-
-section_child <- function(path, name) {
-  lines <- section_get(path, name)
-  out <- tempfile()
-
-  write_lines <- function(...) {
-    cat(paste0(..., "\n", collapse = ""), sep = "", file = out, append = TRUE)
-  }
-  write_lines("```{r}")
-  write_lines(lines)
-  write_lines("```")
-
-  out
-}
