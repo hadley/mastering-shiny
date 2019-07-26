@@ -105,7 +105,7 @@ selected %>%
 
 It would be very nice if we could easily do this exploration for each product code, without having to retype the code. So lets make a shiny app!
 
-## Front-end
+## Prototype
 
 I'll start simple with one input (the product code), three tables, and one plot. When thinking about the front-end there's some tension between starting simple, so I can get the basics working before trying something else, and making sure I don't constrain the basic framework of the app too early. I find doing a few sketches with pencil and paper to be a good way to explore the basic structure before committing to the code.
 
@@ -133,144 +133,61 @@ file.remove("neiss/app.R")
 knitr::include_graphics("screenshots/basic-case-study/prototype.png")
 ```
 
-### Polish tables
+Now that we have the basic components in place, and working, we can progressively improve our app. Below, I'll show the changes that I make at each point; you can find the complete source for each app at <https://github.com/jcheng5/shiny-book/tree/master/neiss>
+
+<!-- TODO: should probably number once final order is fixed -->
+
+## Polish tables
+
+The main problem with this app is that it shows a lot of information in the tables, where we probably just want the highlights. To fix this we need to need to first figure out how to truncate the tables. I've chosen to do that with a combination of forcats functions: I convert the variable to a factor order by the frequency of the levels, and then lump together all levels after the top 5. 
+
+(Exercise: what happens if you flip `fct_infreq()` and `fct_lump()`?)
 
 ```{r}
-count_top <- function(df, var, n = 5) {
-  df %>%
-    mutate({{ var }} := fct_lump(fct_infreq({{ var }}), n = n)) %>%
-    group_by({{ var }}) %>% 
-    summarise(n = as.integer(sum(weight)))
-}
-
-server <- function(input, output, session) {
-  selected <- reactive(injuries %>% filter(prod_code == input$code))
-  
-  output$diag <- renderTable(count_top(selected(), diag), width = "100%")
-  output$body_part <- renderTable(count_top(selected(), body_part), width = "100%")
-  output$location <- renderTable(count_top(selected(), location), width = "100%")
-
-  summary <- reactive({
-    selected() %>% 
-      count(age, sex, wt = weight) %>% 
-      left_join(population, by = c("age", "sex")) %>% 
-      mutate(rate = n / population * 1e4)
-  })
-  
-  output$age_sex <- renderPlot({
-    summary() %>% 
-      ggplot(aes(age, n, colour = sex)) + 
-      geom_line() + 
-      labs(y = "Estimated number of injuries")
-  })
-}
+injuries %>%
+  mutate(diag := fct_lump(fct_infreq(diag), n = 5)) %>%
+  group_by(diag) %>%
+  summarise(n = as.integer(sum(weight)))
 ```
 
-### Rate vs count
+Because I knew how to do it, I wrote a little function to automate this for any variable. The details aren't really important here; and don't worry if this looks totally foreign: you could also solve the problem via copy and paste.
 
-```{r}
-ui <- fluidPage(
-  fluidRow(
-    column(4, 
-      selectInput("code", "Product", setNames(products$prod_code, products$title))
-    ),
-    column(4, selectInput("y", "Y axis", c("count", "rate")))
-  ),
-  fluidRow(
-    column(4, tableOutput("diag")),
-    column(4, tableOutput("body_part")),
-    column(4, tableOutput("location"))
-  ),
-  fluidRow(
-    column(12, plotOutput("age_sex"))
-  )
-)
-
-server <- function(input, output, session) {
-  selected <- reactive(injuries %>% filter(prod_code == input$code))
-  
-  output$diag <- renderTable(count_top(selected(), diag), width = "100%")
-  output$body_part <- renderTable(count_top(selected(), body_part), width = "100%")
-  output$location <- renderTable(count_top(selected(), location), width = "100%")
-
-  summary <- reactive({
-    selected() %>% 
-      count(age, sex, wt = weight) %>% 
-      left_join(population, by = c("age", "sex")) %>% 
-      mutate(rate = n / population * 1e4)
-  })
-  
-  output$age_sex <- renderPlot({
-    if (input$y == "count") {
-      summary() %>% 
-        ggplot(aes(age, n, colour = sex)) + 
-        geom_line() + 
-        labs(y = "Estimated number of injuries")
-    } else {
-      summary() %>% 
-        ggplot(aes(age, rate, colour = sex)) + 
-        geom_line(na.rm = TRUE) + 
-        labs(y = "Injuries per 10,000 people")
-    }
-  })
-}
+```{r, code = section_get("neiss/polish-tables.R", "count_top")}
 ```
 
-### Narrative
+I then use this in the server function:
 
-```{r}
-ui <- fluidPage(
-  fluidRow(
-    column(6, 
-      selectInput("code", "Product", setNames(products$prod_code, products$title), width = "100%")
-    ),
-    column(2, selectInput("y", "Y axis", c("count", "rate")))
-  ),
-  fluidRow(
-    column(4, tableOutput("diag")),
-    column(4, tableOutput("body_part")),
-    column(4, tableOutput("location"))
-  ),
-  fluidRow(
-    column(12, plotOutput("age_sex"))
-  ),
-  fluidRow(
-    column(2, actionButton("story", "Tell me a story")),
-    column(10, textOutput("narrative"))
-  )
-)
-
-server <- function(input, output, session) {
-  selected <- reactive(injuries %>% filter(prod_code == input$code))
-  
-  output$diag <- renderTable(count_top(selected(), diag), width = "100%")
-  output$body_part <- renderTable(count_top(selected(), body_part), width = "100%")
-  output$location <- renderTable(count_top(selected(), location), width = "100%")
-
-  summary <- reactive({
-    selected() %>% 
-      count(age, sex, wt = weight) %>% 
-      left_join(population, by = c("age", "sex")) %>% 
-      mutate(rate = n / population * 1e4)
-  })
-  
-  output$age_sex <- renderPlot({
-    if (input$y == "count") {
-      summary() %>% 
-        ggplot(aes(age, n, colour = sex)) + 
-        geom_line() + 
-        labs(y = "Estimated number of injuries")
-    } else {
-      summary() %>% 
-        ggplot(aes(age, rate, colour = sex)) + 
-        geom_line(na.rm = TRUE) + 
-        labs(y = "Injuries per 10,000 people")
-    }
-  })
-  
-  output$narrative <- renderText({
-    input$story
-    selected() %>% pull(narrative) %>% sample(1)
-  })
-}
+```{r, code = section_get("neiss/polish-tables.R", "tables"), eval = FALSE}
 ```
+
+I made one other change to improve the aesthetics of the app: I forced all tables to take up the maximum width (i.e. fill the column that they appear in). This makes the output more aesthetically pleasing because it reduces the amount of extraneous variaton.
+
+## Rate vs count
+
+So far, we're displaying only a single plot, but we'd like to give the user the choice between visualising the number or visualising the rate. This is a relatively simple change. 
+
+First I add a control to the UI. Here I've chosen to use a `selectInput()`. The primary advantage is that it makes both states explicit, and it would be easy to add new states in the future:
+
+```{r, code = section_get("neiss/rate-vs-count.R", "first-row"), eval = FALSE}
+```
+
+And then I condition on that input when generating the plot:
+
+```{r, code = section_get("neiss/rate-vs-count.R", "plot"), eval = FALSE}
+```
+
+## Narrative
+
+Finally, I want some way to access the narratives. This gives an informal way to cross-check the hypotheses I come up with for the patterns I see. In the R code, I sample multiple narratives but there's no reason to do that in an app since I can expose an interavtive control.
+
+There are two parts to the solution. First we create a new row in the UI (which I place at the end). I'll use an action button to trigger a new story:
+
+```{r, code = section_get("neiss/narrative.R", "narrative-ui"), eval = FALSE}
+```
+
+The result of an action button is an integer that increments each time it's clicked. Here I just use it to trigger a re-execution of the random selection:
+
+```{r, code = section_get("neiss/narrative.R", "narrative-server"), eval = FALSE}
+```
+
+(Exercise: rewrite with next and previous button that lets you step through randomly ordered stories/)

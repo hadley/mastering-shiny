@@ -149,7 +149,7 @@ resource_paths_get <- function() {
 
 section_get <- function(path, name) {
   lines <- vroom::vroom_lines(path)
-  start <- which(lines == paste0("#<< ", name))
+  start <- which(grepl(paste0("^\\s*#<< ", name), lines))
 
   if (length(start) == 0) {
     stop("Couldn't find '#<<", name, "'", call. = FALSE)
@@ -160,7 +160,7 @@ section_get <- function(path, name) {
 
   # need to build stack of #<< #>> so we can have nested components
 
-  end <- which(lines == "#>>")
+  end <- which(grepl("\\s*#>>", lines))
   end <- end[end > start]
 
   if (length(end) == 0) {
