@@ -100,6 +100,19 @@ testApp <- function(ui, server = NULL, ...) {
   shinytest::ShinyDriver$new(app_dir)
 }
 
+testAppFromFile <- function(path) {
+  dir <- dirname(path)
+  app <- file.path(dir, "app.R")
+  if (file.exists(app)) {
+    stop("app.R already exists in directory")
+  }
+
+  file.copy(path, app)
+  on.exit(unlink(app), add = TRUE)
+
+  shinytest::ShinyDriver$new(dir)
+}
+
 deployApp <- function(ui, server, name, deps = character()) {
   app_dir <- makeApp(ui, server, deps = deps)
   rsconnect::deployApp(app_dir, appName = name, server = "shinyapps.io")

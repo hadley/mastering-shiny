@@ -2,27 +2,26 @@
 
 ```{r include=FALSE}
 source("common.R")
+options(tibble.print_min = 6, tibble.print_max = 6)
 ```
 
 ## Introduction
 
-In the last three chapters, we've introduced you to a bunch of new concepts. To help them sink in, we'll now walk through how you might create a shiny app to facilitate the exploration of a datasets.
-
-In this chapter, we're going to supplement Shiny with the tidyverse and vroom packages.
+In the last three chapters, we've introduced you to a bunch of new concepts. To help them sink in, we'll now walk through a more realistic Shiny app that explores a fun dataset. We'll supplement Shiny with vroom (for fast file reading) and the tidyverse (for general data analysis).
 
 ```{r setup, message = FALSE}
-library(tidyverse)
-library(vroom)
 library(shiny)
+library(vroom)
+library(tidyverse)
 ```
 
 ## The data
 
-We're going to explore a year's worth of data from the Data from National Electronic Injury Surveillance System (NEISS). This is a long-term study that captures accidents from a representative probability sample of all hospitals in the United States. Collected by Consumer Product Safety Commission. 
+We're going to explore a year's worth (2017) of data from the Data from National Electronic Injury Surveillance System (NEISS). This is a long-term study that captures accidents from a representative probability sample of all hospitals in the United States. Collected by Consumer Product Safety Commission. It's an interesting dataset to explore because it's readily understandable, and each observation is accompanied by a short narrative that explains how the accident occured.
 
-You can find out more about this dataset at <https://github.com/hadley/neiss>, and see the code used to create this extract at <>.
+You can find out more about this dataset at <https://github.com/hadley/neiss>, and see the code used I used to create the extract for this chapter at <https://github.com/jcheng5/shiny-book/blob/master/neiss/data.R>. I carefully pruned the data to about 10 meg (compressed); this is easy to store in git (along with the rest of the book), and means we don't need to think about sophisticated strategies for importing the data quickly (which we'll come back to later in the book).
 
-The main dataset we'll look at is `injuries`:
+The main dataset we'll look at is `injuries`. This contains around 250,000 observations and 10 variables:
 
 ```{r, message = FALSE}
 injuries <- vroom::vroom("neiss/injuries.tsv.gz")
@@ -38,7 +37,7 @@ injuries
   would suffer this injury if scaled to the entire population of the US.
 * `narrative` is a brief story about how the accident occurred.
 
-We'll pair it with two other data frames for additional context: `products` lets us look up the product name from the produce code, and population tells us the total population of the US for each age and sex combination.
+We'll pair it with two other data frames for additional context: `products` lets us look up the product name from the produce code, and population tells us the total US population for each combination of age and sex.
 
 ```{r, message = FALSE}
 products <- vroom::vroom("neiss/products.tsv")
@@ -50,14 +49,14 @@ population
 
 ## Exploration
 
-Let's take a look at the product code associated with the most injuries - 1842, "stairs or steps". First we'll pull out just this subset of the data:
+Before we create the app, lets explore the data a little. We'll start by looking at the product associated with the most injuries: 1842, "stairs or steps". First we'll pull out the injuries associated with this product:
 
 ```{r}
 selected <- injuries %>% filter(prod_code == 1842)
 nrow(selected)
 ```
 
-And then perform some basic summaries - steps are most often associated with stairs, to the ankle, at home. Note that I'm weighting my counts with the `weight` variable: that allows us to interpret the counts as estimate number across the whole US.
+Next we'll perform some basic summaries looking at the diagnosis, body part, and location where the injury occured. Note that I weight by the `weight` variable so that the counts can be interpreted as estimated total injuries across the whole US.
 
 ```{r}
 selected %>% count(diag, wt = weight, sort = TRUE)
@@ -67,15 +66,17 @@ selected %>% count(body_part, wt = weight, sort = TRUE)
 selected %>% count(location, wt = weight, sort = TRUE)
 ```
 
+Not suprisingly, steps are most often associated with sprains and strains, of the ankle, at home.
+
 We can also explore the pattern across age and sex. Here I also standardise by population so we can get the estimate number of injuries per 10,000 people of that age-sex group.
 
 ```{r}
 summary <- selected %>% 
-  count(age, sex, wt = weight) %>% 
-  left_join(population, by = c("age", "sex")) %>% 
-  mutate(rate = n / population * 1e4)
+  count(age, sex, wt = weight)
 summary
 ```
+
+We have enough data here that a table is no longer an informative output, and instead a plot is better. Let's first look at the estimate total number of injuries:
 
 ```{r}
 summary %>% 
@@ -84,7 +85,18 @@ summary %>%
   labs(y = "Estimated number of injuries")
 ```
 
-Interestingly, the number of injuries is much higher for women.
+We see see a big spike when children are learning to walk, a flattening off over middle age, and then a gradual decline after age 50. Interestingly, the number of injuries is much higher for women.
+
+One problem with interpreting this pattern is that we know that people die, so that there are fewer people alive at old ages, so the population available to be injured in smaller. We can control for this by comparing the number of people injured with the total population and calculating an injury rate:
+
+```{r}
+summary <- selected %>% 
+  count(age, sex, wt = weight) %>% 
+  left_join(population, by = c("age", "sex")) %>% 
+  mutate(rate = n / population * 1e4)
+```
+
+This yields a strikingly different trend after age 50: (Note that the rates only go up to age 80; as I couldn't find population data for ages 80-100.)
 
 ```{r}
 summary %>% 
@@ -93,9 +105,9 @@ summary %>%
   labs(y = "Injuries per 10,000 people")
 ```
 
-There are three broad patterns here: there's a big spike when children are learning to walk, and roughly constant rate from 20 to 70, and then a gradual increase. This pair of plots shows why considering the rate is so important: the number of injuries to older people declines sharply, but that mostly reflects the fact that fewer people are alive. (Note that the rates only go up to age 80; I couldn't find population data for 80-100.)
+While the number of injuries goes down, the rate of injuries increases a lot.
 
-We can take a look at a random sample of the narratives to see if that holds true:
+Finally, we might want to a look at a random sample of the narratives. This might help us to confirm or refute our hypotheses:
 
 ```{r}
 selected %>% 
@@ -103,7 +115,7 @@ selected %>%
   pull(narrative)
 ```
 
-It would be very nice if we could easily do this exploration for each product code, without having to retype the code. So lets make a shiny app!
+Having done this analysis for one product, it would be be very nice if we could easily do it for other products, without having to retype the code. So lets make a Shiny app!
 
 ## Prototype
 
@@ -124,13 +136,11 @@ Note in this case `summary` isn't strictly necessary; because it's only used by 
 When prototyping, there's always a tension between doing the minimum amount of work, and planning for the future. Either extreme can be bad: if you design too narrowly, you'll spend a lot of time later on reworking your app; if you design to rigorously, you'll spend a bunch of time on code that later ends up on cutting floor. Getting the balance right is one of the skills of the software engineer, and there are few shortcuts.
 
 ```{r, eval = FALSE, include = FALSE}
-file.copy("neiss/prototype.R", "neiss/app.R")
-app <- shinytest::ShinyDriver$new("neiss")
+app <- testAppFromFile("neiss/prototype.R")
 app_screenshot(app, "basic-case-study/prototype", width = 800, height = 600)
-file.remove("neiss/app.R")
 ```
 ```{r, out.width = NULL, echo = FALSE}
-knitr::include_graphics("screenshots/basic-case-study/prototype.png")
+knitr::include_graphics("screenshots/basic-case-study/prototype.png", dpi = 72)
 ```
 
 Now that we have the basic components in place, and working, we can progressively improve our app. Below, I'll show the changes that I make at each point; you can find the complete source for each app at <https://github.com/jcheng5/shiny-book/tree/master/neiss>
@@ -162,6 +172,14 @@ I then use this in the server function:
 
 I made one other change to improve the aesthetics of the app: I forced all tables to take up the maximum width (i.e. fill the column that they appear in). This makes the output more aesthetically pleasing because it reduces the amount of extraneous variaton.
 
+```{r, eval = FALSE, include = FALSE}
+app <- testAppFromFile("neiss/polish-tables.R")
+app_screenshot(app, "basic-case-study/polish-tables", width = 800, height = 600)
+```
+```{r, out.width = NULL, echo = FALSE}
+knitr::include_graphics("screenshots/basic-case-study/polish-tables.png", dpi = 72)
+```
+
 ## Rate vs count
 
 So far, we're displaying only a single plot, but we'd like to give the user the choice between visualising the number or visualising the rate. This is a relatively simple change. 
@@ -174,6 +192,14 @@ First I add a control to the UI. Here I've chosen to use a `selectInput()`. The 
 And then I condition on that input when generating the plot:
 
 ```{r, code = section_get("neiss/rate-vs-count.R", "plot"), eval = FALSE}
+```
+
+```{r, eval = FALSE, include = FALSE}
+app <- testAppFromFile("neiss/rate-vs-count.R")
+app_screenshot(app, "basic-case-study/rate-vs-count", width = 800, height = 600)
+```
+```{r, out.width = NULL, echo = FALSE}
+knitr::include_graphics("screenshots/basic-case-study/rate-vs-count.png", dpi = 72)
 ```
 
 ## Narrative
@@ -191,3 +217,11 @@ The result of an action button is an integer that increments each time it's clic
 ```
 
 (Exercise: rewrite with next and previous button that lets you step through randomly ordered stories/)
+
+```{r, eval = FALSE, include = FALSE}
+app <- testAppFromFile("neiss/narrative.R")
+app_screenshot(app, "basic-case-study/narrative", width = 800, height = 600)
+```
+```{r, out.width = NULL, echo = FALSE}
+knitr::include_graphics("screenshots/basic-case-study/narrative.png", dpi = 72)
+```
