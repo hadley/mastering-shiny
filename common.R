@@ -4,10 +4,23 @@ library(shiny)
 knitr::opts_chunk$set(
   comment = "#>",
   collapse = TRUE,
-  cache = FALSE
+  cache = FALSE,
+  fig.retina = 0.8, # figures are either vectors or 300 dpi diagrams
+  dpi = 300,
+  out.width = "70%",
+  fig.align = 'center',
+  fig.width = 6,
+  fig.asp = 0.618,  # 1 / phi
+  fig.show = "hold"
 )
 
 options(digits = 3)
+
+if (knitr::is_latex_output()) {
+  knitr::opts_chunk$set(width = 69)
+  options(width = 69)
+}
+
 
 # Reactive console simulation  -------------------------------------------------
 # See discussion at https://github.com/rstudio/shiny/issues/2518
