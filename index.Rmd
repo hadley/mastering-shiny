@@ -13,6 +13,8 @@ github-repo: jcheng5/shiny-book
 description: "The official guide to the Shiny web application framework for R."
 ---
 
+`r if (knitr::is_latex_output()) '<!--'` 
+
 # Welcome {-}
 
 This is the online version of _Mastering Shiny_, a book **currently under early development** and intended for a late 2020 release by [O'Reilly Media](https://www.oreilly.com/).
@@ -33,3 +35,4 @@ This book is licensed to you under [Creative Commons Attribution-NonCommercial-S
 
 The code samples in this book are licensed under [Creative Commons CC0 1.0 Universal (CC0 1.0)](https://creativecommons.org/publicdomain/zero/1.0/), i.e. public domain.
 
+`r if (knitr::is_latex_output()) '-->'`
