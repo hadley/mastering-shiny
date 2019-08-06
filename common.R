@@ -17,10 +17,20 @@ knitr::opts_chunk$set(
 options(digits = 3)
 
 if (knitr::is_latex_output()) {
-  knitr::opts_chunk$set(width = 69)
-  options(width = 69)
+  knitr::opts_chunk$set(width = 63)
+  options(width = 63)
 }
 
+# Controls the size of automated shiny screenshots via app_screenshot().
+# I don't understand why these values need to be different, they've been
+# determined empirically.
+screenshot_dpi <- function() {
+  if (knitr::is_latex_output()) {
+    144
+  } else {
+    96
+  }
+}
 
 # Reactive console simulation  -------------------------------------------------
 # See discussion at https://github.com/rstudio/shiny/issues/2518
@@ -148,7 +158,7 @@ app_screenshot <- function(app, name, width = 600, height = NA) {
     app$takeScreenshot(path)
   }
 
-  knitr::include_graphics(path, dpi = 72)
+  knitr::include_graphics(path, dpi = screenshot_dpi())
 }
 
 app_height <- function(app) {

@@ -419,8 +419,8 @@ server <- function(input, output, server) {
 ```
 ```{r, echo = FALSE, out.width = NULL}
 app <- testApp(ui, server)
-app$expectUpdate("hist")
-app_screenshot(app, "basic-ui/sidebar", width = 800)
+Sys.sleep(0.5)
+app_screenshot(app, "basic-ui/sidebar", width = 600)
 ```
 
 ### Multi-row
@@ -485,7 +485,7 @@ theme_demo("sandstone")
 theme_demo("united")
 ```
 
-```{r, echo = FALSE, out.width = "45%", fig.show="hold"}
+```{r, echo = FALSE, out.width = "50%", fig.show="hold", fig.align='default'}
 ui_screenshot(theme_demo("darkly"), "basic-ui/theme-darkly")
 ui_screenshot(theme_demo("flatly"), "basic-ui/theme-flatly")
 ui_screenshot(theme_demo("sandstone"), "basic-ui/theme-sandstone")

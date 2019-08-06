@@ -147,7 +147,7 @@ server <- function(input, output, session) {
 
 It's hard to show exactly how this works in a book, but if you run the app, and type in the name box, you'll notice that the greeting updates automatically as you type[^debounce]:
 
-```{r, echo = FALSE, out.width = "25%", fig.show="hold"}
+```{r, echo = FALSE, out.width = "25%", fig.show="hold", fig.align = "default"}
 app <- testApp(ui, server)
 app_screenshot(app, "basic-reactivity/connection-1", width = 200)
 app$setInputs(name = "J")
