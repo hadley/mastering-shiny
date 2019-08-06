@@ -5,7 +5,8 @@ site: bookdown::bookdown_site
 output:
   - bookdown::gitbook
   - rmarkdown::md_document
-documentclass: book
+documentclass: scrbook
+classoption: oneside
 bibliography: [book.bib, packages.bib]
 biblio-style: apalike
 link-citations: yes

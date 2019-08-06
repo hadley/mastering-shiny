@@ -17,8 +17,8 @@ knitr::opts_chunk$set(
 options(digits = 3)
 
 if (knitr::is_latex_output()) {
-  knitr::opts_chunk$set(width = 63)
-  options(width = 63)
+  knitr::opts_chunk$set(width = 70)
+  options(width = 70)
 }
 
 # Controls the size of automated shiny screenshots via app_screenshot().
@@ -26,7 +26,7 @@ if (knitr::is_latex_output()) {
 # determined empirically.
 screenshot_dpi <- function() {
   if (knitr::is_latex_output()) {
-    144
+    120
   } else {
     96
   }

@@ -283,8 +283,8 @@ server <- function(input, output, session) {
   output$dynamic <- renderDataTable(mtcars, options = list(pageLength = 5))
 }
 ```
-```{r, echo = FALSE, out.width = NULL}
-app_screenshot(testApp(ui, server), "basic-ui/output-table")
+```{r, echo = FALSE, out.width = "100%"}
+app_screenshot(testApp(ui, server), "basic-ui/output-table", width = 800)
 ```
 
 ### Plots
@@ -417,10 +417,10 @@ server <- function(input, output, server) {
   })
 }
 ```
-```{r, echo = FALSE, out.width = NULL}
+```{r, echo = FALSE, out.width = "100%"}
 app <- testApp(ui, server)
 Sys.sleep(0.5)
-app_screenshot(app, "basic-ui/sidebar", width = 600)
+app_screenshot(app, "basic-ui/sidebar", width = 800)
 ```
 
 ### Multi-row

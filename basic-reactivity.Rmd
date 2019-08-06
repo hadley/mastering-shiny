@@ -361,7 +361,7 @@ ui <- fluidPage(
   )
 )
 ```
-```{r, echo = FALSE, out.width = NULL}
+```{r, echo = FALSE, out.width = "100%"}
 ui_screenshot(ui, "basic-reactivity/case-study-1", width = 800, height = 300)
 ```
 
@@ -528,7 +528,7 @@ server <- function(input, output, session) {
   })
 }
 ```
-```{r, echo = FALSE, out.width = NULL}
+```{r, echo = FALSE, out.width = "100%"}
 app_screenshot(
   testApp(ui, server, deps = "ggplot2"), 
   "basic-reactivity/simulation-2", 
