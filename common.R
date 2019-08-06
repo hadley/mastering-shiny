@@ -97,7 +97,7 @@ makeApp <- function(ui, server = NULL, app_dir = tempfile(), deps = character())
   saveRDS(server, file.path(app_dir, "server.rds"))
   saveRDS(resource_paths_get(), file.path(app_dir, "resources.rds"))
 
-  deps <- lapply(rlang::syms(deps), function(dep) expr(library(!!dep)))
+  deps <- lapply(rlang::syms(deps), function(dep) rlang::expr(library(!!dep)))
 
   app <- rlang::expr({
     library(shiny)
