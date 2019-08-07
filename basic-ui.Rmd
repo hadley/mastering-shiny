@@ -265,8 +265,8 @@ ui <- fluidPage(
   verbatimTextOutput("code")
 )
 server <- function(input, output, session) {
-  output$text <- renderText("Hello friend!")
-  output$code <- renderPrint(summary(1:10))
+  output$text <- renderText({ "Hello friend!" })
+  output$code <- renderPrint({ summary(1:10) })
 }
 ```
 ```{r, echo = FALSE, out.width = NULL}
@@ -328,13 +328,19 @@ ui <- fluidPage(
   dataTableOutput("dynamic")
 )
 server <- function(input, output, session) {
-  output$static <- renderTable(head(mtcars))
-  output$dynamic <- renderDataTable(mtcars, options = list(pageLength = 5))
+  output$static <- renderTable({ head(mtcars) })
+  output$dynamic <- renderDataTable({ mtcars }, options = list(pageLength = 5))
 }
 ```
 ```{r, echo = FALSE, out.width = "100%"}
 app_screenshot(testApp(ui, server), "basic-ui/output-table", width = 800)
 ```
+
+<!-- MCR: The following language could use some (lots of) love, but saying something about curly braces here makes sense since we have the options defined outside of them.
+
+Note that in the `renderDataTable()` function above we used curly braces around the expression that is being rendered. When the expression only spans one line of code, these curly braces are not required. However the code needed to develop the expression for the object to be rendered could also span multiple lines of code. Curly braces help define the complete expression, even if it spans multiple lines of code.
+
+-->
 
 ### Plots
 
@@ -345,7 +351,7 @@ ui <- fluidPage(
   plotOutput("plot", width = "400px")
 )
 server <- function(input, output, session) {
-  output$plot <- renderPlot(plot(1:5))
+  output$plot <- renderPlot({ plot(1:5) })
 }
 ```
 ```{r, echo = FALSE, out.width = NULL}
