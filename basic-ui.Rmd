@@ -177,7 +177,8 @@ ui <- fluidPage(
   varSelectInput("variable", "Select a variable", mtcars)
 )
 ```
-```{r, echo = FALSE, out.width = NULL}
+```{r, echo = FALSE, out.width = NULL, eval=FALSE}
+# Should be eval=TRUE if included
 ui_screenshot(ui, "basic-ui/var-select")
 ```
 

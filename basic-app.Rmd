@@ -211,7 +211,9 @@ We'll come back to reactive programming multiple times, but even armed with a cu
 
 TODO
 
-<!-- MCR: Some ideas for exercises
+<!-- 
+
+MCR: Some ideas for exercises. eval=FALSE in code chunks to prevent them from running.
 
 1. Suppose your friend wants to design an app that allows the user to set a number (`x`) between 1 and 50, and displays the result of multiplying this number by 5. Their code is shown below.
 
@@ -244,7 +246,8 @@ shinyApp(ui, server)
 
 Unfortunately the app isn't working as intended, and yields the following result:
 
-```{r, echo = FALSE, out.width = NULL}
+```{r, echo = FALSE, out.width = NULL, eval=FALSE}
+# Should be eval=TRUE if used in the book
 ui <- fluidPage(
   
   sliderInput(inputId = "x", 
@@ -274,7 +277,8 @@ How would you fix the app code to fulfill the app's desired functionality?
 
 (2) Extend the app from the previous exercise to allow the user to set the value of the multiplier, `y`, so that the app yields the value of `x * y`. The final resul should like something like the following:
 
-```{r, echo = FALSE, out.width = NULL}
+```{r, echo = FALSE, out.width = NULL, eval=FALSE}
+# Should be eval=TRUE if used in the book
 ui <- fluidPage(
   
   sliderInput(inputId = "x", 
@@ -357,7 +361,7 @@ shinyApp(ui, server)
 
 (4) The following app is very similar to one you've seen earlier in the chapter: you select a dataset from a package (this time we're using the HistData package) and prints out a summary and plot of the data. It also follows good practice, and makes use of reactive expressions to avoid redundancy of code. However there is a bug in the code provided below. Can you spot and correct the bug? (Note: Could also show a screenshot here...)
 
-```{r}
+```{r eval=FALSE}
 library(shiny)
 library(HistData)
 
