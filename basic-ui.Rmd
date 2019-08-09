@@ -134,8 +134,6 @@ ui <- fluidPage(
 ui_screenshot(ui, "basic-ui/radio-icon")
 ```
 
-<!-- MCR: The screenshot is quite small, making it hard to tell the icons apart on the rendered book. -->
-
 Dropdowns created with `selectInput()` take up the same amount of space, regardless of the number of options, making them more suitable for longer options. You can also set `multiple = TRUE` to allow the user to select multiple elements from the list of possible values.
 
 ```{r}
@@ -168,21 +166,23 @@ ui <- fluidPage(
 ui_screenshot(ui, "basic-ui/multi-radio")
 ```
 
-<!-- MCR: I think it's worth mentioning varSelectInput() so people don't try to re-engineer it. For example...
-
-Sometimes you want the user to select variables from a data frame to be used in summary, plot, etc. outputs. You can use the `varSelectInput()` for this.
+Sometimes you want the user to select variables from a data frame to be used in 
+summary, plot, etc. outputs. You can use the `varSelectInput()` for this.
 
 ```{r}
 ui <- fluidPage(
   varSelectInput("variable", "Select a variable", mtcars)
 )
 ```
-```{r, echo = FALSE, out.width = NULL, eval=FALSE}
-# Should be eval=TRUE if included
+```{r, echo = FALSE, out.width = NULL}
 ui_screenshot(ui, "basic-ui/var-select")
 ```
 
-Or if you think it's too complicated for this stage, a sentence like "We will see an example of this in Chapter XYZ." could be added instead of the example. This example isn't complicated, but the server side of this input is more so... -->
+Note that the result of `varSelectInput()` is different than selecting a 
+variable name from a character vector of names of variables -- it yields a 
+symbol (or a list of symbols if `multiple = TRUE`) that can be used in 
+conjunction with tidy evaluation. Chapter XYZ goes further into this topic and 
+presents examples of server function code that can be used with this widget.
 
 ### Yes/no questions
 
@@ -224,10 +224,10 @@ We'll come back to two input controls in later chapters:
 1.  Carefully read the documentation for `sliderInput()` to figure out how to 
     create a date slider, as shown below.
 
-    ```{r, echo = FALSE, out.width = NULL}
+    ```{r, echo = FALSE, out.width = NULL, message=FALSE}
     today <- Sys.Date()
     ui <- fluidPage(
-      sliderInput("delivery", "When should we deliver?", today, min = today, max = today + 7, step = 1, round = TRUE)
+      sliderInput("delivery", "When should we deliver?", today, min = today, max = today + 7, value = today + 1, step = 1, round = TRUE)
     )
     ui_screenshot(ui, "basic-ui/date-slider")
     ```
@@ -235,20 +235,19 @@ We'll come back to two input controls in later chapters:
 1.  If you have a moderately long list, it's useful to create sub-headings that
     break the list up into pieces. Read the documentation for `selectInput()` 
     to figure out how. (Hint: the underlying HTML is called `<optgroup>`.)
-    
-<!-- 
 
-MCR: Couple more exercises.
+1.  Create a slider input to select values between 0 and 100 where the interval 
+    between each selctable value on the slider is 5. Then, add animation to the 
+    input widget so when the user presses play the input widget scrolls through 
+    automatically.
 
-1.  Create a slider input to select values between 0 and 100 where the interval between each selctable value on the slider is 5. Then, add animation to the input widget so when the user presses play the input widget scrolls through automatically.
-
-1.  Using the following numeric input box the user can enter any value between 0 and 1000. What is the purpose of the step argument in this widget?
+1.  Using the following numeric input box the user can enter any value between 
+    0 and 1000. What is the purpose of the step argument in this widget?
 
 ```{r eval=FALSE}
 numericInput("number", "Select a value", min = 0, max = 1000, step = 50)
 ```
 
--->
   
 ## Outputs {#outputs}
 
@@ -266,8 +265,12 @@ ui <- fluidPage(
   verbatimTextOutput("code")
 )
 server <- function(input, output, session) {
-  output$text <- renderText({ "Hello friend!" })
-  output$code <- renderPrint({ summary(1:10) })
+  output$text <- renderText({ 
+    "Hello friend!" 
+    })
+  output$code <- renderPrint({ 
+    summary(1:10) 
+    })
 }
 ```
 ```{r, echo = FALSE, out.width = NULL}
@@ -279,9 +282,7 @@ Note that there are two render functions that can be used with either of the tex
 * `renderText()` which displays text _returned_ by the code.
 * `renderPrint()` which displays text _printed_ by the code.
 
-To help understand the difference, examine the following function. It prints `a` and `b`, and returns `c`:
-
-<!-- MCR: How about quoting c? So it reads, 'returns `"c"`' -->
+To help understand the difference, examine the following function. It prints `a` and `b`, and returns `"c"`:
 
 ```{r}
 print_and_return <- function() {
@@ -290,17 +291,9 @@ print_and_return <- function() {
   print("c")
 }
 print_and_return()
-```
-
-<!-- 
-
-MCR: I think this point could be more more clear by adding the following to the code chunk above.
-
 x <- print_and_return()
 x 
-
--->
-
+```
 
 Note that a function can print multiple things, but can only return a single value.
 
@@ -316,12 +309,6 @@ There are two options for displaying data frames in tables:
   see more.
   
 `tableOutput()` is most useful for small, fixed summaries (e.g. model coefficients); `dataTableOutput()` is most appropriate if you want to expose a complete data frame to the user.
-
-<!--
-
-MCR: Do you want to go into the whole server/client side tables thing and how DT package allows for that? If so, a rephrasing of the note from the dataTableOutput() docs might be good enough to make that point. I don't think it's necessary, but people do ask about the DT package since it shows up in many examples in the wild.
-
--->
   
 ```{r}
 ui <- fluidPage(
@@ -337,9 +324,9 @@ server <- function(input, output, session) {
 app_screenshot(testApp(ui, server), "basic-ui/output-table", width = 800)
 ```
 
-<!-- MCR: The following language could use some (lots of) love, but saying something about curly braces here makes sense since we have the options defined outside of them.
+<!-- MCR: I suggest the following language to be added here, since it seems like a good opportunity to go discuss the purpose of curly braces.
 
-Note that in the `renderDataTable()` function above we used curly braces around the expression that is being rendered. When the expression only spans one line of code, these curly braces are not required. However the code needed to develop the expression for the object to be rendered could also span multiple lines of code. Curly braces help define the complete expression, even if it spans multiple lines of code.
+Note that in the `renderDataTable()` function above we used curly braces around the first argument, the expression being rendered -- `mtcars`, and `options` is an additional argument we pass to `renderDataTable(). The curly braces are optional in this scenario since the expression is a single line, but in situations where you need multiple lines of code to develop the expression to be rendered, the curly braces help define the complete expression.
 
 -->
 
@@ -365,13 +352,21 @@ Plots are special because they can also act as inputs. `plotOutput()` has a numb
 
 ### Exercises
 
-<!-- MCR: Exercise suggestions
+1.  Re-create the Shiny app from the plots section, this time setting height to 
+    300px and width to 700px.
 
-1.  Re-create the Shiny app from the plots section, this time setting height to 300px and width to 700px.
+1.  Update the options for `renderDataTable()` below so that the table is 
+    displayed, but nothing else. Reviewing the options 
+    at https://datatables.net/reference/option/ might be helpful.
 
-1.  Something about renderDataTable() options, but simple...
-
--->
+    ```{r eval=FALSE}
+    ui <- fluidPage(
+      dataTableOutput("table")
+    )
+    server <- function(input, output, session) {
+      output$table <- renderDataTable({ mtcars }, options = list(pageLength = 5))
+    }
+    ```
 
 ## Layouts {#layout}
 
@@ -559,15 +554,18 @@ As you can see, theming your app is quite straightforward: you just need to use 
 
 ### Exercises
 
+
+1.  Update the Central Limit Theorem app presented in the chapter so that the 
+    sidebar is on the right instead of the left.
+    
+1.  Browse the themes available in the shinythemes package, and update the theme 
+    of the app from the previous exercise.
+
 <!--
 
 MCR: Exercise ideas
 
-1.  Move the sidebar to the right in sidebarLayout()
-
-2.  A sample app where some commas are missing betweem layout elements
-
-3.  Change the theme of an app from an earlier exercise in the book
+1.  A sample app where some commas are missing between layout elements
 
 -->
 

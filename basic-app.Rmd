@@ -33,8 +33,6 @@ server <- function(input, output, session) {
 shinyApp(ui, server)
 ```
 
-<-- MCR: Was it a conscious decision to include the session parameter in the server function? This is omitted in other intro learning materials and articles, and is introduced later when relevant. If the book will take the approach of exposing it earlier, it might be worthwhile to align other learning content too. -->
-
 This is a complete, if trivial, Shiny app. Looking closely at the code above, our `app.R` does four things:
 
 1.  Calls `library(shiny)` to load the shiny package.
@@ -159,9 +157,7 @@ output$IDENTIFIER <- renderTYPE({
 
 The left-hand side of the assignment operator (`<-`), `output$IDENTIFIER`, indicates that you're providing the recipe for the Shiny output with the matching ID. The right-hand side of the assignment specifies uses a specific *render function* to wrap a code block that you provide; in the example above, we use `renderPrint` and `renderTable` wrap our app-specific logic. 
 
-Each `renderXXX` function is designed to work with a particular type of output that's passed to an `xxxOutput` function. In this case, we're using `renderPrint()` to capture and display the outut from `summary()` output, and `renderTable()` to display the actual data frame in a table.
-
-<!-- MCR: Should it be XXXOutput to match renderXXX, or is lower case because the function name starts with lower case? I like using *, even with people who might not know about what the * symbol means for string matching. -->
+Each `render*` function is designed to work with a particular type of output that's passed to an `*Output` function. In this case, we're using `renderPrint()` to capture and display the outut from `summary()` output, and `renderTable()` to display the actual data frame in a table.
 
 Run the app again and play around, watching what happens to the output when you change an input.
 
@@ -209,45 +205,11 @@ We'll come back to reactive programming multiple times, but even armed with a cu
 
 ## Exercises
 
-TODO
+1.  Suppose your friend wants to design an app that allows the user to set a number (`x`) 
+    between 1 and 50, and displays the result of multiplying this number by 5. Their 
+    first attempt has a functional slider, but yields the following error:
 
-<!-- 
-
-MCR: Some ideas for exercises. eval=FALSE in code chunks to prevent them from running.
-
-1. Suppose your friend wants to design an app that allows the user to set a number (`x`) between 1 and 50, and displays the result of multiplying this number by 5. Their code is shown below.
-
-```{r eval=FALSE}
-library(shiny)
-
-ui <- fluidPage(
-
-  sliderInput(inputId = "x", 
-              label = "If x is", 
-              min = 1, max = 50, 
-              value = 30),
-  
-  "then, x multipled by 5 is",
-    
-  textOutput("product")
-  
-)
-
-server <- function(input, output, session) {
-
-  output$product <- renderText({ 
-    x * 5
-  })
-
-}
-
-shinyApp(ui, server)
-```
-
-Unfortunately the app isn't working as intended, and yields the following result:
-
-```{r, echo = FALSE, out.width = NULL, eval=FALSE}
-# Should be eval=TRUE if used in the book
+```{r, echo = FALSE, out.width = NULL}
 ui <- fluidPage(
   
   sliderInput(inputId = "x", 
@@ -271,14 +233,33 @@ server <- function(input, output, session) {
 
 app <- testApp(ui, server)
 app_screenshot(app, "basic-app/ex-x-times-5")
+``` 
+   
+   The UI and the server code of their app is given below. Can you help them 
+   catch and correct the error?
+
+```{r eval=FALSE}
+ui <- fluidPage(
+  sliderInput(inputId = "x", 
+              label = "If x is", 
+              min = 1, max = 50, 
+              value = 30),
+  "then, x multipled by 5 is",
+  textOutput("product")
+)
+
+server <- function(input, output, session) {
+  output$product <- renderText({ 
+    x * 5
+  })
+}
 ```
 
-How would you fix the app code to fulfill the app's desired functionality?
+1.  Extend the app from the previous exercise to allow the user to set the value of the 
+    multiplier, `y`, so that the app yields the value of `x * y`. The final resul should 
+    like the following.
 
-(2) Extend the app from the previous exercise to allow the user to set the value of the multiplier, `y`, so that the app yields the value of `x * y`. The final resul should like something like the following:
-
-```{r, echo = FALSE, out.width = NULL, eval=FALSE}
-# Should be eval=TRUE if used in the book
+```{r, echo = FALSE, out.width = NULL}
 ui <- fluidPage(
   
   sliderInput(inputId = "x", 
@@ -309,66 +290,50 @@ app <- testApp(ui, server)
 app_screenshot(app, "basic-app/ex-x-times-y")
 ```
 
-(3) Enhance the following app using reactive expressions to avoid redundancy in calculating the value of `product`.
+1.  Replace the UI and server components of your app from the previous exercise 
+    with the UI and server components below, run the app, and describe the app's 
+    functionality. Then, enhance the code with the use of reactive expressions 
+    to avoid redundancy.
 
 ```{r eval=FALSE}
-library(shiny)
-
 ui <- fluidPage(
-  
-  sliderInput(inputId = "x", 
-              label = "If x is", 
-              min = 1, max = 50, 
-              value = 30),
-
-  sliderInput(inputId = "y", 
-              label = "and y is", 
-              min = 1, max = 50, 
-              value = 5),
-  
-  "then, (x * y) is",
-  textOutput("product"), br(),
-  
-  "and, (x * y) + 5 is",
-  textOutput("product_plus5"), br(),
-  
-  "and (x * y) + 10 is",
-  textOutput("product_plus10")
-  
+  sliderInput(inputId = "x", label = "If x is", 
+              min = 1, max = 50, value = 30),
+  sliderInput(inputId = "y", label = "and y is", 
+              min = 1, max = 50, value = 5),
+  "then, (x * y) is", textOutput("product"),
+  "and, (x * y) + 5 is", textOutput("product_plus5"),
+  "and (x * y) + 10 is", textOutput("product_plus10")
 )
 
 server <- function(input, output, session) {
-  
   output$product <- renderText({ 
     product <- input$x * input$y
     product
   })
-  
   output$product_plus5 <- renderText({ 
     product <- input$x * input$y
     product + 5
   })
-  
   output$product_plus10 <- renderText({ 
     product <- input$x * input$y
     product + 10
   })
-  
 }
-
-shinyApp(ui, server)
 ```
 
-(4) The following app is very similar to one you've seen earlier in the chapter: you select a dataset from a package (this time we're using the HistData package) and prints out a summary and plot of the data. It also follows good practice, and makes use of reactive expressions to avoid redundancy of code. However there is a bug in the code provided below. Can you spot and correct the bug? (Note: Could also show a screenshot here...)
+1.  The following app is very similar to one you've seen earlier in the chapter: 
+    you select a dataset from a package (this time we're using the **HistData** package) 
+    and the app prints out a summary and plot of the data. It also follows good 
+    practice and makes use of reactive expressions to avoid redundancy of code. 
+    However there is a bug in the code provided below. Can you spot and correct the bug?
 
 ```{r eval=FALSE}
 library(shiny)
 library(HistData)
 
 ui <- fluidPage(
-  selectInput("dataset", label = "Dataset",
-              choices = ls("package:HistData")
-  ),
+  selectInput(inputId = "dataset", label = "Dataset", choices = ls("package:HistData")),
   verbatimTextOutput("summary"),
   plotOutput("plot")
 )
@@ -377,11 +342,9 @@ server <- function(input, output, session) {
   dataset <- reactive({
     get(input$dataset, "package:HistData", inherits = FALSE)
   })
-  
   output$summary <- renderPrint({
     summary(dataset)
   })
-  
   output$plot <- renderPlot({
     plot(dataset)
   })
@@ -389,5 +352,3 @@ server <- function(input, output, session) {
 
 shinyApp(ui, server)
 ```
-
--->
