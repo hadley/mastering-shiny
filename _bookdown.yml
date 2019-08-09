@@ -9,7 +9,9 @@ rmd_files:
   [
     "index.Rmd",
 
-    "getting-started.Rmd",
+    "introduction.Rmd",
+
+    "basic.Rmd",
     "basic-app.Rmd",
     "basic-ui.Rmd",
     "basic-reactivity.Rmd",
