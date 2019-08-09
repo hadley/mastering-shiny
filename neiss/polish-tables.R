@@ -53,7 +53,8 @@ server <- function(input, output, session) {
     summary() %>%
       ggplot(aes(age, n, colour = sex)) +
       geom_line() +
-      labs(y = "Estimated number of injuries")
+      labs(y = "Estimated number of injuries") +
+      theme_grey(15)
   })
 }
 
