@@ -16,6 +16,8 @@ knitr::opts_chunk$set(
 
 options(digits = 3)
 
+# In final book can go up to 81
+# http://oreillymedia.github.io/production-resources/styleguide/#code
 if (knitr::is_latex_output()) {
   knitr::opts_chunk$set(width = 70)
   options(width = 70)
