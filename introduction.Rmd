@@ -1,10 +1,8 @@
-# (PART\*) Getting started {-}
+# Introduction
 
 ```{r include = FALSE}
 source("common.R")
 ```
-
-# Introduction
 
 ## What you will learn
 
