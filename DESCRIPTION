@@ -4,6 +4,7 @@ Version: 0.0.1
 Imports: 
     bookdown, 
     dplyr,
+    HistData,
     magrittr,
     lubridate,
     ggplot2,
