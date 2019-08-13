@@ -7,7 +7,7 @@ bookdown::gitbook:
       collapse: section
       before: |
         <li><a href="./">Mastering Shiny</a></li>
-    edit: https://github.com/jcheng5/shiny-book/edit/master/%s
+    edit: https://github.com/hadley/mastering-shiny/edit/master/%s
     download: ["pdf", "epub"]
     sharing: no
 bookdown::pdf_book:
