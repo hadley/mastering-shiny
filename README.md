@@ -1,5 +1,5 @@
 <!-- badges: start -->
-[![Travis build status](https://travis-ci.org/jcheng5/shiny-book.svg?branch=master)](https://travis-ci.org/jcheng5/shiny-book)
+[![Travis build status](https://travis-ci.org/hadley/mastering-shiny.svg?branch=master)](https://travis-ci.org/hadley/mastering-shiny)
 <!-- badges: end -->
 
 This is the work-in-progress repo for the book _Mastering Shiny_ by Hadley Wickham.
