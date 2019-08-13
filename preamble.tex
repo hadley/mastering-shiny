@@ -6,3 +6,20 @@
   \thm@postskip=\thm@preskip
 }
 \makeatother
+
+% Match code width in O'Reilly books
+\setmonofont[Mapping=tex-ansi]{Inconsolata}
+\usepackage{anyfontsize}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\},fontsize=\fontsize{10.5}{11}\selectfont}
+
+% box drawing characters
+% <https://tex.stackexchange.com/a/333210/6444>
+\usepackage{newunicodechar}
+\newfontfamily{\fallbackfont}{Andale Mono}
+\DeclareTextFontCommand{\textfallback}{\fallbackfont}
+\newunicodechar{█}{\textfallback{█}}
+\newunicodechar{└}{\textfallback{└}}
+\newunicodechar{─}{\textfallback{─}}
+\newunicodechar{├}{\textfallback{├}}
+\newunicodechar{│}{\textfallback{│}}
+
