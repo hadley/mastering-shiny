@@ -4,9 +4,13 @@
 source("common.R")
 ```
 
+## What is Shiny?
+
 ## What you will learn
 
-If you've never used Shiny before, welcome! The first part of the book, "Getting started", is designed to get you up and running with Shiny as quickly as possible. This is pretty quick, because Shiny is carefully designed to let you get started writing apps as quickly as possible. We'll teach you a few recipes to follow that let you turn your existing R code into basic apps by wrapping key bits of code in `reactive({...})` or `renderXXX({...})`.
+If you've never used Shiny before, welcome! 
+
+The first part of the book, "Getting started", is designed to get you up and running with Shiny as quickly as possible. This is pretty quick, because Shiny is carefully designed to let you get started writing apps as quickly as possible. We'll teach you a few recipes to follow that let you turn your existing R code into basic apps by wrapping key bits of code in `reactive({...})` or `renderXXX({...})`.
 
 In "Shiny in Action", you'll learn a bunch of common patterns for building Shiny apps.
 
