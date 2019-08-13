@@ -58,7 +58,7 @@ This book is heavy on code, and we will often use other R packages in our exampl
 install.packages(c("magrittr", "lubridate", "readr", "dplyr", "ggplot2", "gt"))
 ```
 
-TODO: Update this list before final draft; see [DESCRIPTION](https://github.com/jcheng5/shiny-book/blob/master/DESCRIPTION) for the definitive list.
+TODO: Update this list before final draft; see [DESCRIPTION](https://github.com/hadley/mastering-shiny/blob/master/DESCRIPTION) for the definitive list.
 
 ## Cheat sheet
 
@@ -74,7 +74,7 @@ Creating the smallest possible reprex is particularly important for Shiny apps, 
 
 ## Acknowledgements
 
-This book was written in [bookdown](http://bookdown.org/) inside [RStudio](http://www.rstudio.com/ide/). The [website](http://mastering-shiny.org/) is hosted with [netlify](http://netlify.com/), and automatically updated after every commit by [travis-ci](https://travis-ci.org/). The complete source is available from [GitHub](https://github.com/jcheng/shiny-book). 
+This book was written in [bookdown](http://bookdown.org/) inside [RStudio](http://www.rstudio.com/ide/). The [website](http://mastering-shiny.org/) is hosted with [netlify](http://netlify.com/), and automatically updated after every commit by [travis-ci](https://travis-ci.org/). The complete source is available from [GitHub](https://github.com/hadley/mastering-shiny). 
 
 ```{r, echo = FALSE}
 ruler <- function(width = getOption("width")) {

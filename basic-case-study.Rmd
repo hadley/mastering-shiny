@@ -21,7 +21,7 @@ library(tidyverse)
 
 We're going to explore data from the Data from the National Electronic Injury Surveillance System (NEISS) that's collected by Consumer Product Safety Commission. This is a long-term study that records all accidents seen in a representative sample of hospitals in the United States. It's an interesting dataset to explore because it's readily understandable, tisstand each observation is accompanied by a short narrative that explains how the accident occured.
 
-In this chapter, I'm going to focus on just the data from 2017. This keeps the data small enough (~10 meg) that it's easy to store in git (along with the rest of the book), eans we don't need to think about sophisticated strategies for importing the data quickly (which we'll come back to later in the book). You can find out more about this dataset at <https://github.com/hadley/neiss>, and see the code used I used to create the extract for this chapter at <https://github.com/jcheng5/shiny-book/blob/master/neiss/data.R>.
+In this chapter, I'm going to focus on just the data from 2017. This keeps the data small enough (~10 meg) that it's easy to store in git (along with the rest of the book), eans we don't need to think about sophisticated strategies for importing the data quickly (which we'll come back to later in the book). You can find out more about this dataset at <https://github.com/hadley/neiss>, and see the code used I used to create the extract for this chapter at <https://github.com/hadley/mastering-shiny/blob/master/neiss/data.R>.
 
 The main dataset we'll use is `injuries`. This contains around 250,000 observations and 10 variables:
 
@@ -152,7 +152,7 @@ The server function relatively straghtforward: I convert the `selected` and `sum
 
 Note in this case `summary` isn't strictly necessary; because it's only used by a single reactive consumer. But it's good practice to keep computing and plotting separate as it makes the flow of the app easier to understand, and will make it easier to generalise in the future.
 
-A screenshot of resulting app is shown in Figure \@ref(fig:prototype). You can find the source code at <https://github.com/jcheng5/shiny-book/tree/master/neiss>, and try out a live version of the app at XYZ.
+A screenshot of resulting app is shown in Figure \@ref(fig:prototype). You can find the source code at <https://github.com/hadley/mastering-shiny/tree/master/neiss>, and try out a live version of the app at XYZ.
 
 ```{r, eval = FALSE, include = FALSE}
 app <- testAppFromFile("neiss/prototype.R")
