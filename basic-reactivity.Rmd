@@ -236,7 +236,7 @@ We don't need a reactive expression in our very simple app, but I'll add one any
 
 ```{r}
 server <- function(input, output, session) {
-  text <- reactive(paste0("Hello ", input$name, "!"))
+  label <- reactive(paste0("Hello ", input$name, "!"))
   output$greeting <- renderText(text())
 }
 ```
@@ -253,7 +253,7 @@ It's important to understand the order in which your code is run is determined s
 ```{r}
 server <- function(input, output, session) {
   output$greeting <- renderText(text())
-  text <- reactive(paste0("Hello ", input$name, "!"))
+  label <- reactive(paste0("Hello ", input$name, "!"))
 }
 ```
 
@@ -416,7 +416,7 @@ You'll notice that the graph is very dense: almost every input is connected dire
   
 * The app is inefficient because it does more work than necessary. For example,
   if you change the breaks of the plot, the data is recalculated; if you 
-  change the value of `n_1`, `x2` is updated (in two places!). 
+  change the value of `n1`, `x2` is updated (in two places!). 
   
 There's one other major flaw in the app: the histogram and t-test use separate random draws. This is rather misleading, as you'd expect them to be working on the same underlying data. Fortunately, we can fix all these problems by using reactive expressions to pull out repeated computation.
 
@@ -426,8 +426,8 @@ In the server function below we refactor the existing code to pull out the repea
 
 ```{r}
 server <- function(input, output, session) {
-  x1 <- reactive(rnorm(input$n_1, input$mean_1, input$sd_1))
-  x2 <- reactive(rnorm(input$n_2, input$mean_2, input$sd_2))
+  x1 <- reactive(rnorm(input$n1, input$mean1, input$sd1))
+  x2 <- reactive(rnorm(input$n2, input$mean2, input$sd2))
 
   output$hist <- renderPlot({
     histogram(x1(), x2(), binwidth = input$binwidth, xlim = input$range)
@@ -484,8 +484,8 @@ If you try and use a function, the app will work:
 
 ```{r}
 server <- function(input, output, session) { 
-  x1 <- function() rnorm(input$n_1, input$mean_1, input$sd_1)
-  x2 <- function() rnorm(input$n_2, input$mean_2, input$sd_2)
+  x1 <- function() rnorm(input$n1, input$mean1, input$sd1)
+  x2 <- function() rnorm(input$n2, input$mean2, input$sd2)
 
   output$hist <- renderPlot({
     histogram(x1(), x2(), binwidth = input$binwidth, xlim = input$range)
