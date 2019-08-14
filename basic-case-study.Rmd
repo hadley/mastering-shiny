@@ -97,7 +97,7 @@ summary %>%
   labs(y = "Estimated number of injuries")
 ```
 
-We see see a big spike when children are learning to walk, a flattening off over middle age, and then a gradual decline after age 50. Interestingly, the number of injuries is much higher for women.
+We see a big spike when children are learning to walk, a flattening off over middle age, and then a gradual decline after age 50. Interestingly, the number of injuries is much higher for women.
 
 One problem with interpreting this pattern is that we know that there are fewer older people than younger people, so the population available to be injured in smaller. We can control for this by comparing the number of people injured with the total population and calculating an injury rate. Here I use a rate per 10,000 because that gives a number that's easy to interpret.
 
