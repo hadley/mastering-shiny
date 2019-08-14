@@ -255,7 +255,7 @@ server <- function(input, output, session) {
 }
 ```
 
-2.  Extend the app from the previous exercise to allow the user to set the value of the 
+1.  Extend the app from the previous exercise to allow the user to set the value of the 
     multiplier, `y`, so that the app yields the value of `x * y`. The final resul should 
     like the following.
 
@@ -290,7 +290,7 @@ app <- testApp(ui, server)
 app_screenshot(app, "basic-app/ex-x-times-y")
 ```
 
-3.  Replace the UI and server components of your app from the previous exercise 
+1.  Replace the UI and server components of your app from the previous exercise 
     with the UI and server components below, run the app, and describe the app's 
     functionality. Then, enhance the code with the use of reactive expressions 
     to avoid redundancy.
@@ -322,7 +322,7 @@ server <- function(input, output, session) {
 }
 ```
 
-4.  The following app is very similar to one you've seen earlier in the chapter: 
+1.  The following app is very similar to one you've seen earlier in the chapter: 
     you select a dataset from a package (this time we're using the **HistData** package) 
     and the app prints out a summary and plot of the data. It also follows good 
     practice and makes use of reactive expressions to avoid redundancy of code. 
