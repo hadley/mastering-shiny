@@ -256,7 +256,7 @@ server <- function(input, output, session) {
 ```
 
 1.  Extend the app from the previous exercise to allow the user to set the value of the 
-    multiplier, `y`, so that the app yields the value of `x * y`. The final resul should 
+    multiplier, `y`, so that the app yields the value of `x * y`. The final result should 
     like the following.
 
 ```{r, echo = FALSE, out.width = NULL}
@@ -343,10 +343,10 @@ server <- function(input, output, session) {
     get(input$dataset, "package:HistData", inherits = FALSE)
   })
   output$summary <- renderPrint({
-    summary(dataset)
+    summary(dataset())
   })
   output$plot <- renderPlot({
-    plot(dataset)
+    plot(dataset())
   })
 }
 
