@@ -226,7 +226,7 @@ ui <- fluidPage(
 server <- function(input, output, session) {
   
   output$product <- renderText({ 
-    x * 5
+    intput$x * 5
   })
   
 }
@@ -250,7 +250,7 @@ ui <- fluidPage(
 
 server <- function(input, output, session) {
   output$product <- renderText({ 
-    x * 5
+    input$x * 5
   })
 }
 ```
