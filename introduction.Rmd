@@ -68,7 +68,7 @@ You may find it helpful to print a copy of our [Shiny "cheat sheet"](https://git
 
 Got a problem you can't figure out, or a question this book (and Google) can't answer? You can find help at our community site: https://community.rstudio.com/c/shiny.
 
-To get the most useful help as quickly as possible, we highly recommend creating a reprex, or **repr**oducible **ex**ample. The goal of a reprex is provide the smallest possible snippet of R code illustrates the probelm and that can easily be run on someone elses computer. 
+To get the most useful help as quickly as possible, we highly recommend creating a reprex, or **repr**oducible **ex**ample. The goal of a reprex is to provide the smallest possible snippet of R code that illustrates the problem and that can easily be run on someone elses computer. 
 
 Creating the smallest possible reprex is particularly important for Shiny apps, which can be quite large and complicated. Rather than forcing the person trying to help you to understand all the details of your app, you are more likely to get higher quaility help faster if you extract out the precise piece of the app that you're struggling with. As an added benefit, often this process will lead you to discover what the problem is, so you don't have to ask another human! You can find guidance on how to create a Shiny reprex [here](<https://community.rstudio.com/t/shiny-debugging-and-reprex-guide/10001>).
 
