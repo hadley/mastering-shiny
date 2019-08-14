@@ -155,7 +155,7 @@ output$IDENTIFIER <- renderTYPE({
 })
 ```
 
-The left-hand side of the assignment operator (`<-`), `output$IDENTIFIER`, indicates that you're providing the recipe for the Shiny output with the matching ID. The right-hand side of the assignment specifies uses a specific *render function* to wrap a code block that you provide; in the example above, we use `renderPrint` and `renderTable` wrap our app-specific logic. 
+The left-hand side of the assignment operator (`<-`), `output$IDENTIFIER`, indicates that you're providing the recipe for the Shiny output with the matching ID. The right-hand side of the assignment uses a specific *render function* to wrap a code block that you provide; in the example above, we use `renderPrint` and `renderTable` wrap our app-specific logic. 
 
 Each `render*` function is designed to work with a particular type of output that's passed to an `*Output` function. In this case, we're using `renderPrint()` to capture and display the outut from `summary()` output, and `renderTable()` to display the actual data frame in a table.
 
