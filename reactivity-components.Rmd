@@ -139,7 +139,7 @@ These particular properties--laziness, caching, reactivity, and lack of side eff
 You may wonder how Shiny outputs fit into this picture. By outputs, I'm referring to code like this:
 
 ```{r eval=FALSE}
-outputtext <- renderText({
+output$text <- renderText({
   paste(up_to_x(), collapse = ", ")
 })
 ```
