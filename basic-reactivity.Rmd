@@ -648,7 +648,7 @@ So far, we've focussed on what's happening inside the app. But sometimes you nee
 
 There are multiple ways to create an observer, and we'll come back to them later in Chapter XYZ. For now, I wanted to show you how to use `observeEvent()`, because it gives you an important debugging tool when you're first learning Shiny.
 
-`observeEvent()` is very similar to `eventReactive()`. It has two important arguments: `eventExpr` and `handlerExpr`. The first argument is the input or expression to take a dependency on; the second argument is the code that will be run. For example, the following modification to `server()` means that everytime that `text` is updated, a message will be sent to the console:
+`observeEvent()` is very similar to `eventReactive()`. It has two important arguments: `eventExpr` and `handlerExpr`. The first argument is the input or expression to take a dependency on; the second argument is the code that will be run. For example, the following modification to `server()` means that everytime that `name` is updated, a message will be sent to the console:
 
 ```{r}
 server <- function(input, output, session) {
