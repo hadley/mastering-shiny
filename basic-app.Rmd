@@ -343,10 +343,10 @@ server <- function(input, output, session) {
     get(input$dataset, "package:HistData", inherits = FALSE)
   })
   output$summary <- renderPrint({
-    summary(dataset)
+    summary(dataset())
   })
   output$plot <- renderPlot({
-    plot(dataset)
+    plot(dataset())
   })
 }
 
