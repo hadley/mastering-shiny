@@ -36,7 +36,7 @@ shinyApp(ui, server)
 
 The previous chapter covered the basics of the front-end, the `ui` object that contains the HTML presented to every user of your app. In this chapter, we'll focus on the backend, which is more complex, because every user gets an independent version of app. So instead of a single static object like `ui`, the backend is a function, `server()`. You'll never call that function yourself; instead, Shiny invokes it whenever a new session begins. 
 
-Before we can continue, we need to precisely define a __session__, which captures the state of one live instance of a shiny app. A session begins each time the Shiny app is loaded in a browser, either by different people, or by the same person opening multiple tabs. Each session needs to be completely independent so that when user A moves a slider, outputs update only for user A, not unrelated user B. The server function is called once for each session, creating a private scope that holds the unique state for that user, and every variable created _inside_ the server function is only accessible to that session. This is why almost of the reactive programming you'll do in Shiny will be inside the server function[^exceptions]. 
+Before we can continue, we need to precisely define a __session__, which captures the state of one live instance of a Shiny app. A session begins each time the Shiny app is loaded in a browser, either by different people, or by the same person opening multiple tabs. Each session needs to be completely independent so that when user A moves a slider, outputs update only for user A, not unrelated user B. The server function is called once for each session, creating a private scope that holds the unique state for that user, and every variable created _inside_ the server function is only accessible to that session. This is why almost of the reactive programming you'll do in Shiny will be inside the server function[^exceptions]. 
 
 [^exceptions]: The primary exception is where there's some work that can shared across multiple users. For example, all users might be looking at the same large csv file, so you might as well load it once and share it between users. We'll come back to that idea in Chapter XYZ.
 
@@ -84,7 +84,7 @@ shinyApp(ui, server)
 
 ### Output {#output}
 
-`output` is very similar to `input`: it's also a list-like object named according to the output ID. The main difference (surprise!) is that you use it for sending output not recieving input. You always use the `output` object in concert with a `render` function, as in the following simple example: 
+`output` is very similar to `input`: it's also a list-like object named according to the output ID. The main difference (surprise!) is that you use it for sending output, not for receiving input. You always use the `output` object in concert with a `render` function, as in the following simple example: 
 
 ```{r}
 ui <- fluidPage(
@@ -208,7 +208,7 @@ server <- function(input, output, session) {
 
 If you look closely, you might notice that I've written `greetnig` instead of `greeting`. This won't generate an error in Shiny, but it won't do what you want. Because the `greetnig` output doesn't exist, the code inside `renderText()` will never be run. 
 
-If you're working on a shiny app and you just can't figure out why your code never gets run, make sure that your UI and server functions are using the same identifiers.
+If you're working on a Shiny app and you just can't figure out why your code never gets run, make sure that your UI and server functions are using the same identifiers.
 
 ### The reactive graph
 
@@ -218,7 +218,7 @@ Shiny's lazyness has another important property. In most R code, you can underst
 knitr::include_graphics("diagrams/basic-reactivity/graph-1b.png", dpi = 300)
 ```
 
-The reactive graph contains one symbol for every input and output, and we connect and input to an output whenever the output accesses the input. This graph tells you that `greeting` will need to be recomputed whenever `name` is changed. We'll often describe this relationship as `greeting` has a __reactive dependency__ on `name`.
+The reactive graph contains one symbol for every input and output, and we connect an input to an output whenever the output accesses the input. This graph tells you that `greeting` will need to be recomputed whenever `name` is changed. We'll often describe this relationship as `greeting` has a __reactive dependency__ on `name`.
 
 Note the graphical conventions we used for the inputs and outputs: the `name` input naturally fits into the `greeting` output. We could draw them closely packed togther, as below, to emphasise the way that they fit together. However, we won't normally do that because it only works for the simplest of apps.
 
