@@ -416,7 +416,7 @@ You'll notice that the graph is very dense: almost every input is connected dire
   
 * The app is inefficient because it does more work than necessary. For example,
   if you change the breaks of the plot, the data is recalculated; if you 
-  change the value of `n_1`, `x2` is updated (in two places!). 
+  change the value of `n1`, `x2` is updated (in two places!). 
   
 There's one other major flaw in the app: the histogram and t-test use separate random draws. This is rather misleading, as you'd expect them to be working on the same underlying data. Fortunately, we can fix all these problems by using reactive expressions to pull out repeated computation.
 
@@ -445,9 +445,9 @@ This transformation yields a substantially simpler graph:
 knitr::include_graphics("diagrams/basic-reactivity/case-study-2.png", dpi = 300)
 ```
 
-This simpler graph makes it easier to understand the app because you can understand connected components in isolation; the values of the distribution parameters only affect the output via `x1` and `x2`. This rewrite also make the app much more efficient since it does much less computation. Now when you change the `breaks` or `range`, only the plot changes, not the underlying data.
+This simpler graph makes it easier to understand the app because you can understand connected components in isolation; the values of the distribution parameters only affect the output via `x1` and `x2`. This rewrite also makes the app much more efficient since it does much less computation. Now when you change the `breaks` or `range`, only the plot changes, not the underlying data.
 
-To emphasise this modularity the following diagram draws boxes around the independent components. We'll come back to this idea in Chapter XYZ, when we discuss modules. Modules allow you to extract out repeated code for reuse, while guaranting that its isolated from everything else in the app. Modules are an extremely useful and powerful technique for more complex apps.
+To emphasise this modularity the following diagram draws boxes around the independent components. We'll come back to this idea in Chapter XYZ, when we discuss modules. Modules allow you to extract out repeated code for reuse, while guaranteeing that it's isolated from everything else in the app. Modules are an extremely useful and powerful technique for more complex apps.
 
 ```{r, echo = FALSE, out.width = NULL}
 knitr::include_graphics("diagrams/basic-reactivity/case-study-3.png", dpi = 300)
@@ -661,7 +661,7 @@ server <- function(input, output, session) {
 }
 ```
 
-There are two important difference between `observeEvent()` and `eventReactive()`:
+There are two important differences between `observeEvent()` and `eventReactive()`:
 
 * You don't assign the result of `observeEvent()` to a variable, so
 * You can't refer to it from other reactive consumers.
