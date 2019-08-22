@@ -20,7 +20,7 @@ knitr::include_graphics("diagrams/basic-reactivity/producers-consumers.png", dpi
 
 I assume that you're already familiar with the basic operation of these components, so here we'll explore a little bit more that data structures that make them tick.
 
-We'll start by talking about reactive values, jump ahead to observers, then talk about reactive expressions. We'll finsh up by discussing reactive outputs, which are a special type of observer.
+We'll start by talking about reactive values, jump ahead to observers, then talk about reactive expressions. We'll finish up by discussing reactive outputs, which are a special type of observer.
 
 For the remainder of the chapter I'll be running with a reactive console, so if you're following along on your own computer, you'll need to enable that too:
 
@@ -45,7 +45,7 @@ val(20)
 val()
 ```
 
-When hanlding multiple reactive values  `reactiveValues()` which allows you to work with multiple reactive values, as if you have a list. The interface is more natural for complicated reasons.
+When handling multiple reactive values  `reactiveValues()` which allows you to work with multiple reactive values, as if you have a list. The interface is more natural for complicated reasons.
 
 ```{r}
 vals <- reactiveValues(x = 1, y = 2)
@@ -56,7 +56,7 @@ vals$y <- 100
 vals$x
 ```
 
-The big difference between reactive values and ordinary R values is that reactive values tracks who accesses them. And then when the value changes, it automatically lets everyone know that there's been a change. If a read of a regular variable is asking "What's the value of `x`?", reading a reactive value is asking "What's the value of `input$x`? **And please notify me the next time `input$x` changes!**" In other words, a reactive read has implications for both _now_ (returns the current value) and _later_ (notifies of the next change to the value).
+The big difference between reactive values and ordinary R values is that reactive values track who accesses them. And then when the value changes, it automatically lets everyone know that there's been a change. If a read of a regular variable is asking "What's the value of `x`?", reading a reactive value is asking "What's the value of `input$x`? **And please notify me the next time `input$x` changes!**" In other words, a reactive read has implications for both _now_ (returns the current value) and _later_ (notifies of the next change to the value).
 
 We'll come back to that in detail in Chapter \@ref(dependency-tracking).
 
