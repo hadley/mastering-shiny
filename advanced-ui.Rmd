@@ -199,9 +199,9 @@ The much larger part of learning HTML is getting to know the actual tags that ar
 
 ## Generating HTML with tag objects {#generating-html}
 
-With this background knowledge in place, we can now talk about how to write HTML using R. To do this, we'll use the htmltools package. The htmltools package started life as a handful of functions in Shiny itself, and was later spun off as a standalone package when its usefulness for other packages--like rmarkdown and htmlwidgets--became evident.
+With this background knowledge in place, we can now talk about how to write HTML using R. To do this, we'll use the htmltools package. The htmltools package started life as a handful of functions in Shiny itself, and was later spun off as a standalone package when its usefulness for other packages -- like `rmarkdown` and `htmlwidgets` -- became evident.
 
-In htmltools, we create the same trees of parent tags and child tags/text as in raw HTML, but we do so using R function calls instead of angle brackets. For example, this HTML from an earlier example:
+In `htmltools`, we create the same trees of parent tags and child tags/text as in raw HTML, but we do so using R function calls instead of angle brackets. For example, this HTML from an earlier example:
 
 ```html
 <p id="storage-low-message" class="message warning">Storage space is running low!</p>
