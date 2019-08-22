@@ -68,13 +68,13 @@ Almost all R functions are either __calculations__ or __actions__:
 1. Calculation return a value: e.g. `sum()`, `mean()`, `read.csv()`.
 1. Actions change the world in some way: e.g. `print()`, `plot()`, `write.csv()`.
 
-In programming terminology, changing the world is called a __side-effect__. Unlike pharmaceuticalswhere side effects are always unintentional and usually negative, we simply mean any effects apart from a function's return value. Changing a file on disk is a side effect. Printing words to the console is a side effect. Sending a message to another computer is a side effect.
+In programming terminology, changing the world is called a __side-effect__. Unlike pharmaceuticals where side effects are always unintentional and usually negative, we simply mean any effects apart from a function's return value. Changing a file on disk is a side effect. Printing words to the console is a side effect. Sending a message to another computer is a side effect.
 
 :::
 
 ### Observers: Automatic actions
 
-Observers are reactive consumer that takes a code block that performs an action of some kind. Observers are reactive consumers because they know how to respond to one of their dependencies changed: they re-run their code block. Here's an observer that prints the value of `x` every time it changes:
+Observers are reactive consumers that take a code block that performs an action of some kind. Observers are reactive consumers because they know how to respond to one of their dependencies changed: they re-run their code block. Here's an observer that prints the value of `x` every time it changes:
 
 ```{r}
 x <- reactiveVal(10)
@@ -106,7 +106,7 @@ up_to_x <- reactive({
 })
 ```
 
-The mere act of creating this reactive expression doesn't cause any code to execute. Rather, it just means that this sequence of numbers is available for retrieval, by calling `up_to_x()` like its a function. In this sense, creating a reactive expression is like to declaring an R function: nothing actually happens until you call it.
+The mere act of creating this reactive expression doesn't cause any code to execute. Rather, it just means that this sequence of numbers is available for retrieval, by calling `up_to_x()` like its a function. In this sense, creating a reactive expression is like declaring an R function: nothing actually happens until you call it.
 
 In the following snippet, the code contained in `up_to_x` (from the above snippet) is not executed until the line `print(up_to_x())` is reached, as this is the first time the result of `up_to_x` is actually requested. (Because of this property, we say that reactive expressions are _lazy_ as opposed to _eager_.)
 
@@ -128,7 +128,7 @@ The final important property of reactive expressions is that they _cache_ their 
 
 The first time a reactive expression is called, it will execute its code body, and depending on what that code does, it might take a significant amount of time. But when the calculation is complete, the resulting value will be both returned to the caller _and_ remembered by the reactive expression. Subsequent calls to the reactive expression take essentially no time at all, as the saved value can be returned instantly. If a reactive expression depends on reactive values or expressions, then any changes to those will cause the cached value to be discarded. When that happens, the next call to the reactive expression will again cause an actual calculation, whose result will then be saved for subsequent calls.
 
-These particular properties--laziness, caching, reactivity, and lack of side effects--combine to give us an elegant and versatile building block for reactive programming.
+These particular properties -- laziness, caching, reactivity, and lack of side effects -- combine to give us an elegant and versatile building block for reactive programming.
 
 ## Inputs and outputs
 
@@ -154,7 +154,7 @@ Whereas observers execute eagerly and reactive expressions execute lazily, outpu
 
 We also know that observers should be used for side effects (actions), and reactive expressions for their return values (calculations). Again, outputs are somewhere in between. Depending on the `renderXXX` function you use to wrap it, your render code block may need to return a value and/or perform a side effect. For example, `renderText` expects you to return a string, while `renderPrint` expects you to make calls to `print()`; and `renderPlot` expects you to either draw a plot to the active graphics device or return a plottable object (like a ggplot2 object). 
 
-Generally, you shouldn't use arbitrary side effects in an output. Outputs are designed to capture output side-effects like printing and plotting. In an ideal world might not be necessary.
+Generally, you shouldn't use arbitrary side effects in an output. Outputs are designed to capture output side-effects like printing and plotting. In an ideal world this might not be necessary.
 
 Though outputs allow (and may even require) side effects, this doesn't mean you should include just any side effects in your output code. Shiny assumes that the whole code block of an output exists only in service of populating that output. If your output code block contains logic whose side effects are important for reasons apart from the actual output, you should extract that logic into a separate observer. That way, you can be confident it will execute regardless of whether the output is visible or not, now or in the future.
 
@@ -164,7 +164,7 @@ Though outputs allow (and may even require) side effects, this doesn't mean you 
 
 ### Isolate
 
-Generally, you don't need to use `reactiveValues()` yourself. But then can be useful for achieving specific types of coordination that would otherwise be inaccessible, particularly maintaining state. You need to be extra careful when reading to and writing from `reactiveValues()` because unlike the rest of Shiny, there's nothing to stop you from getting caught in an infinite loop.
+Generally, you don't need to use `reactiveValues()` yourself. But then it can be useful for achieving specific types of coordination that would otherwise be inaccessible, particularly maintaining state. You need to be extra careful when reading to and writing from `reactiveValues()` because unlike the rest of Shiny, there's nothing to stop you from getting caught in an infinite loop.
 
 ```{r}
 count <- function(signal) {
