@@ -467,7 +467,7 @@ Most of the effort in mastering CSS is in knowing what properties are available 
 
 Shiny gives you several options for adding custom CSS into your apps. Which method you choose will depend on the amount and complexity of your CSS.
 
-####Inline style tag with `tags$style`
+#### Inline style tag with `tags$style`
 
 If you have one or two very simple rules, the easiest way to add CSS is by inserting a `<style>` tag, using `tags$style()`. This can go almost anywhere in your UI.
 
