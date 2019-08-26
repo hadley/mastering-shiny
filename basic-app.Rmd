@@ -70,7 +70,7 @@ Before you close the app, go back to your main RStudio window and look at the R 
 
 This is telling you the URL where your app can be found: 127.0.0.1 is a standard address that means "this computer" and 3827 is randomly assigned port number. You can enter that URL into any compatible[^ie] web browser to open another copy of your app.
 
-[^ie]: Notably, Internet Explorer versions earlier than IE11 are not compatible when running Shiny directly from your R session. However, Shiny apps deployed on Shiny Server or ShinyApps.io can work with IE10 (earlier versions of IE are no longer supported).
+[^ie]: Shiny strives to support all modern browsers, and you can see the set currently supported at https://www.rstudio.com/about/platform-support/. Note that Internet Explorer versions prior to IE11 are not compatible when running Shiny directly from your R session.,  However, Shiny apps deployed on Shiny Server or ShinyApps.io can work with IE10 (earlier versions of IE are no longer supported).
 
 The second thing to notice is that R is busy: the R prompt isn't visible, and the console toolbar displays a stop sign icon. While a Shiny app is running, it "blocks" the R console. This means that you can't run new commands at the R console until after the Shiny app either stops of its own accord, or (much more commonly) is interrupted.
 
