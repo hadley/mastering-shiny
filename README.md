@@ -2,7 +2,7 @@
 [![Travis build status](https://travis-ci.org/hadley/mastering-shiny.svg?branch=master)](https://travis-ci.org/hadley/mastering-shiny)
 <!-- badges: end -->
 
-This is the work-in-progress repo for the book _Mastering Shiny_ by Hadley Wickham.
+This is the work-in-progress repo for the book _Mastering Shiny_ by Hadley Wickham. It is licensed under the Creative Commons [Attribution-NonCommercial-NoDerivatives 4.0 International License](http://creativecommons.org/licenses/by-nc-nd/4.0/). 
 
 Built with [bookdown](https://bookdown.org/yihui/bookdown/).
 
