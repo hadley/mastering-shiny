@@ -53,7 +53,7 @@ Each row represents a single accident:
 
 * `narrative` is a brief story about how the accident occurred.
 
-We'll pair it with two other data frames for additional context: `products` lets us look up the product name from the produce code, and population tells us the total US population in 2017 for each combination of age and sex.
+We'll pair it with two other data frames for additional context: `products` lets us look up the product name from the produce code, and `population` tells us the total US population in 2017 for each combination of age and sex.
 
 ```{r, message = FALSE}
 products <- vroom::vroom("neiss/products.tsv")
@@ -65,7 +65,7 @@ population
 
 ## Exploration
 
-Before we create the app, lets explore the data a little. We'll start by looking at the product associated with the most injuries: 1842, "stairs or steps". First we'll pull out the injuries associated with this product:
+Before we create the app, let's explore the data a little. We'll start by looking at the product associated with the most injuries: 1842, "stairs or steps". First we'll pull out the injuries associated with this product:
 
 ```{r}
 selected <- injuries %>% filter(prod_code == 1842)
@@ -129,7 +129,7 @@ selected %>%
   pull(narrative)
 ```
 
-Having done this exploration for one product, it would be be very nice if we could easily do it for other products, without having to retype the code. So lets make a Shiny app!
+Having done this exploration for one product, it would be be very nice if we could easily do it for other products, without having to retype the code. So let's make a Shiny app!
 
 ## Prototype
 
@@ -145,7 +145,7 @@ Here I decided to have one row for the inputs (accepting that I'm probably going
 ```{r code = section_get("neiss/prototype.R", "ui")}
 ```
 
-The server function relatively straghtforward: I convert the `selected` and `summary` variables to reactive expressions. This is a reasonable general pattern: you've typically create variables in your data analysis as a way of decomposing the analysis into steps, and avoiding having to recompute things multiple times, and reactive expressions play the same role in Shiny apps. Often it's a good idea to spend a little time cleaning up your analysis code before you start your Shiny app, so you can think about these problems in regular R code, before you add the additional complexity of reactivity.
+The server function relatively straghtforward: I convert the `selected` and `summary` variables to reactive expressions. This is a reasonable general pattern: you've typically created variables in your data analysis as a way of decomposing the analysis into steps, and avoiding having to recompute things multiple times, and reactive expressions play the same role in Shiny apps. Often it's a good idea to spend a little time cleaning up your analysis code before you start your Shiny app, so you can think about these problems in regular R code, before you add the additional complexity of reactivity.
 
 ```{r code = section_get("neiss/prototype.R", "server")}
 ```
@@ -164,7 +164,7 @@ knitr::include_graphics("screenshots/basic-case-study/prototype.png", dpi = scre
 
 ## Polish tables
 
-Now that we have the basic components in place, and working, we can progressively improve our app. The first problem with this app is that it shows a lot of information in the tables, where we probably just want the highlights. To fix this we need to need to first figure out how to truncate the tables. I've chosen to do that with a combination of forcats functions: I convert the variable to a factor order by the frequency of the levels, and then lump together all levels after the top 5. 
+Now that we have the basic components in place, and working, we can progressively improve our app. The first problem with this app is that it shows a lot of information in the tables, where we probably just want the highlights. To fix this we need to need to first figure out how to truncate the tables. I've chosen to do that with a combination of forcats functions: I convert the variable to a factor, order by the frequency of the levels, and then lump together all levels after the top 5. 
 
 ```{r}
 injuries %>%
@@ -185,7 +185,7 @@ I then use this in the server function:
 
 I made one other change to improve the aesthetics of the app: I forced all tables to take up the maximum width (i.e. fill the column that they appear in). This makes the output more aesthetically pleasing because it reduces the amount of extraneous variaton.
 
-The result app is shown in Figure \@ref(fig:polish-tables).
+The resulting app is shown in Figure \@ref(fig:polish-tables).
 
 ```{r, eval = FALSE, include = FALSE}
 app <- testAppFromFile("neiss/polish-tables.R")
@@ -221,7 +221,7 @@ knitr::include_graphics("screenshots/basic-case-study/rate-vs-count.png", dpi = 
 
 ## Narrative
 
-Finally, I want provide some way to access the narratives because they are so interesting, and they give an informal way to cross-check the hypotheses you come up when looking at the plots. In the R code, I sample multiple narratives at once, but there's no reason to do that in an app since you can do intercatively.
+Finally, I want provide some way to access the narratives because they are so interesting, and they give an informal way to cross-check the hypotheses you come up when looking at the plots. In the R code, I sample multiple narratives at once, but there's no reason to do that in an app since you can do interactively.
 
 There are two parts to the solution. First we add a new row to the bottom of UI. I use an action button to trigger a new story, and and put the narrative in a `textOutput()`:
 

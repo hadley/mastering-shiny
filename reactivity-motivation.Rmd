@@ -10,7 +10,7 @@ The initial impression of Shiny is often that it's "magic". This is great when y
 
 Fortunately shiny is "good" magic. As Tom Dale said of his Ember.js JavaScript framework: "We do a lot of magic, but it's _good magic_, which means it decomposes into sane primitives." This is the quality that the Shiny team aspires to for Shiny, especially when it comes to reactive programming. When you peel back the layers of reactive programming, you won't find a pile of heuristics, special cases, and hacks; instead you'll find, a clever, but ultimately fairly straightforward mechanism.
 
-In this part of the book, you'll dive in to the details of reactivity, learning why reactivity is necessary, how it works underneath the covers, and how you might use the atoms of reactivity to create your own building blocks.
+In this part of the book, you'll dive into the details of reactivity, learning why reactivity is necessary, how it works underneath the covers, and how you might use the atoms of reactivity to create your own building blocks.
 
 ## Why reactive programming? {#motivation}
 
@@ -107,7 +107,7 @@ DynamicValue <- R6::R6Class("DynamicValue", list(
 ))
 ```
 
-So if Shiny been invented five years earlier, we might've have written something like this:
+So if Shiny had been invented five years earlier, we might've have written something like this:
 
 ```{r}
 temp_c <- DynamicValue$new()
@@ -182,7 +182,7 @@ You can see the genesis of reactive programming over 40 years ago in [VisiCalc](
 > word processing with numbers.
 > --- [Dan Bricklin](https://youtu.be/YDvbDiJZpy0)
 
-Spreadsheets are closely related to reactive programming: you declare the relationship between cells (using formulas), and when one cell changes, all of its dependencies automatically. update. So the chances are you've already done a bunch of reactive programming without knowing it!
+Spreadsheets are closely related to reactive programming: you declare the relationship between cells (using formulas), and when one cell changes, all of its dependencies automatically update. So the chances are you've already done a bunch of reactive programming without knowing it!
 
 While the ideas of reactivity have been around for a long time, it wasn't until 1997 before they were seriously studied as a research topic within computer science. Research in reactive programming was kicked off by FRAN  [@fran], **f**unctional **r**eactive **a**nimation, a novel system for incorporating changes over time and user input into a functional programming language. This spawned a rich literature [@rp-survey], but it took some time until it affected how people program.
 

@@ -6,7 +6,7 @@ source("common.R")
 
 ## Introduction
 
-In the the last chapter, we talked about creating the user interfaces. Now we'll move on to discuss the server side of Shiny, where you use R code at runtime to make your user interface come to life!
+In the the previous chapter, we talked about creating the user interfaces. Now we'll move on to discuss the server side of Shiny, where you use R code at runtime to make your user interface come to life!
 
 In Shiny, you express your server logic using reactive programming. Reactive programming is an elegant and powerful programming paradigm, but it can be disorienting at first because it's a very different paradigm to writing a script. The key idea of reactive programming is to specify a graph of dependencies so that when an input changes, all outputs are automatically updated. This makes the flow of an app considerably simpler, but it takes a while to get your head around how it all fits together.
 
@@ -36,7 +36,7 @@ shinyApp(ui, server)
 
 The previous chapter covered the basics of the front-end, the `ui` object that contains the HTML presented to every user of your app. In this chapter, we'll focus on the backend, which is more complex, because every user gets an independent version of app. So instead of a single static object like `ui`, the backend is a function, `server()`. You'll never call that function yourself; instead, Shiny invokes it whenever a new session begins. 
 
-Before we can continue, we need to precisely define a __session__, which captures the state of one live instance of a shiny app. A session begins each time the Shiny app is loaded in a browser, either by different people, or by the same person opening multiple tabs. Each session needs to be completely independent so that when user A moves a slider, outputs update only for user A, not unrelated user B. The server function is called once for each session, creating a private scope that holds the unique state for that user, and every variable created _inside_ the server function is only accessible to that session. This is why almost of the reactive programming you'll do in Shiny will be inside the server function[^exceptions]. 
+Before we can continue, we need to precisely define a __session__, which captures the state of one live instance of a Shiny app. A session begins each time the Shiny app is loaded in a browser, either by different people, or by the same person opening multiple tabs. Each session needs to be completely independent so that when user A moves a slider, outputs update only for user A, not unrelated user B. The server function is called once for each session, creating a private scope that holds the unique state for that user, and every variable created _inside_ the server function is only accessible to that session. This is why almost of the reactive programming you'll do in Shiny will be inside the server function[^exceptions]. 
 
 [^exceptions]: The primary exception is where there's some work that can shared across multiple users. For example, all users might be looking at the same large csv file, so you might as well load it once and share it between users. We'll come back to that idea in Chapter XYZ.
 
@@ -84,7 +84,7 @@ shinyApp(ui, server)
 
 ### Output {#output}
 
-`output` is very similar to `input`: it's also a list-like object named according to the output ID. The main difference (surprise!) is that you use it for sending output not recieving input. You always use the `output` object in concert with a `render` function, as in the following simple example: 
+`output` is very similar to `input`: it's also a list-like object named according to the output ID. The main difference (surprise!) is that you use it for sending output, not for receiving input. You always use the `output` object in concert with a `render` function, as in the following simple example: 
 
 ```{r}
 ui <- fluidPage(
@@ -208,7 +208,7 @@ server <- function(input, output, session) {
 
 If you look closely, you might notice that I've written `greetnig` instead of `greeting`. This won't generate an error in Shiny, but it won't do what you want. Because the `greetnig` output doesn't exist, the code inside `renderText()` will never be run. 
 
-If you're working on a shiny app and you just can't figure out why your code never gets run, make sure that your UI and server functions are using the same identifiers.
+If you're working on a Shiny app and you just can't figure out why your code never gets run, make sure that your UI and server functions are using the same identifiers.
 
 ### The reactive graph
 
@@ -445,9 +445,9 @@ This transformation yields a substantially simpler graph:
 knitr::include_graphics("diagrams/basic-reactivity/case-study-2.png", dpi = 300)
 ```
 
-This simpler graph makes it easier to understand the app because you can understand connected components in isolation; the values of the distribution parameters only affect the output via `x1` and `x2`. This rewrite also make the app much more efficient since it does much less computation. Now when you change the `breaks` or `range`, only the plot changes, not the underlying data.
+This simpler graph makes it easier to understand the app because you can understand connected components in isolation; the values of the distribution parameters only affect the output via `x1` and `x2`. This rewrite also makes the app much more efficient since it does much less computation. Now when you change the `breaks` or `range`, only the plot changes, not the underlying data.
 
-To emphasise this modularity the following diagram draws boxes around the independent components. We'll come back to this idea in Chapter XYZ, when we discuss modules. Modules allow you to extract out repeated code for reuse, while guaranting that its isolated from everything else in the app. Modules are an extremely useful and powerful technique for more complex apps.
+To emphasise this modularity the following diagram draws boxes around the independent components. We'll come back to this idea in Chapter XYZ, when we discuss modules. Modules allow you to extract out repeated code for reuse, while guaranteeing that it's isolated from everything else in the app. Modules are an extremely useful and powerful technique for more complex apps.
 
 ```{r, echo = FALSE, out.width = NULL}
 knitr::include_graphics("diagrams/basic-reactivity/case-study-3.png", dpi = 300)
@@ -648,7 +648,7 @@ So far, we've focussed on what's happening inside the app. But sometimes you nee
 
 There are multiple ways to create an observer, and we'll come back to them later in Chapter XYZ. For now, I wanted to show you how to use `observeEvent()`, because it gives you an important debugging tool when you're first learning Shiny.
 
-`observeEvent()` is very similar to `eventReactive()`. It has two important arguments: `eventExpr` and `handlerExpr`. The first argument is the input or expression to take a dependency on; the second argument is the code that will be run. For example, the following modification to `server()` means that everytime that `text` is updated, a message will be sent to the console:
+`observeEvent()` is very similar to `eventReactive()`. It has two important arguments: `eventExpr` and `handlerExpr`. The first argument is the input or expression to take a dependency on; the second argument is the code that will be run. For example, the following modification to `server()` means that everytime that `name` is updated, a message will be sent to the console:
 
 ```{r}
 server <- function(input, output, session) {
@@ -661,7 +661,7 @@ server <- function(input, output, session) {
 }
 ```
 
-There are two important difference between `observeEvent()` and `eventReactive()`:
+There are two important differences between `observeEvent()` and `eventReactive()`:
 
 * You don't assign the result of `observeEvent()` to a variable, so
 * You can't refer to it from other reactive consumers.

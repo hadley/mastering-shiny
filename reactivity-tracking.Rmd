@@ -25,7 +25,7 @@ output$plot <- renderPlot({
 })
 ```
 
-So, no, that's not the way Shiny works. In computer science, that approach is called __static analysis__, because it looks at the code without running it. Instead, Shiny using __dynamic instrumentation__, where as the code is run it collects additional information about what's going on.
+So, no, that's not the way Shiny works. In computer science, that approach is called __static analysis__, because it looks at the code without running it. Instead, Shiny is using __dynamic instrumentation__, where as the code is run it collects additional information about what's going on.
 
 ### Reactive contexts
 
@@ -65,7 +65,7 @@ Reactive values and expressions use this context object to connect the dots betw
 
 Each time a reactive value is modified, or a reactive expression is invalidated, it calls `invalidate()` on each dependent context. This invalidates the corresponding reactive consumer objects.
 
-In summary, the way Shiny "magically" establishes the connections between dependency and dependant really comes to these two simple mechanisms: each reactive consumer creates a context object and installs it in a global location during execution, and each reactive producer augments every read operation by a grabbing the context object so it can be later invalidated. There is no way that Shiny can accidentally overlook a reactive dependency relationship, or establish one erroneously (though there are a few ways to _instruct_ Shiny to intentionally overlook reactive dependencies, as we'll see later).
+In summary, the way Shiny "magically" establishes the connections between dependency and dependant really comes to these two simple mechanisms: each reactive consumer creates a context object and installs it in a global location during execution, and each reactive producer augments every read operation by grabbing the context object so it can be later invalidated. There is no way that Shiny can accidentally overlook a reactive dependency relationship, or establish one erroneously (though there are a few ways to _instruct_ Shiny to intentionally overlook reactive dependencies, as we'll see later).
 
 ## A step-by-step tour of reactive execution {#step-through}
 

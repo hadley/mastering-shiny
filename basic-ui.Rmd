@@ -35,7 +35,7 @@ Most input functions have a second parameter called `label`. This is used to cre
 
 The third parameter is typically `value`, which, where possible, lets you set the default value.
 
-The remaining parameters are unique to the control. We'll show the most important parameters for each control below, but you'll need to read to the documentation to get the full details, and to see the less commonly features.
+The remaining parameters are unique to the control. We'll show the most important parameters for each control below, but you'll need to read the documentation to get the full details, and to see the less commonly features.
 
 When creating an input, we recommend supplying the `inputId` and `label` arguments by position, and all other arguments by name:
 
@@ -49,7 +49,7 @@ Next, we'll give a quick overview of the most important controls. The goal is to
 
 Collect small amounts of text with `textInput()`, passwords with `passwordInput()`[^password], and paragraphs of text with `textAreaInput()`.
 
-[^password]: All `passwordInput()` does is hide what the user is typing, so that someone looking over their shoulder can't read it. It's up to you to make sure that any password are not accidentally exposes, so we don't recommend using passwords unless you have had some training in secure programming.
+[^password]: All `passwordInput()` does is hide what the user is typing, so that someone looking over their shoulder can't read it. It's up to you to make sure that any password are not accidentally exposed, so we don't recommend using passwords unless you have had some training in secure programming.
 
 ```{r}
 ui <- fluidPage(
@@ -237,7 +237,7 @@ We'll come back to two input controls in later chapters:
     to figure out how. (Hint: the underlying HTML is called `<optgroup>`.)
 
 1.  Create a slider input to select values between 0 and 100 where the interval 
-    between each selctable value on the slider is 5. Then, add animation to the 
+    between each selectable value on the slider is 5. Then, add animation to the 
     input widget so when the user presses play the input widget scrolls through 
     automatically.
 
@@ -453,7 +453,7 @@ It generates an app with this basic structure:
 knitr::include_graphics("diagrams/basic-ui/sidebar.png", dpi = 300)
 ```
 
-The following example shows how to use this layout to create a very simple app that demonstrates the Central Limit Thereom. If you run this app yourself, you can see how increasing the number of samples makes a distribution that looks very similar a normal distrubtion.
+The following example shows how to use this layout to create a very simple app that demonstrates the Central Limit Thereom. If you run this app yourself, you can see how increasing the number of samples makes a distribution that looks very similar a normal distribution.
 
 ```{r}
 ui <- fluidPage(
