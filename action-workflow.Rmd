@@ -1,0 +1,75 @@
+# Workflow
+
+```{r, include = FALSE}
+source("common.R")
+```
+
+If you're going to be writing a lot of Shiny apps (and since you're reading this book you hopefully will be!), it's worth investing some time in the basic Shiny app writing workflow. By spending a little time optimising the iteration cycle so that you can make a change and see the results as quickly as possible, you'll find creating apps more pleasant, and your skills will improve more rapidly.
+
+## Basic structure
+
+Older versions: `server.R` + `ui.R` I don't recommend as it's better to keep front end and back end close together; better to use modules. `globals.R`
+
+But you don't need to put all of your code in this file; you can use multiple files as long you explicitly `source()` them in your `app.r`. (And in the next version this will happen automatically for all files in `R/`, <https://github.com/rstudio/shiny/pull/2547>)
+
+For more complicated apps, particularly apps that multiple people contribute to, there are substantial advantages to turning your app into a package. In that case, you might want to check out the [golem](https://thinkr-open.github.io/golem/) package and accompanying ["Buidling Big Shiny Apps"](https://thinkr-open.github.io/building-shiny-apps-workflow/) book.
+
+## Running the app
+
+Keyboard shortcuts
+
+Running in a background process <https://github.com/sol-eng/background-jobs/tree/master/shiny-job>: 
+
+* `rstudioapi::jobRunScript()`
+* `options(shiny.autoreload = TRUE)`
+
+## Debugging
+
+* `browser()`
+* `message()` debugging (mention glue)
+
+## Reducing duplication with functions
+
+DRY principle. Rule of three.
+
+Sometimes you can extract out duplicated code using functions. For example, if you've copied and pasted some UI code to create variants with different names:
+
+Or you have a self contained set of reactives:
+
+However, a function alone with only take you so far because typically you'll have some connection between the front end and back end, and you need some way to coordinate the two. Shiny uses identifiers so you need some way to share them. This gives rise to Shiny __modules__. 
+
+## Reducing duplication with modules
+
+Modules are way to create an app within an app. They force isolation of behaviour so that one module can't affect another, and code outside of a module can only affect the inside in a way that the module allows.
+
+A Shiny module is a pair of functions, corresponding to the front end UI and the backend server function.
+
+### Front end
+
+The front end function has one special convention: the first argument must be `id`, and it uses `shiny::NS()` to generate unique names within the function. `NS()` is what's known as a function factory: it returns a function that you then use to generate unique identifiers. You can see it in operation below:
+
+```{r}
+ns <- NS("welcome")
+ns("name")
+ns("age")
+```
+
+The key idea is that the argument to `NS()` is supplied by the person using the component, and the arguments to the function it produces is supply by the person who wrote the component. This two-phase creation makes ensures that the final name combines properties needed by both the app author and the module author. This is a bit confusing at first, because you're likely to be both the app and module author.
+
+`NS()` is so simple that you might wonder why you can't just implement it yourself. You certainly can, but using `NS()` makes it immediately obvious that you're generating a module.
+
+### Back end
+
+The back end looks like a regular server function. You don't need to worry about namespacing as Shiny takes care of that when you insert the module in your function.
+
+### Developing a module
+
+```{r, eval = FALSE}
+ui <- fluidPage(
+  my_module_ui("foofy")
+)
+server <- function(input, output, session) {
+  callModule(my_module, "foofy")
+}
+```
+

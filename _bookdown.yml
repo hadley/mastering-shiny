@@ -17,6 +17,9 @@ rmd_files:
     "basic-reactivity.Rmd",
     "basic-case-study.Rmd",
 
+    "action.Rmd",
+    "action-workflow.Rmd",
+
     "advanced-ui.Rmd",
 
     "reactivity-mastering.Rmd",
