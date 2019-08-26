@@ -155,7 +155,7 @@ output$IDENTIFIER <- renderTYPE({
 })
 ```
 
-The left-hand side of the assignment operator (`<-`), `output$IDENTIFIER`, indicates that you're providing the recipe for the Shiny output with the matching ID. The right-hand side of the assignment specifies uses a specific *render function* to wrap a code block that you provide; in the example above, we use `renderPrint` and `renderTable` wrap our app-specific logic. 
+The left-hand side of the assignment operator (`<-`), `output$IDENTIFIER`, indicates that you're providing the recipe for the Shiny output with the matching ID. The right-hand side of the assignment uses a specific *render function* to wrap a code block that you provide; in the example above, we use `renderPrint` and `renderTable` wrap our app-specific logic. 
 
 Each `render*` function is designed to work with a particular type of output that's passed to an `*Output` function. In this case, we're using `renderPrint()` to capture and display the outut from `summary()` output, and `renderTable()` to display the actual data frame in a table.
 
@@ -180,7 +180,7 @@ is present in both outputs. In every kind of programming, it's poor practice to 
 
 In traditional R scripting, we use two techniques to deal with duplicated code: either we capture the value using a *variable* (if we only need to do the calculation once), or capture the computation itself using a *function* (if we need to perform the calculation multiple times, possibly based on different inputs). 
 
-Unfortunately neither of these approaches work here (for reasons you'll learn about in Section \@ref(reactive=roadblocks)), and we need new mechnaism: **reactive expressions**, created by wrapping a block of code with `reactive({...})`. You assign the reactive expression object to a variable, and *call the variable like a function* to retrieve its value.
+Unfortunately neither of these approaches work here (for reasons you'll learn about in Section \@ref(reactive-roadblocks)), and we need new mechnaism: **reactive expressions**, created by wrapping a block of code with `reactive({...})`. You assign the reactive expression object to a variable, and *call the variable like a function* to retrieve its value.
 
 ```{r, eval = FALSE}
 # Much better

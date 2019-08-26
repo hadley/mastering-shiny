@@ -218,7 +218,7 @@ Shiny's lazyness has another important property. In most R code, you can underst
 knitr::include_graphics("diagrams/basic-reactivity/graph-1b.png", dpi = 300)
 ```
 
-The reactive graph contains one symbol for every input and output, and we connect and input to an output whenever the output accesses the input. This graph tells you that `greeting` will need to be recomputed whenever `name` is changed. We'll often describe this relationship as `greeting` has a __reactive dependency__ on `name`.
+The reactive graph contains one symbol for every input and output, and we connect an input to an output whenever the output accesses the input. This graph tells you that `greeting` will need to be recomputed whenever `name` is changed. We'll often describe this relationship as `greeting` has a __reactive dependency__ on `name`.
 
 Note the graphical conventions we used for the inputs and outputs: the `name` input naturally fits into the `greeting` output. We could draw them closely packed togther, as below, to emphasise the way that they fit together. However, we won't normally do that because it only works for the simplest of apps.
 
@@ -620,7 +620,7 @@ knitr::include_graphics("diagrams/basic-reactivity/timing-button.png", dpi = 300
 
 This doesn't achieve our goal because it just introduces an new dependency: `x1()` and `x2()` will update when we click the simulate button, but they'll also continue to update when `lambda1`, `lambda2`, or `n` change. We want to _replace_ the existing dependencies, not supplement them.
 
-To solve this problem we need a new tool; something that lets use input values input without taking a reactive dependency on them. We need `eventReactive()`, which has two arguments: the first argument specifies what to take a dependency on, and the second argument specifies what to compute. That allows this app to only compute `x1()` and `x2()` when `simulate` is clicked:
+To solve this problem we need a new tool: a way to use input values input without taking a reactive dependency on them. We need `eventReactive()`, which has two arguments: the first argument specifies what to take a dependency on, and the second argument specifies what to compute. That allows this app to only compute `x1()` and `x2()` when `simulate` is clicked:
 
 ```{r}
 server <- function(input, output, session) {
