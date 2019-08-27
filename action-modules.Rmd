@@ -31,11 +31,13 @@ Or you have a self contained set of reactives:
 
 However, a function alone with only take you so far because typically you'll have some connection between the front end and back end, and you need some way to coordinate the two. Shiny uses identifiers so you need some way to share them. This gives rise to Shiny __modules__. 
 
+## Isolating behaviour with modules
+
 Modules are way to create an app within an app. They force isolation of behaviour so that one module can't affect another, and code outside of a module can only affect the inside in a way that the module allows.
 
 A Shiny module is a pair of functions, corresponding to the front end UI and the backend server function.
 
-## Front end
+### Front end
 
 The front end function has one special convention: the first argument must be `id`, and it uses `shiny::NS()` to generate unique names within the function. `NS()` is what's known as a function factory: it returns a function that you then use to generate unique identifiers. You can see it in operation below:
 
@@ -49,7 +51,7 @@ The key idea is that the argument to `NS()` is supplied by the person using the 
 
 `NS()` is so simple that you might wonder why you can't just implement it yourself. You certainly can, but using `NS()` makes it immediately obvious that you're generating a module.
 
-## Back end
+### Back end
 
 The back end looks like a regular server function. You don't need to worry about namespacing as Shiny takes care of that when you insert the module in your function.
 
@@ -66,7 +68,9 @@ server <- function(input, output, session) {
 
 ## Case study: limited selection + other
 
-<!-- https://uxdesign.cc/designing-forms-for-gender-diversity-and-inclusion-d8194cf1f51 -->
+Consider the following app, which provdies a way to select gender that is sensitive to the many possible ways that people can express their gender.[^gender]
+
+[^gender]: For a deeper dive on this issue, and a discussion of why many commonly used way of asking about gender can be hurtful to some people, I recommend reading "Designing forms for gender diversity and inclusion" by Sabrina Fonseca: <https://uxdesign.cc/d8194cf1f51>.
 
 ```{r}
 ui <- fluidPage(
@@ -90,9 +94,7 @@ server <- function(input, output, session) {
   })
   
   gender <- reactive({
-    if (input$gender == "NA") {
-      NA
-    } else if (input$gender == "self-described") {
+    if (input$gender == "self-described") {
       input$gender_self
     } else {
       input$gender
@@ -104,6 +106,8 @@ server <- function(input, output, session) {
   })
 }
 ```
+
+The `gender` and `gender_self` components are tightly bound together. We haven't talked about `updateRadioButtons()` yet, but this is just a small convenience so that if you start typing a self-described gender, that radio button is automatically selected.
 
 Convert to a module and generalise a little.
 
