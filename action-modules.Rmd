@@ -1,0 +1,165 @@
+# Modules
+
+```{r, include = FALSE}
+source("common.R")
+```
+
+As your app grows, sandwhiching all of your code into a single `app.R` will start to become painful. This chapter describes the techniques you can use to break your app apart into independent pieces, focussing on shiny modules.
+
+DRY principle. Rule of three.
+
+## Helper functions
+
+If, given specific values, your app requires complex calculation, first start by pulling that calculation out into separate function, and then put that function in its own file. I recommend put that file in a `R/` directory underneath the app directory. Then load it at the top of your `app.R`:
+
+```{r, eval = FALSE}
+library(shiny)
+
+source("R/my-helper-function.R")
+ui <- fluidPage(
+  ...
+)
+```
+
+(A future version of shiny will automatically source all files in `R/`, <https://github.com/rstudio/shiny/pull/2547>, so you'll be able to remove the `source()` line.)
+
+## Reducing duplication with functions
+
+Sometimes you can extract out duplicated code using functions. For example, if you've copied and pasted some UI code to create variants with different names:
+
+Or you have a self contained set of reactives:
+
+However, a function alone with only take you so far because typically you'll have some connection between the front end and back end, and you need some way to coordinate the two. Shiny uses identifiers so you need some way to share them. This gives rise to Shiny __modules__. 
+
+Modules are way to create an app within an app. They force isolation of behaviour so that one module can't affect another, and code outside of a module can only affect the inside in a way that the module allows.
+
+A Shiny module is a pair of functions, corresponding to the front end UI and the backend server function.
+
+## Front end
+
+The front end function has one special convention: the first argument must be `id`, and it uses `shiny::NS()` to generate unique names within the function. `NS()` is what's known as a function factory: it returns a function that you then use to generate unique identifiers. You can see it in operation below:
+
+```{r}
+ns <- NS("welcome")
+ns("name")
+ns("age")
+```
+
+The key idea is that the argument to `NS()` is supplied by the person using the component, and the arguments to the function it produces is supply by the person who wrote the component. This two-phase creation makes ensures that the final name combines properties needed by both the app author and the module author. This is a bit confusing at first, because you're likely to be both the app and module author.
+
+`NS()` is so simple that you might wonder why you can't just implement it yourself. You certainly can, but using `NS()` makes it immediately obvious that you're generating a module.
+
+## Back end
+
+The back end looks like a regular server function. You don't need to worry about namespacing as Shiny takes care of that when you insert the module in your function.
+
+## Developing a module
+
+```{r, eval = FALSE}
+ui <- fluidPage(
+  my_module_ui("foofy")
+)
+server <- function(input, output, session) {
+  callModule(my_module, "foofy")
+}
+```
+
+## Case study: limited selection + other
+
+<!-- https://uxdesign.cc/designing-forms-for-gender-diversity-and-inclusion-d8194cf1f51 -->
+
+```{r}
+ui <- fluidPage(
+  radioButtons("gender", "Gender:",
+    choiceValues = list("male", "female", "self-described", "na"),
+    choiceNames = list(
+      "Male",
+      "Female",
+      textInput("gender_self", NULL, placeholder = "Self-described"),
+      "Prefer not to say"
+    ),
+    selected = "na",
+  ),
+  textOutput("txt")
+)
+
+server <- function(input, output, session) {
+  observeEvent(input$gender_self, {
+    req(input$gender_self)
+    updateRadioButtons(session, "gender", selected = "self-described")
+  })
+  
+  gender <- reactive({
+    if (input$gender == "NA") {
+      NA
+    } else if (input$gender == "self-described") {
+      input$gender_self
+    } else {
+      input$gender
+    }
+  })
+  
+  output$txt <- renderText({
+    paste("You chose", gender())
+  })
+}
+```
+
+Convert to a module and generalise a little.
+
+```{r}
+radioButtonsWithOther <- function(id, label, choices, selected = NULL, placeholder = NULL) {
+  ns <- NS(id)
+  
+  radioButtons(ns("primary"), "Gender:",
+    choiceValues = c(names(choices), "other"),
+    choiceNames = c(
+      unname(choices),
+      list(textInput(ns("other"), NULL, placeholder = NULL))
+    ),
+    selected = selected
+  )
+}
+
+radioButtonsWithOtherServer <- function(input, output, session) {
+  observeEvent(input$primary, {
+    req(input$other)
+    updateRadioButtons(session, "primary", selected = "other")
+  })
+  reactive({
+    if (input$primary == "other") {
+      input$other
+    } else {
+      input$primary
+    }
+  })
+}
+
+ui <- fluidPage(
+  radioButtonsWithOther("gender", 
+    label = "Gender", 
+    choices = list(
+      male = "Male",
+      female = "Female",
+      na = "Prefer not to say"
+    ), 
+    placeholder = "Self-described", 
+    selected = "na"
+  ),
+  textOutput("txt")
+)
+
+server <- function(input, output, session) {
+  gender <- callModule(radioButtonsWithOtherServer, "gender")
+
+  output$txt <- renderText({
+    paste("You chose", gender())
+  })
+}
+```
+
+
+
+## Packages
+
+For more complicated apps, particularly apps that multiple people contribute to, there are substantial advantages to turning your app into a package. In that case, you might want to check out the [golem](https://thinkr-open.github.io/golem/) package and accompanying ["Buidling Big Shiny Apps"](https://thinkr-open.github.io/building-shiny-apps-workflow/) book.

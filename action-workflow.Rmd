@@ -8,68 +8,82 @@ If you're going to be writing a lot of Shiny apps (and since you're reading this
 
 ## Basic structure
 
-Older versions: `server.R` + `ui.R` I don't recommend as it's better to keep front end and back end close together; better to use modules. `globals.R`
+It's hard to show the basic structure of an app in a book, but so far I've been assuming that you're putting all your code in a single file[^older-structure] called `app.R` that has the following basic structure:
 
-But you don't need to put all of your code in this file; you can use multiple files as long you explicitly `source()` them in your `app.r`. (And in the next version this will happen automatically for all files in `R/`, <https://github.com/rstudio/shiny/pull/2547>)
+```{r, eval = FALSE}
+library(shiny)
 
-For more complicated apps, particularly apps that multiple people contribute to, there are substantial advantages to turning your app into a package. In that case, you might want to check out the [golem](https://thinkr-open.github.io/golem/) package and accompanying ["Buidling Big Shiny Apps"](https://thinkr-open.github.io/building-shiny-apps-workflow/) book.
+ui <- fluidPage(
+  ...
+)
 
-## Running the app
+server <- function(input, output, session) {
+  
+}
 
-Keyboard shortcuts
+shinyApp(ui, server)
+```
 
-Running in a background process <https://github.com/sol-eng/background-jobs/tree/master/shiny-job>: 
+[^older-structure]: Older versions of Shiny used separate files for the front end (`ui.R`) and back end (`server.R`). That organisation continues to work, but is no longer recommended: if you have an older app, I recommend doing a little copy and paste to combine the two files into a single `app.R`.
 
-* `rstudioapi::jobRunScript()`
-* `options(shiny.autoreload = TRUE)`
+If you get sick of typing that code in, RStudio provides a couple of shortcuts to help you:
+
+* If you already have your future `app.R` open, type `shinyapp` then press 
+  `Shift` + `Tab` to insert the shinyapp snippet.[^snippet]
+
+* If you want to start a new project, go to the File menu, select "New Project"
+  then select "Shiny Web Aplication":
+
+    ```{r, echo = FALSE, out.width = NULL}
+    knitr::include_graphics("screenshots/action-workflow/new-project.png", dpi = 300)
+    ```
+
+[^snippet]: Snippets are text macros that you can use to insert common code fragments. See <https://support.rstudio.com/hc/en-us/articles/204463668-Code-Snippets> for more details.
+
+## Basic workflow
+
+For all development activities, I strongly recommend that you spend some time optimising your iteration speed. How short can you make the cycle between making a change and seeing the outcome? The fastest you can iterate, the fast you can experiment, and the faster you can become a better Shiny developer.
+
+The first way to reduce your iteration time is to learn the keyboard shortcut for launching an app: `Cmd/Ctrl` + `Shift` + `Enter`. You can, of course, click the run app button, but I recommend learning the keyboard shortcut because it's faster in the long run. This gives you a basic workflow like:
+
+* Write some code
+* Launch the app with `Cmd/Ctrl` + `Shift` + `Enter`
+* Interactively experiment
+* Close the app
+* Repeat
+
+Another way to reduce your iteration speed still further is to turn autoreload on (`options(shiny.autoreload = TRUE)`) and then run the app in a background job, as described in <https://github.com/sol-eng/background-jobs/tree/master/shiny-job>. With this workflow as soon as you save a file, your app will relaunch: no needed to close and restart. This leads to an even faster workflow:
+
+* Write some code and press `Cmd/Ctrl` + `S` to save to the file.
+* Interactively experiment
+* Repeat
+
+As you app gets bigger and bigger you'll find that the "interactively experiment" step starts to become onerous. It's too hard to remember to re-check every component of your app that you might have affected with your changes. Later, you'll learn two tools that help you with this challenge:
+
+* Modules, which help you isolate parts of your app into self-contained 
+  fragments. Modules are guaranteed to be de-coupled from the rest of your
+  app so you can experiment with them in isolation. Modifying an module can 
+  not affect the rest of your app; modifying your app can't affect the 
+  internals of your module.
+  
+* Automated testing, which allows you to turn the interactive experiments 
+  you're running into code so that you can both re-run it more quickly (because
+  it's automated), and you're guaranteed to check for exactly the same behaviour
+  every time (because you don't need to rely on fragile human memory).
 
 ## Debugging
 
-* `browser()`
-* `message()` debugging (mention glue)
+Debugging shiny apps is often challenging because reactive code is run out of order. There are two debugging techniques that you're already familiar with that you can continue to use with Shiny code:
 
-## Reducing duplication with functions
-
-DRY principle. Rule of three.
-
-Sometimes you can extract out duplicated code using functions. For example, if you've copied and pasted some UI code to create variants with different names:
-
-Or you have a self contained set of reactives:
-
-However, a function alone with only take you so far because typically you'll have some connection between the front end and back end, and you need some way to coordinate the two. Shiny uses identifiers so you need some way to share them. This gives rise to Shiny __modules__. 
-
-## Reducing duplication with modules
-
-Modules are way to create an app within an app. They force isolation of behaviour so that one module can't affect another, and code outside of a module can only affect the inside in a way that the module allows.
-
-A Shiny module is a pair of functions, corresponding to the front end UI and the backend server function.
-
-### Front end
-
-The front end function has one special convention: the first argument must be `id`, and it uses `shiny::NS()` to generate unique names within the function. `NS()` is what's known as a function factory: it returns a function that you then use to generate unique identifiers. You can see it in operation below:
-
-```{r}
-ns <- NS("welcome")
-ns("name")
-ns("age")
-```
-
-The key idea is that the argument to `NS()` is supplied by the person using the component, and the arguments to the function it produces is supply by the person who wrote the component. This two-phase creation makes ensures that the final name combines properties needed by both the app author and the module author. This is a bit confusing at first, because you're likely to be both the app and module author.
-
-`NS()` is so simple that you might wonder why you can't just implement it yourself. You certainly can, but using `NS()` makes it immediately obvious that you're generating a module.
-
-### Back end
-
-The back end looks like a regular server function. You don't need to worry about namespacing as Shiny takes care of that when you insert the module in your function.
-
-### Developing a module
-
-```{r, eval = FALSE}
-ui <- fluidPage(
-  my_module_ui("foofy")
-)
-server <- function(input, output, session) {
-  callModule(my_module, "foofy")
-}
-```
-
+*   Use `message()` to emit messages to the console that allow you to see 
+    exactly when code is run. You can put messages in any reactive expression 
+    or output, just make sure they're not the last line (otherwise they'll
+    become the value used by the reactive expression or output). 
+  
+    If you're outputting multiple values, you might find the
+    [glue](http://glue.tidyverse.org/) package useful; it makes it very easy
+    to create informative text strings.
+  
+*   You can use RStudio breakpoints and `browser()` to pause execution and get
+    an interactive environment where you can inspect the current values of 
+    reactive components. 
