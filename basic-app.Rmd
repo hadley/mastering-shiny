@@ -205,122 +205,123 @@ We'll come back to reactive programming multiple times, but even armed with a cu
 
 ## Exercises
 
-1.  Suppose your friend wants to design an app that allows the user to set a number (`x`) 
-    between 1 and 50, and displays the result of multiplying this number by 5. Their 
-    first attempt has a functional slider, but yields the following error:
+1.  Suppose your friend wants to design an app that allows the user to set a 
+    number (`x`) between 1 and 50, and displays the result of multiplying this 
+    number by 5. Their first attempt has a functional slider, but yields the 
+    following error:
 
-```{r, echo = FALSE, out.width = NULL}
-ui <- fluidPage(
-  
-  sliderInput(inputId = "x", 
-              label = "If x is", 
-              min = 1, max = 50, 
-              value = 30),
-  
-  "then, x multipled by 5 is",
+    ```{r, echo = FALSE, out.width = NULL}
+    ui <- fluidPage(
+      
+      sliderInput(inputId = "x", 
+                  label = "If x is", 
+                  min = 1, max = 50, 
+                  value = 30),
+      
+      "then, x multipled by 5 is",
+        
+      textOutput("product")
     
-  textOutput("product")
-
-)
-
-server <- function(input, output, session) {
-  
-  output$product <- renderText({ 
-    x * 5
-  })
-  
-}
-
-app <- testApp(ui, server)
-app_screenshot(app, "basic-app/ex-x-times-5")
-``` 
+    )
+    
+    server <- function(input, output, session) {
+      
+      output$product <- renderText({ 
+        x * 5
+      })
+      
+    }
+    
+    app <- testApp(ui, server)
+    app_screenshot(app, "basic-app/ex-x-times-5")
+    ``` 
    
-   The UI and the server code of their app is given below. Can you help them 
-   catch and correct the error?
+    The UI and the server code of their app is given below. Can you help them 
+    catch and correct the error?
 
-```{r eval=FALSE}
-ui <- fluidPage(
-  sliderInput(inputId = "x", 
-              label = "If x is", 
-              min = 1, max = 50, 
-              value = 30),
-  "then, x multipled by 5 is",
-  textOutput("product")
-)
-
-server <- function(input, output, session) {
-  output$product <- renderText({ 
-    x * 5
-  })
-}
-```
+    ```{r eval=FALSE}
+    ui <- fluidPage(
+      sliderInput(inputId = "x", 
+                  label = "If x is", 
+                  min = 1, max = 50, 
+                  value = 30),
+      "then, x multipled by 5 is",
+      textOutput("product")
+    )
+    
+    server <- function(input, output, session) {
+      output$product <- renderText({ 
+        x * 5
+      })
+    }
+    ```
 
 1.  Extend the app from the previous exercise to allow the user to set the value of the 
     multiplier, `y`, so that the app yields the value of `x * y`. The final resul should 
     like the following.
 
-```{r, echo = FALSE, out.width = NULL}
-ui <- fluidPage(
-  
-  sliderInput(inputId = "x", 
-              label = "If x is", 
-              min = 1, max = 50, 
-              value = 30),
-
-  sliderInput(inputId = "y", 
-              label = "and y is", 
-              min = 1, max = 50, 
-              value = 5),
-  
-  "then, x multipled by y is",
+    ```{r, echo = FALSE, out.width = NULL}
+    ui <- fluidPage(
+      
+      sliderInput(inputId = "x", 
+                  label = "If x is", 
+                  min = 1, max = 50, 
+                  value = 30),
     
-  textOutput("product")
+      sliderInput(inputId = "y", 
+                  label = "and y is", 
+                  min = 1, max = 50, 
+                  value = 5),
+      
+      "then, x multipled by y is",
+        
+      textOutput("product")
+        
+    )
     
-)
-
-server <- function(input, output, session) {
-  
-  output$product <- renderText({ 
-    input$x * input$y
-  })
-  
-}
-
-app <- testApp(ui, server)
-app_screenshot(app, "basic-app/ex-x-times-y")
-```
+    server <- function(input, output, session) {
+      
+      output$product <- renderText({ 
+        input$x * input$y
+      })
+      
+    }
+    
+    app <- testApp(ui, server)
+    app_screenshot(app, "basic-app/ex-x-times-y")
+    ```
 
 1.  Replace the UI and server components of your app from the previous exercise 
     with the UI and server components below, run the app, and describe the app's 
     functionality. Then, enhance the code with the use of reactive expressions 
     to avoid redundancy.
 
-```{r eval=FALSE}
-ui <- fluidPage(
-  sliderInput(inputId = "x", label = "If x is", 
-              min = 1, max = 50, value = 30),
-  sliderInput(inputId = "y", label = "and y is", 
-              min = 1, max = 50, value = 5),
-  "then, (x * y) is", textOutput("product"),
-  "and, (x * y) + 5 is", textOutput("product_plus5"),
-  "and (x * y) + 10 is", textOutput("product_plus10")
-)
-
-server <- function(input, output, session) {
-  output$product <- renderText({ 
-    product <- input$x * input$y
-    product
-  })
-  output$product_plus5 <- renderText({ 
-    product <- input$x * input$y
-    product + 5
-  })
-  output$product_plus10 <- renderText({ 
-    product <- input$x * input$y
-    product + 10
-  })
-}
-```
+    ```{r eval=FALSE}
+    ui <- fluidPage(
+      sliderInput(inputId = "x", label = "If x is", 
+                  min = 1, max = 50, value = 30),
+      sliderInput(inputId = "y", label = "and y is", 
+                  min = 1, max = 50, value = 5),
+      "then, (x * y) is", textOutput("product"),
+      "and, (x * y) + 5 is", textOutput("product_plus5"),
+      "and (x * y) + 10 is", textOutput("product_plus10")
+    )
+    
+    server <- function(input, output, session) {
+      output$product <- renderText({ 
+        product <- input$x * input$y
+        product
+      })
+      output$product_plus5 <- renderText({ 
+        product <- input$x * input$y
+        product + 5
+      })
+      output$product_plus10 <- renderText({ 
+        product <- input$x * input$y
+        product + 10
+      })
+    }
+    ```
 
 1.  The following app is very similar to one you've seen earlier in the chapter: 
     you select a dataset from a package (this time we're using the **HistData** package) 
@@ -328,27 +329,27 @@ server <- function(input, output, session) {
     practice and makes use of reactive expressions to avoid redundancy of code. 
     However there is a bug in the code provided below. Can you spot and correct the bug?
 
-```{r eval=FALSE}
-library(shiny)
-library(HistData)
-
-ui <- fluidPage(
-  selectInput(inputId = "dataset", label = "Dataset", choices = ls("package:HistData")),
-  verbatimTextOutput("summary"),
-  plotOutput("plot")
-)
-
-server <- function(input, output, session) {
-  dataset <- reactive({
-    get(input$dataset, "package:HistData", inherits = FALSE)
-  })
-  output$summary <- renderPrint({
-    summary(dataset())
-  })
-  output$plot <- renderPlot({
-    plot(dataset())
-  })
-}
-
-shinyApp(ui, server)
-```
+    ```{r eval=FALSE}
+    library(shiny)
+    library(HistData)
+    
+    ui <- fluidPage(
+      selectInput(inputId = "dataset", label = "Dataset", choices = ls("package:HistData")),
+      verbatimTextOutput("summary"),
+      plotOutput("plot")
+    )
+    
+    server <- function(input, output, session) {
+      dataset <- reactive({
+        get(input$dataset, "package:HistData", inherits = FALSE)
+      })
+      output$summary <- renderPrint({
+        summary(dataset())
+      })
+      output$plot <- renderPlot({
+        plot(dataset())
+      })
+    }
+    
+    shinyApp(ui, server)
+    ```
