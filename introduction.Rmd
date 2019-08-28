@@ -66,11 +66,81 @@ You may find it helpful to print a copy of our [Shiny "cheat sheet"](https://git
 
 ## If you get stuck {#reprex}
 
-Got a problem you can't figure out, or a question this book (and Google) can't answer? You can find help at our community site: https://community.rstudio.com/c/shiny.
+Do you have a problem you can't figure out, or a question that this book (and Google) can't answer? The best place to ask is our community site,  <https://community.rstudio.com/c/shiny>. 
 
-To get the most useful help as quickly as possible, we highly recommend creating a reprex, or **repr**oducible **ex**ample. The goal of a reprex is to provide the smallest possible snippet of R code that illustrates the problem and that can easily be run on someone else's computer. 
+To get the most useful help as quickly as possible, you will need to create a reprex, or **repr**oducible **ex**ample. The goal of a reprex is to provide the smallest possible snippet of R code that illustrates the problem and that can easily be run on someone else's computer. It's common courtesy (and in your own best interest) to create a reprex: if you want someone to help you, you should make it as easy as possible for them.
 
-Creating the smallest possible reprex is particularly important for Shiny apps, which can be quite large and complicated. Rather than forcing the person trying to help you to understand all the details of your app, you are more likely to get higher quality help faster if you extract out the precise piece of the app that you're struggling with. As an added benefit, often this process will lead you to discover what the problem is, so you don't have to ask another human! You can find guidance on how to create a Shiny reprex [here](<https://community.rstudio.com/t/shiny-debugging-and-reprex-guide/10001>).
+### Reprex basics
+
+A reprex is just some R code that works when you copy and paste it into a fresh R session. Here's a simple reprex for a Shiny app:
+
+```{r, eval = FALSE}
+library(shiny)
+ui <- fluidPage(
+  selectInput("n", "N", 1:10),
+  plotOutput("plot")
+)
+server <- function(input, output, session) {
+  output$plot <- renderPlot({
+    n <- input$n * 2
+    plot(head(cars, n))
+  })
+}
+shinyApp(ui, server)
+```
+
+Anyone can copy and paste this code into their R session and see the error: "non-numeric argument to binary operator". 
+
+Clearly illustrating the problem is the first step to getting help, and because anyone can reproduce the problem by just copying and pasting the code, they can easily explore your code and test possible solutions. (In this case, you need `as.numeric(input$n)` since `selectInput()` creates a string.)
+
+### Making a reprex
+
+The first step in making a reprex is to create a single self-contained file that contains everything needed to run your code. You should check it by starting a fresh R session and then running the code. Make sure you haven't forgotten to load any packages that make your app work.
+
+You'll also need to check for data that's only presented on your computer. You can make it easier for others by providing a data set in a way that can be copied and pasted. This can be either your original data set, or a simplified version of it that still causes the issue. For example, if you have a data frame with 1,000 rows, you might try to take the first 20 rows and see if that will still cause the problem. In general it is best to provide a simplified version of the data set, so that it is easy for others to understand it.
+
+*   Use a built-in data set like `mtcars` or `iris`.
+
+*   Provide regular R code that generates a data set. For example:
+
+    ```{r}
+    mydata <- data.frame(x = 1:5, y = c("a", "b", "c", "d", "e"))
+    ```
+
+*   Use `dput()` to turn an existing data frame into executable code.
+    `dput(mydata)` generates the code you need to recreate `mydata`:
+    
+    ```{r}
+    dput(mydata)
+    ```
+  
+    Once you have that code, you can put this in your reprex to generate 
+    `mydata`:
+    
+    ```{r}
+    mydata <- structure(list(x = 1:5, y = structure(1:5, .Label = c("a", "b", 
+    "c", "d", "e"), class = "factor")), class = "data.frame", row.names = c(NA, 
+    -5L))
+    ```
+
+    If `dput()` on your original data generates too much code, try taking a 
+    subset of your data and see if it will reproduce the problem.
+
+### Making a minimal reprex
+
+Creating the smallest possible reprex is particularly important for Shiny apps, which can be quite large and complicated. Rather than forcing the person trying to help you to understand all the details of your app, you are more likely to get higher quality help faster if you extract out the precise piece of the app that you're struggling with. As an added benefit, this process will often lead you to discover what the problem is, so you don't have to wait for help from someone else!
+
+Reducing a bunch of code to the essential problem is a skill, and you probably won't be very good it at first. That's ok! Even the smallest reduction in code complexity helps the person helping you, and over time your compexity reduction skills will approve.
+
+If you don't know what part of your code is triggering the problem, a good way to find it is to remove sections of code from your application, piece by piece, until the problem goes away. If removing a particular piece of code makes the problem stop, it's likely that that code is related to the problem. Once you've isolated the code that triggers the problem, you can go on to the next step.
+
+To create a minimal example, you can go one of two ways: you can either keep removing code from your application until all the extraneous parts are gone, or you can construct a new Shiny application and copy the problem code into the new application. It's generally easier for others to understand the problem when you construct a new example, although either way is much better than not having a reproducible example at all.
+
+### Case study
+
+<!-- 
+https://community.rstudio.com/t/error-in-eval-object-variable-not-found-data-table-feeding-plot-in-shiny-app/38517/8
+-->
 
 ## Acknowledgements
 
