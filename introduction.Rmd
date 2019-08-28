@@ -64,7 +64,7 @@ TODO: Update this list before final draft; see [DESCRIPTION](https://github.com/
 
 You may find it helpful to print a copy of our [Shiny "cheat sheet"](https://github.com/rstudio/cheatsheets/raw/master/shiny.pdf), a reference card for many of the most important concepts and functions in Shiny. It won't all make sense to you yet, but as you work through the chapters you'll find it more and more helpful to refresh your memory.
 
-## If you get stuck
+## If you get stuck {#reprex}
 
 Got a problem you can't figure out, or a question this book (and Google) can't answer? You can find help at our community site: https://community.rstudio.com/c/shiny.
 
