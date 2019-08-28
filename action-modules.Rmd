@@ -29,7 +29,99 @@ Sometimes you can extract out duplicated code using functions. For example, if y
 
 Or you have a self contained set of reactives:
 
-However, a function alone with only take you so far because typically you'll have some connection between the front end and back end, and you need some way to coordinate the two. Shiny uses identifiers so you need some way to share them. This gives rise to Shiny __modules__. 
+However, a function alone with only take you so far because typically you'll have some connection between the front end and back end, and you need some way to coordinate the two. Shiny uses identifiers so you need some way to share them. This gives rise to Shiny __modules__.
+
+### Case study
+
+<!-- https://community.rstudio.com/t/trying-to-create-a-reactive-graph-that-will-take-in-multiple-different-inputs/38506 -->
+
+Repeated code makes differences hard to see.
+
+```{r eval = FALSE}
+fluidRow(
+  box(
+    width = 4,
+    solidHeader = TRUE,
+    selectInput("traffickingType",
+      label = "Choose a trafficking type: ",
+      choices = sort(unique(ngo$Trafficking.Type)),
+      multiple = TRUE
+    )
+  ),
+  box(
+    width = 4,
+    solidHeader = TRUE,
+    selectInput("traffickingSubType",
+      label = "Choose a trafficking sub type: ",
+      choices = sort(unique(ngo$Trafficking.Sub.Type)),
+      multiple = TRUE
+    )
+  ),
+  box(
+    width = 4,
+    solidHeader = TRUE,
+    selectInput("gender",
+      label = "Choose a gender: ",
+      choices = sort(unique(ngo$Victim.Gender)),
+      multiple = TRUE
+    )
+  )
+)
+```
+
+```{r, eval = FALSE}
+ngoSelectInput <- function(var, label, multiple = TRUE) {
+  choices <- sort(unique(ngo[[var]]))
+  label <- paste0("Choose a ", label, ": ")
+  selectInput(var, label, choices = choices, multiple = multiple)
+}
+boxHeader <- function(...) {
+  box(width = 4, solidHeader = TRUE, ...)
+}
+
+fluidRow(
+  boxHeader(ngoSelectInput("Trafficking.Type", "trafficking type")),
+  boxHeader(ngoSelectInput("Trafficking.Sub.Type", "trafficking sub type")),
+  boxHeader(ngoSelectInput("Victim.Gender", "gender"))
+)
+```
+
+I made one simplifying assumption that would also require changes on the server side: when filtering based on a variable, the input name should be the same as the variable name. I think this sort of consistency generally makes for code that's easier to read and remember.
+
+```{r}
+ngo_filtered <- reactive({
+  filter(ngo, 
+    Trafficking.Type %in% input$Trafficking.Type,
+    Trafficking.Sub.Type %in% input$Trafficking.Sub.Type,
+    Victim.Gender %in% input$Victim.Gender
+  )
+})
+```
+
+If you had a lot more controls, I'd consider using functional programming to generate them. I won't talk about more here, but you might want to learn more about it if this is intriguing to you. 
+
+```{r, eval = FALSE}
+library(purrr)
+vars <- tibble::tribble(
+  ~ var,                  ~ label,
+  "Trafficking.Type",     "trafficking type",
+  "Trafficking.Sub.Type", "trafficking sub type",
+  "Victim.Gender",        "gender"
+)
+vars %>% 
+  pmap(ngoSelectInput) %>% # create one select input for each row
+  map(boxHeader) %>%       # wrap each in a boxHeader()
+  exec(fluidRow)           # collapse into a single fluidRow()
+```
+
+In this case generating the dplyr code would require yet still more FP skills:
+
+```{r, eval = FALSE}
+library(rlang)
+select <-  map(vars$var, function(v) expr(!!sym(v) == input[[!!v]]))
+select
+filter(ngo, !!!select)
+```
 
 ## Isolating behaviour with modules
 
@@ -66,7 +158,9 @@ server <- function(input, output, session) {
 }
 ```
 
-## Case study: limited selection + other
+## Case studies
+
+### Limited selection + other
 
 Consider the following app, which provdies a way to select gender that is sensitive to the many possible ways that people can express their gender.[^gender]
 
@@ -162,6 +256,34 @@ server <- function(input, output, session) {
 }
 ```
 
+### Hierarchical select boxes
+
+```{r, eval = FALSE}
+library(tidyverse)
+country_df <- countrycode::codelist %>% 
+  as_tibble() %>% 
+  select(iso3c, continent, country = cow.name) %>% 
+  filter(!is.na(continent), !is.na(country))
+
+continents <- sort(unique(country_df$continent))
+
+ui <- fluidPage(
+  selectInput("continent", "Continent", choices = continents),
+  selectInput("country", "country", choices = NULL)
+)
+
+server <- function(input, output, session) {
+  countries <- reactive({
+    country_df[country_df$continent == input$continent, , drop = FALSE]
+  })
+  
+  observeEvent(input$continent, {
+    updateSelectInput(session, "country", choice = countries()$country)
+  })
+}
+shinyApp(ui, server)
+
+```
 
 
 ## Packages
