@@ -66,13 +66,13 @@ You may find it helpful to print a copy of our [Shiny "cheat sheet"](https://git
 
 ## If you get stuck {#reprex}
 
-Do you have a problem you can't figure out, or a question that this book (and Google) can't answer? The best place to ask is our community site,  <https://community.rstudio.com/c/shiny>. 
+Do you have a problem you can't figure out, or a question that this book (and Google) can't answer? The best place to ask is the Shiny community site,  <https://community.rstudio.com/c/shiny>. This site is read by many Shiny users, as well as the developers of the Shiny package itself. It's also a great place to visit if you want to improve your Shiny skills by helping others.
 
-To get the most useful help as quickly as possible, you will need to create a reprex, or **repr**oducible **ex**ample. The goal of a reprex is to provide the smallest possible snippet of R code that illustrates the problem and that can easily be run on someone else's computer. It's common courtesy (and in your own best interest) to create a reprex: if you want someone to help you, you should make it as easy as possible for them.
+To get the most useful help as quickly as possible, you must create a reprex, or **repr**oducible **ex**ample. The goal of a reprex is to provide the smallest possible snippet of R code that illustrates the problem and can easily be run on another computer. It's common courtesy (and in your own best interest) to create a reprex: if you want someone to help you, you should make it as easy as possible for them!
 
 ### Reprex basics
 
-A reprex is just some R code that works when you copy and paste it into a fresh R session. Here's a simple reprex for a Shiny app:
+A reprex is just some R code that works when you copy and paste it into a R session on another computer. Here's a simple reprex for a Shiny app:
 
 ```{r, eval = FALSE}
 library(shiny)
@@ -89,15 +89,17 @@ server <- function(input, output, session) {
 shinyApp(ui, server)
 ```
 
-Anyone can copy and paste this code into their R session and see the error: "non-numeric argument to binary operator". 
+This code doesn't make any assumptions about the computer on which its running (except that Shiny is installed!) so anyone can run this code and see the problem: the app throws an error saying "non-numeric argument to binary operator". 
 
 Clearly illustrating the problem is the first step to getting help, and because anyone can reproduce the problem by just copying and pasting the code, they can easily explore your code and test possible solutions. (In this case, you need `as.numeric(input$n)` since `selectInput()` creates a string.)
 
 ### Making a reprex
 
-The first step in making a reprex is to create a single self-contained file that contains everything needed to run your code. You should check it by starting a fresh R session and then running the code. Make sure you haven't forgotten to load any packages that make your app work.
+The first step in making a reprex is to create a single self-contained file that contains everything needed to run your code. You should check it by starting a fresh R session and then running the code. Make sure you haven't forgotten to load any packages[^library] that make your app work.
 
-You'll also need to check for data that's only presented on your computer. You can make it easier for others by providing a data set in a way that can be copied and pasted. This can be either your original data set, or a simplified version of it that still causes the issue. For example, if you have a data frame with 1,000 rows, you might try to take the first 20 rows and see if that will still cause the problem. In general it is best to provide a simplified version of the data set, so that it is easy for others to understand it.
+[^library]: Regardless of how you normally load packages, I strongly recommend using multiple `library()` calls. This eliminates a source of potential confusion for people who might not be familiar with the tool that you're using.
+
+Typically, the most challenging part of making an app work on another computer is eliminating the use of data that's only stored on your computer. To turn your code into a reprex, you need to provide the needed data inline in the reprex, without assuming that there are any other files on disk. This can be either your original data set, or a simplified version of it that still causes the issue. For example, if you have a data frame with 1,000 rows, you might try to take the first 20 rows and see if that will still cause the problem. In general it is best to provide a simplified version of the data set, so that it is easy for others to understand it.
 
 *   Use a built-in data set like `mtcars` or `iris`.
 
@@ -126,15 +128,28 @@ You'll also need to check for data that's only presented on your computer. You c
     If `dput()` on your original data generates too much code, try taking a 
     subset of your data and see if it will reproduce the problem.
 
+If reading data from disk seems to be an irreducible part of the problem, a strategy of last resort is to provide a complete project containing both an `app.R` and the needed data files. The best way to do provide this is as a RStudio project hosted on GitHub, but failing that, you can carefully make a zip file than can be run locally. Make sure that you use relative paths (i.e. `read.csv("my-data.csv"`) not `read.csv("c:\\my-user-name\\files\\my-data.csv")`) so that your code still works when run from a different location.
+
 ### Making a minimal reprex
 
-Creating the smallest possible reprex is particularly important for Shiny apps, which can be quite large and complicated. Rather than forcing the person trying to help you to understand all the details of your app, you are more likely to get higher quality help faster if you extract out the precise piece of the app that you're struggling with. As an added benefit, this process will often lead you to discover what the problem is, so you don't have to wait for help from someone else!
+Creating the smallest possible reprex is particularly important for Shiny apps, which can be quite large and complicated. Rather than forcing the person trying to help you to understand all the details of your app, you are more likely to get higher quality help faster if you can extract out the exact piece of the app that you're struggling with. As an added benefit, this process will often lead you to discover what the problem is, so you don't have to wait for help from someone else!
 
 Reducing a bunch of code to the essential problem is a skill, and you probably won't be very good it at first. That's ok! Even the smallest reduction in code complexity helps the person helping you, and over time your compexity reduction skills will approve.
 
-If you don't know what part of your code is triggering the problem, a good way to find it is to remove sections of code from your application, piece by piece, until the problem goes away. If removing a particular piece of code makes the problem stop, it's likely that that code is related to the problem. Once you've isolated the code that triggers the problem, you can go on to the next step.
+If you don't know what part of your code is triggering the problem, a good way to find it is to remove sections of code from your application, piece by piece, until the problem goes away. If removing a particular piece of code makes the problem stop, it's likely that that code is related to the problem. Alternatively, sometimes it's simpler to start with a fresh, empty, app and progressively build it up until you find the problem again.
 
-To create a minimal example, you can go one of two ways: you can either keep removing code from your application until all the extraneous parts are gone, or you can construct a new Shiny application and copy the problem code into the new application. It's generally easier for others to understand the problem when you construct a new example, although either way is much better than not having a reproducible example at all.
+Once you've simplified your app to demonstrate the problem, it worthwhile to take a final pass through and check:
+
+* Is every input and output in `UI` related to the problem? 
+
+* Does your app have a complex layout that you can simplify to help focus 
+  on the problem at hand?
+  
+* Have you created reactives in `server()` that aren't pertinent to the 
+  problem?
+  
+* Is every package that you load needed to illustrate the problem? Can you
+  eliminate packages by replacing functions with dummy code?
 
 ### Case study
 
