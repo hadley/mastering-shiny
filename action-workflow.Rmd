@@ -1,10 +1,10 @@
-# Workflow
+# Workflow {#action-workflow}
 
 ```{r, include = FALSE}
 source("common.R")
 ```
 
-If you're going to be writing a lot of Shiny apps (and since you're reading this book you hopefully will be!), it's worth investing some time in the basic Shiny app writing workflow. By spending a little time optimising the iteration cycle so that you can make a change and see the results as quickly as possible, you'll find creating apps more pleasant, and your skills will improve more rapidly.
+If you're going to be writing a lot of Shiny apps (and since you're reading this book you hopefully will be!), it's worth investing some time in your basic app workflow. Spendinga little time to optimise the iteration cycle so that you can make a change and see the results as quickly as possible pays off by making the process more enjoyable, and allows your skills to improve more rapidly.
 
 ## Basic structure
 
@@ -31,8 +31,9 @@ If you get sick of typing that code in, RStudio provides a couple of shortcuts t
 * If you already have your future `app.R` open, type `shinyapp` then press 
   `Shift` + `Tab` to insert the shinyapp snippet.[^snippet]
 
-* If you want to start a new project, go to the File menu, select "New Project"
-  then select "Shiny Web Aplication":
+* If you want to start a new project (i.e. a self-contained directory that is
+  isolate from the other projects that you're working on), go to the File menu, 
+  select "New Project" then select "Shiny Web Aplication":
 
     ```{r, echo = FALSE, out.width = NULL}
     knitr::include_graphics("screenshots/action-workflow/new-project.png", dpi = 300)
@@ -46,34 +47,47 @@ For all development activities, I strongly recommend that you spend some time op
 
 The first way to reduce your iteration time is to learn the keyboard shortcut for launching an app: `Cmd/Ctrl` + `Shift` + `Enter`. You can, of course, click the run app button, but I recommend learning the keyboard shortcut because it's faster in the long run. This gives you a basic workflow like:
 
-* Write some code
-* Launch the app with `Cmd/Ctrl` + `Shift` + `Enter`
-* Interactively experiment
-* Close the app
-* Repeat
+* Write some code.
+* Launch the app with `Cmd/Ctrl` + `Shift` + `Enter`.
+* Interactively experiment.
+* Close the app.
+* Repeat.
 
 Another way to reduce your iteration speed still further is to turn autoreload on (`options(shiny.autoreload = TRUE)`) and then run the app in a background job, as described in <https://github.com/sol-eng/background-jobs/tree/master/shiny-job>. With this workflow as soon as you save a file, your app will relaunch: no needed to close and restart. This leads to an even faster workflow:
 
 * Write some code and press `Cmd/Ctrl` + `S` to save to the file.
-* Interactively experiment
-* Repeat
+* Interactively experiment.
+* Repeat.
+
+The chief disadvantage of this technique is that because the app is running in a separate process, it's considerably hard to debug.
 
 As you app gets bigger and bigger you'll find that the "interactively experiment" step starts to become onerous. It's too hard to remember to re-check every component of your app that you might have affected with your changes. Later, you'll learn two tools that help you with this challenge:
 
-* Modules, which help you isolate parts of your app into self-contained 
-  fragments. Modules are guaranteed to be de-coupled from the rest of your
-  app so you can experiment with them in isolation. Modifying an module can 
-  not affect the rest of your app; modifying your app can't affect the 
-  internals of your module.
+* Modules, Chapter \@ref(action-modules), help you isolate parts of your app 
+  into self-contained pieces. Modules guarantee isolation between components,
+  making it easier to test because a module can only interact with the rest of 
+  your in pre-specified ways. 
   
-* Automated testing, which allows you to turn the interactive experiments 
-  you're running into code so that you can both re-run it more quickly (because
-  it's automated), and you're guaranteed to check for exactly the same behaviour
-  every time (because you don't need to rely on fragile human memory).
+* Automated testing, allows you to turn the interactive experiments you're 
+  running into automated code. This lets you run the tests more quickly 
+  (because they're automated), and means that you can't forget to run an
+  important test.
 
 ## Debugging
 
-Debugging shiny apps is often challenging because reactive code is run out of order. There are two debugging techniques that you're already familiar with that you can continue to use with Shiny code:
+When you start writing apps, it is almost guaranteed that something will go wrong. As you read this book, you'll learn new skills so that the chances an app works the first time increases, but it takes years of experience in any language before you can reliably write code that works the first time. To solve this problem you need to embrace it: accept that you will make mistakes, and as well as trying to prevent them, ensure that you can gracefully handle them when they arise.
+
+There are two primary cases that you will encouter: you get an unexpected error, or the code works, but returns an incorrect result. The first challenge is the same in either case: find the exact piece of code where the problem occurs. You should be familiar with the basic tools for debugging regular R code (if you're not, read <https://whattheyforgot.org/debugging-r-code.html>). But Shiny poses additional problems:
+
+* Reactive code is run out of order, so it can be hard to figure out exactly 
+  what sequence of actions triggers the problem.
+  
+* Shiny blocks the console, so it can be harder to explore interactively.
+
+
+To figure out where the problem occurred 
+
+Debugging shiny apps is often challenging  There are two debugging techniques that you're already familiar with that you can continue to use with Shiny code:
 
 *   Use `message()` to emit messages to the console that allow you to see 
     exactly when code is run. You can put messages in any reactive expression 
@@ -87,3 +101,5 @@ Debugging shiny apps is often challenging because reactive code is run out of or
 *   You can use RStudio breakpoints and `browser()` to pause execution and get
     an interactive environment where you can inspect the current values of 
     reactive components. 
+
+If you're in a big app, and you just can't get traction on what's going wrong, I highly recommend spending some time isolating the problem by removing chunks of the app that are unrelated. This is the same process as making a reprex, as described in Section \@ref(reprex), so has the added benefit that if you still can't figure it out, you'll be in a good position to ask for help from others.

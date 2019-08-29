@@ -1,4 +1,4 @@
-# Modules
+# Modules {#action-modules}
 
 ```{r, include = FALSE}
 source("common.R")
@@ -122,6 +122,8 @@ select <-  map(vars$var, function(v) expr(!!sym(v) == input[[!!v]]))
 select
 filter(ngo, !!!select)
 ```
+
+Point is that if you already have these skils, don't forget that you can apply them with Shiny!
 
 ## Isolating behaviour with modules
 

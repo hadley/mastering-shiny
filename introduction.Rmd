@@ -148,6 +148,9 @@ Once you've simplified your app to demonstrate the problem, it worthwhile to tak
 * Have you created reactives in `server()` that aren't pertinent to the 
   problem?
   
+* If you've tried multiple ways to solve the problem, have you removed all
+  the vestiges of the attempts that didn't work?
+  
 * Is every package that you load needed to illustrate the problem? Can you
   eliminate packages by replacing functions with dummy code?
 
