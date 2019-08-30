@@ -84,9 +84,6 @@ There are two primary cases that you will encouter: you get an unexpected error,
   
 * Shiny blocks the console, so it can be harder to explore interactively.
 
-
-To figure out where the problem occurred 
-
 Debugging shiny apps is often challenging  There are two debugging techniques that you're already familiar with that you can continue to use with Shiny code:
 
 *   Use `message()` to emit messages to the console that allow you to see 
@@ -102,9 +99,30 @@ Debugging shiny apps is often challenging  There are two debugging techniques th
     an interactive environment where you can inspect the current values of 
     reactive components. 
 
-If you're in a big app, and you just can't get traction on what's going wrong, I highly recommend spending some time isolating the problem by removing chunks of the app that are unrelated. This is the same process as making a reprex, as described in Section \@ref(reprex), so has the added benefit that if you still can't figure it out, you'll be in a good position to ask for help from others.
+The key challenge of debugging is that typically you have a lot of code that works just fine, and a very small amount of code that's causing problems. The skill of debugging is quickly eliminating the code that works correctly and narrowing in on the problem. The key challenge is that the code that you believe is working correctly is often not; so somehow you have to find and confront your flawed mental model.
 
-## If you get stuck {#reprex}
+If you're in a big app, and you just can't get traction on what's going wrong, I highly recommend spending some time isolating the problem by removing chunks of the app that are unrelated. This is the same process as making a reprex, as described in below, so has the added benefit that if you still can't figure it out, you'll be in a good position to ask for help from others.
+
+This is a technique that I use all the time when debugging packages: start with a big blob of code that illustrates the problem and progressively remove the code that's unrelated. The tighter you can isolate the problem, the less other code that you'll have to look through.
+
+
+### The react log
+
+If the problem is that reactive events aren't triggering as expect, you may find the reactive log, <https://github.com/rstudio/reactlog>, useful. We'll come back to this later (once you've got a more solid understanding of the flow of reactivity), but here's the basic usage:
+
+```{r, eval = FALSE}
+library(shiny)
+library(reactlog)
+options(shiny.reactlog = TRUE)
+
+runApp(ui, server)
+
+# Press Cmd / Ctrl + F3 to launch the react log while you app is running
+# Or quit the app and run:
+reactlogShow()
+```
+
+## Getting help {#reprex}
 
 Do you have a problem you can't figure out, or a question that this book (and Google) can't answer? The best place to ask is the Shiny community site,  <https://community.rstudio.com/c/shiny>. This site is read by many Shiny users, as well as the developers of the Shiny package itself. It's also a great place to visit if you want to improve your Shiny skills by helping others.
 
