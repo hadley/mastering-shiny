@@ -156,9 +156,156 @@ Once you've simplified your app to demonstrate the problem, it worthwhile to tak
 
 ### Case study
 
-<!-- 
-https://community.rstudio.com/t/error-in-eval-object-variable-not-found-data-table-feeding-plot-in-shiny-app/38517/8
--->
+To illustrate the process of making a top-notch reprex I'm going to use an example from [Scott Novogoratz](https://community.rstudio.com/u/sanovogo) posted on [RStudio community](https://community.rstudio.com/t/37982). The initial code was very close to being a reprex, but wasn't quite reproducible because it forgot to load a pair of packages. At as a starting point: 
+
+* Added missing `library(lubrdate)` and `library(xts)`.
+* Split apart `ui` and `server` into separate objects.
+* Reformatted with `styler::style_selection()`.
+
+That yielded the following reprex:
+
+```{r, eval = FALSE}
+library(xts)
+library(lubridate)
+library(shiny)
+
+ui <- fluidPage(
+  uiOutput("interaction_slider"),
+  verbatimTextOutput("breaks")
+)
+server <- function(input, output, session) {
+  df <- data.frame(
+    dateTime = c(
+      "2019-08-20 16:00:00",
+      "2019-08-20 16:00:01",
+      "2019-08-20 16:00:02",
+      "2019-08-20 16:00:03",
+      "2019-08-20 16:00:04",
+      "2019-08-20 16:00:05"
+    ),
+    var1 = c(9, 8, 11, 14, 16, 1),
+    var2 = c(3, 4, 15, 12, 11, 19),
+    var3 = c(2, 11, 9, 7, 14, 1)
+  )
+
+  timeSeries <- as.xts(df[, 2:4], order.by = strptime(df[, 1], format = "%Y-%m-%d %H:%M:%S"))
+  print(paste(min(time(timeSeries)), is.POSIXt(min(time(timeSeries))), sep = " "))
+  print(paste(max(time(timeSeries)), is.POSIXt(max(time(timeSeries))), sep = " "))
+
+  output$interaction_slider <- renderUI({
+    sliderInput(
+      "slider",
+      "Select Range:",
+      min = min(time(timeSeries)),
+      max = max(time(timeSeries)),
+      value = c(min, max)
+    )
+  })
+
+  brks <- reactive({
+    req(input$slider)
+    seq(input$slider[1], input$slider[2], length.out = 10)
+  })
+
+  output$breaks <- brks
+}
+shinyApp(server, ui)
+```
+
+If you run this reprex, you'll see the same problem in the initial post: an error starting "Type mismatch for min, max, and value. Each must be Date, POSIXt, or number". This is a solid reprex: I can easily run it on my computer, and it immediately illustrates the problem. However, it's a bit long, so it's not clear what's causing the problem.
+
+To make this reprex simpler we can carefully work through each line of code and see if it's important. While doing this, I discovered:
+
+* Removing the the two lines starting with `print()` didn't affect the error. 
+  Those two lines used `lubridate::is.POSIXct()`, which was the only use of 
+  lubridate, so once I removed them, I no longer needed to load lubridate.
+  
+* `df` is a data frame that's converted to an xts data frame called 
+  `timeSeries`. But the only way `timeSeries` is used is via 
+  `time(timeSeries)` which returns a date-time. So I created
+  a new variable `datetime` that contained some dummy date-time data.
+  This still yielded the same error, so I removed `timeSeres` and `df`,
+  and since that was the only place xts was used, I also removed
+  `library(xts)`
+
+Together, those changes yielded a new `server()` that looked like this:
+
+```{r}
+datetime <- Sys.time() + (86400 * 0:10)
+
+server <- function(input, output, session) {
+  output$interaction_slider <- renderUI({
+    sliderInput(
+      "slider",
+      "Select Range:",
+      min   = min(datetime),
+      max   = max(datetime),
+      value = c(min, max)
+    )
+  })
+  
+  brks <- reactive({
+    req(input$slider)
+    seq(input$slider[1], input$slider[2], length.out = 10)
+  })
+  
+  output$breaks <- brks
+}
+```
+
+Next, I noticed that this example uses a relatively sophisticated Shiny technique where the UI is generated in the server function. But here `renderUI()` is not referring to any reactive inputs, so it should work the same way if moved out of the server function and into the UI. 
+
+This yielded a particularly nice results, because now the error occurs much earlier, before we even start the app:
+
+```{r, error = TRUE}
+ui <- fluidPage(
+  sliderInput("slider",
+    "Select Range:",
+    min   = min(datetime),
+    max   = max(datetime),
+    value = c(min, max)
+  ),
+  verbatimTextOutput("breaks")
+)
+```
+
+And now we can take the hint from the error message and look at each of the inputs we're feeing to `min`, `max`, and `value` to see where the problem is:
+
+```{r}
+min(datetime)
+max(datetime)
+c(min, max)
+```
+
+Now the problem is obvious: we've haven't assigned `min` and `max` variables, so we're accidentally passing the `min()` and `max()` functions into `sliderInput()`. One way to solve that problem is to use `range()` instead:
+
+```{r}
+ui <- fluidPage(
+  sliderInput("slider",
+    "Select Range:",
+    min   = min(datetime),
+    max   = max(datetime),
+    value = range(datetime)
+  ),
+  verbatimTextOutput("breaks")
+)
+```
+
+This is fairly typically of creating a reprex: often, when you simplify the problem to the absolute key components the problem becomes obvious. Creating a good reprex is an incredibly powerful debugging technique.
+
+To simplify this reprex, I had to do a bunch of experimenting and reading up on functions that I wasn't very familiar with[^is.POSIXt]. This is typically much easier if its your own code, because you already understand what all the parts do. Still, you'll often need to do a bunch of experimentation to figure out where exactly the problem is coming from. That can be frustrating and feel time consuming, but it has a number of benefits:
+
+* It enables you to create a description of the problem that is accessible to
+  anyone who knows Shiny, not anyone who knows Shiny **and** the particular
+  domain that you're working in.
+
+* You will build up a better mental model of how your code works, which means
+  that you're less likely to make the same or similar mistakes in the future.
+
+* Over time, you'll get faster and faster at creating rexpres, and this will
+  become one of your go to techniques when debugging.
+
+[^is.POSIXt]: For example, I had no idea that `is.POSIXt()` was part of the lubridate package!
 
 ## Acknowledgements
 
