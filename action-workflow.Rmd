@@ -73,6 +73,14 @@ As you app gets bigger and bigger you'll find that the "interactively experiment
   (because they're automated), and means that you can't forget to run an
   important test.
 
+## View options
+
+This is RStudio's Shiny app window. From here, you can click "Open in Browser" to view the app in your system default web browser, which can be helpful for testing or debugging. If you prefer to always launch straight into your system default web browser, or RStudio's Viewer pane, you can use the Run App button's dropdown menu to choose one of those instead:
+
+```{r, echo = FALSE, out.width = NULL}
+knitr::include_graphics("images/basic-app/run-app-details.png")
+```
+
 ## Debugging
 
 When you start writing apps, it is almost guaranteed that something will go wrong. As you read this book, you'll learn new skills so that the chances an app works the first time increases, but it takes years of experience in any language before you can reliably write code that works the first time. To solve this problem you need to embrace it: accept that you will make mistakes, and as well as trying to prevent them, ensure that you can gracefully handle them when they arise.
