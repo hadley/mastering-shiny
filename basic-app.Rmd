@@ -44,7 +44,7 @@ This is a complete, if trivial, Shiny app! Looking closely at the code above, ou
     to revisit this shortly.
     
 4.  It executes `shinyApp(ui, server)` to construct and start a Shiny 
-    application and from UI and server.
+    application from UI and server.
 
 ## Running and stopping {#running}
 
