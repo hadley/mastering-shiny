@@ -16,7 +16,7 @@ In "Shiny in Action", you'll learn a bunch of common patterns for building Shiny
 
 Then in "Mastering UI", you'll dive further into the many options you have for the front-end of your app.
 
-In "Mastering reactivity", you'll go deep in to the theory and practice of reactive programming, the programming paradigm that underlies Shiny. If you're an existing Shiny user, you'll get the most value out of this chapter as it will give you a solid theoretical underpinning that will allow you to create new tools specifically tailored for your problems.
+In "Mastering reactivity", you'll go deep into the theory and practice of reactive programming, the programming paradigm that underlies Shiny. If you're an existing Shiny user, you'll get the most value out of this chapter as it will give you a solid theoretical underpinning that will allow you to create new tools specifically tailored for your problems.
 
 The biggest drawback of reactive programming is that it's a fundamentally new programming paradigm. Even experienced R users can have trouble getting their heads around reactive programming, and those with deep experience in software engineering may feel uncomfortable with so much "magic". But once you've formed an accurate mental model, you'll see that there's nothing up Shiny's sleeves: the magic comes from simple concepts combined in consistent ways.
 
