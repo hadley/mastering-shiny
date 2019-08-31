@@ -36,7 +36,7 @@ This is a complete, if trivial, Shiny app! Looking closely at the code above, ou
 
 1.  It calls `library(shiny)` to load the shiny package.
 
-2.  It defines the user interface, the HTML webpage that hummans interact
+2.  It defines the user interface, the HTML webpage that humans interact
     with. In this case, it's a page containing the words "Hello, world!".
 
 3.  It specifies the behavior of our app by defining a `server` function. 
