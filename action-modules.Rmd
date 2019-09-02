@@ -6,6 +6,8 @@ source("common.R")
 
 As your app grows, sandwhiching all of your code into a single `app.R` will start to become painful. This chapter describes the techniques you can use to break your app apart into independent pieces, focussing on shiny modules.
 
+If you learend Shiny with an older version of Shiny, you might be more familiar with using separate files for the front end (`ui.R`) and back end (`server.R`). That organisation continues to work, but is no longer recommended: if you have an older app, I recommend doing a little copy and paste to combine the two files into a single `app.R`. Similarly, if you're using `global.R` inline it into `app.R`.
+
 DRY principle. Rule of three.
 
 ## Helper functions
