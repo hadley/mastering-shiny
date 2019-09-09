@@ -16,21 +16,23 @@ Built with [bookdown](https://bookdown.org/yihui/bookdown/).
 
 1. Shiny in action
     1. Workflow / organising your app.
+    1. User feedback
+        * `update` functions
+        * [Progress bars](https://shiny.rstudio.com/articles/progress.html)
+        * [Validation](https://shiny.rstudio.com/articles/validation.html)
+        * [Notifications](https://shiny.rstudio.com/articles/notifications.html)
+    1. Modules
+    1. Uploading/downloading data
+    1. Programming the tidyverse
+    1. Generating static reports from Shiny
+
+1. Mastering UI
     1. Tables
     1. Graphics
        * `renderCachedPlot()`
        * [Interactive plots](https://shiny.rstudio.com/articles/plot-interaction.html)
        * [`renderImage()`](https://shiny.rstudio.com/articles/images.html)
-    1. Uploading/downloading data
-    1. Generating static reports from Shiny
-    1. Multipage apps and modules
-    1. Programming the tidyverse
-
-1. Mastering UI
-    1. User feedback
-        * [Progress bars](https://shiny.rstudio.com/articles/progress.html)
-        * [Validation](https://shiny.rstudio.com/articles/validation.html)
-        * [Notifications](https://shiny.rstudio.com/articles/notifications.html)
+    1. Multipage apps
     1. Dashboards
     1. Shiny gadgets
     1. Dynamic UI
