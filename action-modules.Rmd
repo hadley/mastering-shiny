@@ -32,7 +32,7 @@ Advantages of functions and modules:
     
 Often the hardest part is decomposing your big problem into smaller independent pieces. I include some case studies here to help you get a sense of how this feels, but ultimately it's a skill that can only be learned with practice. Try and set aside some time each week where you're not improving the behaviour or appearance of you app, but simply making it easier to understand. This will make your app easier to change in the future, and as you practice these skills your first attempt will become higher quality.
 
-```{r}
+```{r setup}
 library(shiny)
 ```
 
@@ -266,6 +266,7 @@ filter(ngo, !!!select)
 ```
 
 Don't worry if this all looks like gibberish: you can just use copy and paste instead. 
+
 ## Using modules
 
 Functions are great but they're effectively isolate to either extract pure UI code, or pure computation used inside reactives. They don't help (why?) if you want to build more complicated components that link UI and server.
@@ -276,88 +277,185 @@ A Shiny module is a pair of functions, corresponding to the front end UI and the
 
 ### Without modules
 
+To illustrate why we need modules, and can't just use regular functions, consider the following simple app. It allows the user to input their birthday as a string: this is a little faster than using a `dateInput()` since there's no need to scroll through a calendar. But it means that we need to check that they've entered a correct date and give an informative message if they haven't.
+
 ```{r}
-ageUI <- function() {
-  dateInput("birthday", "When were you born?", max = Sys.Date())
-}
-ageServer <- function(input, output, session) {
-  reactive({
-    days <- difftime(Sys.Date(), input$birthday, units = "days")
-    floor(days / 365.25)
+ui <- fluidPage(
+  textInput("date", "When were you born? (yyyy-mm-dd)"),
+  textOutput("error"),
+  textOutput("age")
+)
+
+server <- function(input, output, session) {
+  birthday <- reactive({
+    req(input$date)
+    ymd(input$date, quiet = TRUE)
+  })
+  
+  output$error <- renderText({
+    if (is.na(birthday())) {
+      "Please enter valid date in yyyy-mm-dd form"
+    }
+  })
+  age <- reactive({
+    req(birthday())
+    (birthday() %--% today()) %/% years(1)
+  })
+  output$age <- renderText({
+    paste0("You are ", age(), " years old")
   })
 }
+```
 
-ui <- fluidPage(
-  ageUI(),
-  textOutput("age")
-)
-server <- function(input, output, session) {
-  age <- ageServer(input, output, session)
-  output$age <- renderText(age())
+It seems plausible that as your app gets bigger you might want to use this date control in multiple places, so lets have a go at extracting it out in to functions. We'll need two functions: one to generate the UI, and one to do the computation on the server side:
+
+```{r}
+ymdInputUI <- function(label) {
+  label <- paste0(label, " (yyyy-mm-dd)")
+  
+  fluidRow(
+    textInput("date", label),
+    textOutput("error"),
+  )
+}
+
+ymdInputServer <- function(input, output, session) {
+  date <- reactive({
+    req(input$date)
+    ymd(input$date, quiet = TRUE)
+  })
+  
+  output$error <- renderText({
+    if (is.na(date())) {
+      "Please enter valid date in yyyy-mm-dd form"
+    }
+  })
+
+  date
 }
 ```
 
-The problem with this attempt is that it's not isolated from the rest of the app, and because the name of the reactive input is concealed inside a function, it's easy to create a problem:
+Note that the function we'll use in the server function takes `input`, `output`, and `session` as arguments. We don't strictly need `session` here but if we're using `input` and `output` we might as well make it as similar to a regular server function as possible.
+
+That leads to the following app:
 
 ```{r}
 ui <- fluidPage(
-  ageUI(),
-  textInput("birthday", "What would you like for your birthday?"),
+  ymdInputUI("When were you born?"),
   textOutput("age")
 )
+
+server <- function(input, output, session) {
+  birthday <- ymdInputSever(input, output, session)
+  age <- reactive({
+    req(birthday())
+    (birthday() %--% today()) %/% years(1)
+  })
+  
+  output$age <- renderText({
+    paste0("You are ", age(), " years old")
+  })
+}
 ```
 
-Debugging the problem that this creates will be painful because it will reveal itself through failure of reactivity - the output won't upate as you expect, or you'll get weird errors because two controls are fighting for the same input value. 
+There are two problems with this approach:
+
+*   It always assumes that the control is called `date`. This means that 
+    we can't have two controls in the same app.
+  
+    ```{r}
+    ui <- fluidPage(
+      ymdInputUI("When was your mother born?"),
+      ymdInputUI("When was your father born?")
+    )
+    ```
+  
+*   The UI has a output with id `error` that you can't see from reading just
+    the UI code. This makes it very easy to accidentally break the app.
+  
+    ```{r}
+    ui <- fluidPage(
+      ymdInputUI("When were you born?"),
+      textOutput("error")
+    )
+    ```
+
+    Debugging the problem that this creates will be painful because it will 
+    reveal itself through failure of reactivity - the output won't upate as you
+    expect, or you'll get weird errors because two controls are fighting for 
+    the same input value. 
+
+These problems arise because we've used functions to isolate local variables; the code is simpler to understand because any variables created inside of `ymdInputUI()` and `ymdInputServer()` can't be accessed outside. But there's another important way that Shiny code can interface: through the names of input and output controls.
 
 This is the problem that modules are designed to solve: creating inputs and reactives that are completely isolated from the rest of your app. Learning how to use modules will take a little time, but it will pay off by giving you the ability to write components that are guaranteed to be isolated from everything else in your app.
 
 ### Making a module
 
-To make the above code a module, we need to make two changes. First we need to add an `id` argument to our UI component, and use it with special `NS()` function. `NS` is short for namespace: it creates a "space" of "names" that is unique to the module. 
+To convert the code above into a module, we need to make two changes. First we need to add an `id` argument to our UI component, and use it with special `NS()` function. `NS` is short for namespace: it creates a "space" of "names" that is unique to the module. 
 
 ```{r}
-ageUI <- function(id) {
-  dateInput(NS(id, "birthday"), "When were you born?", max = Sys.Date())
+ymdInputUI <- function(id, label) {
+  ns <- NS(id)
+  label <- paste0(label, " (yyyy-mm-dd)")
+  
+  fluidRow(
+    textInput(ns("date"), label),
+    textOutput(ns("error")),
+  )
 }
-```
-
-We now need to specify and id when creating our UI. This is important because it puts this id in the same place as all the others. Making the same mistake as earlier would be much harder.
-
-```{r}
-ui <- fluidPage(
-  ageUI("birthday"),
-  textOutput("age")
-)
-```
-
-Then instead of calling our age server function directly we call it with `callModule()` passing along the id:
-
-```{r}
-server <- function(input, output, session) {
-  age <- callModule(ageServer, "birthday")
-  output$age <- renderText(age())
-}
-```
-
-`callModule()` automatically tweaks the `input` and `output` so it looks for `birthday` inside the `birthday` namespace. You can think if it as doing `input$birthday$birthday` (but it's actually `input$birthday-birthday`).
-
-### Namespaces
-
-The key idea of modules is that namespace: isolating ids so that they're nested in a unique namespace that doesn't interfere with anything else.
-
-The front end function has one special convention: the first argument must be `id`, and it uses `shiny::NS()` to generate unique names within the function. `NS()` is what's known as a function factory: it returns a function that you then use to generate unique identifiers. You can see it in operation below:
-
-```{r}
-ns <- NS("welcome")
-ns("name")
-ns("age")
 ```
 
 The key idea is that the argument to `NS()` is supplied by the person using the component, and the arguments to the function it produces is supply by the person who wrote the component. This two-phase creation makes ensures that the final name combines properties needed by both the app author and the module author. This is a bit confusing at first, because you're likely to be both the app and module author.
 
-`NS()` is so simple that you might wonder why you can't just implement it yourself. You certainly can, but using `NS()` makes it immediately obvious that you're generating a module.
+We now need to specify an `id` when creating the UI. This is important because it puts this id in the same place as all the others, so it's easy to spot if you've used the same input id in multiple places. 
 
-Need example here that illustrates the isolation.
+```{r}
+ui <- fluidPage(
+  ymdInputUI("birthday", "When were you born?"),
+  textOutput("age")
+)
+```
+
+We need to make a similar change to the server side of the module. Here instead of `NS()` we use `callModule()`. `callModule()` automatically tweaks the `input` and `output` so it looks for `date` inside the `id` namespace. You can think if it as doing `input[[id]]birthday` (but it's actually `input[[paste(id, "-", birthday)]]`).
+
+```{r}
+ymdInput <- function(id) {
+  callModule(id = id, function(input, output, session) {
+    date <- reactive({
+      req(input$date)
+      ymd(input$date, quiet = TRUE)
+    })
+    
+    output$error <- renderText({
+      if (is.na(date())) {
+        "Please enter valid date in yyyy-mm-dd form"
+      }
+    })
+  
+    date
+  })
+}
+```
+
+(You may have seen modules used a little differently elsewhere. But I think this organisation makes it easier to understand what's going on.)
+
+Now the arguments to `ymdInput()` have changed: we pass in the `id`, and Shiny takes care of automatically plumbing up the input, output, and session in the appropriate namespaced way. That why I've removed the `Server` from the name - since the details are hidden from the interface.
+
+```{r}
+server <- function(input, output, session) {
+  birthday <- ymdInput("birthday")
+  
+  age <- reactive({
+    req(birthday())
+    (birthday() %--% today()) %/% years(1)
+  })
+  
+  output$age <- renderText({
+    paste0("You are ", age(), " years old")
+  })
+}
+```
+
 
 To help cement the ideas of modules in your head, the following case studies use module to develop a few simple reusable components.
 
@@ -486,6 +584,10 @@ server <- function(input, output, session) {
 shinyApp(ui, server)
 ```
 
+### Returning multiple reactives
+
+* Leave in a list. 
+* Use zeallot
 
 ## Packages
 
