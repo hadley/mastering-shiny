@@ -1,0 +1,200 @@
+# User feedback {#action-feedback}
+
+```{r, include = FALSE}
+source("common.R")
+```
+
+Important to respond to the user as they interact with your app. In this chapter we'll show how you can dynamically push feedback out of R and into the browser.  
+
+Many of the techniques here are best described as side-effects so that they can appear only at the end of the reactive graph.
+
+```{r setup}
+library(shiny)
+```
+
+## Validation
+
+### Ignore missing inputs
+
+Most frequent offender is `textInput()`, because it starts off blank. Can also use with `inputSelect()` with a choice of `""`. 
+
+`req()` is similar to `stop()`, but instead of throwing an error, it sends a special signal to Shiny telling it that the reactive isn't ready yet, so it should wait longer before updating any downstream inputs.
+
+Possible to use inside of an output, but I recommend only using in `reactive()`s. I think this is good practice because it isolates computation in one place.
+
+Truthi-ness. `req()` is designed so that `req(input$x)` will do what you expect regardless of what type of input `x` is. You can see the details in `?isTruthy`
+
+For example, imagine you've created a Shiny app that allows you to up the name of a state from its abbreviation. What do you want the app to do if you enter a 
+
+```{r}
+ui <- fluidPage(
+  textInput("abbr", "State abbreviation"),
+  plotOutput("map")
+)
+server <- function(input, output, session) {
+  state <- reactive({
+    state.name[input$abbr == state.abb]
+  })
+  output$map <- renderPlot({
+    maps::map("state", region = state())
+  })
+}
+```
+
+```{r}
+server <- function(input, output, session) {
+  state <- reactive({
+    req(input$abbr %in% state.abb)
+    state.name[input$abbr == state.abb]
+  })
+  output$name <- renderText(state())
+}
+```
+
+### Validate input
+
+You can extend the same technique to provide other feedback.
+
+`validate()`
+
+With `tryCatch()`
+
+## Notifications
+
+### Progress
+
+* Can divide the task into units that take roughly the same amount of time.
+* Can divide the task into discrete steps
+
+Progress bar. Simplest way is to use `withProgress()`
+
+If you need more control, see the details in `?Progress` and <https://shiny.rstudio.com/articles/progress.html>.
+
+With progress package - i.e. forwarding the conditions it generates to `withProgress()`. Should be able to make simple wrapper.
+
+```{r}
+shinyProgress <- function(expr) {
+  progress <- NULL
+  on.exit(if (!is.null(progress)) progress$close())
+  
+  tryCatch(expr,
+    progress_message = function(cnd) {
+      switch(cnd$msgtype,
+        add_job = {
+          progress <<- Progress$new()
+        },
+        complete_job = {
+          progress$close()
+          progress <<- NULL
+        },
+        set_job_status = progress$set(message = cnd$status),
+        set_job_output = progress$set(details = cnd$output),
+        set_job_progress = progress$set(value = cnd$progress),
+        add_job_progress = progress$inc(amount = cnd$increment)
+      )
+    }
+  )
+}
+```
+
+### Message
+
+If you don't know how long some code will take, a better approach is to use notifications.
+
+```{r}
+server <- function(input, output, session) {
+  data <- reactive({
+    id <- showNotification("Reading data...", duration = NULL, closeButton = FALSE)
+    on.exit(removeNotification(id), add = TRUE)
+    
+    read.csv(path())
+  })
+}
+```
+
+Two important ideas here:
+
+* We captured the notification id created by `showNotification()`.
+
+* We use `on.exit()` to automatically cancel the notification when the 
+  reactive complete, regardless of whether it returns a value or throws
+  an error.
+  
+Also note the use of `duration = NULL` and `closeButton = FALSE` that makes the notification most suitable for this task, ensuring that is stays visibile until the data loading is done.
+  
+(For this specific case you should also look at `data.table::fread()` and `vroom::vroom()` to read in the file; they can be orders of magnitude faster than `read.csv()`. And pointer to chapter about performance/promises/future)
+
+### Modal 
+
+Sometimes you need to give more information to the user than you can fit in a simple notification; or the information is so important that you want to ensure that the 
+
+I think it's a good idea to put the modal ui 
+
+```{r}
+ui <- fluidPage(
+  actionButton("go", "Go")
+)
+modal_ui <- modalDialog(
+  "This is really important!",
+  "Are you sure you want to continue?",
+  footer = list(
+    actionButton("yes", "yes"),
+    actionButton("no", "no")
+  ),
+  easyClose = FALSE
+)
+
+server <- function(input, output, session) {
+  observeEvent(input$go, {
+    showModal(modal_ui)
+  })
+
+  observeEvent(input$yes, 
+    showModal(modalDialog("DELETING ALL FILES", size = "l", footer = NULL))
+  )
+  observeEvent(input$no, 
+    removeModal()
+  )
+}
+```
+
+You'll see another technique when we come back to modules.
+
+## Modify controls
+
+Every input control, e.g. `textInput()` is paired with a update function, e.g. `updateTextInput()` that allows you to control. Paired with `observeEvent()` this allows you to use inputs as outputs.
+
+```{r}
+library(shiny)
+ui <- fluidPage(
+  numericInput("min", "min", 0),
+  numericInput("max", "max", 10),
+  numericInput("n", "n", 5)
+)
+server <- function(input, output, session) {
+  observeEvent(input$min, {
+    updateNumericInput(session, "n", min = input$min)
+  })  
+  observeEvent(input$max, {
+    updateNumericInput(session, "n", max = input$max)
+  })
+}
+```
+
+Note that when you use update functions you are stepping outside of reactivity, so that you now need to worry about circular references and creating infinite loops. 
+
+```{r}
+ui <- fluidPage(
+  numericInput("n", "n", 0)
+)
+server <- function(input, output, session) {
+  observeEvent(input$n,
+    updateNumericInput(session, "n", value = input$n + 1)
+  )
+}
+```
+
+From Shiny's perspectve they act exactly as if the user has altered the value. This is mostly a matter of changing the `value`, but beware that changing some other values can implicit change the value: e.g. changing set of valid inputs in a select control.
+
+All updates are performed "simultaneously" (for the purposes of reactivity) once all outputs are done.
+

@@ -584,6 +584,10 @@ server <- function(input, output, session) {
 shinyApp(ui, server)
 ```
 
+### Modal
+
+<https://gist.github.com/hadley/8d9ee5ea7991b0e5c400320abb9468de>
+
 ### Returning multiple reactives
 
 * Leave in a list. 
