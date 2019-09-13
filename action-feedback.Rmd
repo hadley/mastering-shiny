@@ -68,11 +68,28 @@ With `tryCatch()`
 
 Progress bar. Simplest way is to use `withProgress()`
 
+```{r}
+ui <- fluidPage(
+  numericInput("steps", "How many steps?", 5),
+  actionButton("go", "go")
+)
+server <- function(input, output, session) {
+  observeEvent(input$go, {
+    withProgress(message = "Hi!", {
+      for (i in seq_len(input$steps)) {
+        Sys.sleep(0.1)
+        setProgress(i / input$steps, message = NULL)
+      }
+    })
+  })
+}
+```
+
 If you need more control, see the details in `?Progress` and <https://shiny.rstudio.com/articles/progress.html>.
 
 With progress package - i.e. forwarding the conditions it generates to `withProgress()`. Should be able to make simple wrapper.
 
-```{r}
+```{r, echo = FALSE}
 shinyProgress <- function(expr) {
   progress <- NULL
   on.exit(if (!is.null(progress)) progress$close())
@@ -123,6 +140,21 @@ Two important ideas here:
 Also note the use of `duration = NULL` and `closeButton = FALSE` that makes the notification most suitable for this task, ensuring that is stays visibile until the data loading is done.
   
 (For this specific case you should also look at `data.table::fread()` and `vroom::vroom()` to read in the file; they can be orders of magnitude faster than `read.csv()`. And pointer to chapter about performance/promises/future)
+
+You can slightly extend this approach to send multiple notifications if there are discrete steps (where you also don't know how long they'll take)
+
+```{r}
+server <- function(input, output, session) {
+  data <- reactive({
+    id <- showNotification("Reading data...", duration = NULL, closeButton = FALSE)
+    on.exit(removeNotification(id), add = TRUE)
+    Sys.sleep(0.5)
+      
+    showNotification("Reticulating spines...", id = id, duration = NULL, closeButton = FALSE)
+    Sys.sleep(0.5)
+  })
+}
+```
 
 ### Modal 
 
