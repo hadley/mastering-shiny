@@ -267,10 +267,10 @@ ui <- fluidPage(
 server <- function(input, output, session) {
   output$text <- renderText({ 
     "Hello friend!" 
-    })
+  })
   output$code <- renderPrint({ 
     summary(1:10) 
-    })
+  })
 }
 ```
 ```{r, echo = FALSE, out.width = NULL}
