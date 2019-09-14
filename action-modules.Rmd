@@ -400,7 +400,7 @@ ymdInputUI <- function(id, label) {
   
   fluidRow(
     textInput(ns("date"), label),
-    textOutput(ns("error")),
+    textOutput(ns("error"))
   )
 }
 ```
