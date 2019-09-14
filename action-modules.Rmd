@@ -137,6 +137,12 @@ if (packageVersion("htmltools") >= "0.3.6.9004") {
 
 I'm not going to teach functional programming here, but I will show off some examples. It's a good example of where improving your general R programming skills pays off in your Shiny apps. 
 
+### Reactives
+
+<!-- https://community.rstudio.com/t/r-shiny-apply-custom-function-to-datatable/39790/3 -->
+
+Note that you want to keep as much reactivity inside the server function as possible. So it takes a generic `path` and it returns a data frame, not a reactive.
+
 ### Case study
 
 Lets explore this idea with a realistic Shiny app, inspired by a post, <https://community.rstudio.com/t/38506>, on the RStudio community forum. The post contained some code that looks like this:
