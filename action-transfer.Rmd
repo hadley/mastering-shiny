@@ -1,0 +1,62 @@
+# Uploads and downloads {#action-transfer}
+
+```{r, include = FALSE}
+source("common.R")
+```
+
+## Upload
+
+`fileInput()`
+
+Returns a data frame with columns:
+
+* `name`: name of the file.
+
+* `size`: file size, in bytes. By default the file size is capped at 5 meg. 
+   If you want to increase this set `options(shiny.maxRequestSize)` to number 
+   of bytes.
+   
+
+* `type`: the "mime type" of the file.
+
+* `datapath`: the path to where the path has been uploaded to the server.
+  Temporary directory. Made up name (number). This is a transient path; if the 
+  user uploads more files it will go away.
+
+You can explore with a simple app:
+
+```{r}
+ui <- fluidPage(
+  fileInput("upload", NULL, multiple = TRUE),
+  tableOutput("files")
+)
+server <- function(input, output, session) {
+  output$files <- renderTable(input$upload)
+}
+```
+
+Use of `req()`
+
+```{r}
+ui <- fluidPage(
+  fileInput("file", NULL),
+  tableOutput("description")
+)
+
+server <- function(input, output, session) {
+  data <- reactive({
+    req(input$file)
+    ext <- tools::file_ext(input$file$filename)
+    validate(need(ext == "csv", "Please upload a CSV file"))
+    
+    read.csv(input$file$datapath)
+  })
+  
+  output$description <- renderTable({
+    data()
+  })
+}
+```
+
+## Download
+
