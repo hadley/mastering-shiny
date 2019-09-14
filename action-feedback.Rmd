@@ -18,38 +18,46 @@ library(shiny)
 
 Most frequent offender is `textInput()`, because it starts off blank. Can also use with `inputSelect()` with a choice of `""`. 
 
-`req()` is similar to `stop()`, but instead of throwing an error, it sends a special signal to Shiny telling it that the reactive isn't ready yet, so it should wait longer before updating any downstream inputs.
-
-Possible to use inside of an output, but I recommend only using in `reactive()`s. I think this is good practice because it isolates computation in one place.
-
-Truthi-ness. `req()` is designed so that `req(input$x)` will do what you expect regardless of what type of input `x` is. You can see the details in `?isTruthy`
-
-For example, imagine you've created a Shiny app that allows you to up the name of a state from its abbreviation. What do you want the app to do if you enter a 
+For example, imagine you've created a Shiny app that allows the user to upload a csv file. If you run this app, you'll notice a problem: it starts up with an error. That's because `input$file` starts off as `NULL`, and `read.csv(NULL)` is an error.
 
 ```{r}
 ui <- fluidPage(
-  textInput("abbr", "State abbreviation"),
-  plotOutput("map")
+  fileInput("file", NULL),
+  tableOutput("description")
 )
 server <- function(input, output, session) {
-  state <- reactive({
-    state.name[input$abbr == state.abb]
+  data <- reactive({
+    read.csv(input$file$datapath[[1]])
   })
-  output$map <- renderPlot({
-    maps::map("state", region = state())
+  
+  output$description <- renderTable({
+    data()
   })
 }
 ```
 
+The easiest way to fix this problem is with `req()`: it checks that the input has been set before proceeding. `req()` sends a special signal to Shiny telling it that the reactive isn't ready yet[^technically]
+
+[^technically]: Technically, it leaves any downstream reactive consumers in an invalidated state. We'll come back to this terminology in Chapter \@ref{reactive-components}.
+
 ```{r}
 server <- function(input, output, session) {
-  state <- reactive({
-    req(input$abbr %in% state.abb)
-    state.name[input$abbr == state.abb]
+  data <- reactive({
+    req(input$file)
+    read.csv(input$file$datapath[[1]])
   })
-  output$name <- renderText(state())
+  
+  output$description <- renderTable({
+    data()
+  })
 }
 ```
+
+You can use `req()` inside of an output, but it's good practice to use inside a `reactive()` because it isolates computation in one place.
+
+Truthi-ness. `req()` is designed so that `req(input$x)` will do what you expect regardless of what type of input `x` is. You can see the details in `?isTruthy`
+
+
 
 ### Validate input
 
