@@ -315,7 +315,7 @@ ymdInputUI <- function(label) {
   
   fluidRow(
     textInput("date", label),
-    textOutput("error"),
+    textOutput("error")
   )
 }
 
