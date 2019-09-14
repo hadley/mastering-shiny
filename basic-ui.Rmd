@@ -86,7 +86,7 @@ Generally, you should only use sliders for small ranges, where the precise value
 
 ### Dates
 
-Collect a single with `dateInput()`, or a range of two days with `dateRangeInput()`. These provide a convenient calendar picker, and additional arguments like `datesdisabled` and `daysofweekdisabled` allow you to restrict the set of valid inputs.
+Collect a single day with `dateInput()`, or a range of two days with `dateRangeInput()`. These provide a convenient calendar picker, and additional arguments like `datesdisabled` and `daysofweekdisabled` allow you to restrict the set of valid inputs.
 
 ```{r}
 ui <- fluidPage(
