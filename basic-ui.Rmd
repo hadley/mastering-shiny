@@ -245,7 +245,7 @@ We'll come back to two input controls in later chapters:
     0 and 1000. What is the purpose of the step argument in this widget?
 
 ```{r eval=FALSE}
-numericInput("number", "Select a value", min = 0, max = 1000, step = 50)
+numericInput("number", "Select a value", value = 150, min = 0, max = 1000, step = 50)
 ```
 
   
