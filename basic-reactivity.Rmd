@@ -236,7 +236,7 @@ We don't need a reactive expression in our very simple app, but I'll add one any
 
 ```{r}
 server <- function(input, output, session) {
-  label <- reactive(paste0("Hello ", input$name, "!"))
+  text <- reactive(paste0("Hello ", input$name, "!"))
   output$greeting <- renderText(text())
 }
 ```
@@ -253,7 +253,7 @@ It's important to understand the order in which your code is run is determined s
 ```{r}
 server <- function(input, output, session) {
   output$greeting <- renderText(text())
-  label <- reactive(paste0("Hello ", input$name, "!"))
+  text <- reactive(paste0("Hello ", input$name, "!"))
 }
 ```
 
