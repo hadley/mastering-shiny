@@ -20,8 +20,8 @@ rmd_files:
     "action.Rmd",
     "action-workflow.Rmd",
     "action-feedback.Rmd",
-    "action-modules.Rmd",
     "action-transfer.Rmd",
+    "action-modules.Rmd",
 
     "advanced-ui.Rmd",
 

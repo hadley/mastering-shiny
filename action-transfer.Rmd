@@ -1,21 +1,20 @@
 # Uploads and downloads {#action-transfer}
 
+<!-- TODO: update link/contents in basic-UI -->
+
 ```{r, include = FALSE}
 source("common.R")
 ```
 
 ## Upload
 
-`fileInput()`
-
-Returns a data frame with columns:
+Upload a file is straightforward on the UI side: you just need to call `fileInput()`. It's a little more work on the server side because `input$file` returns a data frame with four columns:
 
 * `name`: name of the file.
 
-* `size`: file size, in bytes. By default the file size is capped at 5 meg. 
+* `size`: file size, in bytes. By default the file size is capped at 5 MB. 
    If you want to increase this set `options(shiny.maxRequestSize)` to number 
    of bytes.
-   
 
 * `type`: the "mime type" of the file.
 
@@ -23,7 +22,7 @@ Returns a data frame with columns:
   Temporary directory. Made up name (number). This is a transient path; if the 
   user uploads more files it will go away.
 
-You can explore with a simple app:
+This is a little more complicated than most other inputs which return single values. But you work with data frames in R a bunch so it shouldn't be too bad. I think the easiest way to get to grips with this input is to make a simple app that you can experiment with. Note the use of `multiple = TRUE` to allow the user to upload multiple files; this is the most complicated case.
 
 ```{r}
 ui <- fluidPage(
@@ -35,11 +34,23 @@ server <- function(input, output, session) {
 }
 ```
 
-Use of `req()`
+In most real cases you'll read in the user supplied data. There are two techniques to be aware of:
+
+* When the page is initialised `input$file` is `NULL`, so we don't want to 
+  do anything until the user has uploaded a file. Using `req(input$file)` 
+  will wait until upload.
+  
+* `accept` argument allows you to limit the possible inputs. Easiest way is to
+  use file extensions (you can also specify using mime types, as described in 
+  the documentation). However, this is only a hint to the browser and is 
+  not necessarily enforced. This means that you should also check the
+  extension[^extensions] in the server function with `validate()`. 
+
+[^extensions]: Note that the browser defintion of an extension is different to the definiton used by the browser - the browser uses `.csv` where `file_ext()` returns `.csv`.
 
 ```{r}
 ui <- fluidPage(
-  fileInput("file", NULL),
+  fileInput("file", NULL, accept = ".csv"),
   tableOutput("description")
 )
 
@@ -58,5 +69,102 @@ server <- function(input, output, session) {
 }
 ```
 
+Note that if `multiple = FALSE` (the default), then `input$file` will be a single row data frame, and indexing into it with `$` will return a vector of length 1 --- there's no need to use `[1]`. 
+
 ## Download
+
+Downloading a file is a little more complicated as you need a specific component in the server function that works a little differently to the other render functions.
+
+* In UI, use `downloadButton()` or `downloadLink()` to give the user
+  something to initiate to download a file.
+  
+* In server, use `downloadHandler()` to respond to the user and send them
+  a file.
+
+`downloadHandler()` is a little different to other outputs because it requires two functions: one that determines the file name of the output, and the other that creates a file at a specified path:
+
+```{r}
+datasets <- ls("package:datasets")
+
+ui <- fluidPage(
+  selectInput("dataset", "Pick a dataset", datasets),
+  downloadButton("download")
+)
+server <- function(input, output, session) {
+  data <- reactive({
+    get(input$dataset, "package:datasets")
+  })
+    
+  output$download <- downloadHandler(
+    filename = function() {
+      paste0(input$dataset, ".csv")
+    },
+    content = function(file) {
+      write.csv(data(), file)
+    }
+  )
+}
+```
+
+### Parametermised RMarkdown reports
+
+<!-- https://shiny.rstudio.com/articles/generating-reports.html -->
+
+Copy to temporary directory/file. (You'll also need to copy any other resource that your app uses.)
+
+How to run in another process.
+
+Other formats
+
+## Case study
+
+We'll put all the pieces together in a small case study where we upload a file (with user supplied separator), preview it, perform some optional transformations using the [janitor package](http://sfirke.github.io/janitor), by Sam Firke, and then let the user download it as a tsv (tab separated files are generally slightly better than csv because they're the same in Europe, and less likely to need quoting). We'll use vroom to read the data because it's fast.
+
+```{r}
+ui <- fluidPage(
+  fileInput("file", "Data file to upload"),
+  textInput("delim", "Delimiter (leave blank to guess)", ""),
+  numericInput("skip", "Rows to skip", 0, min = 0),
+  tableOutput("preview1"),
+  checkboxInput("snake", "Rename columns to snake case?"),
+  checkboxInput("constant", "Remove constant columns?"),
+  checkboxInput("empty", "Remove empty cols?"),
+  tableOutput("preview2"),
+  downloadButton("download")
+)
+server <- function(input, output, session) {
+  raw <- reactive({
+    req(input$file)
+    delim <- if (input$delim == "") NULL else input$delim
+    vroom::vroom(input$file$datapath, delim = delim, skip = input$skip)
+  })
+  
+  tidied <- reactive({
+    out <- raw()
+    if (input$snake) {
+      names(out) <- janitor::make_clean_names(names(out))
+    }
+    if (input$empty) {
+      out <- janitor::remove_empty(out, "cols")
+    }
+    if (input$constant) {
+      out <- janitor::remove_constant(out)
+    }
+    
+    out
+  })
+  
+  output$preview1 <- renderTable(raw())
+  output$preview2 <- renderTable(tidied())
+  output$download <- downloadHandler(
+    filename = function() {
+      paste0(tools::file_path_sans_ext(input$file$name), ".tsv")
+    },
+    content = function(file) {
+      vroom::vroom_write(tidied(), file)
+    }
+  )
+}
+```
+
 
