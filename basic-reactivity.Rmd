@@ -445,7 +445,7 @@ This transformation yields a substantially simpler graph:
 knitr::include_graphics("diagrams/basic-reactivity/case-study-2.png", dpi = 300)
 ```
 
-This simpler graph makes it easier to understand the app because you can understand connected components in isolation; the values of the distribution parameters only affect the output via `x1` and `x2`. This rewrite also makes the app much more efficient since it does much less computation. Now when you change the `breaks` or `range`, only the plot changes, not the underlying data.
+This simpler graph makes it easier to understand the app because you can understand connected components in isolation; the values of the distribution parameters only affect the output via `x1` and `x2`. This rewrite also makes the app much more efficient since it does much less computation. Now when you change the `binwidth` or `range`, only the plot changes, not the underlying data.
 
 To emphasise this modularity the following diagram draws boxes around the independent components. We'll come back to this idea in Chapter XYZ, when we discuss modules. Modules allow you to extract out repeated code for reuse, while guaranteeing that it's isolated from everything else in the app. Modules are an extremely useful and powerful technique for more complex apps.
 
