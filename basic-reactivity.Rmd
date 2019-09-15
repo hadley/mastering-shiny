@@ -640,7 +640,7 @@ server <- function(input, output, session) {
 knitr::include_graphics("diagrams/basic-reactivity/timing-button-2.png", dpi = 300)
 ```
 
-Note that, as desired, `x1` and `x2` no longer have a reactive dependency on `lambda1`, `lambda2`, and `n`: changing their values does will not trigger computation. I left the arrows in very pale grey just to remind you that `x1` and `x2` continue to use the values, but no longer take a reactive dependency on them.
+Note that, as desired, `x1` and `x2` no longer have a reactive dependency on `lambda1`, `lambda2`, and `n`: changing their values will not trigger computation. I left the arrows in very pale grey just to remind you that `x1` and `x2` continue to use the values, but no longer take a reactive dependency on them.
 
 ## Observers
  
