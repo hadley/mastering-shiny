@@ -330,7 +330,7 @@ In a real analysis, you probably would've done a bunch of exploration before you
 
 ### The app
 
-I'd like to use these two tools to quickly explore a bunch of simulations. A Shiny app is a great way to do because it lets you avoid tediously modifying and re-running R code. Below I wrap the pieces into an Shiny app where I can interactively tweak the inputs. 
+I'd like to use these two tools to quickly explore a bunch of simulations. A Shiny app is a great way to do because it lets you avoid tediously modifying and re-running R code. Below I wrap the pieces into a Shiny app where I can interactively tweak the inputs. 
 
 Let's start with the UI. The first row has three columns for input controls (distribution 1, distribution 2, and plot controls). The second row has a wide column for the plot, and a narrow column for the hypothesis test.
 
