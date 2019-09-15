@@ -188,7 +188,7 @@ This difference between commands and recipes is one of key differences between t
 
 With imperative code you say "Make me a sandwich". With declarative code you say "Ensure there is a sandwich in the refrigerator whenever I look inside of it". Imperative code is assertive; declarative code is passive-aggressive.
 
-Most of the time, declarative programming is tremendously freeing: you describe your overall goals, and the software figures out how to achieve them without further intervention. The downside is the occasional time where you know exactly what you want, but you can't figure out how to frame them in a way that the declarative system understands[^ggplot2-legends]. The goal of this book is to help you develop your understand of the theory that underlies Shiny so that happens as infrequently as possible.
+Most of the time, declarative programming is tremendously freeing: you describe your overall goals, and the software figures out how to achieve them without further intervention. The downside is the occasional time where you know exactly what you want, but you can't figure out how to frame them in a way that the declarative system understands[^ggplot2-legends]. The goal of this book is to help you develop your understanding of the theory that underlies Shiny so that happens as infrequently as possible.
 
 [^ggplot2-legends]: If you've ever struggled to get a ggplot2 legend to look exactly the way you want, you've encountered this problem!
 
