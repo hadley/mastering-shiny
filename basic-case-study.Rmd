@@ -19,7 +19,7 @@ library(tidyverse)
 
 ## The data
 
-We're going to explore data from the Data from the National Electronic Injury Surveillance System (NEISS) that's collected by Consumer Product Safety Commission. This is a long-term study that records all accidents seen in a representative sample of hospitals in the United States. It's an interesting dataset to explore because it's readily understandable, tisstand each observation is accompanied by a short narrative that explains how the accident occured.
+We're going to explore data from the Data from the National Electronic Injury Surveillance System (NEISS) that's collected by Consumer Product Safety Commission. This is a long-term study that records all accidents seen in a representative sample of hospitals in the United States. It's an interesting dataset to explore because it's readily understandable, and each observation is accompanied by a short narrative that explains how the accident occured.
 
 In this chapter, I'm going to focus on just the data from 2017. This keeps the data small enough (~10 meg) that it's easy to store in git (along with the rest of the book), eans we don't need to think about sophisticated strategies for importing the data quickly (which we'll come back to later in the book). You can find out more about this dataset at <https://github.com/hadley/neiss>, and see the code I used to create the extract for this chapter at <https://github.com/hadley/mastering-shiny/blob/master/neiss/data.R>.
 
