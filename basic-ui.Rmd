@@ -222,7 +222,7 @@ Perform an action with `actionButton()` or `actionLink()`. These are most natura
 ```{r}
 ui <- fluidPage(
   actionButton("click", "Click me!"),
-  actionButton("drink", "Drink me!", icon = icon("cocktail")),
+  actionButton("drink", "Drink me!", icon = icon("cocktail"))
 )
 ```
 ```{r, echo = FALSE, out.width = NULL}
