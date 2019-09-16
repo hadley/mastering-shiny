@@ -6,7 +6,7 @@ source("common.R")
 
 ## What is Shiny?
 
-## What you will learn
+## What will you learn?
 
 If you've never used Shiny before, welcome! 
 
@@ -22,7 +22,11 @@ The biggest drawback of reactive programming is that it's a fundamentally new pr
 
 Finally, in "Taming Shiny" we'll finish up a survey of useful techniques for making your Shiny apps work well in production. You'll learn how to measure and improve performance, debug problems when they go wrong, and manage your app's dependencies.
 
-## What you won't learn
+## How to keep learning
+
+
+
+## What won't you learn?
 
 The focus of this book is making effective Shiny apps and understanding the underlying theory of reactivity. I'll do my best to show off best practices for data science, R programming, and software engineering at the same time as well, but you'll need other references to master these other important components.
 

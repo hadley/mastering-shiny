@@ -1,0 +1,12 @@
+---
+title: "Dynamic report"
+output: html_document
+params:
+  n: NA
+---
+
+A plot of `r params$n` random points.
+
+```{r}
+plot(rnorm(params$n), rnorm(params$n))
+```

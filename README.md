@@ -17,14 +17,9 @@ Built with [bookdown](https://bookdown.org/yihui/bookdown/).
 1. Shiny in action
     1. Workflow / organising your app.
     1. User feedback
-        * `update` functions
-        * [Progress bars](https://shiny.rstudio.com/articles/progress.html)
-        * [Validation](https://shiny.rstudio.com/articles/validation.html)
-        * [Notifications](https://shiny.rstudio.com/articles/notifications.html)
-    1. Modules
     1. Uploading/downloading data
+    1. Modules
     1. Programming the tidyverse
-    1. Generating static reports from Shiny
 
 1. Mastering UI
     1. Tables

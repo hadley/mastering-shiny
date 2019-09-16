@@ -1,14 +1,20 @@
 # Uploads and downloads {#action-transfer}
 
-<!-- TODO: update link/contents in basic-UI -->
-
 ```{r, include = FALSE}
 source("common.R")
 ```
 
+Transferring files to and from the user is a common feature of apps. This is most commonly used to upload or download data, or to download a report generated from features of the app. This chapter shows you how to combine UI and server components make it easy for your users to get data to and from your app. 
+
+```{r setup}
+library(shiny)
+```
+
 ## Upload
 
-Upload a file is straightforward on the UI side: you just need to call `fileInput()`. It's a little more work on the server side because `input$file` returns a data frame with four columns:
+Upload a file is straightforward on the UI side: you just need to call `fileInput(id, label)`. It also has `multiple` and `accept` arguments that I'll discuss below. You can customise the appearance with `width`, `buttonLabel` and `placeholder` arguments, which you can learn more about in `?fileInput`.
+
+Most of the complication arises on the server side because `input$file` returns a data frame with four columns:
 
 * `name`: name of the file.
 
@@ -60,7 +66,7 @@ server <- function(input, output, session) {
     ext <- tools::file_ext(input$file$filename)
     validate(need(ext == "csv", "Please upload a CSV file"))
     
-    read.csv(input$file$datapath)
+    vroom::vroom(input$file$datapath, delim = ",")
   })
   
   output$description <- renderTable({
@@ -75,19 +81,18 @@ Note that if `multiple = FALSE` (the default), then `input$file` will be a singl
 
 Downloading a file is a little more complicated as you need a specific component in the server function that works a little differently to the other render functions.
 
-* In UI, use `downloadButton()` or `downloadLink()` to give the user
-  something to initiate to download a file.
+* In UI, use `downloadButton(id)` or `downloadLink(id)` to give the user
+  something to initiate to download a file. (There are other arguments, but 
+  you'll hardly ever need them; see `?downloadButton` for the details.)
   
-* In server, use `downloadHandler()` to respond to the user and send them
-  a file.
+* In server, use `output$id <- downloadHandler()` to respond to the user and 
+  send them a file.
 
-`downloadHandler()` is a little different to other outputs because it requires two functions: one that determines the file name of the output, and the other that creates a file at a specified path:
+`downloadHandler()` is a little different to other outputs because it requires two functions: one that determines the file name of the output, and the other that creates a file at a specified path. The following app shows off the basics by creating an app that lets you download any dataset in the datasets package as a csv file.
 
 ```{r}
-datasets <- ls("package:datasets")
-
 ui <- fluidPage(
-  selectInput("dataset", "Pick a dataset", datasets),
+  selectInput("dataset", "Pick a dataset", ls("package:datasets")),
   downloadButton("download")
 )
 server <- function(input, output, session) {
@@ -106,15 +111,110 @@ server <- function(input, output, session) {
 }
 ```
 
+Note the two important arguments to `downloadHandler()`:
+
+*   `filename` should be a function with no arguments that returns a single 
+    string giving the name of the file. This is the string that will appear in
+    the download dialog box. I recommend avoiding special characters.
+  
+    If the file name is fixed, you can skip the function and just set it to
+    a string.
+
+*   `content` should be a function with a single argument that tells you where
+    to save the file. The return argument of this function is ignored; it's 
+    called purely for its side-effect of creating a file at the given path.
+
 ### Parametermised RMarkdown reports
 
-<!-- https://shiny.rstudio.com/articles/generating-reports.html -->
+Another common use of file downloads is to prepare a report that summarises the result of interactive exploration in the Shiny app. One powerful way to generate such a report is with a parameterised RMarkdown document,  <https://bookdown.org/yihui/rmarkdown/parameterized-reports.html>. A parameterised RMarkdown file has special YAML metadata:
 
-Copy to temporary directory/file. (You'll also need to copy any other resource that your app uses.)
+```yaml
+title: My Document
+output: html_document
+params:
+  year: 2018
+  region: Europe
+  printcode: TRUE
+  data: file.csv
+```
 
-How to run in another process.
+And inside the document you can refer to those values with `params$year`, `params$region` etc. What makes this technique powerful is you can also set the parameters using code, by calling `rmarkdown::render()` with the `params` argument. This makes it possible to generate a range of RMarkdown reports from a single app.
 
-Other formats
+Here's a simple example taken from <https://shiny.rstudio.com/articles/generating-reports.html>, which describes this technique in more detail.
+
+```{r}
+ui <- fluidPage(
+  sliderInput("n", "Number of points", 1, 100, 50),
+  downloadButton("report", "Generate report")
+)
+
+server <- function(input, output, session) {
+  output$report <- downloadHandler(
+    filename = "report.html",
+    content = function(file) {
+      params <- list(n = input$n)
+
+      rmarkdown::render("report.Rmd", 
+        output_file = file,
+        params = params,
+        envir = new.env(parent = globalenv())
+      )
+    }
+  )
+}
+```
+
+If you want to produce other output formats, just change the output format in the `.Rmd`, and make sure to update the extension.
+
+There are a few other tricks worth knowing about:
+
+*   If the report takes some time to generate, use one of the techniques from
+    Chapter \@ref(action-feedback) to let the user know that your app is 
+    working.
+
+*   Often, when deploying the app, you can't write to the working directory,
+    which RMarkdown will attempt to do. You can work around this by copying
+    the report to a temporary directory:
+
+    ```{r}
+    report_path <- tempfile(fileext = ".Rmd")
+    file.copy("report.Rmd", report_path, overwrite = TRUE)
+    ```
+
+    Then replaaing `"report.Rmd"` in the call to `rmarkdown::render()` with
+    `report_path`.
+
+*   By default, RMarkdown will render the report in the current process, which
+    means that it will inherit many settings from the Shiny app (like loaded 
+    packages, options, etc). For greater robustness, I recommend running in
+    fresh R session by using the callr package. 
+    
+    ```{r, eval = FALSE}
+    render_report <- function(input, output, params) {
+      rmarkdown::render(input,
+        output_file = output,
+        params = params,
+        envir = new.env(parent = globalenv())
+      )
+    }
+    
+    server <- function(input, output) {
+      output$report <- downloadHandler(
+        filename = "report.html",
+        content = function(file) {
+          params <- list(n = input$slider)
+          callr::r(
+            render_report,
+            list(input = report_path, output = file, params = params)
+          )
+        }
+      )
+    }
+    ```
+
+You can see all these pieces put together in `rmarkdown-report/`.
+
+Later, in Chapter XYZ, we'll come back to generating a complete report of all the code that your app has executed. 
 
 ## Case study
 
@@ -166,5 +266,4 @@ server <- function(input, output, session) {
   )
 }
 ```
-
 
