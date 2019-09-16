@@ -200,15 +200,34 @@ ui <- fluidPage(
 ui_screenshot(ui, "basic-ui/yes-no")
 ```
 
-### File uploads and action buttons
+### File upload and downloads
 
-We'll come back to two input controls in later chapters: 
+Allow the user to upload a file with `fileInput()`:
 
-* We'll cover `fileInput()` when we discuss uploading and downloading files 
-  in Chaper XYZ
-  
-* We'll cover `actionButton()` when we discuss buttons, controlling 
-  side-effects, and initiating "actions" in Chapter XYZ.
+```{r}
+ui <- fluidPage(
+  fileInput("upload2", NULL)
+)
+```
+```{r, echo = FALSE, out.width = NULL}
+ui_screenshot(ui, "basic-ui/upload")
+```
+
+`fileInput()` requires more work on the server side, and is discussed in detail in Chapter \@ref(action-transfer).
+
+### Action buttons
+
+Perform an action with `actionButton()` or `actionLink()`. These are most naturally paired with `observeEvent()` or `eventReactive()` in the server function. I haven't discussed these functions yet, but we'll come back to them in next chapter. 
+
+```{r}
+ui <- fluidPage(
+  actionButton("action1", "Click me!"),
+  div(actionLink("action2", "Don't click me!"))
+)
+```
+```{r, echo = FALSE, out.width = NULL}
+ui_screenshot(ui, "basic-ui/action")
+```
 
 ### Exercises
 
@@ -351,6 +370,10 @@ app_screenshot(testApp(ui, server), "basic-ui/output-plot")
 By default, `plotOutput()` will take up the full width of the element it's embedded within (more on that shortly), and will be 400 pixels high. You can override these defaults with the `height` and `width` arguments.
 
 Plots are special because they can also act as inputs. `plotOutput()` has a number of arguments like `click`, `dblclick`, and `hover`. If you pass these a string, like `click = "plot_click"`, they'll create a reactive input (`input$plot_click`) that you can use to handle user interaction on the plot. We'll come back to interactive plots in Shiny in Chapter XYZ.
+
+### Downloads
+
+You can let the user download a file with `downloadButton()` or `downloadLink()`. These require new techniques in the server function, so we'll come back to Chapter \@ref(action-transfer).
 
 ### Exercises
 
