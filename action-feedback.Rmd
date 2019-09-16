@@ -93,6 +93,8 @@ shinyProgress <- function(expr) {
 }
 ```
 
+<!-- Indeterminate progress: https://github.com/rstudio/shiny/issues/609 -->
+
 ### Message
 
 If you don't know how long some code will take, a better approach is to use notifications.
