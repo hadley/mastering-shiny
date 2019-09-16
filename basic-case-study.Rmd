@@ -99,7 +99,7 @@ summary %>%
 
 We see a big spike when children are learning to walk, a flattening off over middle age, and then a gradual decline after age 50. Interestingly, the number of injuries is much higher for women.
 
-One problem with interpreting this pattern is that we know that there are fewer older people than younger people, so the population available to be injured in smaller. We can control for this by comparing the number of people injured with the total population and calculating an injury rate. Here I use a rate per 10,000 because that gives a number that's easy to interpret.
+One problem with interpreting this pattern is that we know that there are fewer older people than younger people, so the population available to be injured is smaller. We can control for this by comparing the number of people injured with the total population and calculating an injury rate. Here I use a rate per 10,000 because that gives a number that's easy to interpret.
 
 ```{r}
 summary <- selected %>% 
@@ -137,7 +137,7 @@ When building a complex app, I strongly recommend starting as simple as possible
 
 When developing your first prototype, the challenge is the "as simple as possible". There's a tension between starting simple enough to get the basics working quickly, while at the same time avoiding creating something that's so simple you have to rip it all out later on. Personally, I often do a few pencil-and-paper sketches to explore the UI and reactive graph before committing to code.
 
-When prototyping, there's always a tension between doing the minimum amount of work, and planning for the future. Either extreme can be bad: if you design too narrowly, you'll spend a lot of time later on reworking your app; if you design to rigorously, you'll spend a bunch of time on code that later ends up on cutting floor. Getting the balance right is one of the skills of the software engineer, and there are few shortcuts.
+When prototyping, there's always a tension between doing the minimum amount of work, and planning for the future. Either extreme can be bad: if you design too narrowly, you'll spend a lot of time later on reworking your app; if you design too rigorously, you'll spend a bunch of time on code that later ends up on cutting floor. Getting the balance right is one of the skills of the software engineer, and there are few shortcuts.
 
 
 Here I decided to have one row for the inputs (accepting that I'm probably going to add more inputs before this app is done), one row for all three tables (giving each table 4 columns, 1/3 of the 12 column width), and then one row for the plot:
@@ -246,7 +246,7 @@ knitr::include_graphics("screenshots/basic-case-study/narrative.png", dpi = scre
 ## Exercises
 
 1.  What happens if you flip `fct_infreq()` and `fct_lump()` in the code that 
-    the reduces the summary tables?
+    reduces the summary tables?
 
 1.  Add an input control that lets the user decide how many rows to show in the
     summary tables.
