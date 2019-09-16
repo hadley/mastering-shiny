@@ -217,12 +217,12 @@ ui_screenshot(ui, "basic-ui/upload")
 
 ### Action buttons
 
-Perform an action with `actionButton()` or `actionLink()`. These are most naturally paired with `observeEvent()` or `eventReactive()` in the server function. I haven't discussed these functions yet, but we'll come back to them in next chapter. 
+Perform an action with `actionButton()` or `actionLink()`. These are most naturally paired with `observeEvent()` or `eventReactive()` in the server function; I haven't discussed these functions yet, but we'll come back to them in next chapter. 
 
 ```{r}
 ui <- fluidPage(
-  actionButton("action1", "Click me!"),
-  div(actionLink("action2", "Don't click me!"))
+  actionButton("click", "Click me!"),
+  actionButton("drink", "Drink me!", icon = icon("cocktail")),
 )
 ```
 ```{r, echo = FALSE, out.width = NULL}
