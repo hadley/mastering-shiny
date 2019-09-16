@@ -82,7 +82,9 @@ ui <- fluidPage(
 ui_screenshot(ui, "basic-ui/numeric")
 ```
 
-Generally, you should only use sliders for small ranges, where the precise value is not so important. Attempting to precisely select a number on a small slider is an exercise in frustration!
+Generally, you should only use sliders for small ranges, where the precise value is not so important. Attempting to precisely select a number on a small slider is an exercise in frustration! 
+
+Sliders are extremely customisable and there are many ways to tweak their appearance. See `?sliderInput` and <https://shiny.rstudio.com/articles/sliders.html> for more details.
 
 ### Dates
 
