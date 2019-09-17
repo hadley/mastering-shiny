@@ -1,0 +1,78 @@
+# Dynamic UI {#action-dynamic}
+
+```{r, include = FALSE}
+source("common.R")
+```
+
+As well as updating the content of the outputs, sometimes you will actually want to add more, or modify the inputs, or generally large parts of your app with code. Generally, you want to avoid these techniques except when they are necessary as they add substantially more moving parts to the process. But when you need them, you need them.
+
+In Chapter XYZ, we'll come back to more advanced tecnhiques that require you know a little more about HTML and javascript.
+
+## Modify existing inputs
+
+Every input control, e.g. `textInput()` is paired with a update function, e.g. `updateTextInput()` that allows you to control. You can call these functions from `observeEvent()` in order to update input controls.
+
+```{r}
+library(shiny)
+ui <- fluidPage(
+  numericInput("min", "min", 0),
+  numericInput("max", "max", 10),
+  numericInput("n", "n", 5)
+)
+server <- function(input, output, session) {
+  observeEvent(input$min, {
+    updateNumericInput(session, "n", min = input$min)
+  })  
+  observeEvent(input$max, {
+    updateNumericInput(session, "n", max = input$max)
+  })
+}
+```
+
+For historical reasons you need to pass `session` as the first argument. 
+
+From Shiny's perspectve they act exactly as if the user has altered the value. This is mostly a matter of changing the `value`, but beware that changing some other values can implicit change the value: e.g. changing set of valid inputs in a select control.
+
+Note that when you use update functions you are stepping outside of reactivity, so that you now need to worry about circular references and creating infinite loops. 
+
+```{r}
+ui <- fluidPage(
+  numericInput("n", "n", 0)
+)
+server <- function(input, output, session) {
+  observeEvent(input$n,
+    updateNumericInput(session, "n", value = input$n + 1)
+  )
+}
+```
+
+All updates are performed "simultaneously" (for the purposes of reactivity) once all outputs are done.
+
+Particularly useful for select boxes if you want to enable hierarchical drill down.
+
+## `uiOutput()` and `renderUI()`
+
+There's a special UI component that allows you to generate components of the UI on the server.
+
+`tagList()` if you need mutliple controls. Want to keep as much as of the fixed structure in UI as possible. Better peformance. Simpler reasoning.
+
+Output control. Replaces previously generated HTML.
+
+```{r}
+ui <- fluidPage(
+  textInput("label", "label"),
+  numericInput("value", "value", value = 0),
+  uiOutput("numeric"),
+  textOutput("selected")
+)
+server <- function(input, output, session) {
+  output$numeric <- renderUI({
+    numericInput("dynamic", input$label, input$value)
+  })
+  output$selected <- renderText(input$dynamic)
+}
+```
+
+Notice that the value you have selected is wiped out when you change the label. This is one of the reasons why, where possible, you should use an update function instead of `renderUI()`. Also note that it takes a fraction of a second to appear after the app loads - that's because it has to be rendered by the server function.
+
+Note that you are now creating IDs in two places so that when you add to `ui`, you have to be careful not to call the control `dynamic`. Later, in Chapter \@ref(action-modules) we'll see how modules can help avoid this problem by namespacing the control. 
