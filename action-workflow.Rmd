@@ -281,6 +281,10 @@ knitr::include_graphics("images/action-workflow/debug-toolbar.png")
 
 As well from stepping through the code line-by-line using these tools, you'll also run a _bunch_ of interactive code to understand why you're seeing the error you see. Debugging is process of systematically comparing your expectations to reality until you find the mismatch.
 
+### Case study
+
+`sales` dataset: `filter(sales, TERRITORY %in% input$territory)`. Insert browser in `reactive()`, look at value of `input$territory` and discover it's `"NA"`, not `NA`.
+
 ### Converting incorrect values into errors
 
 If you have a problem that's not an error, I recommend that you convert it into an error so that you can more easily locate the problem. You can do this by writing your own code that calls `stop()`.

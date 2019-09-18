@@ -1,0 +1,47 @@
+# Tidy evaluation {#action-tidy}
+
+If you are using the tidyverse from shiny, you will almost certainly encounter the challenge of tidy evaluation: how do you write code like:
+
+```{r, eval = FALSE}
+df %>% filter(input$var == input$val)
+
+ggplot(df, aes(x = input$x_var, y = input$y_Var))
+```
+
+
+`varSelectInput()`
+
+
+### Case study
+
+```{r, eval = FALSE}
+territory <- reactive({
+  req(input$territory)
+  filter(sales, TERRITORY == input$territory)
+})
+customer <- reactive({
+  req(input$customername)
+  filter(territory(), CUSTOMERNAME == input$customername)
+})
+order <- reactive({
+  req(input$ordernumber)
+  filter(customer(), ORDERNUMBER == input$ordernumber)
+})
+```
+
+```{r, eval = FALSE}
+# TODO: needs better name
+reactive_filter_by_input <- function(data, input, var) {
+  var <- ensym(var)
+  
+  reactive({
+    req(input[[var]])
+    filter(data, .data[[var]] == input[[var]])
+  })
+}
+
+order <- reactive_filter_by_input(sales, input, "TERRITORY")
+customer <- reactive_filter_by_input(order(), input, "CUSTOMER")
+order <- reactive_filter_by_input(customer(), input, "TERRITORY")
+```
+

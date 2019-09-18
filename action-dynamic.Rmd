@@ -48,7 +48,64 @@ server <- function(input, output, session) {
 
 All updates are performed "simultaneously" (for the purposes of reactivity) once all outputs are done.
 
-Particularly useful for select boxes if you want to enable hierarchical drill down.
+### Case study: hierarchical select boxes
+
+`sales-dashboard`
+
+* Select territory to see all customers
+* Select customer to see all orders
+* Select order to see data
+
+Basic idea: start with UI that contains three select boxes, and one output table:
+
+```{r, eval = FALSE}
+choices <- function(x) {
+  c("", unique(x))
+}
+ui <- fluidPage(
+  selectInput("territory", "Territory", choices = choices(sales$TERRITORY)),
+  selectInput("customername", "Customer", choices = NULL),
+  selectInput("ordernumber", "Order number", choices = NULL),
+  tableOutput("data")
+)
+```
+
+In the server, we then progressively filter creating three datasets.
+
+```{r}
+server <- function(input, output, session) {
+  territory <- reactive({
+    req(input$territory)
+    filter(sales, TERRITORY == input$territory)
+  })
+  customer <- reactive({
+    req(input$customername)
+    filter(territory(), CUSTOMERNAME == input$customername)
+  })
+  order <- reactive({
+    req(input$ordernumber)
+    filter(customer(), ORDERNUMBER == input$ordernumber)
+  })
+  output$data <- renderTable(order())
+
+  observeEvent(input$territory, {
+    updateSelectInput(session, "customername", 
+      choices = choices(territory()$CUSTOMERNAME)
+    )
+  })
+  observeEvent(input$customername, {
+    updateSelectInput(session, 
+      "ordernumber", choices = choices(customer()$ORDERNUMBER)
+    )
+  })
+}
+```
+
+
+
+Tricks: add `""` to choices, and use `req()`.
+
+
 
 ## `uiOutput()` and `renderUI()`
 

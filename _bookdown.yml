@@ -22,6 +22,7 @@ rmd_files:
     "action-feedback.Rmd",
     "action-transfer.Rmd",
     "action-dynamic.Rmd",
+    "action-tidy.Rmd",
     "action-modules.Rmd",
 
     "advanced-ui.Rmd",
