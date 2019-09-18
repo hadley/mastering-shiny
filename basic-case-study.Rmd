@@ -7,7 +7,7 @@ options(tibble.print_min = 6, tibble.print_max = 6)
 
 ## Introduction
 
-In the last three chapters, we've introduced you to a bunch of new concepts. To help them sink in, we'll now walk through a richer Shiny app that explores a fun dataset. We'll start by doing a little data analysis out side of shiny, then turn it into an app, starting simple, and progressively layering on more detail.
+In the last three chapters, we've introduced you to a bunch of new concepts. To help them sink in, we'll now walk through a richer Shiny app that explores a fun dataset. We'll start by doing a little data analysis outside of shiny, then turn it into an app, starting simple, and progressively layering on more detail.
 
 In this chapter, we'll supplement Shiny with vroom (for fast file reading) and the tidyverse (for general data analysis).
 
@@ -53,7 +53,7 @@ Each row represents a single accident:
 
 * `narrative` is a brief story about how the accident occurred.
 
-We'll pair it with two other data frames for additional context: `products` lets us look up the product name from the produce code, and `population` tells us the total US population in 2017 for each combination of age and sex.
+We'll pair it with two other data frames for additional context: `products` lets us look up the product name from the product code, and `population` tells us the total US population in 2017 for each combination of age and sex.
 
 ```{r, message = FALSE}
 products <- vroom::vroom("neiss/products.tsv")
@@ -145,7 +145,7 @@ Here I decided to have one row for the inputs (accepting that I'm probably going
 ```{r code = section_get("neiss/prototype.R", "ui")}
 ```
 
-The server function relatively straghtforward: I convert the `selected` and `summary` variables to reactive expressions. This is a reasonable general pattern: you've typically created variables in your data analysis as a way of decomposing the analysis into steps, and avoiding having to recompute things multiple times, and reactive expressions play the same role in Shiny apps. Often it's a good idea to spend a little time cleaning up your analysis code before you start your Shiny app, so you can think about these problems in regular R code, before you add the additional complexity of reactivity.
+The server function relatively straightforward: I convert the `selected` and `summary` variables to reactive expressions. This is a reasonable general pattern: you've typically created variables in your data analysis as a way of decomposing the analysis into steps, and avoiding having to recompute things multiple times, and reactive expressions play the same role in Shiny apps. Often it's a good idea to spend a little time cleaning up your analysis code before you start your Shiny app, so you can think about these problems in regular R code, before you add the additional complexity of reactivity.
 
 ```{r code = section_get("neiss/prototype.R", "server")}
 ```
