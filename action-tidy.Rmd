@@ -1,15 +1,116 @@
 # Tidy evaluation {#action-tidy}
 
-If you are using the tidyverse from shiny, you will almost certainly encounter the challenge of tidy evaluation: how do you write code like:
-
-```{r, eval = FALSE}
-df %>% filter(input$var == input$val)
-
-ggplot(df, aes(x = input$x_var, y = input$y_Var))
+```{r, include = FALSE}
+source("common.R")
 ```
 
+If you are using the tidyverse from shiny, you will almost certainly encounter the challenge of programming with tidy evaluation. Tidy evaluation is the technique that allows you to refer to variables within a data frame, without having to think about it, or do anything special. That's what makes code like this work:
 
-`varSelectInput()`
+```{r, eval = FALSE}
+diamonds %>% filter(x == z)
+
+ggplot(diamonds, aes(x = carat, y = price)) + 
+  geom_hex()
+```
+
+The problem that you will quickly encouter with Shiny is that you want to write code like:
+
+```{r, eval = FALSE}
+diamonds %>% filter(input$var == input$val)
+
+ggplot(diamonds, aes(x = input$x, y = input$y)) + 
+  geom_hex()
+```
+
+But this doesn't work because dplyr and ggplot2 will attempt to look for a variable called `input` in 
+
+There are two primary cases: 
+
+* You want the user to select variables in the app.
+* You want to reduce duplication in your app code.
+
+## User selections
+
+Key challenge is to turn the string giving the name of the variable (e.g. `"cyl"`) into a variable. The way to do that with tidy evaluation is with the special `.data` pronoun.
+
+```{r}
+library(ggplot2)
+
+ui <- fluidPage(
+  selectInput("x", "X variable", choices = names(iris)),
+  selectInput("y", "Y variable", choices = names(iris)),
+  plotOutput("plot")
+)
+server <- function(input, output, session) {
+  output$plot <- renderPlot({
+    ggplot(iris, aes(.data[[input$x]], .data[[input$y]])) +
+      geom_point(position = ggforce::position_auto()) +
+      labs(x = input$x, y = input$y)
+  })
+}
+```
+
+(I use the special `ggforce::position_auto()` to automatically spread the points out when one axis is discretes)
+
+<http://ggplot2.tidyverse.org/dev/articles/ggplot2-in-packages.html>
+
+This will work with any input that returns a string.
+
+Same idea works for dplyr:
+
+```{r}
+library(dplyr, warn.conflicts = FALSE)
+
+ui <- fluidPage(
+  selectInput("var", "Select variable", choices = names(mtcars)),
+  sliderInput("min", "Minimum value", 0, min = 0, max = 100),
+  selectInput("sort", "Sort by", choices = names(mtcars)),
+  tableOutput("data")
+)
+server <- function(input, output, session) {
+
+  observeEvent(input$var, {
+    range <- range(mtcars[[input$var]])
+    updateSliderInput(session, "min", value = range[[1]], min = range[[1]], max = range[[2]])
+  })
+  
+  output$data <- renderTable({
+    mtcars %>% 
+      filter(.data[[input$var]] > input$min) %>% 
+      arrange(.data[[input$sort]])
+  })
+}
+```
+
+What if you wanted to conditionally sort in either asceding or descending order?
+
+```{r}
+library(shiny)
+ui <- fluidPage(
+  selectInput("var", "Sort by", choices = names(mtcars)),
+  checkboxInput("desc", "Descending order?"),
+  tableOutput("data")
+)
+server <- function(input, output, session) {
+  sorted <- reactive({
+    if (input$desc) {
+      arrange(mtcars, desc(.data[[input$var]]))
+    } else {
+      arrange(mtcars, .data[[input$var]])
+    }
+  })
+  output$data <- renderTable(sorted())
+}
+shinyApp(ui, server)
+```
+
+As you provide more control, you'll find the code gets more and more complicated, and it becomes harder and harder to create a user interface that is both comprehensive _and_ user friendly. This is why I've always focussed on code tools for data analysis: creating good UIs is really really hard!
+
+### `parse()`
+
+You may have considered using `parse()` + `eval()`.  This is a bad idea because it means that the user of your app can run arbitrary R code. This isn't super important if its a Shiny app that only use you, but it's a good habit to get into --- otherwise it's very easy to accidentally create a security hole in an app that you share more widely.
+
+## Reducing duplication
 
 
 ### Case study
