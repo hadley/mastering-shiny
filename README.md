@@ -9,17 +9,8 @@ Built with [bookdown](https://bookdown.org/yihui/bookdown/).
 ## Table of contents
 
 1. Shiny 101
-    1. Your first Shiny app
-    1. Basic UI
-    1. Basic reactivity
-    1. Case study
 
 1. Shiny in action
-    1. Workflow / organising your app.
-    1. User feedback
-    1. Uploading/downloading data
-    1. Modules
-    1. Programming the tidyverse
 
 1. Mastering UI
     1. Tables
