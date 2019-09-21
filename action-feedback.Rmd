@@ -163,7 +163,7 @@ server <- function(input, output, session) {
   })
 
   observeEvent(input$yes, 
-    showModal(modalDialog("DELETING ALL FILES", size = "l", footer = NULL))
+    showModal(modalDialog("DELETING ALL FILES", size = "l", footer = NULL, easyClose = TRUE))
   )
   observeEvent(input$no, 
     removeModal()
