@@ -90,15 +90,15 @@ knitr::include_graphics("images/basic-app/run-app-details.png")
 
 ## Debugging
 
-When you start writing apps, it is almost guaranteed that something will go wrong. The cause of most bugs is a mismatch between your mental model of Shiny, and what Shiny actually does. As you read this book, your mental model will improve, so that you make fewer mistakes, and when do make one, it's easier to spot the problem. However, it takes years of experience in any language before you can reliably solve complex problems with code that works the first time. This means you need to build a robust workflow for identifyig and fixing mistakes.
+When you start writing apps, it is almost guaranteed that something will go wrong. The cause of most bugs is a mismatch between your mental model of Shiny, and what Shiny actually does. As you read this book, your mental model will improve, so that you make fewer mistakes, and when you do make one, it's easier to spot the problem. However, it takes years of experience in any language before you can reliably solve complex problems with code that works the first time. This means you need to build a robust workflow for identifyig and fixing mistakes.
 
 There are three main cases of problems which we'll discuss below:
 
 * You get an unexpected error. This is the easiest case, because you'll get 
   a traceback which allows you to figure out exatly where the error is coming
-  from. Once you've identified the problem, you'll need to systematic test
+  from. Once you've identified the problem, you'll need to systematiclly test
   your assumption until you find a difference between your expectations and
-  what is actually happening. The interactive debugger is a powerful for
+  what is actually happening. The interactive debugger is a powerful tool for
   this process.
   
 * You don't get any errors, but a value is incorrect. Here, you're generally
@@ -129,7 +129,7 @@ If this code errors, as below:
 f("a")
 ```
 
-The call stack is the sequence of calls the lead to the problem:
+The call stack is the sequence of calls that lead to the problem:
 
 ```
 1: f("a")
@@ -137,7 +137,7 @@ The call stack is the sequence of calls the lead to the problem:
 3: h(x)
 ```
 
-You're might be familiar with `traceback()` from R already. This is a function that you can run interactively to see that sequence of calls that lead to an error, _after_ the error has occured. You can't use this function in Shiny because you can't interactively run code while an app is running, instead Shiny will automatically print the call stack out for you. For example, take this simple app that uses the `f()` function I defined above:
+You might be familiar with `traceback()` from R already. This is a function that you can run interactively to see that sequence of calls that lead to an error, _after_ the error has occured. You can't use this function in Shiny because you can't interactively run code while an app is running, instead Shiny will automatically print the call stack out for you. For example, take this simple app that uses the `f()` function I defined above:
 
 ```{r, eval = FALSE}
 library(shiny)
@@ -232,14 +232,14 @@ There are three basic parts to the call stack:
     ```
     
     This is the code called inside of `renderPlot()`. You can tell you 
-    should attention here because of the file path and line number; this lets 
+    should pay attention here because of the file path and line number; this lets 
     you know that it's your code.
 
 If you get an error in your app but don't see a traceback then make sure that you're running the app using `Cmd/Ctrl` + `Shift` + `Enter` (or if not in RStudio, calling `runApp()`), and that you've saved the file that you're running it from. Other ways of running the app don't always capture the information necessary to make a call stack.
 
 ### The interactive debugger
 
-Once you've located the source of the error and want to figure out what's causing, the most powerful tool you have at your disposal is the **interactive debugger**. The debugger pauses execution and gives you an interactive R console where you can run any code to figure out what's gone wrong. There are two ways to launch the debugger:
+Once you've located the source of the error and want to figure out what's causing it, the most powerful tool you have at your disposal is the **interactive debugger**. The debugger pauses execution and gives you an interactive R console where you can run any code to figure out what's gone wrong. There are two ways to launch the debugger:
 
 *   Add a call to `browser()` in your source code. This is the standard R 
     way of lauching the interactive debugger, and will work however you're 
@@ -279,7 +279,7 @@ If you're using RStudio, the toolbar in Figure \@ref(fig:debug-toolbar) will app
 knitr::include_graphics("images/action-workflow/debug-toolbar.png")
 ```
 
-As well from stepping through the code line-by-line using these tools, you'll also run a _bunch_ of interactive code to understand why you're seeing the error you see. Debugging is process of systematically comparing your expectations to reality until you find the mismatch.
+As well as stepping through the code line-by-line using these tools, you'll also run a _bunch_ of interactive code to understand why you're seeing the error you see. Debugging is the process of systematically comparing your expectations to reality until you find the mismatch.
 
 ### Case study
 
@@ -295,7 +295,7 @@ Use `message()` to emit messages to the console that allow you to see exactly wh
 
 If you're outputting multiple values, you might find the [glue](http://glue.tidyverse.org/) package useful; it makes it very easy to create informative text strings.
 
-If the problem is that reactive events aren't triggering as expect, you may find the reactive log, <https://github.com/rstudio/reactlog>, useful. We'll come back to this later (once you've got a more solid understanding of the flow of reactivity), but here's the basic usage:
+If the problem is that reactive events aren't triggering as expected, you may find the reactive log, <https://github.com/rstudio/reactlog>, useful. We'll come back to this later (once you've got a more solid understanding of the flow of reactivity), but here's the basic usage:
 
 ```{r, eval = FALSE}
 library(shiny)
@@ -336,7 +336,7 @@ server <- function(input, output, session) {
 shinyApp(ui, server)
 ```
 
-This code doesn't make any assumptions about the computer on which its running (except that Shiny is installed!) so anyone can run this code and see the problem: the app throws an error saying "non-numeric argument to binary operator". 
+This code doesn't make any assumptions about the computer on which it's running (except that Shiny is installed!) so anyone can run this code and see the problem: the app throws an error saying "non-numeric argument to binary operator". 
 
 Clearly illustrating the problem is the first step to getting help, and because anyone can reproduce the problem by just copying and pasting the code, they can easily explore your code and test possible solutions. (In this case, you need `as.numeric(input$n)` since `selectInput()` creates a string in `input$n`.)
 
@@ -392,7 +392,7 @@ Reducing a bunch of code to the essential problem is a skill, and you probably w
 
 If you don't know what part of your code is triggering the problem, a good way to find it is to remove sections of code from your application, piece by piece, until the problem goes away. If removing a particular piece of code makes the problem stop, it's likely that that code is related to the problem. Alternatively, sometimes it's simpler to start with a fresh, empty, app and progressively build it up until you find the problem again.
 
-Once you've simplified your app to demonstrate the problem, it worthwhile to take a final pass through and check:
+Once you've simplified your app to demonstrate the problem, it's worthwhile to take a final pass through and check:
 
 * Is every input and output in `UI` related to the problem? 
 
@@ -410,9 +410,9 @@ Once you've simplified your app to demonstrate the problem, it worthwhile to tak
 
 ### Case study
 
-To illustrate the process of making a top-notch reprex I'm going to use an example from [Scott Novogoratz](https://community.rstudio.com/u/sanovogo) posted on [RStudio community](https://community.rstudio.com/t/37982). The initial code was very close to being a reprex, but wasn't quite reproducible because it forgot to load a pair of packages. At as a starting point: 
+To illustrate the process of making a top-notch reprex I'm going to use an example from [Scott Novogoratz](https://community.rstudio.com/u/sanovogo) posted on [RStudio community](https://community.rstudio.com/t/37982). The initial code was very close to being a reprex, but wasn't quite reproducible because it forgot to load a pair of packages. As a starting point: 
 
-* Added missing `library(lubrdate)` and `library(xts)`.
+* Added missing `library(lubridate)` and `library(xts)`.
 * Split apart `ui` and `server` into separate objects.
 * Reformatted with `styler::style_selection()`.
 
@@ -507,7 +507,7 @@ server <- function(input, output, session) {
 }
 ```
 
-Next, I noticed that this example uses a relatively sophisticated Shiny technique where the UI is generated in the server function. WeBut here `renderUI()` is not referring to any reactive inputs, so it should work the same way if moved out of the server function and into the UI. 
+Next, I noticed that this example uses a relatively sophisticated Shiny technique where the UI is generated in the server function. But here `renderUI()` is not referring to any reactive inputs, so it should work the same way if moved out of the server function and into the UI. 
 
 This yielded a particularly nice results, because now the error occurs much earlier, before we even start the app:
 
@@ -545,7 +545,7 @@ ui <- fluidPage(
 )
 ```
 
-This is fairly typically of creating a reprex: often, when you simplify the problem to the absolute key components the problem becomes obvious. Creating a good reprex is an incredibly powerful debugging technique.
+This is fairly typical of creating a reprex: often, when you simplify the problem to the absolute key components the problem becomes obvious. Creating a good reprex is an incredibly powerful debugging technique.
 
 To simplify this reprex, I had to do a bunch of experimenting and reading up on functions that I wasn't very familiar with[^is.POSIXt]. This is typically much easier if its your own code, because you already understand what all the parts do. Still, you'll often need to do a bunch of experimentation to figure out where exactly the problem is coming from. That can be frustrating and feel time consuming, but it has a number of benefits:
 
@@ -556,7 +556,7 @@ To simplify this reprex, I had to do a bunch of experimenting and reading up on 
 * You will build up a better mental model of how your code works, which means
   that you're less likely to make the same or similar mistakes in the future.
 
-* Over time, you'll get faster and faster at creating rexpres, and this will
+* Over time, you'll get faster and faster at creating reprexes, and this will
   become one of your go to techniques when debugging.
 
 [^is.POSIXt]: For example, I had no idea that `is.POSIXt()` was part of the lubridate package!
