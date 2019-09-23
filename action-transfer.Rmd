@@ -110,6 +110,8 @@ ui <- fluidPage(
 )
 ```
 
+Classes: <http://bootstrapdocs.com/v3.3.6/docs/css/#buttons>
+
 ### Server
 
 The server side of downloads is different to the other ouputs as you don't use a render function. Instead, you use `downloadHandler()`, which takes two arguments:
@@ -300,7 +302,7 @@ ui <- fluidPage(
     )
   ),
   fluidRow(
-    column(width = 4, downloadButton("download", class = "btn-primary")),
+    column(width = 4, downloadButton("download", class = "btn-block")),
   )
 )
 ```
