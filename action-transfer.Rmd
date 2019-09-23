@@ -302,7 +302,7 @@ ui <- fluidPage(
     )
   ),
   fluidRow(
-    column(width = 4, downloadButton("download", class = "btn-block")),
+    column(width = 4, downloadButton("download", class = "btn-block"))
   )
 )
 ```
