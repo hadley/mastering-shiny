@@ -4,7 +4,7 @@
 source("common.R")
 ```
 
-Transferring files to and from the user is a common feature of apps. This is most commonly used to upload or download data, or to download a report generated from features of the app. This chapter shows you how to combine UI and server components make it easy for your users to get data to and from your app. 
+Transferring files to and from the user is a common feature of apps. It's most commonly used to upload data for analysis, or download the results either as a dataset or as a report. This chapter shows the UI and server components you'll need to files in and out of your app. 
 
 ```{r setup}
 library(shiny)
@@ -12,27 +12,39 @@ library(shiny)
 
 ## Upload
 
-Upload a file is straightforward on the UI side: you just need to call `fileInput(id, label)`. It also has `multiple` and `accept` arguments that I'll discuss below. You can customise the appearance with `width`, `buttonLabel` and `placeholder` arguments, which you can learn more about in `?fileInput`.
+### UI
 
-Most of the complication arises on the server side because `input$file` returns a data frame with four columns:
-
-* `name`: name of the file.
-
-* `size`: file size, in bytes. By default the file size is capped at 5 MB. 
-   If you want to increase this set `options(shiny.maxRequestSize)` to number 
-   of bytes.
-
-* `type`: the "mime type" of the file.
-
-* `datapath`: the path to where the path has been uploaded to the server.
-  Temporary directory. Made up name (number). This is a transient path; if the 
-  user uploads more files it will go away.
-
-This is a little more complicated than most other inputs which return single values. But you work with data frames in R a bunch so it shouldn't be too bad. I think the easiest way to get to grips with this input is to make a simple app that you can experiment with. Note the use of `multiple = TRUE` to allow the user to upload multiple files; this is the most complicated case.
+The UI needed to support file uploads is simple. Like most other UI components, you just need to supply the `id` and `label` arguments: `fileInput(id, label)`. The `width`, `buttonLabel` and `placeholder` arguments allow you to tweak the appearance in other ways. I won't discuss them further here, but you can read more about them in `?fileInput`.
 
 ```{r}
 ui <- fluidPage(
-  fileInput("upload", NULL, multiple = TRUE),
+  fileInput("file", "Upload a file")
+)
+```
+
+### Server
+
+Most of the complication arises on the server side because unlike other inputs which return short vectors, `input$file` returns a data frame with four columns:
+
+* `name`: the original file name on the uploader's computer.
+
+* `size`: the file size in bytes. By default, you can only upload files up to
+   5 MB is file. You can increase this limit to (e.g.) 10 MB with
+   `options(shiny.maxRequestSize = 10 * 1024^2)`
+
+* `type`: the "mime type" of the file. This is a formal specification of the 
+  file type, which is usually derived from the extension. It is rarely needed.
+
+* `datapath`: the path to where the path has been uploaded to the server.
+  The file is always saved to a temporary directory and given a temporary 
+  number. Treat this path as ephemeral: if the user uploads more files, it 
+  will go away.
+
+I think the easiest way to get to understand this data structure is to make a simple app. Run the following code and upload a few files to get a sense of what data Shiny is providing. 
+
+```{r}
+ui <- fluidPage(
+  fileInput("upload", NULL, buttonLabel = "Upload...", multiple = TRUE),
   tableOutput("files")
 )
 server <- function(input, output, session) {
@@ -40,24 +52,32 @@ server <- function(input, output, session) {
 }
 ```
 
-In most real cases you'll read in the user supplied data. There are two techniques to be aware of:
+Note my use of the `label` and `buttonLabel` arguments to mildly customise the appearance, and use of `multiple = TRUE` to allow the user to upload multiple files. 
+### Uploading data
 
-* When the page is initialised `input$file` is `NULL`, so we don't want to 
-  do anything until the user has uploaded a file. Using `req(input$file)` 
-  will wait until upload.
+If the user is uploading a dataset, there are three details that you need to be aware of:
+
+* `input$file` is initialised to  `NULL` on page load, and so you'll need
+  `req(input$file)` to make sure your reactive code waits until the first file 
+  is uploaded.
   
-* `accept` argument allows you to limit the possible inputs. Easiest way is to
-  use file extensions (you can also specify using mime types, as described in 
-  the documentation). However, this is only a hint to the browser and is 
-  not necessarily enforced. This means that you should also check the
-  extension[^extensions] in the server function with `validate()`. 
+* The `accept` argument allows you to limit the possible inputs. The easiest 
+  way is to supply a character vector of file extensions, like 
+  `accept = ".csv"`. (You can also use mime types, see `?fileInput` for more
+  details.)
+  
+* The `accept` argument is only a suggestion to the browser, and is not always
+  enforced, so you should also use `validate()` to check the 
+  extension[^extensions] in your server function.
 
 [^extensions]: Note that the browser defintion of an extension is different to the definiton used by the browser - the browser uses `.csv` where `file_ext()` returns `.csv`.
+
+Putting all these ideas together gives us the following app where you can upload a `.csv` file and see the first few rows:
 
 ```{r}
 ui <- fluidPage(
   fileInput("file", NULL, accept = ".csv"),
-  tableOutput("description")
+  tableOutput("head")
 )
 
 server <- function(input, output, session) {
@@ -69,64 +89,91 @@ server <- function(input, output, session) {
     vroom::vroom(input$file$datapath, delim = ",")
   })
   
-  output$description <- renderTable({
-    data()
+  output$head <- renderTable({
+    head(data(), 5)
   })
 }
 ```
 
-Note that if `multiple = FALSE` (the default), then `input$file` will be a single row data frame, and indexing into it with `$` will return a vector of length 1 --- there's no need to use `[1]`. 
+Note that since `multiple = FALSE` (the default), `input$file` is a single row data frame, and `input$file$filename` is a length-1 character vector. 
 
 ## Download
 
-Downloading a file is a little more complicated as you need a specific component in the server function that works a little differently to the other render functions.
+### UI
 
-* In UI, use `downloadButton(id)` or `downloadLink(id)` to give the user
-  something to initiate to download a file. (There are other arguments, but 
-  you'll hardly ever need them; see `?downloadButton` for the details.)
-  
-* In server, use `output$id <- downloadHandler()` to respond to the user and 
-  send them a file.
+Again, the UI is straightforward: use either `downloadButton(id)` or `downloadLink(id)` to give the user something to click to download a file. They do have o ther arguments, but you'll hardly ever need them; see `?downloadButton` for the details.
 
-`downloadHandler()` is a little different to other outputs because it requires two functions: one that determines the file name of the output, and the other that creates a file at a specified path. The following app shows off the basics by creating an app that lets you download any dataset in the datasets package as a csv file.
+```{r}
+ui <- fluidPage(
+  downloadButton("download1"),
+  downloadLink("download2")
+)
+```
+
+### Server
+
+The server side of downloads is different to the other ouputs as you don't use a render function. Instead, you use `downloadHandler()`, which takes two arguments:
+
+*   `filename` is a function with no arguments that returns a single string 
+    giving the name of the file. This is the string that will appear in
+    the download dialog box. If the file name is constant (i.e. it doesn't
+    depend on anything else in the app), you can skip the function and just set 
+    it to a string.
+
+*   `content` is a function with a single argument, `file`, which is the path
+    where your should place the file to be downloaded. The return argument of 
+    this function is ignored; it's called purely for its side-effect of creating 
+    a file at the given path.
+
+For example, if you wanted to provide a `.csv` file, your server function might contain a snippet like this:
+
+```{r, eval = FALSE}
+output$download <- downloadHandler(
+  filename = function() {
+    paste0(input$dataset, ".csv")
+  },
+  content = function(file) {
+    write.csv(data(), file)
+  }
+)
+```
+
+### Downloading data
+
+The following app shows off the basics by creating an app that lets you download any dataset in the datasets package as a tsv[^tsv-csv] file.
 
 ```{r}
 ui <- fluidPage(
   selectInput("dataset", "Pick a dataset", ls("package:datasets")),
-  downloadButton("download")
+  tableOutput("preview"),
+  downloadButton("download", "Download .tsv")
 )
+
 server <- function(input, output, session) {
   data <- reactive({
     get(input$dataset, "package:datasets")
   })
+  
+  output$preview <- renderTable({
+    head(data())
+  })
     
   output$download <- downloadHandler(
     filename = function() {
-      paste0(input$dataset, ".csv")
+      paste0(input$dataset, ".tsv")
     },
     content = function(file) {
-      write.csv(data(), file)
+      vroom::vroom_write(data(), file)
     }
   )
 }
 ```
 
-Note the two important arguments to `downloadHandler()`:
+[^tsv-csv]: `.tsv` file is to be preferred over a `.csv` because many European countries use commas to separate the whole and fractional parts of a number (e.g. `1,23` not `1.23`). This means they can't use commas to separate fields and instead use semi-colons. It's best to just side-step this issue together, and instead just use tab separatea files.
 
-*   `filename` should be a function with no arguments that returns a single 
-    string giving the name of the file. This is the string that will appear in
-    the download dialog box. I recommend avoiding special characters.
-  
-    If the file name is fixed, you can skip the function and just set it to
-    a string.
+### Downloading reports
 
-*   `content` should be a function with a single argument that tells you where
-    to save the file. The return argument of this function is ignored; it's 
-    called purely for its side-effect of creating a file at the given path.
-
-### Parametermised RMarkdown reports
-
-Another common use of file downloads is to prepare a report that summarises the result of interactive exploration in the Shiny app. One powerful way to generate such a report is with a parameterised RMarkdown document,  <https://bookdown.org/yihui/rmarkdown/parameterized-reports.html>. A parameterised RMarkdown file has special YAML metadata:
+Another common use of downloads is to prepare a report that summarises the result of interactive exploration in the Shiny app. One powerful way to generate such a report is with a parameterised RMarkdown document,  <https://bookdown.org/yihui/rmarkdown/parameterized-reports.html>. A parameterised RMarkdown file has a `params` field in the YAML metadata:
 
 ```yaml
 title: My Document
@@ -138,7 +185,9 @@ params:
   data: file.csv
 ```
 
-And inside the document you can refer to those values with `params$year`, `params$region` etc. What makes this technique powerful is you can also set the parameters using code, by calling `rmarkdown::render()` with the `params` argument. This makes it possible to generate a range of RMarkdown reports from a single app.
+Inside the document you can refer to those values with `params$year`, `params$region` etc. 
+
+What makes this technique powerful is you can also set the parameters using code, by calling `rmarkdown::render()` with the `params` argument. This makes it possible to generate a range of RMarkdown reports from a single app.
 
 Here's a simple example taken from <https://shiny.rstudio.com/articles/generating-reports.html>, which describes this technique in more detail.
 
@@ -218,26 +267,54 @@ Later, in Chapter XYZ, we'll come back to generating a complete report of all th
 
 ## Case study
 
-We'll put all the pieces together in a small case study where we upload a file (with user supplied separator), preview it, perform some optional transformations using the [janitor package](http://sfirke.github.io/janitor), by Sam Firke, and then let the user download it as a tsv (tab separated files are generally slightly better than csv because they're the same in Europe, and less likely to need quoting). We'll use vroom to read the data because it's fast.
+We'll put all the pieces together in a small case study where we upload a file (with user supplied separator), preview it, perform some optional transformations using the [janitor package](http://sfirke.github.io/janitor), by Sam Firke, and then let the user download it as a `.tsv`. 
+
+To make it easier to understand how to use the app, I've used `sidebarLayout()` to divide the app into three main steps:
+
+1. Uploading and parsing the file.
+2. Cleaning the file.
+3. Downloading the file.
 
 ```{r}
 ui <- fluidPage(
-  fileInput("file", "Data file to upload"),
-  textInput("delim", "Delimiter (leave blank to guess)", ""),
-  numericInput("skip", "Rows to skip", 0, min = 0),
-  tableOutput("preview1"),
-  checkboxInput("snake", "Rename columns to snake case?"),
-  checkboxInput("constant", "Remove constant columns?"),
-  checkboxInput("empty", "Remove empty cols?"),
-  tableOutput("preview2"),
-  downloadButton("download")
+  sidebarLayout(
+    sidebarPanel(
+      fileInput("file", "Data", buttonLabel = "Upload..."),
+      textInput("delim", "Delimiter (leave blank to guess)", ""),
+      numericInput("skip", "Rows to skip", 0, min = 0)
+    ),
+    mainPanel(
+      h2("Raw data"),
+      tableOutput("preview1")
+    )
+  ),
+  sidebarLayout(
+    sidebarPanel(
+      checkboxInput("snake", "Rename columns to snake case?"),
+      checkboxInput("constant", "Remove constant columns?"),
+      checkboxInput("empty", "Remove empty cols?")
+    ),
+    mainPanel(
+      h2("Cleaner data"),
+      tableOutput("preview2")
+    )
+  ),
+  fluidRow(
+    column(width = 4, downloadButton("download", class = "btn-primary")),
+  )
 )
+```
+
+And this same organisation makes it easier to understand the app:
+
+```{r}
 server <- function(input, output, session) {
   raw <- reactive({
     req(input$file)
     delim <- if (input$delim == "") NULL else input$delim
     vroom::vroom(input$file$datapath, delim = delim, skip = input$skip)
   })
+  output$preview1 <- renderTable(raw())
   
   tidied <- reactive({
     out <- raw()
@@ -253,9 +330,8 @@ server <- function(input, output, session) {
     
     out
   })
-  
-  output$preview1 <- renderTable(raw())
   output$preview2 <- renderTable(tidied())
+  
   output$download <- downloadHandler(
     filename = function() {
       paste0(tools::file_path_sans_ext(input$file$name), ".tsv")
@@ -267,3 +343,4 @@ server <- function(input, output, session) {
 }
 ```
 
+### Exercises
