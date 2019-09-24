@@ -61,7 +61,7 @@ There are a few ways you can run this app:
 *   If you're not using RStudio, you can `source()` the whole document, 
     or call `shiny::runApp()` with the path to the directory containing `app.R`.
 
-Pick once of these options, and check that you see the same app as in Figure \@ref(fig:hello-world). Congratulations! You've made your first Shiny app.
+Pick one of these options, and check that you see the same app as in Figure \@ref(fig:hello-world). Congratulations! You've made your first Shiny app.
 
 ```{r hello-world, out.width = NULL, echo = FALSE, fig.cap = "The very basic shiny app you'll see when you run the code above"}
 knitr::include_graphics("images/basic-app/hello-world.png")
@@ -77,7 +77,7 @@ This tells you the URL where your app can be found: 127.0.0.1 is a standard addr
 
 [^ie]: Shiny strives to support all modern browsers, and you can see the set currently supported at https://www.rstudio.com/about/platform-support/. Note that Internet Explorer versions prior to IE11 are not compatible when running Shiny directly from your R session.,  However, Shiny apps deployed on Shiny Server or ShinyApps.io can work with IE10 (earlier versions of IE are no longer supported).
 
-Also notice that R is busy: the R prompt isn't visible, and the console toolbar displays a stop sign icon. While a Shiny app is running, it "blocks" the R console. This means that you can't run new commands at the R console until after the Shiny app either stops.
+Also notice that R is busy: the R prompt isn't visible, and the console toolbar displays a stop sign icon. While a Shiny app is running, it "blocks" the R console. This means that you can't run new commands at the R console until after the Shiny app stops.
 
 You can stop the app and return access to the console using any one of these options:
 
@@ -92,7 +92,7 @@ The basic workflow of Shiny app development is to write some code, start the app
 
 ## Adding UI controls {#adding-ui}
 
-Next, we'll add some inputs and outputs to our UI so it's not *quite* so minimal. We're going to make a very simple app that shows you all the built in data frames included in the datasets package.
+Next, we'll add some inputs and outputs to our UI so it's not *quite* so minimal. We're going to make a very simple app that shows you all the built-in data frames included in the datasets package.
 
 Replace your `ui` with this code:
 
@@ -160,16 +160,16 @@ output$ID <- renderTYPE({
 
 The left-hand side of the assignment operator (`<-`), `output$ID`, indicates that you're providing the recipe for the Shiny output with the matching ID. The right-hand side of the assignment uses a specific __render function__ to wrap some code that you provide; in the example above, we use `renderPrint()` and `renderTable()` to wrap our app-specific logic. 
 
-Each `render*` function is designed to work with a particular type of output that's passed to an `*Output` function. In this case, we're using `renderPrint()` to capture and display a statistical summary of the data with fixed width (verbatim) text, and `renderTable()` to display the actual data frame in a table.
+Each `render*` function is designed to work with a particular type of output that's passed to an `*Output` function. In this case, we're using `renderPrint()` to capture and display a statistical summary of the data with fixed-width (verbatim) text, and `renderTable()` to display the actual data frame in a table.
 
 Run the app again and play around, watching what happens to the output when you change an input. Figure \@ref(fig:basic-server) shows what you'll see when you open the app.
 
-```{r basic-server, echo = FALSE, out.width = NULL, fig.cap = "Now that we've provided a serer function that connects and inputs, we have a fully functional app"}
+```{r basic-server, echo = FALSE, out.width = NULL, fig.cap = "Now that we've provided a server function that connects and inputs, we have a fully functional app"}
 app <- testApp(ui, server)
 app_screenshot(app, "basic-app/server")
 ```
 
-Notice that I haven't written any code that checks for changes to `input$dataset` and explicitly updates the two outputs. That's because outputs are __reactive__: that they automatically recalculate when their inputs change. Because both of the rendering code blocks I wrote used `input$dataset`, whenever the value of `input$dataset` changes (i.e. the user changes their selection in the UI), both outputs will recalculate and update in the browser. 
+Notice that I haven't written any code that checks for changes to `input$dataset` and explicitly updates the two outputs. That's because outputs are __reactive__: they automatically recalculate when their inputs change. Because both of the rendering code blocks I wrote used `input$dataset`, whenever the value of `input$dataset` changes (i.e. the user changes their selection in the UI), both outputs will recalculate and update in the browser. 
 
 ## Reducing duplication with reactive expressions {#reactive-expr}
 
@@ -207,7 +207,7 @@ We'll come back to reactive programming multiple times, but even armed with a cu
 
 ## Cheat sheet
 
-Before you continue on to read more about user interfaces and reactive programming, now is a great time to grab a copy of the Shiny cheatsheet from <https://www.rstudio.com/resources/cheatsheets/>. This is a great resource to help jog your memory of the main components of a Shiny.
+Before you continue on to read more about user interfaces and reactive programming, now is a great time to grab a copy of the Shiny cheatsheet from <https://www.rstudio.com/resources/cheatsheets/>. This is a great resource to help jog your memory of the main components of a Shiny app.
 
 ```{r, echo = FALSE, out.width = NULL}
 knitr::include_graphics("images/basic-app/cheatsheet.png", dpi = 300)
@@ -218,7 +218,7 @@ knitr::include_graphics("images/basic-app/cheatsheet.png", dpi = 300)
 1.  Create an app that greets the user by name. You don't know all the 
     functions you need to do this yet, so I've included some lines of code
     below. Figure out which lines you'll use and then copy and paste them into
-    the right place in a shiny app.
+    the right place in a Shiny app.
 
     ```{r, eval = FALSE}
     textInput("name", "What's your name?")
