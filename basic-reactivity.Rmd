@@ -6,11 +6,11 @@ source("common.R")
 
 ## Introduction
 
-In the the previous chapter, we talked about creating the user interfaces. Now we'll move on to discuss the server side of Shiny, where you use R code at runtime to make your user interface come to life!
+In the previous chapter, we talked about creating the user interfaces. Now we'll move on to discuss the server side of Shiny, where you use R code at runtime to make your user interface come to life!
 
 In Shiny, you express your server logic using reactive programming. Reactive programming is an elegant and powerful programming paradigm, but it can be disorienting at first because it's a very different paradigm to writing a script. The key idea of reactive programming is to specify a graph of dependencies so that when an input changes, all outputs are automatically updated. This makes the flow of an app considerably simpler, but it takes a while to get your head around how it all fits together.
 
-This chapter will provide a gentle walkthrough of reactive programming, introducing some of the most basic reactive constructs you'll use in your Shiny apps. We'll start with a survey of the server function, discussing in more detail how the `input` and `output` arguments work. Next we'll review the simplest form of reactivity (where inputs are directly connected to outputs), and then discuss how reactive expressions allow you to eliminate duplicated work. We'll finish by reviewing some common roadblocks encountered by newer shiny users.
+This chapter will provide a gentle walkthrough of reactive programming, introducing some of the most basic reactive constructs you'll use in your Shiny apps. We'll start with a survey of the server function, discussing in more detail how the `input` and `output` arguments work. Next we'll review the simplest form of reactivity (where inputs are directly connected to outputs), and then discuss how reactive expressions allow you to eliminate duplicated work. We'll finish by reviewing some common roadblocks encountered by newer Shiny users.
 
 ```{r setup}
 library(shiny)
@@ -34,7 +34,7 @@ server <- function(input, output, session) {
 shinyApp(ui, server)
 ```
 
-The previous chapter covered the basics of the front-end, the `ui` object that contains the HTML presented to every user of your app. In this chapter, we'll focus on the backend, which is more complex, because every user gets an independent version of app. So instead of a single static object like `ui`, the backend is a function, `server()`. You'll never call that function yourself; instead, Shiny invokes it whenever a new session begins. 
+The previous chapter covered the basics of the front-end, the `ui` object that contains the HTML presented to every user of your app. In this chapter, we'll focus on the backend, which is more complex, because every user gets an independent version of the app. So instead of a single static object like `ui`, the backend is a function, `server()`. You'll never call that function yourself; instead, Shiny invokes it whenever a new session begins. 
 
 Before we can continue, we need to precisely define a __session__, which captures the state of one live instance of a Shiny app. A session begins each time the Shiny app is loaded in a browser, either by different people, or by the same person opening multiple tabs. Each session needs to be completely independent so that when user A moves a slider, outputs update only for user A, not unrelated user B. The server function is called once for each session, creating a private scope that holds the unique state for that user, and every variable created _inside_ the server function is only accessible to that session. This is why almost all of the reactive programming you'll do in Shiny will be inside the server function[^exceptions]. 
 
@@ -168,13 +168,13 @@ output$greeting <- renderText({
 })
 ```
 
-It's easy to read this as "paste together 'hello' and the user's name, then send it to `output$greeting`". But this mental model is wrong in a subtle, but important, way. Think about it: with this model, you only issue the instruction once. But Shiny perform the action every time we update `input$name`, so there must be something more going on.
+It's easy to read this as "paste together 'hello' and the user's name, then send it to `output$greeting`". But this mental model is wrong in a subtle, but important, way. Think about it: with this model, you only issue the instruction once. But Shiny performs the action every time we update `input$name`, so there must be something more going on.
 
 The app works because the code doesn't _tell_ Shiny to create the string and send it to the browser, but instead, it informs Shiny _how it could_ create the string if it needs to. It's up to Shiny when (and even if!) the code should be run. It might be run as soon as the app launches, it might be quite a bit later; it might be run many times, or it might never be run. This isn't to imply that Shiny is capricious, only that it's Shiny's responsibility to decide when code is executed, not yours. A better mental model is to think of giving Shiny recipes, not commands.
 
 ### Imperative vs declarative programming
 
-This difference between commands and recipes is one of key differences between two important styles of programming:
+This difference between commands and recipes is one of the key differences between two important styles of programming:
 
 * In __imperative__ programming, you issue a specific command and it's 
   carried out immediately. This is the style of programming you're used to
@@ -192,9 +192,9 @@ Most of the time, declarative programming is tremendously freeing: you describe 
 
 [^ggplot2-legends]: If you've ever struggled to get a ggplot2 legend to look exactly the way you want, you've encountered this problem!
 
-### Lazyness
+### Laziness
 
-One of the strengths of declarative programming in Shiny is it that it allows apps to be extremely lazy. A Shiny app will only ever do the minimal amount of work needed to update the output controls that you can currently see[^seeing]. This lazyness, however, comes with an important downside that you should be aware of. Can you spot what's wrong with the server function below?
+One of the strengths of declarative programming in Shiny is that it allows apps to be extremely lazy. A Shiny app will only ever do the minimal amount of work needed to update the output controls that you can currently see[^seeing]. This laziness, however, comes with an important downside that you should be aware of. Can you spot what's wrong with the server function below?
 
 [^seeing]: Yes, shiny doesn't update the output if you can't see it in your browser! Shiny is so lazy that it doesn't do the work unless you can actually see the results.
 
@@ -212,7 +212,7 @@ If you're working on a Shiny app and you just can't figure out why your code nev
 
 ### The reactive graph
 
-Shiny's lazyness has another important property. In most R code, you can understand the order of execution by reading the code from top to bottom. That doesn't work in Shiny, because code is only run when needed. To understand the order of execution you need to instead look at the __reactive graph__, which describes how inputs and outputs are connected. The reactive graph for the app above is very simple:
+Shiny's laziness has another important property. In most R code, you can understand the order of execution by reading the code from top to bottom. That doesn't work in Shiny, because code is only run when needed. To understand the order of execution you need to instead look at the __reactive graph__, which describes how inputs and outputs are connected. The reactive graph for the app above is very simple:
 
 ```{r, echo = FALSE, out.width = NULL}
 knitr::include_graphics("diagrams/basic-reactivity/graph-1b.png", dpi = 300)
@@ -226,7 +226,7 @@ Note the graphical conventions we used for the inputs and outputs: the `name` in
 knitr::include_graphics("diagrams/basic-reactivity/graph-1a.png", dpi = 300)
 ```
 
-The reactive graph is a powerful tool for understanding how your app works. As as your app gets more complicated, it's often useful to make a quick high-level sketch of the reactive graph to remind you how all the pieces fit together. Throughout this book we'll show you the reactive graph to help understand how the examples work, and later on, in Chapter XYZ, you'll learn how to use reactlog which will draw the graph for you.
+The reactive graph is a powerful tool for understanding how your app works. As your app gets more complicated, it's often useful to make a quick high-level sketch of the reactive graph to remind you how all the pieces fit together. Throughout this book we'll show you the reactive graph to help understand how the examples work, and later on, in Chapter XYZ, you'll learn how to use reactlog which will draw the graph for you.
 
 ### Reactive expressions
 
@@ -248,7 +248,7 @@ Reactive expressions take inputs and produce outputs so they have a shape that c
 
 ### Execution order
 
-It's important to understand the order in which your code is run is determined solely by the reactive graph. This is different from most R code where the execution order is determined by the order of lines. For example, we could flip the order of the two lines in our simple server function:
+It's important to understand that the order in which your code is run is determined solely by the reactive graph. This is different from most R code where the execution order is determined by the order of lines. For example, we could flip the order of the two lines in our simple server function:
 
 ```{r}
 server <- function(input, output, session) {
