@@ -6,9 +6,11 @@ source("common.R")
 
 ## Introduction
 
-Now that you've got a basic app under your belt, we're going to explore the details that make it tick. As you saw in the previous chapter, Shiny encourages separation of the code that generates your user interface, or frontend, from the code that drives your app's behavior, or backend. In this chapter, we'll dive deeper into the frontend and explore the HTML inputs, outputs, and layouts that are provided by Shiny.
+Now that you've got a basic app under your belt, we're going to explore the details that make it tick. As you saw in the previous chapter, Shiny encourages separation of the code that generates your user interface (the front end) from the code that drives your app's behaviour (the backend). In this chapter, we'll dive deeper into the front end and explore the HTML inputs, outputs, and layouts provided by Shiny.
 
 Learning more about frontend will allow you to generate visually compelling, but simple apps. In the next chapter, you'll learn more about the reactivity that powers Shiny's backend, allowing you to create richer responses to interaction.
+
+As usual, we'll begin by loading the shiny package:
 
 ```{r setup}
 library(shiny)
@@ -16,34 +18,30 @@ library(shiny)
 
 ## Inputs {#inputs}
 
-As we saw in the previous chapter, you use functions like `sliderInput()`, `selectInput()`, `textInput()`, and `numericInput()` to insert input controls into your UI specification. Now we'll discuss the common structure that underlies all input functions, then give a quick overview of the most important functions.
+As we saw in the previous chapter, you use functions like `sliderInput()`, `selectInput()`, `textInput()`, and `numericInput()` to insert input controls into your UI specification. Now we'll discuss the common structure that underlies all input functions and give a quick overview of the inputs built into Shiny.
 
 ### Common structure
 
-All input functions have the same first argument: `inputId`. This is the identifier used to connect the frontend with the backend: if your UI specification creates an input with ID `"name"`, you'll access it in the server function with `input$name`.
+All input functions have the same first argument: `inputId`. This is the identifier used to connect the front end with the back end: if your UI has an input with ID `"name"`, the server function will access it with `input$name`.
 
 The `inputId` has two constraints:
 
 * It must be a simple string that contains only letters, numbers, and 
   underscores (no spaces, dashes, periods, or other special characters 
-  allowed!). Name it like you name variables in R.
+  allowed!). Name it like you would name a variable in R.
   
 * It must be unique. If it's not unique, you'll have no way to refer to 
   this control in your server function!
 
-Most input functions have a second parameter called `label`. This is used to create a human-readable label for the control. Shiny doesn't place any restrictions on this string, but you'll need to carefully think about it to make sure that your app is usable by humans! 
+Most input functions have a second parameter called `label`. This is used to create a human-readable label for the control. Shiny doesn't place any restrictions on this string, but you'll need to carefully think about it to make sure that your app is usable by humans! The third parameter is typically `value`, which, where possible, lets you set the default value. The remaining parameters are unique to the control. 
 
-The third parameter is typically `value`, which, where possible, lets you set the default value.
-
-The remaining parameters are unique to the control. We'll show the most important parameters for each control below, but you'll need to read the documentation to get the full details, and to see the less commonly used features.
-
-When creating an input, we recommend supplying the `inputId` and `label` arguments by position, and all other arguments by name:
+When creating an input, I recommend supplying the `inputId` and `label` arguments by position, and all other arguments by name:
 
 ```{r, results = FALSE}
 sliderInput("min", "Limit (minimum)", value = 50, min = 0, max = 100)
 ```
 
-Next, we'll give a quick overview of the most important controls. The goal is to give you a rapid overview of your options, not to exhaustively describe all the arguments. You should refer to the documentation for more details. 
+The following sections describe the inputs built in to Shiny, loosely grouped according to the type of control they create. The goal is to give you a rapid overview of your options, not to exhaustively describe all the arguments. I'll show the most important parameters for each control below, but you'll need to read the documentation to get the full details.
 
 ### Free text
 
@@ -55,7 +53,7 @@ Collect small amounts of text with `textInput()`, passwords with `passwordInput(
 ui <- fluidPage(
   textInput("name", "What's your name?"),
   passwordInput("password", "What's your password?"),
-  textAreaInput("story", "Tell me about yourself", rows = 3, cols = 80)
+  textAreaInput("story", "Tell me about yourself", rows = 3)
 )
 ```
 ```{r, echo = FALSE, out.width = NULL}
@@ -65,7 +63,7 @@ app$setInputs(password = "mypassword")
 app_screenshot(app, "basic-ui/free-text")
 ```
 
-If you want to ensure that the text has certain properties you can use `validate()`, which we'll come back to in Chapter XYZ. 
+If you want to ensure that the text has certain properties you can use `validate()`, which we'll come back to in Chapter \@ref(action-feedback). 
 
 ### Numeric inputs
 
@@ -82,13 +80,13 @@ ui <- fluidPage(
 ui_screenshot(ui, "basic-ui/numeric")
 ```
 
-Generally, you should only use sliders for small ranges, where the precise value is not so important. Attempting to precisely select a number on a small slider is an exercise in frustration! 
+Generally, I recommend only using sliders for small ranges, or cases where the precise value is not so important. Attempting to precisely select a number on a small slider is an exercise in frustration! 
 
 Sliders are extremely customisable and there are many ways to tweak their appearance. See `?sliderInput` and <https://shiny.rstudio.com/articles/sliders.html> for more details.
 
 ### Dates
 
-Collect a single day with `dateInput()`, or a range of two days with `dateRangeInput()`. These provide a convenient calendar picker, and additional arguments like `datesdisabled` and `daysofweekdisabled` allow you to restrict the set of valid inputs.
+Collect a single day with `dateInput()` or a range of two days with `dateRangeInput()`. These provide a convenient calendar picker, and additional arguments like `datesdisabled` and `daysofweekdisabled` allow you to restrict the set of valid inputs.
 
 ```{r}
 ui <- fluidPage(
@@ -100,7 +98,7 @@ ui <- fluidPage(
 ui_screenshot(ui, "basic-ui/date")
 ```
 
-The defaults for date format, language, and day on which the week starts adhere to how calendars are generally formatted in the United States. If you are creating an app with an international audience, you should consider setting `format`, `language`, and `weekstart` to ensure that the dates appear naturally to your users.
+Date format, language, and the day on which the week starts defaults to US standards. If you are creating an app with an international audience, set `format`, `language`, and `weekstart` so that the dates are natural to your users.
 
 ### Limited choices
 
@@ -136,7 +134,7 @@ ui <- fluidPage(
 ui_screenshot(ui, "basic-ui/radio-icon")
 ```
 
-Dropdowns created with `selectInput()` take up the same amount of space, regardless of the number of options, making them more suitable for longer options. You can also set `multiple = TRUE` to allow the user to select multiple elements from the list of possible values.
+Dropdowns created with `selectInput()` take up the same amount of space, regardless of the number of options, making them more suitable for longer options. You can also set `multiple = TRUE` to allow the user to select multiple elements.
 
 ```{r}
 ui <- fluidPage(
@@ -168,26 +166,6 @@ ui <- fluidPage(
 ui_screenshot(ui, "basic-ui/multi-radio")
 ```
 
-Sometimes you want the user to select variables from a data frame to be used in 
-summary, plot, etc. outputs. You can use the `varSelectInput()` for this.
-
-```{r}
-ui <- fluidPage(
-  varSelectInput("variable", "Select a variable", mtcars)
-)
-```
-```{r, echo = FALSE, out.width = NULL}
-ui_screenshot(ui, "basic-ui/var-select")
-```
-
-Note that the result of `varSelectInput()` is different than selecting a 
-variable name from a character vector of names of variables---it yields a 
-symbol (or a list of symbols if `multiple = TRUE`) that can be used in 
-conjunction with tidy evaluation. Chapter XYZ goes further into this topic and 
-presents examples of server function code that can be used with this widget.
-
-### Yes/no questions
-
 If you want a single checkbox for a single yes/no question, use `checkboxInput()`:
 
 ```{r}
@@ -200,24 +178,24 @@ ui <- fluidPage(
 ui_screenshot(ui, "basic-ui/yes-no")
 ```
 
-### File upload and downloads
+### File uploads
 
 Allow the user to upload a file with `fileInput()`:
 
 ```{r}
 ui <- fluidPage(
-  fileInput("upload2", NULL)
+  fileInput("upload", NULL)
 )
 ```
 ```{r, echo = FALSE, out.width = NULL}
 ui_screenshot(ui, "basic-ui/upload")
 ```
 
-`fileInput()` requires more work on the server side, and is discussed in detail in Chapter \@ref(action-transfer).
+`fileInput()` special handling on the server side, and is discussed in detail in Chapter \@ref(action-transfer).
 
 ### Action buttons
 
-Perform an action with `actionButton()` or `actionLink()`. These are most naturally paired with `observeEvent()` or `eventReactive()` in the server function; I haven't discussed these functions yet, but we'll come back to them in the next chapter. 
+Let the user perform an action with `actionButton()` or `actionLink()`. These are most naturally paired with `observeEvent()` or `eventReactive()` in the server function; I haven't discussed these functions yet, but we'll come back to them in the next chapter. 
 
 ```{r}
 ui <- fluidPage(
@@ -265,20 +243,19 @@ ui_screenshot(ui, "basic-ui/action")
 1.  Using the following numeric input box the user can enter any value between 
     0 and 1000. What is the purpose of the step argument in this widget?
 
-```{r eval=FALSE}
-numericInput("number", "Select a value", value = 150, min = 0, max = 1000, step = 50)
-```
+    ```{r eval=FALSE}
+    numericInput("number", "Select a value", value = 150, min = 0, max = 1000, step = 50)
+    ```
 
-  
 ## Outputs {#outputs}
 
-Output functions in the UI specification create placeholders that are filled by the server function. Like inputs, outputs take a unique ID as their first argument: if your UI specification creates an output with ID `"plot"`, you'll access it in the server function with `output$plot`. Each `output` function on the frontend is coupled with a `render` function in the backend, like `output$plot <- renderPlot({...})`. 
+Outputs in the UI create placeholders that are later filled by the server function. Like inputs, outputs take a unique ID as their first argument: if your UI specification creates an output with ID `"plot"`, you'll access it in the server function with `output$plot`. 
 
-There are three main types of output, corresponding to the three things you usually include in a report: text, tables, and plots. The following sections show you the basics of the output functions on the frontend, along with the corresponding `render` functions in the backend.
+Each `output` function on the front end is coupled with a `render` function in the back end. There are three main types of output, corresponding to the three things you usually include in a report: text, tables, and plots. The following sections show you the basics of the output functions on the front end, along with the corresponding `render` functions in the back end.
 
 ### Text
 
-Output regular text with `textOutput()` and code with `verbatimTextOutput()`. 
+Output regular text with `textOutput()` and fixed code and console output with `verbatimTextOutput()`. 
 
 ```{r}
 ui <- fluidPage(
@@ -298,25 +275,31 @@ server <- function(input, output, session) {
 app_screenshot(testApp(ui, server), "basic-ui/output-text")
 ```
 
+Note that the `{}` are not required in render functions, unless you need to run multiple lines of code. You could also write the server function more compactly. I think this is generally good style as you should do as little computation in your render functions as possible.
+
+```{r}
+server <- function(input, output, session) {
+  output$text <- renderText("Hello friend!")
+  output$code <- renderPrint(summary(1:10))
+}
+```
+
 Note that there are two render functions that can be used with either of the text ouput functions:
 
 * `renderText()` which displays text _returned_ by the code.
 * `renderPrint()` which displays text _printed_ by the code.
 
-To help understand the difference, examine the following function. It prints `a` and `b`, and returns `"c"`:
+To help understand the difference, examine the following function. It prints `a` and `b`, and returns `"c"`. A function can print multiple things, but can only return a single value.
 
 ```{r}
 print_and_return <- function() {
   print("a")
   print("b")
-  print("c")
+  "c"
 }
-print_and_return()
 x <- print_and_return()
 x 
 ```
-
-Note that a function can print multiple things, but can only return a single value.
 
 ### Tables
 
@@ -325,9 +308,8 @@ There are two options for displaying data frames in tables:
 * `tableOutput()` and `renderTable()` render a static table of data, 
   showing all the data at once.
   
-* `dataTableOutput()` and `renderDataTable()` render a dynamic table, where
-  only a fixed number of rows are shown at once, and the user can interact to
-  see more.
+* `dataTableOutput()` and `renderDataTable()` render a dynamic table, showing
+  a fixed number of rows along with controls to change which rows are visible.
   
 `tableOutput()` is most useful for small, fixed summaries (e.g. model coefficients); `dataTableOutput()` is most appropriate if you want to expose a complete data frame to the user.
   
@@ -337,39 +319,33 @@ ui <- fluidPage(
   dataTableOutput("dynamic")
 )
 server <- function(input, output, session) {
-  output$static <- renderTable({ head(mtcars) })
-  output$dynamic <- renderDataTable({ mtcars }, options = list(pageLength = 5))
+  output$static <- renderTable(head(mtcars))
+  output$dynamic <- renderDataTable(mtcars, options = list(pageLength = 5))
 }
 ```
 ```{r, echo = FALSE, out.width = "100%"}
 app_screenshot(testApp(ui, server), "basic-ui/output-table", width = 800)
 ```
 
-<!-- MCR: I suggest the following language to be added here, since it seems like a good opportunity to go discuss the purpose of curly braces.
-
-Note that in the `renderDataTable()` function above we used curly braces around the first argument, the expression being rendered -- `mtcars`, and `options` is an additional argument we pass to `renderDataTable(). The curly braces are optional in this scenario since the expression is a single line, but in situations where you need multiple lines of code to develop the expression to be rendered, the curly braces help define the complete expression.
-
--->
-
 ### Plots
 
-You can display any type of R graphic with `plotOutput()` and `renderPlot()`:
+You can display any type of R graphic (base, ggplot2, or otherwise) with `plotOutput()` and `renderPlot()`:
 
 ```{r}
 ui <- fluidPage(
   plotOutput("plot", width = "400px")
 )
 server <- function(input, output, session) {
-  output$plot <- renderPlot({ plot(1:5) })
+  output$plot <- renderPlot(plot(1:5))
 }
 ```
 ```{r, echo = FALSE, out.width = NULL}
 app_screenshot(testApp(ui, server), "basic-ui/output-plot")
 ```
 
-By default, `plotOutput()` will take up the full width of the element it's embedded within (more on that shortly), and will be 400 pixels high. You can override these defaults with the `height` and `width` arguments.
+By default, `plotOutput()` will take up the full width of its container (more on that shortly), and will be 400 pixels high. You can override these defaults with the `height` and `width` arguments.
 
-Plots are special because they can also act as inputs. `plotOutput()` has a number of arguments like `click`, `dblclick`, and `hover`. If you pass these a string, like `click = "plot_click"`, they'll create a reactive input (`input$plot_click`) that you can use to handle user interaction on the plot. We'll come back to interactive plots in Shiny in Chapter XYZ.
+Plots are special because they are outputs that can also act as inputs. `plotOutput()` has a number of arguments like `click`, `dblclick`, and `hover`. If you pass these a string, like `click = "plot_click"`, they'll create a reactive input (`input$plot_click`) that you can use to handle user interaction on the plot. We'll come back to interactive plots in Shiny in Chapter XYZ.
 
 ### Downloads
 
@@ -380,16 +356,20 @@ You can let the user download a file with `downloadButton()` or `downloadLink()`
 1.  Re-create the Shiny app from the plots section, this time setting height to 
     300px and width to 700px.
 
+1.  Add an additional plot to the right of the existing plot, and size it so
+    that each plot takes up half the width of the app.
+
 1.  Update the options for `renderDataTable()` below so that the table is 
-    displayed, but nothing else. Reviewing the options 
-    at https://datatables.net/reference/option/ might be helpful.
+    displayed, but nothing else, i.e. remove the search, ordering, and filtering
+    commands. You'll need to read `?renderDataTable` and review the options 
+    at <https://datatables.net/reference/option/>.
 
     ```{r eval=FALSE}
     ui <- fluidPage(
       dataTableOutput("table")
     )
     server <- function(input, output, session) {
-      output$table <- renderDataTable({ mtcars }, options = list(pageLength = 5))
+      output$table <- renderDataTable(mtcars, options = list(pageLength = 5))
     }
     ```
 
@@ -431,34 +411,31 @@ fluidPage(
 )
 ```
 
-Even without knowing anything about the layout functions you can read the function names to guess what this app is going to look like. You can imagine that this is going to generate a classic app design: a title bar at top, followed by a sidebar (containing a slider) and a main panel containing a plot.
+Even without knowing anything about the layout functions you can read the function names to guess what this app is going to look like. You might imagine that this code swill generate a classic app design: a title bar at top, followed by a sidebar (containing a slider), with the main panel containing a plot.
 
 ### Page functions
 
 The most important, but least interesting, layout function is `fluidPage()`. You've seen it in every example above, because we use it to put multiple inputs or outputs into a single app. What happens if you use `fluidPage()` by itself?
 
-```{r}
-ui <- fluidPage()
-```
-```{r, echo = FALSE, out.width = NULL}
+```{r, echo = FALSE}
 knitr::include_graphics("images/basic-app/fluid-page.png", dpi = 300)
 ```
 
-It looks very boring (there's no content!), but behind the scenes, `fluidPage()` is doing a lot of work. The page function sets up all the HTML, CSS, and JS that Shiny needs. `fluidPage()` uses a layout system called **Bootstrap**, <https://getbootstrap.com>, that provides attractive defaults[^bs3]. Later on, in Chapter XYZ, we'll talk about how you can use a little knowledge of Bootstrap to gain greater control of the visual appearance of your app in order to make your app look more polished.
+It looks very boring because there's no content, but behind the scenes, `fluidPage()` is doing a lot of work. The page function sets up all the HTML, CSS, and JS that Shiny needs. `fluidPage()` uses a layout system called **Bootstrap**, <https://getbootstrap.com>, that provides attractive defaults[^bs3]. Later on, in Chapter XYZ, we'll talk about how you can use a little knowledge of Bootstrap to gain greater control of the visual appearance of your app in order to make your app look more polished or match your corporate style guide.
 
 [^bs3]: Currently Shiny uses Bootstrap 3.3.7, <https://getbootstrap.com/docs/3.3/>, but the Shiny team is planning to update to 4.0.0, the latest version, in the near future.
 
-Technically, `fluidPage()` is all you need for an app, because you can put inputs and outputs directly inside of it. While this is fine to learn the basics of Shiny, dumping all the inputs and outputs in one place doesn't look very good, so for more complicated apps, you need to learn more layout functions. Here I'll introduce you to two common structures, a page with sidebar and a multirow app, and then we'll finish off with a quick discussion of themes.
+Technically, `fluidPage()` is all you need for an app, because you can put inputs and outputs directly inside of it. But while this is fine for learning the basics of Shiny, dumping all the inputs and outputs in one place doesn't look very good, so you need to learn more layout functions. Here I'll introduce you to two common structures, a page with sidebar and a multirow app, and then we'll finish off with a quick discussion of themes.
 
 <!-- When to used fixedPage()? Probably most of the time, because it constrains the width. If you want you app to be full page, use fluidPage() -->
 
 ### Page with sidebar
 
-`sidebarLayout()` makes it easy to create a two-column layout with inputs on the left and outputs on the right. The basic code looks like this:
+`sidebarLayout()`, along with `titlePanel()`, `sidebarLayout()`, `sidebarPanel()`, and `mainPanel()`,  makes it easy to create a two-column layout with inputs on the left and outputs on the right. The basic code is shown below; it generates the structure shown in Figure \@ref(fig:ui-sidebar).
 
 ```{r, eval = FALSE}
 fluidPage(
-  headerPanel(
+  titlePanel(
     # app title/description
   ),
   sidebarLayout(
@@ -472,9 +449,7 @@ fluidPage(
 )
 ```
 
-It generates an app with this basic structure:
-
-```{r, echo = FALSE, out.width = NULL}
+```{r ui-sidebar, echo = FALSE, out.width = NULL, fig.cap = "Structure of a basic app with sidebar"}
 knitr::include_graphics("diagrams/basic-ui/sidebar.png", dpi = 300)
 ```
 
@@ -508,9 +483,7 @@ app_screenshot(app, "basic-ui/sidebar", width = 800)
 
 ### Multi-row
 
-Under the hood, `sidebarLayout()` is built on top of a flexible multi-row layout, which you can use directly to create more visually complex apps. 
-
-As usual, you start with `fluidPage()`. Then you create rows with `fluidRow()`, and columns with `column()`. The basic code structure looks like this:
+Under the hood, `sidebarLayout()` is built on top of a flexible multi-row layout, which you can use directly to create more visually complex apps. As usual, you start with `fluidPage()`. Then you create rows with `fluidRow()`, and columns with `column()`. The following template generates the structure shown in Figure \@ref(fig:ui-multirow).
 
 ```{r, eval = FALSE}
 fluidPage(
@@ -533,9 +506,7 @@ fluidPage(
 )
 ```
 
-which generates a layout that looks like this:
-
-```{r, echo = FALSE, out.width = NULL}
+```{r ui-multirow, echo = FALSE, out.width = NULL, fig.cap = "The structure underlying a simple multi-row app"}
 knitr::include_graphics("diagrams/basic-ui/multirow.png", dpi = 300)
 ```
 
@@ -579,33 +550,41 @@ As you can see, theming your app is quite straightforward: you just need to use 
 
 ### Exercises
 
-
-1.  Update the Central Limit Theorem app presented in the chapter so that the 
-    sidebar is on the right instead of the left.
+1.  Modify the Central Limit Theorem app so that the sidebar is on the right 
+    instead of the left.
     
-1.  Browse the themes available in the shinythemes package, and update the theme 
-    of the app from the previous exercise.
+1.  Browse the themes available in the shinythemes package, pick an attractive 
+    theme, and apply it the Central Limit Theorem app.
 
 <!--
 
-MCR: Exercise ideas
+Exercise ideas
 
-1.  A sample app where some commas are missing between layout elements
+1. A sample app where some commas are missing between layout elements
+1. Write the code that generates the layouts in these drawings
 
 -->
 
 ## Under the hood
 
-In the previous example you might have been surprised to see that I used a function, `theme_demo()`. This works because Shiny code **is** R code, and you can use all of your existing tools for reducing duplication. Remember the rule of three: if you copy and paste code more than three times, you should consider writing a function or using a for loop[^map].
+In the previous example you might have been surprised to see that I create a Shiny app using a function, `theme_demo()`. This works because Shiny code **is** R code, and you can use all of your existing tools for reducing duplication. Remember the rule of three: if you copy and paste code more than three times, you should consider writing a function or using a for loop[^map].
 
 [^map]: Or using `lapply()` or `purrr::map()` if you know a little about functional programming.
 
 All input, output, and layout functions return HTML, the descriptive language that underpins every website. You can see that HTML by executing UI functions directly in the console:
 
-```{r, raw_html = TRUE}
+```{r, eval = FALSE}
 fluidPage(
   textInput("name", "What's your name?")
 )
+```
+```html
+<div class="container-fluid">
+  <div class="form-group shiny-input-container">
+    <label for="name">What's your name?</label>
+    <input id="name" type="text" class="form-control" value=""/>
+  </div>
+</div>
 ```
 
 Shiny is designed so that, as an R user, you don't need to learn about the details of HTML. However, if you already know HTML (or want to learn!) you can also work directly with HTML tags to achieve any level of customization you want. And these approaches are by no means exclusive: you can mix high-level functions with low-level HTML as much as you like. We'll come back to these ideas in Chapter \@ref(advanced-ui), where you'll learn more about the lower-level features for authoring HTML directly. 

@@ -76,19 +76,7 @@ consoleReactive <- function(state) {
   }
 }
 
-# Custom printing ---------------------------------------------------------
-knit_print <- knitr::knit_print
-
-knit_print.shiny.tag.list <- function(x, options = list(), ...) {
-
-  if (isTRUE(options$raw_html)) {
-    x <- htmltools::htmlEscape(x)
-    knitr::asis_output(paste0("<pre><code>", x, "</code></pre>"))
-  }
-}
-registerS3method("knit_print", "shiny.tag.list", knit_print.shiny.tag.list)
-
-# Screenshot generation
+# Screenshots -------------------------------------------------------------
 
 makeApp <- function(ui, server = NULL, app_dir = tempfile(), deps = character()) {
   if (is.null(server)) {
