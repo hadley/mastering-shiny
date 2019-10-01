@@ -78,25 +78,27 @@ consoleReactive <- function(state) {
 
 # Screenshots -------------------------------------------------------------
 
-makeApp <- function(ui, server = NULL, app_dir = tempfile(), deps = character()) {
+makeApp <- function(ui, server = NULL, app_dir = tempfile(), deps = character(), ...) {
   if (is.null(server)) {
     server <- function(input, output, session) {}
   }
 
   dir.create(app_dir)
-  saveRDS(ui, file.path(app_dir, "ui.rds"))
-  saveRDS(server, file.path(app_dir, "server.rds"))
-  saveRDS(resource_paths_get(), file.path(app_dir, "resources.rds"))
+
+  data <- list(
+    ui = ui,
+    server = server,
+    resources = resource_paths_get(),
+    ...
+  )
+  saveRDS(data, file.path(app_dir, "data.rds"))
 
   deps <- lapply(rlang::syms(deps), function(dep) rlang::expr(library(!!dep)))
-
   app <- rlang::expr({
     library(shiny)
     !!!deps
 
-    ui <- readRDS("ui.rds")
-    server <- readRDS("server.rds")
-    resources <- readRDS("resources.rds")
+    data <- attach(readRDS("data.rds"))
     for (prefix in names(resources)) {
       shiny::addResourcePath(prefix, resources[[prefix]])
     }
@@ -142,10 +144,12 @@ app_screenshot <- function(app, name, width = 600, height = NA) {
   path <- file.path("screenshots", paste0(name, ".png"))
 
   if (!isTRUE(getOption("knitr.in.progress")) || !file.exists(path)) {
-    if (is.na(height)) {
-      height <- app_height(app)
+    if (!is.null(width)) {
+      if (is.na(height)) {
+        height <- app_height(app)
+      }
+      app$setWindowSize(width, height)
     }
-    app$setWindowSize(width, height)
     app$takeScreenshot(path)
   }
 
