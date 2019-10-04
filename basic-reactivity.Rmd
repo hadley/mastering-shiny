@@ -162,7 +162,7 @@ app_screenshot(app, "basic-reactivity/connection-4", width = 200)
 
 [^debounce]: If you're running the live app, notice that you have to type fairly slowly for the output to update one letter at a time. That's because Shiny uses a technique called __debouncing__, which means that it waits for a few ms before sending an update. That considerably reduces the amount of work that Shiny needs to do, without appreciably reducing the response time of the app.
 
-This is the big idea in Shiny: you don't need to tell an output when to update, because Shiny automatically figures it out for you. How does it work? What exactly is going on in the body of the function? Let's thinkg about at the code inside the server function more precisely:
+This is the big idea in Shiny: you don't need to tell an output when to update, because Shiny automatically figures it out for you. How does it work? What exactly is going on in the body of the function? Let's think about at the code inside the server function more precisely:
 
 ```{r, eval = FALSE}
 output$greeting <- renderText({
