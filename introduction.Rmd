@@ -43,7 +43,22 @@ People use Shiny to:
   to email after email requesting the same basic analyses, you can instead
   create a Shiny app where people can upload their data and perform standard
   analyses.
-  
+
+## Who should read this book?
+
+This book is aimed at two main audiences:
+
+* R users who are interested in learning about Shiny in order to turn their
+  analyses into interactive web apps. To get the most out of this book,
+  you should be comfortable using R to do data analysis, and should have
+  written at least a few functions.
+
+* Existing Shiny uses who want to improve their knowledge of the theory
+  underlying Shiny in order to write higher-quality apps faster and more
+  easily. You should find this book particularly helpful if your apps are
+  starting to get bigger and you're starting to have problems managing the
+  complexity.
+
 ## What will you learn?
 
 The book is divided into five parts:
