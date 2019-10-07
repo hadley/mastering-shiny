@@ -172,6 +172,18 @@ cat(".\n")
 
 This book was written in [RStudio](http://www.rstudio.com/ide/) using [bookdown](http://bookdown.org/). The [website](http://mastering-shiny.org/) is hosted with [netlify](http://netlify.com/), and automatically updated after every commit by [travis-ci](https://travis-ci.org/). The complete source is available from [GitHub](https://github.com/hadley/mastering-shiny). 
 
+This version of the book was built with `r R.version.string` and the following packages:
+
+```{r, echo = FALSE, results="asis"}
+pkgs <- sessioninfo::package_info(pkgs, dependencies = FALSE)
+df <- tibble(
+  package = pkgs$package,
+  version = pkgs$ondiskversion,
+  source = gsub("@", "\\\\@", pkgs$source)
+)
+knitr::kable(df, format = "markdown")
+```
+
 ```{r, echo = FALSE}
 ruler <- function(width = getOption("width")) {
   x <- seq_len(width)
