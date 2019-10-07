@@ -199,6 +199,8 @@ df <- tibble(
 knitr::kable(df, format = "markdown")
 ```
 
+The following ruler is used to check code width.
+
 ```{r, echo = FALSE}
 ruler <- function(width = getOption("width")) {
   x <- seq_len(width)

@@ -19,10 +19,8 @@ options(digits = 3)
 # In final book can go up to 81
 # http://oreillymedia.github.io/production-resources/styleguide/#code
 # See preamble.tex for tweak that makes this work in pdf output
-if (knitr::is_latex_output()) {
-  knitr::opts_chunk$set(width = 81)
-  options(width = 81)
-}
+knitr::opts_chunk$set(width = 81)
+options(width = 81)
 
 # Controls the size of automated shiny screenshots via app_screenshot().
 # I don't understand why these values need to be different, they've been
