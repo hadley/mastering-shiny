@@ -320,24 +320,25 @@ knitr::include_graphics("images/basic-app/cheatsheet.png", dpi = 300)
     ```
 
 1.  The following app is very similar to one you've seen earlier in the chapter: 
-    you select a dataset from a package (this time we're using the **HistData** 
+    you select a dataset from a package (this time we're using the **ggplot2** 
     package) and the app prints out a summary and plot of the data. It also 
     follows good practice and makes use of reactive expressions to avoid 
     redundancy of code. However there are three bugs in the code provided 
     below. Can you find and fix them?
 
     ```{r}
-    library(HistData)
-    
+    library(ggplot2)
+    datasets <- data(package = "ggplot2")$results[, "Item"]
+
     ui <- fluidPage(
-      selectInput("dataset", "Dataset", choices = ls("package:HistData")),
+      selectInput("dataset", "Dataset", choices = datasets),
       verbatimTextOutput("summary"),
       tableOutput("plot")
     )
     
     server <- function(input, output, session) {
       dataset <- reactive({
-        get(input$dataset, "package:HistData")
+        get(input$dataset, "package:ggplot2")
       })
       output$summmry <- renderPrint({
         summary(dataset())

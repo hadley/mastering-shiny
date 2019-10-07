@@ -2,7 +2,6 @@ Package: shinybook
 Title: Mastering Shiny
 Version: 0.0.1
 Imports: 
-    HistData,
     ggforce,
     shiny,
     shinytest,
