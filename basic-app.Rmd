@@ -8,6 +8,14 @@ source("common.R")
 
 In this chapter, we'll create a simple Shiny app. I'll start by showing you the minimum boilerplate needed for a Shiny app, and then you'll learn how to start and stop it. Next you'll learn the two key components of every Shiny app: the **UI** (short for user interface) which defines how your app _looks_, and the **server function** which defines how you app _works_. Shiny uses reactive programming to automatically update outputs when inputs change so we'll finish off the chapter by learning the third important component of Shiny apps: reactive expressions.
 
+If you haven't already installed Shiny, install it now with:
+
+```{r, eval = FALSE}
+install.packages("shiny")
+```
+
+Then load in your current R session:
+
 ```{r setup}
 library(shiny)
 ```

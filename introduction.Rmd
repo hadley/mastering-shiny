@@ -6,29 +6,78 @@ source("common.R")
 
 ## What is Shiny?
 
+If you've never used Shiny before, welcome! Shiny is an R package that allows you to easily create rich, interactive, web apps. Shiny allows you to take your work in R and expose it via a web browser so that anyone can use it. Shiny makes you look amazing because it allows you to create a polished web app with a minimum amount of pain.
+
+People use Shiny to:
+
+* Create dashboards that track important performance indicators, and faciliate
+  drill down into suprising results.
+
+* Replace hundreds of pages of PDFs with interactive apps that allow the 
+  user to jump to the exact data slice they care about.
+  
+* Communicate complex models to a lay audience by exposing their behaviour
+  in an interactive sandbox.
+
+* Provide self serve data analysis for common workflows. Instead of 
+  
+* Teach statistics concepts through interactive widgets.
+
+Web apps are traditionally hard to write because:
+
+* You need a deep knowledge of web technologies like HTML, CSS and javascript. 
+
+* Responding to user interactions requires carefully thought out code so that 
+  interactive parts of the app update if, and only if, the values they depend
+  on change.
+  
+Shiny helps with both these problems by:
+
+* Providing a carefully curated set of user interface (or **UI** for short)
+  functions that generate the HTML, CSS, and javascript that you need for 
+  common tasks. You don't need to learn about HTML/CSS/JS until you want to
+  go beyond the basics that Shiny provides for you.
+  
+* Introducing a new style of programming called __reactive programming__ that 
+  automatically tracks the dependencies of a code chunk. This means that 
+  Shiny automatically tracks the dependencies of your code, so that whenever
+  an input change, Shiny can do the minimal amount of work to update the 
+  related outputs.
+
+By solving these problems, Shiny makes it possible for you, the R user, to create rich, interactive web applications without having to involve another team or other people with web programming expertise. This substantially shortens the iteration time.
+
 ## What will you learn?
 
-If you've never used Shiny before, welcome! 
+The book is divided into five parts:
 
-The first part of the book, "Getting started", is designed to get you up and running with Shiny as quickly as possible. This is pretty quick, because Shiny is carefully designed to let you get started writing apps as quickly as possible. We'll teach you a few recipes to follow that let you turn your existing R code into basic apps by wrapping key bits of code in `reactive({...})` or `renderXXX({...})`.
+1.  In "Getting started", you'll learn the basics of Shiny so you can get up and 
+    running as quickly as possible. You'll learn about the basic the app 
+    structure, useful UI components, and the basics of reactive programming.
+    
+1.  "Shiny in action" builds on the basics to help you solve common problems
+    including giving feedback to the user, uploading and downloading data,
+    generate UI with code, reducing duplication, and using Shiny with the 
+    tidyverse.
+    
+1.  "Mastering UI" dives into the details of the user interface. You'll learn
+    about some of the most important extension packages, and then learn the
+    basics of HTML and CSS so that you can customise Shiny to precisely meet 
+    your needs.
+    
+1.  In "Mastering reactivity", you'll go deep into the theory and practice of 
+    reactive programming, the programming paradigm that underlies Shiny. If 
+    you're an existing Shiny user, you'll get the most value out of this 
+    chapter as it will give you a solid theoretical underpinning that will 
+    allow you to create new tools specifically tailored for your problems.
 
-In "Shiny in Action", you'll learn a bunch of common patterns for building Shiny apps.
-
-Then in "Mastering UI", you'll dive further into the many options you have for the front-end of your app.
-
-In "Mastering reactivity", you'll go deep into the theory and practice of reactive programming, the programming paradigm that underlies Shiny. If you're an existing Shiny user, you'll get the most value out of this chapter as it will give you a solid theoretical underpinning that will allow you to create new tools specifically tailored for your problems.
-
-The biggest drawback of reactive programming is that it's a fundamentally new programming paradigm. Even experienced R users can have trouble getting their heads around reactive programming, and those with deep experience in software engineering may feel uncomfortable with so much "magic". But once you've formed an accurate mental model, you'll see that there's nothing up Shiny's sleeves: the magic comes from simple concepts combined in consistent ways.
-
-Finally, in "Taming Shiny" we'll finish up a survey of useful techniques for making your Shiny apps work well in production. You'll learn how to measure and improve performance, debug problems when they go wrong, and manage your app's dependencies.
-
-## How to keep learning
-
-
+1.  Finally, in "Taming Shiny" we'll finish up a survey of useful techniques 
+    for making your Shiny apps work well in production. You'll learn how to 
+    measure and improve performance, debug problems when they go wrong, and 
+    manage your app's dependencies.
 
 ## What won't you learn?
 
-The focus of this book is making effective Shiny apps and understanding the underlying theory of reactivity. I'll do my best to show off best practices for data science, R programming, and software engineering at the same time as well, but you'll need other references to master these other important components.
+The focus of this book is making effective Shiny apps and understanding the underlying theory of reactivity. I'll do my best to show off best practices for data science, R programming, and software engineering at the same time as well, but you'll need other references to master these other important components. If you enjoy my writing, you might enjoy my books on these topics: [R for data science](http://r4ds.had.co.nz/), [Advanced R](http://adv-r.hadley.nz/), and [R packages](http://r-pkgs.org/).
 
 ## Prerequisites {#prerequisites}
 
@@ -46,27 +95,24 @@ While you can write and use Shiny apps with any R environment (including R GUI a
 
 You can download RStudio Desktop at <https://www.rstudio.com/products/rstudio/download>
 
-### Shiny {-}
-
-Shiny is an R package; you install it the same way you install any R package. From the R console:
-
-```{r eval=FALSE}
-install.packages("shiny")
-```
-
-### Other R packages {-}
+### R packages {-}
 
 This book is heavy on code, and we will often use other R packages in our examples. You can install them all now by running this code:
 
-```{r eval=FALSE}
-install.packages(c("magrittr", "lubridate", "readr", "dplyr", "ggplot2", "gt"))
+```{r, echo = FALSE}
+deps <- desc::desc_get_deps()
+pkgs <- sort(deps$package[deps$type == "Imports"])
+pkgs2 <- strwrap(paste(encodeString(pkgs, quote = '"'), collapse = ", "), exdent = 2)
+
+install <- paste0(
+  "install.packages(c(\n  ", 
+  paste(pkgs2, "\n", collapse = ""), 
+  "))"
+)
 ```
 
-TODO: Update this list before final draft; see [DESCRIPTION](https://github.com/hadley/mastering-shiny/blob/master/DESCRIPTION) for the definitive list.
-
-## Cheat sheet
-
-You may find it helpful to print a copy of our [Shiny "cheat sheet"](https://github.com/rstudio/cheatsheets/raw/master/shiny.pdf), a reference card for many of the most important concepts and functions in Shiny. It won't all make sense to you yet, but as you work through the chapters you'll find it more and more helpful to refresh your memory.
+```{r code = install, eval=FALSE}
+```
 
 ## Acknowledgements
 
