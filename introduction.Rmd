@@ -16,7 +16,7 @@ In the past, creating web apps was hard for most R users because:
   flows to make sure that when an input changes, only the related outputs are 
   updated.
 
-Shiny makes it signficantly the R programmer to create web apps by:
+Shiny makes it significantly the R programmer to create web apps by:
 
 * Providing a carefully curated set of user interface (**UI** for short)
   functions that generate the HTML, CSS, and JavaScript that you need for 
@@ -77,7 +77,7 @@ The book is divided into five parts:
     
 1.  "Mastering UI" dives into the details of the user interface. You'll learn 
     packages that help you create other types of UI like dashboards and 
-    RStudio gadges, then learn the basics of HTML and CSS so you can customise 
+    RStudio gadgets, then learn the basics of HTML and CSS so you can customise 
     Shiny to precisely meet your needs.
     
 1.  In "Mastering reactivity", you'll go deep into the theory and practice of 
