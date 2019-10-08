@@ -11,5 +11,6 @@ Suggests:
     bookdown, 
     desc,
     png,
+    sessioninfo,
     shinytest,
     webshot (>= 0.5.0.9000)
