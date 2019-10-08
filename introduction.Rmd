@@ -43,6 +43,10 @@ People use Shiny to:
 * Provide self-service data analysis for common workflows where replacing 
   email requests with a Shiny app that allows people to upload their own
   data and perform standard analyses.
+  
+* Create interactive demos for teaching statistics and data science concepts 
+  that allow learners to tweak inputs and observe the downstream effects of 
+  these changes in an analysis.
 
 In short, Shiny gives you the ability to pass on some of your R superpowers to anyone who can use a web browser. 
 
