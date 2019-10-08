@@ -554,7 +554,7 @@ ui <- fluidPage(
   fluidRow(
     column(3, 
       numericInput("lambda1", label = "lambda1", value = 3),
-      numericInput("lambda2", label = "lambda1", value = 3),
+      numericInput("lambda2", label = "lambda2", value = 3),
       numericInput("n", label = "n", value = 1e4, min = 0)
     ),
     column(9, plotOutput("hist"))
