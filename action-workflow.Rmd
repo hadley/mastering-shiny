@@ -71,7 +71,7 @@ Another way to reduce your iteration speed still further is to turn autoreload o
 
 The chief disadvantage of this technique is that because the app is running in a separate process, it's considerably hard to debug.
 
-As you app gets bigger and bigger you'll find that the "interactively experiment" step starts to become onerous. It's too hard to remember to re-check every component of your app that you might have affected with your changes. Later, in Chapter XYZ, you'll learn the tools of automated testing allows you to turn the interactive experiments you're running into automated code. This lets you run the tests more quickly (because they're automated), and means that you can't forget to run an important test. It requires some initial investment to develop the tests, but the investment pays off handsomely for large apps.
+As your app gets bigger and bigger, you'll find that the "interactively experiment" step starts to become onerous. It's too hard to remember to re-check every component of your app that you might have affected with your changes. Later, in Chapter XYZ, you'll learn the tools of automated testing allows you to turn the interactive experiments you're running into automated code. This lets you run the tests more quickly (because they're automated), and means that you can't forget to run an important test. It requires some initial investment to develop the tests, but the investment pays off handsomely for large apps.
 
 ### Controlling the view
 
@@ -90,13 +90,13 @@ knitr::include_graphics("images/basic-app/run-app-details.png")
 
 ## Debugging
 
-When you start writing apps, it is almost guaranteed that something will go wrong. The cause of most bugs is a mismatch between your mental model of Shiny, and what Shiny actually does. As you read this book, your mental model will improve, so that you make fewer mistakes, and when you do make one, it's easier to spot the problem. However, it takes years of experience in any language before you can reliably solve complex problems with code that works the first time. This means you need to build a robust workflow for identifyig and fixing mistakes.
+When you start writing apps, it is almost guaranteed that something will go wrong. The cause of most bugs is a mismatch between your mental model of Shiny, and what Shiny actually does. As you read this book, your mental model will improve, so that you make fewer mistakes, and when you do make one, it's easier to spot the problem. However, it takes years of experience in any language before you can reliably solve complex problems with code that works the first time. This means you need to build a robust workflow for identifying and fixing mistakes.
 
 There are three main cases of problems which we'll discuss below:
 
 * You get an unexpected error. This is the easiest case, because you'll get 
-  a traceback which allows you to figure out exatly where the error is coming
-  from. Once you've identified the problem, you'll need to systematiclly test
+  a traceback which allows you to figure out exactly where the error is coming
+  from. Once you've identified the problem, you'll need to systematically test
   your assumption until you find a difference between your expectations and
   what is actually happening. The interactive debugger is a powerful tool for
   this process.
@@ -380,7 +380,7 @@ Typically, the most challenging part of making your app work on someone elses co
     smaller the dataset that you supply, the easier it will be for others to
     help you with your problem.
     
-If reading data from disk seems to be an irreducible part of the problem, a strategy of last resort is to provide a complete project containing both an `app.R` and the needed data files. The best way to do provide this is as a RStudio project hosted on GitHub, but failing that, you can carefully make a zip file than can be run locally. Make sure that you use relative paths (i.e. `read.csv("my-data.csv"`) not `read.csv("c:\\my-user-name\\files\\my-data.csv")`) so that your code still works when run on a different computer.
+If reading data from disk seems to be an irreducible part of the problem, a strategy of last resort is to provide a complete project containing both an `app.R` and the needed data files. The best way to provide this is as a RStudio project hosted on GitHub, but failing that, you can carefully make a zip file than can be run locally. Make sure that you use relative paths (i.e. `read.csv("my-data.csv"`) not `read.csv("c:\\my-user-name\\files\\my-data.csv")`) so that your code still works when run on a different computer.
 
 ### Making a minimal reprex
 
@@ -388,7 +388,7 @@ Creating a reproducible example is a great first step because it means that some
 
 Creating the smallest possible reprex is particularly important for Shiny apps, which can be quite large and complicated. Rather than forcing the person trying to help you to understand all the details of your app, you are more likely to get higher quality help faster if you can extract out the exact piece of the app that you're struggling with. As an added benefit, this process will often lead you to discover what the problem is, so you don't have to wait for help from someone else!
 
-Reducing a bunch of code to the essential problem is a skill, and you probably won't be very good it at first. That's ok! Even the smallest reduction in code complexity helps the person helping you, and over time your compexity reduction skills will approve.
+Reducing a bunch of code to the essential problem is a skill, and you probably won't be very good it at first. That's ok! Even the smallest reduction in code complexity helps the person helping you, and over time your complexity reduction skills will approve.
 
 If you don't know what part of your code is triggering the problem, a good way to find it is to remove sections of code from your application, piece by piece, until the problem goes away. If removing a particular piece of code makes the problem stop, it's likely that that code is related to the problem. Alternatively, sometimes it's simpler to start with a fresh, empty, app and progressively build it up until you find the problem again.
 
