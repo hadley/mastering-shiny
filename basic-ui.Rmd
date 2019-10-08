@@ -284,7 +284,7 @@ server <- function(input, output, session) {
 }
 ```
 
-Note that there are two render functions that can be used with either of the text ouput functions:
+Note that there are two render functions that can be used with either of the text output functions:
 
 * `renderText()` which displays text _returned_ by the code.
 * `renderPrint()` which displays text _printed_ by the code.
