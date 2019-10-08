@@ -284,7 +284,7 @@ server <- function(input, output, session) {
 }
 ```
 
-Note that there are two render functions that can be used with either of the text ouput functions:
+Note that there are two render functions that can be used with either of the text output functions:
 
 * `renderText()` which displays text _returned_ by the code.
 * `renderPrint()` which displays text _printed_ by the code.
@@ -453,7 +453,7 @@ fluidPage(
 knitr::include_graphics("diagrams/basic-ui/sidebar.png", dpi = 300)
 ```
 
-The following example shows how to use this layout to create a very simple app that demonstrates the Central Limit Thereom. If you run this app yourself, you can see how increasing the number of samples makes a distribution that looks very similar to a normal distribution.
+The following example shows how to use this layout to create a very simple app that demonstrates the Central Limit Theorem. If you run this app yourself, you can see how increasing the number of samples makes a distribution that looks very similar to a normal distribution.
 
 ```{r}
 ui <- fluidPage(

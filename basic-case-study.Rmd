@@ -19,7 +19,7 @@ library(tidyverse)
 
 ## The data
 
-We're going to explore data from the Data from the National Electronic Injury Surveillance System (NEISS), collected by Consumer Product Safety Commission. This is a long-term study that records all accidents seen in a representative sample of hospitals in the United States. It's an interesting dataset to explore because every one is already familiar with the domain, and each observation is accompanied by a short narrative that explains how the accident occured. You can find out more about this dataset at <https://github.com/hadley/neiss>
+We're going to explore data from the Data from the National Electronic Injury Surveillance System (NEISS), collected by Consumer Product Safety Commission. This is a long-term study that records all accidents seen in a representative sample of hospitals in the United States. It's an interesting dataset to explore because every one is already familiar with the domain, and each observation is accompanied by a short narrative that explains how the accident occurred. You can find out more about this dataset at <https://github.com/hadley/neiss>
 
 In this chapter, I'm going to focus on just the data from 2017. This keeps the data small enough (~10 meg) that it's easy to store in git (along with the rest of the book), which means we don't need to think about sophisticated strategies for importing the data quickly (we'll come back to those later in the book). You can see the code I used to create the extract for this chapter at <https://github.com/hadley/mastering-shiny/blob/master/neiss/data.R>.
 
@@ -80,7 +80,7 @@ selected %>% count(body_part, wt = weight, sort = TRUE)
 selected %>% count(location, wt = weight, sort = TRUE)
 ```
 
-As you might expect, steps are most often associated with sprains, strains and fractures, of the ankle, ocurring at home.
+As you might expect, steps are most often associated with sprains, strains and fractures, of the ankle, occurring at home.
 
 We can also explore the pattern across age and sex. We have enough data here that a table is not that useful, and so I make a plot, Figure \@ref(fig:stairs-raw), that makes the patterns more obvious.
 
@@ -156,7 +156,7 @@ Often it's a good idea to spend a little time cleaning up your analysis code bef
 ```{r code = section_get("neiss/prototype.R", "server")}
 ```
 
-Note that creatung the `summary` reactive isn't strictly necessary here, as it's only used by a single reactive consumer. But it's good practice to keep computing and plotting separate as it makes the flow of the app easier to understand, and will make it easier to generalise in the future.
+Note that creating the `summary` reactive isn't strictly necessary here, as it's only used by a single reactive consumer. But it's good practice to keep computing and plotting separate as it makes the flow of the app easier to understand, and will make it easier to generalise in the future.
 
 A screenshot of resulting app is shown in Figure \@ref(fig:prototype). You can find the source code at <https://github.com/hadley/mastering-shiny/tree/master/neiss/prototype.R> and try out a live version of the app at XYZ.
 
@@ -189,7 +189,7 @@ I then use this in the server function:
 ```{r, code = section_get("neiss/polish-tables.R", "tables"), eval = FALSE}
 ```
 
-I made one other change to improve the aesthetics of the app: I forced all tables to take up the maximum width (i.e. fill the column that they appear in). This makes the output more aesthetically pleasing because it reduces the amount of incidental variaton.
+I made one other change to improve the aesthetics of the app: I forced all tables to take up the maximum width (i.e. fill the column that they appear in). This makes the output more aesthetically pleasing because it reduces the amount of incidental variation.
 
 A screenshot of resulting app is shown in Figure \@ref(fig:polish-tables). You can find the source code at <https://github.com/hadley/mastering-shiny/tree/master/neiss/polish-tables.R> and try out a live version of the app at XYZ.
 
