@@ -1,4 +1,4 @@
-# Introduction
+# Preface
 
 ```{r include = FALSE}
 source("common.R")
