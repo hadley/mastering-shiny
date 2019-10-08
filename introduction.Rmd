@@ -10,23 +10,24 @@ If you've never used Shiny before, welcome! Shiny is an R package that allows yo
 
 In the past, creating web apps was hard for most R users because:
 
-* You need a deep knowledge of web technologies like HTML, CSS and javascript. 
+* You need a deep knowledge of web technologies like HTML, CSS and JavaScript. 
 
-* Responding to user interactions requires careful analysis to make sure that
-  when one interactive input changes, the appropriate outputs are updated.
+* Making complex interactive apps requires careful analysis of interaction
+  flows to make sure that when an input changes, only the related outputs are 
+  updated.
 
-Shiny helps solve these problems by:
+Shiny makes it signficantly the R programmer to create web apps by:
 
-* Providing a carefully curated set of user interface (or **UI** for short)
-  functions that generate the HTML, CSS, and javascript that you need for 
-  common tasks. You don't need to learn about HTML/CSS/JS until you want to
-  go beyond the foundation that Shiny provides for you.
+* Providing a carefully curated set of user interface (**UI** for short)
+  functions that generate the HTML, CSS, and JavaScript that you need for 
+  common tasks. This means that you don't know need to know the details of 
+  HTML/CSS/JS until you want to go beyond the basics that Shiny provides 
+  for you.
   
-* Introducing a new style of programming called __reactive programming__ that 
+* Introducing a new style of programming called __reactive programming__ which 
   automatically tracks the dependencies of a code chunk. This means that 
-  Shiny automatically tracks the dependencies of your code, so that whenever
-  an input change, Shiny can do the minimal amount of work to update the 
-  related outputs.
+  whenever an input changes, Shiny can automatically figure out how to do the
+  smallest amount of work to update all the related outputs.
 
 People use Shiny to:
 
@@ -34,15 +35,16 @@ People use Shiny to:
   drill down into suprising results.
 
 * Replace hundreds of pages of PDFs with interactive apps that allow the 
-  user to jump to the exact data slice they care about.
+  user to jump to the exact slice of the that they care about.
   
 * Communicate complex models to a non-technical audience with informative
   visualisations and interactive sensitivity analysis.
 
-* Provide self serve data analysis for common workflows. Instead of responding 
-  to email after email requesting the same basic analyses, you can instead
-  create a Shiny app where people can upload their data and perform standard
-  analyses.
+* Provide self-serve data analysis for common workflows where replacing 
+  email requests with a Shiny app that allows people to upload their own
+  data and perform standard analyses.
+
+In short, Shiny gives you the ability to pass on some of your R superpowers to anyone who can use a web browser. 
 
 ## Who should read this book?
 
@@ -53,7 +55,7 @@ This book is aimed at two main audiences:
   you should be comfortable using R to do data analysis, and should have
   written at least a few functions.
 
-* Existing Shiny uses who want to improve their knowledge of the theory
+* Existing Shiny users who want to improve their knowledge of the theory
   underlying Shiny in order to write higher-quality apps faster and more
   easily. You should find this book particularly helpful if your apps are
   starting to get bigger and you're starting to have problems managing the
@@ -75,9 +77,8 @@ The book is divided into five parts:
     
 1.  "Mastering UI" dives into the details of the user interface. You'll learn 
     packages that help you create other types of UI like dashboards and 
-    RStudio gadges, , and then learn the
-    basics of HTML and CSS so that you can customise Shiny to precisely meet 
-    your needs.
+    RStudio gadges, then learn the basics of HTML and CSS so you can customise 
+    Shiny to precisely meet your needs.
     
 1.  In "Mastering reactivity", you'll go deep into the theory and practice of 
     reactive programming, the programming paradigm that underlies Shiny. If 
@@ -85,23 +86,23 @@ The book is divided into five parts:
     chapter as it will give you a solid theoretical underpinning that will 
     allow you to create new tools specifically tailored for your problems.
 
-1.  Finally, in "Taming Shiny" we'll finish up a survey of useful techniques 
-    for making your Shiny apps work well in production. You'll learn how to 
-    measure and improve performance, debug problems when they go wrong, and 
-    manage your app's dependencies.
+1.  Finally, in "Taming Shiny" we'll finish up with a survey of useful 
+    techniques for making your Shiny apps work well in production. You'll learn 
+    how to measure and improve performance, debug problems when they go wrong, 
+    and manage your app's dependencies.
 
 ## What won't you learn?
 
-The focus of this book is making effective Shiny apps and understanding the underlying theory of reactivity. I'll do my best to show off best practices for data science, R programming, and software engineering at the same time as well, but you'll need other references to master these other important components. If you enjoy my writing, you might enjoy my books on these topics: [R for data science](http://r4ds.had.co.nz/), [Advanced R](http://adv-r.hadley.nz/), and [R packages](http://r-pkgs.org/).
+The focus of this book is making effective Shiny apps and understanding the underlying theory of reactivity. I'll do my best to show case best practices for data science, R programming, and software engineering, but you'll need other references to master these important skillsets. If you enjoy my writing in this book, you might enjoy my other books on these topics: [R for data science](http://r4ds.had.co.nz/), [Advanced R](http://adv-r.hadley.nz/), and [R packages](http://r-pkgs.org/).
 
 ## Prerequisites {#prerequisites}
 
-The first thing you'll need to do is install the software you'll need, if you don't have it already:
+Before we continue, make sure you have all the software you need for this book:
 
 *   __R__:  If you don't have R installed already, you may be reading the 
-    wrong book! You need to be familiar with R if you want to write Shiny apps. 
+    wrong book; I assume a basic familiarity with R throughout this book.
     If you'd like to learn how to use R, I'd recommend my 
-    [_R for Data Science_](https://r4ds.had.co.nz/) book which is designed to get
+    [_R for Data Science_](https://r4ds.had.co.nz/) which is designed to get
     you up and running with R with minimum of fuss.
 
 *   __RStudio__: RStudio is a free and open source integrated development 
@@ -178,7 +179,7 @@ contributors <- contributors %>%
     desc = ifelse(is.na(name), login, paste0(name, " (", login, ")"))
   )
 
-cat("A big thank you to all ", nrow(contributors), " people who contributed specific improvements via pull requests (in alphabetical order by username): ", sep = "")
+cat("A big thank you to all ", nrow(contributors), " people who contributed specific improvements via GitHub pull requests (in alphabetical order by username): ", sep = "")
 cat(paste0(contributors$desc, collapse = ", "))
 cat(".\n")
 ```
@@ -199,8 +200,6 @@ df <- tibble(
 knitr::kable(df, format = "markdown")
 ```
 
-The following ruler is used to check code width.
-
 ```{r, echo = FALSE}
 ruler <- function(width = getOption("width")) {
   x <- seq_len(width)
@@ -213,6 +212,6 @@ ruler <- function(width = getOption("width")) {
   cat(x %% 10, "\n", sep = "")
 }
 ```
-```{r}
+```{r, include = FALSE}
 ruler()
 ```
