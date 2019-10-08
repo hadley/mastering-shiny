@@ -10,8 +10,11 @@ if (!exists("injuries")) {
 
 ui <- fluidPage(
   fluidRow(
-    column(6,
-      selectInput("code", "Product", setNames(products$prod_code, products$title))
+    column(8,
+      selectInput("code", "Product",
+        choices = setNames(products$prod_code, products$title),
+        width = "100%"
+      )
     )
   ),
   fluidRow(

@@ -7,7 +7,7 @@ options(tibble.print_min = 6, tibble.print_max = 6)
 
 ## Introduction
 
-In the last three chapters, we've introduced you to a bunch of new concepts. To help them sink in, we'll now walk through a richer Shiny app that explores a fun dataset. We'll start by doing a little data analysis outside of shiny, then turn it into an app, starting simple, and progressively layering on more detail.
+I've introduced you to a bunch of new concepts in the last three chapters. So to help them sink in, we'll now walk through a richer Shiny app that explores a fun dataset and pulls together many of the ideas that you've seen so far. We'll start by doing a little data analysis outside of Shiny, then turn it into an app, starting simply, then progressively layering on more detail.
 
 In this chapter, we'll supplement Shiny with vroom (for fast file reading) and the tidyverse (for general data analysis).
 
@@ -19,18 +19,18 @@ library(tidyverse)
 
 ## The data
 
-We're going to explore data from the Data from the National Electronic Injury Surveillance System (NEISS) that's collected by Consumer Product Safety Commission. This is a long-term study that records all accidents seen in a representative sample of hospitals in the United States. It's an interesting dataset to explore because it's readily understandable, and each observation is accompanied by a short narrative that explains how the accident occured.
+We're going to explore data from the Data from the National Electronic Injury Surveillance System (NEISS), collected by Consumer Product Safety Commission. This is a long-term study that records all accidents seen in a representative sample of hospitals in the United States. It's an interesting dataset to explore because every one is already familiar with the domain, and each observation is accompanied by a short narrative that explains how the accident occured. You can find out more about this dataset at <https://github.com/hadley/neiss>
 
-In this chapter, I'm going to focus on just the data from 2017. This keeps the data small enough (~10 meg) that it's easy to store in git (along with the rest of the book), eans we don't need to think about sophisticated strategies for importing the data quickly (which we'll come back to later in the book). You can find out more about this dataset at <https://github.com/hadley/neiss>, and see the code I used to create the extract for this chapter at <https://github.com/hadley/mastering-shiny/blob/master/neiss/data.R>.
+In this chapter, I'm going to focus on just the data from 2017. This keeps the data small enough (~10 meg) that it's easy to store in git (along with the rest of the book), which means we don't need to think about sophisticated strategies for importing the data quickly (we'll come back to those later in the book). You can see the code I used to create the extract for this chapter at <https://github.com/hadley/mastering-shiny/blob/master/neiss/data.R>.
 
-The main dataset we'll use is `injuries`. This contains around 250,000 observations and 10 variables:
+The main dataset we'll use is `injuries`, which contains around 250,000 observations:
 
 ```{r, message = FALSE}
 injuries <- vroom::vroom("neiss/injuries.tsv.gz")
 injuries
 ```
 
-Each row represents a single accident:
+Each row represents a single accident with 10 variables:
 
 * `trmt_date` is date the person was seen in the hospital (not when the 
    accident occured).
@@ -39,11 +39,9 @@ Each row represents a single accident:
   who experienced the accident.
 
 * `body_part` is the location of the injury on the body (like ankle or ear); 
-  `location` is the location where the accident occurred (like home or school).
+  `location` is the place where the accident occurred (like home or school).
 
 * `diag` gives the basic diagnosis of the injury (like fracture or laceration).
-
-* `location` is the place where it occurred.
 
 * `prod_code` is the primary product associated with the injury.
 
@@ -84,9 +82,9 @@ selected %>% count(location, wt = weight, sort = TRUE)
 
 As you might expect, steps are most often associated with sprains, strains and fractures, of the ankle, ocurring at home.
 
-We can also explore the pattern across age and sex. We have enough data here that a table is not that useful, and so I make a plot that makes the patterns more obvious:
+We can also explore the pattern across age and sex. We have enough data here that a table is not that useful, and so I make a plot, Figure \@ref(fig:stairs-raw), that makes the patterns more obvious.
 
-```{r, out.width = "100%", fig.asp = 1/2}
+```{r stairs-raw, out.width = "100%", fig.asp = 1/2, fig.cap = "Estimated number of injuries caused by stairs, broken down by age and sex"}
 summary <- selected %>% 
   count(age, sex, wt = weight)
 summary
@@ -97,9 +95,9 @@ summary %>%
   labs(y = "Estimated number of injuries")
 ```
 
-We see a big spike when children are learning to walk, a flattening off over middle age, and then a gradual decline after age 50. Interestingly, the number of injuries is much higher for women.
+We see a big spike when children are learning to walk, a flattening off over middle age, and then a gradual decline after age 50. Interestingly, the number of injuries is much higher for women. (Maybe this is due to high-heeled shoes?)
 
-One problem with interpreting this pattern is that we know that there are fewer older people than younger people, so the population available to be injured is smaller. We can control for this by comparing the number of people injured with the total population and calculating an injury rate. Here I use a rate per 10,000 because that gives a number that's easy to interpret.
+One problem with interpreting this pattern is that we know that there are fewer older people than younger people, so the population available to be injured is smaller. We can control for this by comparing the number of people injured with the total population and calculating an injury rate. Here I use a rate per 10,000.
 
 ```{r}
 summary <- selected %>% 
@@ -110,9 +108,9 @@ summary <- selected %>%
 summary
 ```
 
-Plotting the rate yields a strikingly different trend after age 50: while the number of injuries decreases, the *rate* of injuries continues to increase.
+Plotting the rate, Figure \@ref(fig:stairs-rate), yields a strikingly different trend after age 50: while the number of injuries decreases, the *rate* of injuries continues to increase.
 
-```{r, out.width = "100%", fig.asp = 1/2}
+```{r stairs-rate, out.width = "100%", fig.asp = 1/2, fig.cap = "Estimated rate of injuries per 10,000 people, broken down by age and sex"}
 summary %>% 
   ggplot(aes(age, rate, colour = sex)) + 
   geom_line(na.rm = TRUE) + 
@@ -123,6 +121,13 @@ summary %>%
 
 Finally, we can look at some of the narratives. Browsing through these is an informal way to check our hypotheses, and generate new ideas for further exploration. Here I pull out a random sample of 10:
 
+```{r, echo = FALSE}
+# Ensure that narratives don't overflow
+if (knitr::is_latex_output()) {
+  pad <- nchar("#> [1] ''")
+  selected$narrative <- str_trunc(selected$narrative, width = 81 - pad)
+}
+```
 ```{r}
 selected %>% 
   sample_n(10) %>% 
@@ -135,24 +140,25 @@ Having done this exploration for one product, it would be be very nice if we cou
 
 When building a complex app, I strongly recommend starting as simple as possible, so that you can confirm the basic mechanics work before you start doing something more complicated. Here I'll start with one input (the product code), three tables, and one plot. 
 
-When developing your first prototype, the challenge is the "as simple as possible". There's a tension between starting simple enough to get the basics working quickly, while at the same time avoiding creating something that's so simple you have to rip it all out later on. Personally, I often do a few pencil-and-paper sketches to explore the UI and reactive graph before committing to code.
-
-When prototyping, there's always a tension between doing the minimum amount of work, and planning for the future. Either extreme can be bad: if you design too narrowly, you'll spend a lot of time later on reworking your app; if you design too rigorously, you'll spend a bunch of time on code that later ends up on cutting floor. Getting the balance right is one of the skills of the software engineer, and there are few shortcuts.
-
+When making a first prototype, the challenge is the "as simple _as possible_". There's a tension between getting the basics working quickly and planning for the future of the app. Either extreme can be bad: if you design too narrowly, you'll spend a lot of time later on reworking your app; if you design too rigorously, you'll spend a bunch of time writing code that later ends up on cutting floor. To help get the balance right, I often do a few pencil-and-paper sketches to rapidly explore the UI and reactive graph before committing to code.
 
 Here I decided to have one row for the inputs (accepting that I'm probably going to add more inputs before this app is done), one row for all three tables (giving each table 4 columns, 1/3 of the 12 column width), and then one row for the plot:
 
 ```{r code = section_get("neiss/prototype.R", "ui")}
 ```
 
-The server function relatively straightforward: I convert the `selected` and `summary` variables to reactive expressions. This is a reasonable general pattern: you've typically created variables in your data analysis as a way of decomposing the analysis into steps, and avoiding having to recompute things multiple times, and reactive expressions play the same role in Shiny apps. Often it's a good idea to spend a little time cleaning up your analysis code before you start your Shiny app, so you can think about these problems in regular R code, before you add the additional complexity of reactivity.
+Note the use of `setNames()` in the `seleectInput()` `choices`: this shows the product name in the UI and returns the product code to the server.
+
+The server function relatively straightforward. I first convert the `selected` and `summary` variables (defined above) to reactive expressions. This is a reasonable general pattern: you create variables in your data analysis to decompose the analysis into steps, and to avoid recomputing things multiple times, and reactive expressions play the same role in Shiny apps. 
+
+Often it's a good idea to spend a little time cleaning up your analysis code before you start your Shiny app, so you can think about these problems in regular R code, before you add the additional complexity of reactivity.
 
 ```{r code = section_get("neiss/prototype.R", "server")}
 ```
 
-Note in this case `summary` isn't strictly necessary; because it's only used by a single reactive consumer. But it's good practice to keep computing and plotting separate as it makes the flow of the app easier to understand, and will make it easier to generalise in the future.
+Note that creatung the `summary` reactive isn't strictly necessary here, as it's only used by a single reactive consumer. But it's good practice to keep computing and plotting separate as it makes the flow of the app easier to understand, and will make it easier to generalise in the future.
 
-A screenshot of resulting app is shown in Figure \@ref(fig:prototype). You can find the source code at <https://github.com/hadley/mastering-shiny/tree/master/neiss>, and try out a live version of the app at XYZ.
+A screenshot of resulting app is shown in Figure \@ref(fig:prototype). You can find the source code at <https://github.com/hadley/mastering-shiny/tree/master/neiss/prototype.R> and try out a live version of the app at XYZ.
 
 ```{r, eval = FALSE, include = FALSE}
 app <- testAppFromFile("neiss/prototype.R")
@@ -164,7 +170,7 @@ knitr::include_graphics("screenshots/basic-case-study/prototype.png", dpi = scre
 
 ## Polish tables
 
-Now that we have the basic components in place, and working, we can progressively improve our app. The first problem with this app is that it shows a lot of information in the tables, where we probably just want the highlights. To fix this we need to need to first figure out how to truncate the tables. I've chosen to do that with a combination of forcats functions: I convert the variable to a factor, order by the frequency of the levels, and then lump together all levels after the top 5. 
+Now that we have the basic components in place and working, we can progressively improve our app. The first problem with this app is that it shows a lot of information in the tables, where we probably just want the highlights. To fix this we need to need to first figure out how to truncate the tables. I've chosen to do that with a combination of forcats functions: I convert the variable to a factor, order by the frequency of the levels, and then lump together all levels after the top 5. 
 
 ```{r}
 injuries %>%
@@ -183,15 +189,15 @@ I then use this in the server function:
 ```{r, code = section_get("neiss/polish-tables.R", "tables"), eval = FALSE}
 ```
 
-I made one other change to improve the aesthetics of the app: I forced all tables to take up the maximum width (i.e. fill the column that they appear in). This makes the output more aesthetically pleasing because it reduces the amount of extraneous variaton.
+I made one other change to improve the aesthetics of the app: I forced all tables to take up the maximum width (i.e. fill the column that they appear in). This makes the output more aesthetically pleasing because it reduces the amount of incidental variaton.
 
-The resulting app is shown in Figure \@ref(fig:polish-tables).
+A screenshot of resulting app is shown in Figure \@ref(fig:polish-tables). You can find the source code at <https://github.com/hadley/mastering-shiny/tree/master/neiss/polish-tables.R> and try out a live version of the app at XYZ.
 
 ```{r, eval = FALSE, include = FALSE}
 app <- testAppFromFile("neiss/polish-tables.R")
 app_screenshot(app, "basic-case-study/polish-tables", width = 800, height = 600)
 ```
-```{r polish-tables, out.width = NULL, echo = FALSE, out.width = "100%", fig.cap="The second iteration of the app focusses on displaying the most frequent rows in the summary tables"}
+```{r polish-tables, out.width = NULL, echo = FALSE, out.width = "100%", fig.cap="The second iteration of the app improves the display by only showing the most frequent rows in the summary tables"}
 knitr::include_graphics("screenshots/basic-case-study/polish-tables.png", dpi = screenshot_dpi())
 ```
 
@@ -202,26 +208,26 @@ So far, we're displaying only a single plot, but we'd like to give the user the 
 ```{r, code = section_get("neiss/rate-vs-count.R", "first-row"), eval = FALSE}
 ```
 
-(I default to `rate` because I think it means that you don't need to understand how the population changes to correctly interpret.)
+(I default to `rate` because I think it's safer; you don't need to understand the population distribution in order to correctly interpret the plotw.)
 
 Then I condition on that input when generating the plot:
 
 ```{r, code = section_get("neiss/rate-vs-count.R", "plot"), eval = FALSE}
 ```
 
-This yields the app shown in Figure \@ref(fig:rate-vs-count).
+A screenshot of resulting app is shown in Figure \@ref(fig:rate-vs-count). You can find the source code at <https://github.com/hadley/mastering-shiny/tree/master/neiss/rate-vs-count.R> and try out a live version of the app at XYZ.
 
 ```{r, eval = FALSE, include = FALSE}
 app <- testAppFromFile("neiss/rate-vs-count.R")
 app_screenshot(app, "basic-case-study/rate-vs-count", width = 800, height = 600)
 ```
-```{r rate-vs-count, out.width = NULL, echo = FALSE, out.width = "100%", fig.cap = "In this iteration, we give the user the ability to switch the variable that's display on the y-axis of the plot; either the count or the population-standardised rate"}
+```{r rate-vs-count, out.width = NULL, echo = FALSE, out.width = "100%", fig.cap = "In this iteration, we give the user the ability to switch between displaying the count or the population standardised rate on the y-axis."}
 knitr::include_graphics("screenshots/basic-case-study/rate-vs-count.png", dpi = screenshot_dpi())
 ```
 
 ## Narrative
 
-Finally, I want provide some way to access the narratives because they are so interesting, and they give an informal way to cross-check the hypotheses you come up when looking at the plots. In the R code, I sample multiple narratives at once, but there's no reason to do that in an app since you can do interactively.
+Finally, I want provide some way to access the narratives because they are so interesting, and they give an informal way to cross-check the hypotheses you come up when looking at the plots. In the R code, I sample multiple narratives at once, but there's no reason to do that in an app where you can explore interactively.
 
 There are two parts to the solution. First we add a new row to the bottom of UI. I use an action button to trigger a new story, and and put the narrative in a `textOutput()`:
 
@@ -233,7 +239,7 @@ The result of an action button is an integer that increments each time it's clic
 ```{r, code = section_get("neiss/narrative.R", "narrative-server"), eval = FALSE}
 ```
 
-This yields the app shown in Figure \@ref(fig:narrative).
+A screenshot of resulting app is shown in Figure \@ref(fig:narrative). You can find the source code at <https://github.com/hadley/mastering-shiny/tree/master/neiss/narrative.R> and try out a live version of the app at XYZ.
 
 ```{r, eval = FALSE, include = FALSE}
 app <- testAppFromFile("neiss/narrative.R")
@@ -245,6 +251,8 @@ knitr::include_graphics("screenshots/basic-case-study/narrative.png", dpi = scre
 
 ## Exercises
 
+1.  Draw the reactive graph for each app.
+
 1.  What happens if you flip `fct_infreq()` and `fct_lump()` in the code that 
     reduces the summary tables?
 
@@ -252,8 +260,8 @@ knitr::include_graphics("screenshots/basic-case-study/narrative.png", dpi = scre
     summary tables.
 
 1.  Provide a way to step through every narrative systematically with forward
-    and backward buttons. The initial order should be randomised, and you 
-    forward and back should be circulate so that advancing forward from the
-    last narrative takes you to the first.
-
+    and backward buttons. 
+    
+    Advanced: Make the list of narratives "circular" so that so that advancing 
+    forward from the last narrative takes you to the first.
 

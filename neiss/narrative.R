@@ -11,8 +11,11 @@ if (!exists("injuries")) {
 ui <- fluidPage(
   #<< first-row
   fluidRow(
-    column(4,
-      selectInput("code", "Product", setNames(products$prod_code, products$title))
+    column(8,
+      selectInput("code", "Product",
+        choices = setNames(products$prod_code, products$title),
+        width = "100%"
+      )
     ),
     column(2, selectInput("y", "Y axis", c("rate", "count")))
   ),
