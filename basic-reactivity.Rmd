@@ -222,7 +222,7 @@ knitr::include_graphics("diagrams/basic-reactivity/graph-1b.png", dpi = 300)
 
 The reactive graph contains one symbol for every input and output, and we connect an input to an output whenever the output accesses the input. This graph tells you that `greeting` will need to be recomputed whenever `name` is changed. We'll often describe this relationship as `greeting` has a __reactive dependency__ on `name`.
 
-Note the graphical conventions we used for the inputs and outputs: the `name` input naturally fits into the `greeting` output. We could draw them closely packed togther, as below, to emphasise the way that they fit together; we won't normally do that because it only works for the simplest of apps.
+Note the graphical conventions we used for the inputs and outputs: the `name` input naturally fits into the `greeting` output. We could draw them closely packed together, as below, to emphasise the way that they fit together; we won't normally do that because it only works for the simplest of apps.
 
 ```{r, echo = FALSE, out.width = NULL}
 knitr::include_graphics("diagrams/basic-reactivity/graph-1a.png", dpi = 300)
@@ -545,7 +545,7 @@ While variables calculate the value only once (the porridge is too cold), and fu
 
 ## Controlling timing of evaluation
 
-Now that you're familiar with the basic ideas of reactivity, we'll discuss two more advanced techniques that allow you to either increase or decrease how often a reactive expression is executed. Here I'll show how to use the basic techiques; in Chapter XYZ, we'll come back to their underlying implementations.
+Now that you're familiar with the basic ideas of reactivity, we'll discuss two more advanced techniques that allow you to either increase or decrease how often a reactive expression is executed. Here I'll show how to use the basic techniques; in Chapter XYZ, we'll come back to their underlying implementations.
 
 To explore the basic ideas, I'm going to simplify my simulation app. I'll use a distribution with only one parameter, and force both samples to share the same `n`. I'll also remove the plot controls. This yields a smaller UI object and server function:
 
@@ -690,7 +690,7 @@ knitr::include_graphics("diagrams/basic-reactivity/timing-button-2.png", dpi = 3
 
 ## Observers
  
-So far, we've focussed on what's happening inside the app. But sometimes you need to reach outside of the app and cause side-effects to happen elsewhere in the world. This might be saving a file to a shared network drive, sending data to a web API, updating a database, or (most commonly) printing a debugging message to the console. These actions don't affect how your app looks, so you can't use an output and a `render` function. Instead you need to use an **observer**.
+So far, we've focused on what's happening inside the app. But sometimes you need to reach outside of the app and cause side-effects to happen elsewhere in the world. This might be saving a file to a shared network drive, sending data to a web API, updating a database, or (most commonly) printing a debugging message to the console. These actions don't affect how your app looks, so you can't use an output and a `render` function. Instead you need to use an **observer**.
 
 There are multiple ways to create an observer, and we'll come back to them later in Chapter XYZ. For now, I wanted to show you how to use `observeEvent()`, because it gives you an important debugging tool when you're first learning Shiny.
 
