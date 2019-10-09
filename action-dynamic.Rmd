@@ -8,12 +8,15 @@ As well as updating the content of the outputs, sometimes you will actually want
 
 In Chapter XYZ, we'll come back to more advanced tecnhiques that require you know a little more about HTML and javascript.
 
+```{r setup}
+library(shiny)
+```
+
 ## Modify existing inputs
 
-Every input control, e.g. `textInput()` is paired with a update function, e.g. `updateTextInput()` that allows you to control. You can call these functions from `observeEvent()` in order to update input controls.
+Every input control, e.g. `textInput()`, is paired with a update function, e.g. `updateTextInput()`, that allows you to modify the control after it has been created in the UI. Take this very simple example. The app has three numeric inputs, where the first two control the range (the `min` and `max`) of the last.
 
 ```{r}
-library(shiny)
 ui <- fluidPage(
   numericInput("min", "min", 0),
   numericInput("max", "max", 10),
@@ -29,11 +32,19 @@ server <- function(input, output, session) {
 }
 ```
 
-For historical reasons you need to pass `session` as the first argument. 
+Note that I've used `observeEvent()` here, although `observe()` would also have worked and would yield shorter code. I think it's best to be very clear exactly what change you are listening for, and what action you want to take in response.
 
-From Shiny's perspectve they act exactly as if the user has altered the value. This is mostly a matter of changing the `value`, but beware that changing some other values can implicit change the value: e.g. changing set of valid inputs in a select control.
+For historical reasons, calls to `updateXXXXInput()` look a little different to other Shiny functions, as you need to pass `session` as the first argument. (If you're using an older `server` function template, you might not have `session` in the arguments, so make sure you add it if its missing.)
 
-Note that when you use update functions you are stepping outside of reactivity, so that you now need to worry about circular references and creating infinite loops. 
+All updates are performed "simultaneously" (for the purposes of reactivity) once all outputs are done.
+
+I'll show you an important problem to be aware of when using the update functions, then I'll show a couple of interesting uses cases for common UI challenges.
+
+### Circular references
+
+If you're modifying the current `value` of a control, from Shiny's perspectve the update functions act exactly as if the user has altered the value. You are now stepping outside of the bounds of reactive programming, so need to worry about circular references and creating infinite loops. This is generally only a concern when you are changing the `value`, be aware that changing some other settings can implicit change the value, e.g. changing set of `choices` for `inputSelect()`.
+
+For example, take the following simple app. It contains a single input control, and a observer that increments its value by one. Every time `updateNumericInput()` runs, it invalidates `input$n`, causing `updateNumericInput()` to run again, so the app is stuck in an infinite loop constantly increasing the value of `input$n`.
 
 ```{r}
 ui <- fluidPage(
@@ -46,65 +57,106 @@ server <- function(input, output, session) {
 }
 ```
 
-All updates are performed "simultaneously" (for the purposes of reactivity) once all outputs are done.
+You're unlikely to create such an obvious problem in your own app, but beware this potential problem if you are updating multiple controls that depend on each other. You will need to carefully reason through the updates to ensure that you're not creating an infinite loop of updates. This is a very good reason that you should only update functions for the most important cases.
 
-### Case study: hierarchical select boxes
+### Reset button
 
-`sales-dashboard`
+Reset complex UI to starting state.
 
-* Select territory to see all customers
-* Select customer to see all orders
-* Select order to see data
+### Hierarchical select boxes
 
-Basic idea: start with UI that contains three select boxes, and one output table:
+A particularly useful application of the update functions is to allow interactive drill down across multiple categories. I'm going to start some imaginary data for a sales dashboard, coming from <https://www.kaggle.com/kyanyoga/sample-sales-data>.
+
+```{r}
+sales <- vroom::vroom("sales-dashboard/sales_data_sample.csv")
+sales
+```
+
+For our purposes, I'm going to focus on a natural hierarchy in the data:
+
+* Each territory contains customers
+* Each customer has multiple orders
+* Each order contains rows
+
+I want to create a user interface where you can:
+
+* Select a territory to see all customers.
+* Select customer to see all orders.
+* Select order to see data.
+
+The basic idea is to start with UI that contains three select boxes, and one output table. The choices for the `customername` and `ordernumber` will be dynamically supplied so, I explicitly set `choices = NULL`.
 
 ```{r, eval = FALSE}
-choices <- function(x) {
-  c("", unique(x))
-}
 ui <- fluidPage(
-  selectInput("territory", "Territory", choices = choices(sales$TERRITORY)),
+  selectInput("territory", "Territory", choices = unique(sales$TERRITORY)),
   selectInput("customername", "Customer", choices = NULL),
   selectInput("ordernumber", "Order number", choices = NULL),
   tableOutput("data")
 )
 ```
 
-In the server, we then progressively filter creating three datasets.
+Then in the server function, I work top-down, first creating a filtered subset that only contains the selected territory and using that to update `input$customername`, then creating a subset contains the given customer and using that to update `input$ordernumber`.
 
 ```{r}
 server <- function(input, output, session) {
   territory <- reactive({
-    req(input$territory)
     filter(sales, TERRITORY == input$territory)
   })
+  observeEvent(territory, {
+    choices <- unique(territory()$CUSTOMERNAME)
+    updateSelectInput(session, "customername", choices = choices) 
+  })
+  
   customer <- reactive({
-    req(input$customername)
     filter(territory(), CUSTOMERNAME == input$customername)
   })
-  order <- reactive({
-    req(input$ordernumber)
-    filter(customer(), ORDERNUMBER == input$ordernumber)
-  })
-  output$data <- renderTable(order())
-
-  observeEvent(input$territory, {
-    updateSelectInput(session, "customername", 
-      choices = choices(territory()$CUSTOMERNAME)
-    )
-  })
   observeEvent(input$customername, {
-    updateSelectInput(session, 
-      "ordernumber", choices = choices(customer()$ORDERNUMBER)
-    )
+    choices <- unique(customer()$ORDERNUMBER)
+    updateSelectInput(session, "ordernumber", choices = choices)
+  })
+  
+  output$data <- renderTable({
+    filter(customer(), ORDERNUMBER == input$ordernumber)
   })
 }
 ```
 
+You can see a more fleshed out application of this principle in <https://github.com/hadley/mastering-shiny/tree/master/sales-dashboard>.
 
+### Inputs as outputs
 
-Tricks: add `""` to choices, and use `req()`.
+<!-- https://community.rstudio.com/t/mutually-dependent-numericinput-in-shiny/29307 -->
 
+```{r}
+c_to_f <- function(c) {
+  round((c * 9 / 5) + 32)
+}
+
+f_to_c <- function(f) {
+  round((f - 32) * 5 / 9)
+}
+
+ui <- fluidPage(
+  numericInput("temp_c", "Celsius", NA),
+  numericInput("temp_f", "Fahrenheit", NA)
+)
+
+server <- function(input, output, session) {
+  observeEvent(input$temp_f, {
+    value <- f_to_c(input$temp_f)
+    if (!identical(input$temp_c, value)) {
+      updateNumericInput(session, "temp_c", value = value)
+    }
+  })
+  
+  observeEvent(input$temp_c, {
+    value <- c_to_f(input$temp_c)
+    if (!identical(input$temp_f, value)) {
+      updateNumericInput(session, "temp_f", value = value)
+    }
+  })
+}
+```
 
 
 ## `uiOutput()` and `renderUI()`

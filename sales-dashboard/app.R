@@ -53,11 +53,11 @@ server <- function(input, output, session) {
 
   output$data <- renderTable(order())
 
-  observeEvent(input$territory, {
-    updateSelectInput(session, "customername", choices = c("", unique(territory()$CUSTOMERNAME)))
+  observeEvent(territory(), {
+    updateSelectInput(session, "customername", choices = unique(territory()$CUSTOMERNAME), selected = character())
   })
-  observeEvent(input$customername, {
-    updateSelectInput(session, "ordernumber", choices = c("", unique(customer()$ORDERNUMBER)))
+  observeEvent(customer(), {
+    updateSelectInput(session, "ordernumber", choices = unique(customer()$ORDERNUMBER))
   })
 
 }
