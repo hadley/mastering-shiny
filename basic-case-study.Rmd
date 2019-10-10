@@ -208,7 +208,7 @@ So far, we're displaying only a single plot, but we'd like to give the user the 
 ```{r, code = section_get("neiss/rate-vs-count.R", "first-row"), eval = FALSE}
 ```
 
-(I default to `rate` because I think it's safer; you don't need to understand the population distribution in order to correctly interpret the plotw.)
+(I default to `rate` because I think it's safer; you don't need to understand the population distribution in order to correctly interpret the plot.)
 
 Then I condition on that input when generating the plot:
 
