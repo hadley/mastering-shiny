@@ -408,6 +408,132 @@ div(
 )
 ```
 
+### Playing with tags
+
+#### Tags structure
+
+According to the `tag` function, a tag has:
+- a name such as span, div, h1 ... `tag$name`
+- some attributes, which you can access with `tag$attribs`
+- children, which you can access with `tag$children`
+- a class, namely "shiny.tag"
+
+For instance:
+
+```{r, eval = FALSE}
+# create the tag
+myTag <- div(
+  class = "divclass", 
+  id = "first",
+  h1("Here comes your baby"),
+  span(class = "child", id = "baby", "Crying")
+)
+# access its name
+myTag$name
+# access its attributes (id and class)
+myTag$attribs
+# access children (returns a list of 2 elements)
+myTag$children
+# access its class
+class(myTag)
+```
+
+How to modify the class of the second child, namely span?
+
+```{r, eval = FALSE}
+second_children <- myTag$children[[2]]
+second_children$attribs$class <- "adult"
+myTag
+# Hummm, this is not working ...
+```
+
+Why is this not working? By assigning `myTag$children[[2]]` to second_children, `second_children$attribs$class <- "adult"` modifies the class of the copy and not the original object. Thus we do:
+
+```{r, eval = FALSE}
+myTag$children[[2]]$attribs$class <- "adult"
+myTag
+```
+
+In the following section we explore amazing helper functions, such as `tagAppendChild()` from htmltools.
+
+
+#### Useful functions for tags
+
+htmltools and Shiny have powerful functions to easily add attributes to tags, check for existing attributes, get attributes and add other siblings to a list of tags.
+
+##### Add attributes
+
+- `tagAppendAttributes()`: this function allow you to add a new attribute to the current tag.
+
+For instance, assuming you created a div for which you forgot to add an id attribute:
+
+```{r, eval = FALSE}
+mydiv <- div("Where is my brain")
+mydiv <- tagAppendAttributes(mydiv, id = "here_it_is")
+```
+
+You can pass as many attributes as you want, including non standard attributes such as `data-toggle` (see Bootstrap 3 tabs for instance):
+
+```{r, eval = FALSE}
+mydiv <- tagAppendAttributes(mydiv, `data-toggle` = "tabs")
+# even though you could proceed as follows
+mydiv$attribs[["aria-controls"]] <- "home"
+```
+
+##### Check if tag has specific attribute
+
+- `tagHasAttribute()`: to check if a tag has a specific attribute
+
+```{r, eval = FALSE}
+# I want to know if div has a class
+mydiv <- div(class = "myclass")
+has_class <- tagHasAttribute(mydiv, "class")
+has_class
+# if you are familiar with %>%
+has_class <- mydiv %>% tagHasAttribute("class")
+has_class
+```
+
+##### Get all attributes 
+ 
+- `tagGetAttribute()`: to get the value of the targeted attributes, if it exists, otherwise NULL.
+
+```{r, eval = FALSE}
+mydiv <- div(class = "test")
+# returns the class
+tagGetAttribute(mydiv, "class")
+# returns NULL
+tagGetAttribute(mydiv, "id")
+```
+
+##### Add child or children
+
+- `tagAppendChild()` and `tagAppendChildren()`: add other tags to an existing tag.
+Whereas `tagAppendChild()` only takes one tag, you can pass a list of tags to `tagAppendChildren()`.
+
+```{r, eval = FALSE}
+mydiv <- div(class = "parent", id = "mother", "Not the mama!!!")
+otherTag <- span("I am your child")
+mydiv <- tagAppendChild(mydiv, otherTag)
+```
+
+You might wonder why there is no `tagRemoveChild()` or `tagRemoveAttributes()`.
+Actually, so am I!
+
+##### Other interesting functions
+The [brighter](https://github.com/ThinkR-open/brighter) package written by Colin Fay contains very neat functions to edit your tags. Particularly, the `tagRemoveAttributes()`
+
+```{r, eval = FALSE}
+remotes::install_github("Thinkr-open/brighter")
+library(brighter)
+```
+
+```{r, eval = FALSE}
+mydiv <- div(class = "test", id = "coucou", "Prout")
+tagRemoveAttributes(mydiv, "class", "id")
+``` 
+
+
 ## Customizing with CSS {#using-css}
 
 In the previous section, we talked about HTML, the markup language that specifies the structure and content of the page. Now we'll talk about Cascading Style Sheets (CSS), the language that specifies the visual style and layout of the page. Similar to our treatment of HTML, we'll give you an extremely superficial introduction to CSS—just enough to be able to parse the syntax visually, not enough to write your own. Then we'll talk about the mechanisms available in Shiny for adding your own CSS.
