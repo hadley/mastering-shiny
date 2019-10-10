@@ -583,7 +583,7 @@ You can bundle any number of dependencies with your HTML this way; just add addi
 
 ### Importing HTML dependencies from other packages
 
-You may know Shinydashboard, a package to design robust dashboards with shiny. In the following, we would like to integrate the box component in a classic Shiny App (without the dashboard layout). However, if you try to include the Shinydashboard box tag, you will notice that nothing is displayed since Shiny does not have Shinydashboard dependencies. Fortunately htmltools contains a function, namely `findDependencies` that looks for all dependencies attached to a tag. How about extracting shinydashboard dependencies? Before going futher, let's define the basic skeleton of a shinydashboard:
+You may know shinydashboard, a package to design robust dashboards with Shiny. In the following, we would like to integrate the box component in a classic Shiny App (without the dashboard layout). However, if you try to include the shinydashboard box tag, you will notice that nothing is displayed since Shiny does not have shinydashboard dependencies. Fortunately htmltools contains a function, namely `findDependencies` that looks for all dependencies attached to a tag. How about extracting shinydashboard dependencies? Before going futher, let's define the basic skeleton of a shinydashboard:
 
 ```{r, eval = FALSE}
 library(shiny)
@@ -614,10 +614,10 @@ deps
 
 deps is a list containg 4 dependencies:
   
-  - [fontawesome](https://fontawesome.com) handles icons
-- [bootstrap](https://getbootstrap.com/docs/3.3/) is the main HTML/CSS/JS template. Importantly,
+- [Font Awesome](https://fontawesome.com) handles icons
+- [Bootstrap](https://getbootstrap.com/docs/3.3/) is the main HTML/CSS/JS template. Importantly,
 please note the version 3.3.7, whereas the current is 4.3.1
-- [adminLTE](https://adminlte.io) is the dependency containg HTML/CSS/JS related to the admin template.
+- [AdminLTE](https://adminlte.io) is the dependency containg HTML/CSS/JS related to the admin template.
 It is closely linked to Bootstrap 3. 
 - shinydashboard, the CSS and javascript necessary for shinydashboard to work properly. In practice,
 integrating custom HTML templates to shiny does not usually work out of the box for many reasons (Explain why!) and some modifications are necessary.
@@ -711,8 +711,9 @@ how to integrate a Bootstrap 4 box in Shiny.
 
 ### Exercises
 
-1.We explained above that Shinydashboard is built on top of adminLTE2, a specific admin template. There is actually more recent version in development containing boxes with a better design (Bootstrap 4). Let's try to update our old Shinydashboard box component. To help you in the process here are some indications:
-- first include Bootstrap 4 CSS dependencies (in this example, we don't need the javascript code).
+1.We explained above that shinydashboard is built on top of adminLTE2, a specific admin template. There is actually more recent version in development containing boxes with a better design (Bootstrap 4). Let's try to update our old shinydashboard box component. To help you in the process here are some indications:
+
+- First include Bootstrap 4 CSS dependencies (in this example, we don't need the javascript code).
 - Explore the [Bootstrap 4 card](https://getbootstrap.com/docs/4.3/components/card/) page to include a new card component and convert the correspond HTML code to R with htmltools utilities like
 `withTags`, `tags`...
 - Do not forget to attach the Bootstrap 4 dependency to you new tag
