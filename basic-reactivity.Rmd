@@ -625,7 +625,7 @@ ui <- fluidPage(
   fluidRow(
     column(3, 
       numericInput("lambda1", label = "lambda1", value = 3),
-      numericInput("lambda2", label = "lambda1", value = 3),
+      numericInput("lambda2", label = "lambda2", value = 3),
       numericInput("n", label = "n", value = 1e4, min = 0),
       actionButton("simulate", "Simulate!")
     ),
@@ -663,7 +663,7 @@ app_screenshot(app, "basic-reactivity/action-button", width = NULL)
 knitr::include_graphics("diagrams/basic-reactivity/timing-button.png", dpi = 300)
 ```
 
-This yields the app in Figure \@ref(fig:sim-button) and reactive graph in Figure \@ref(fig:sim-button-react). This doesn't achieve our goal because it just introduces a new dependency: `x1()` and `x2()` will update when we click the simulate button, but they'll also continue to update when `lambda1`, `lambda2`, or `n` change. We want to _replace_ the existing dependencies, not add to them.
+This yields the app in Figure \@ref(fig:sim-button) and reactive graph in Figure \@ref(fig:sim-button1-react). This doesn't achieve our goal because it just introduces a new dependency: `x1()` and `x2()` will update when we click the simulate button, but they'll also continue to update when `lambda1`, `lambda2`, or `n` change. We want to _replace_ the existing dependencies, not add to them.
 
 To solve this problem we need a new tool: a way to use input values without taking a reactive dependency on them. We need `eventReactive()`, which has two arguments: the first argument specifies what to take a dependency on, and the second argument specifies what to compute. That allows this app to only compute `x1()` and `x2()` when `simulate` is clicked:
 
