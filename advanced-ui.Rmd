@@ -581,5 +581,197 @@ create_mapbox_map <- function(map_id) {
 You can bundle any number of dependencies with your HTML this way; just add additional dependency arguments to the `tagList`.
 
 
+### Importing HTML dependencies from other packages
 
-TODO: Exercises?
+You may know Shinydashboard, a package to design robust dashboards with shiny. In the following, we would like to integrate the box component in a classic Shiny App (without the dashboard layout). However, if you try to include the Shinydashboard box tag, you will notice that nothing is displayed since Shiny does not have Shinydashboard dependencies. Fortunately htmltools contains a function, namely `findDependencies` that looks for all dependencies attached to a tag. How about extracting shinydashboard dependencies? Before going futher, let's define the basic skeleton of a shinydashboard:
+
+```{r, eval = FALSE}
+library(shiny)
+shinyApp(
+  ui = dashboardPage(
+    dashboardHeader(),
+    dashboardSidebar(),
+    dashboardBody(),
+    title = "Dashboard example"
+  ),
+  server = function(input, output) { }
+)
+```
+
+We don't need to understand shinydashboard details. However, if you are interested to dig in, [help yourself](https://rstudio.github.io/shinydashboard/). What is important here is the main
+wrapper function `dashboardPage`. (You should already be familiar with `fluidPage`, another wrapper function). We apply `findDependencies` on `dashboardPage`.
+
+```{r, eval = FALSE}
+deps <- findDependencies(
+  shinydashboard::dashboardPage(
+    header = shinydashboard::dashboardHeader(), 
+    sidebar = shinydashboard::dashboardSidebar(), 
+    body = shinydashboard::dashboardBody()
+  )
+)
+deps
+```
+
+deps is a list containg 4 dependencies:
+  
+  - [fontawesome](https://fontawesome.com) handles icons
+- [bootstrap](https://getbootstrap.com/docs/3.3/) is the main HTML/CSS/JS template. Importantly,
+please note the version 3.3.7, whereas the current is 4.3.1
+- [adminLTE](https://adminlte.io) is the dependency containg HTML/CSS/JS related to the admin template.
+It is closely linked to Bootstrap 3. 
+- shinydashboard, the CSS and javascript necessary for shinydashboard to work properly. In practice,
+integrating custom HTML templates to shiny does not usually work out of the box for many reasons (Explain why!) and some modifications are necessary.
+
+
+```
+[[1]]
+List of 10
+$ name      : chr "font-awesome"
+$ version   : chr "5.3.1"
+$ src       :List of 1
+..$ file: chr "www/shared/fontawesome"
+$ meta      : NULL
+$ script    : NULL
+$ stylesheet: chr [1:2] "css/all.min.css" "css/v4-shims.min.css"
+$ head      : NULL
+$ attachment: NULL
+$ package   : chr "shiny"
+$ all_files : logi TRUE
+- attr(*, "class")= chr "html_dependency"
+
+[[2]]
+List of 10
+$ name      : chr "bootstrap"
+$ version   : chr "3.3.7"
+$ src       :List of 2
+..$ href: chr "shared/bootstrap"
+..$ file: chr "/Library/Frameworks/R.framework/Versions/3.5/Resources/library/shiny/www/shared/bootstrap"
+$ meta      :List of 1
+..$ viewport: chr "width=device-width, initial-scale=1"
+$ script    : chr [1:3] "js/bootstrap.min.js" "shim/html5shiv.min.js" "shim/respond.min.js"
+$ stylesheet: chr "css/bootstrap.min.css"
+$ head      : NULL
+$ attachment: NULL
+$ package   : NULL
+$ all_files : logi TRUE
+- attr(*, "class")= chr "html_dependency"
+
+[[3]]
+List of 10
+$ name      : chr "AdminLTE"
+$ version   : chr "2.0.6"
+$ src       :List of 1
+..$ file: chr "/Library/Frameworks/R.framework/Versions/3.5/Resources/library/shinydashboard/AdminLTE"
+$ meta      : NULL
+$ script    : chr "app.min.js"
+$ stylesheet: chr [1:2] "AdminLTE.min.css" "_all-skins.min.css"
+$ head      : NULL
+$ attachment: NULL
+$ package   : NULL
+$ all_files : logi TRUE
+- attr(*, "class")= chr "html_dependency"
+
+[[4]]
+List of 10
+$ name      : chr "shinydashboard"
+$ version   : chr "0.7.1"
+$ src       :List of 1
+..$ file: chr "/Library/Frameworks/R.framework/Versions/3.5/Resources/library/shinydashboard"
+$ meta      : NULL
+$ script    : chr "shinydashboard.min.js"
+$ stylesheet: chr "shinydashboard.css"
+$ head      : NULL
+$ attachment: NULL
+$ package   : NULL
+$ all_files : logi TRUE
+- attr(*, "class")= chr "html_dependency"
+```
+
+Below, we attach the dependencies to the `box` with `attachDependencies`. For that
+we wrap it in a function. Notice that our custom `box` does not contain all original features
+from shinydashboard but this is not what matters in this example.
+
+```{r, eval = FALSE}
+library(shiny)
+
+my_box <- function(title, status) {
+  attachDependencies(box(title = title, status = status), deps)
+}
+
+ui <- fluidPage(
+  titlePanel("Shiny with a box"),
+  my_box(title = "My box", status = "danger"),
+)
+server <- function(input, output) {}
+shinyApp(ui, server)
+```
+
+Now, you may imagine the possibilities are almost unlimited! In exercise 1, we see 
+how to integrate a Bootstrap 4 box in Shiny.
+
+### Exercises
+
+1.We explained above that Shinydashboard is built on top of adminLTE2, a specific admin template. There is actually more recent version in development containing boxes with a better design (Bootstrap 4). Let's try to update our old Shinydashboard box component. To help you in the process here are some indications:
+- first include Bootstrap 4 CSS dependencies (in this example, we don't need the javascript code).
+- Explore the [Bootstrap 4 card](https://getbootstrap.com/docs/4.3/components/card/) page to include a new card component and convert the correspond HTML code to R with htmltools utilities like
+`withTags`, `tags`...
+- Do not forget to attach the Bootstrap 4 dependency to you new tag
+- Include your brand new box in a shiny app
+
+#### Solution
+
+```{r, eval = FALSE}
+# handle dependency
+card_css <- "bootstrap.min.css"
+bs4_card_dep <- function() {
+  htmltools::htmlDependency(
+    name = "bs4_card",
+    version = "1.0",
+    src = c(href = "https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/css/"),
+    stylesheet = card_css
+  )
+}
+```
+
+We create the card tag and give it the bootstrap 4 dependency through the `attachDependencies()`
+function. Notice below that the box CSS class from adminLTE2 is now card in the version 3.
+
+```{r, eval = FALSE}
+# create the card
+my_card <- function(...) {
+  cardTag <- htmltools::withTags(
+    div(
+      class = "card border-success mb-3",
+      style = "max-width: 18rem;",
+      div(class = "card-header bg-transparent border-success", "Header"),
+      div(
+        class = "card-body text-success",
+        h3(class = "card-title", "title"),
+        p(class = "card-text", ...)
+      ),
+      div(class = "card-footer bg-transparent border-success", "Footer")
+    )
+  )
+  
+  # attach dependencies
+  htmltools::attachDependencies(cardTag, bs4_card_dep())
+  
+}
+```
+
+We finally run our app:
+  
+  ```{r, eval = FALSE}
+# run shiny app 
+ui <- fluidPage(
+  title = "Hello Shiny!",
+  fluidRow(
+    column(
+      width = 6,
+      br(),
+      my_card("My Boostrap 4 card.")
+    )
+  )
+)
+shinyApp(ui, server = function(input, output) { })
+```
