@@ -8,7 +8,7 @@ bookdown::gitbook:
       before: |
         <li><a href="./">Mastering Shiny</a></li>
     edit: https://github.com/hadley/mastering-shiny/edit/master/%s
-    download: ["pdf", "epub"]
+    download: []
     sharing: no
 bookdown::pdf_book:
   includes:
