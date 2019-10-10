@@ -38,39 +38,46 @@ For historical reasons, calls to `updateXXXXInput()` look a little different to 
 
 All updates are performed "simultaneously" (for the purposes of reactivity) once all outputs are done.
 
-I'll show you an important problem to be aware of when using the update functions, then I'll show a couple of interesting uses cases for common UI challenges.
+### Simple uses
 
-### Circular references
-
-If you're modifying the current `value` of a control, from Shiny's perspectve the update functions act exactly as if the user has altered the value. You are now stepping outside of the bounds of reactive programming, so need to worry about circular references and creating infinite loops. This is generally only a concern when you are changing the `value`, be aware that changing some other settings can implicit change the value, e.g. changing set of `choices` for `inputSelect()`.
-
-For example, take the following simple app. It contains a single input control, and a observer that increments its value by one. Every time `updateNumericInput()` runs, it invalidates `input$n`, causing `updateNumericInput()` to run again, so the app is stuck in an infinite loop constantly increasing the value of `input$n`.
+The simplest uses of the update functions are to make provenience small conveniences for the user. For example, maybe you want to make it easy to reset some parameters back to their starting place:
 
 ```{r}
 ui <- fluidPage(
-  numericInput("n", "n", 0)
+  sliderInput("x1", "x1", 0, min = -10, max = 10),
+  sliderInput("x2", "x2", 0, min = -10, max = 10),
+  sliderInput("x3", "x3", 0, min = -10, max = 10),
+  actionButton("reset", "Reset")
 )
+
 server <- function(input, output, session) {
-  observeEvent(input$n,
-    updateNumericInput(session, "n", value = input$n + 1)
-  )
+  observeEvent(input$reset, {
+    updateNumericInput(session, "x1", value = 0)
+    updateNumericInput(session, "x2", value = 0)
+    updateNumericInput(session, "x3", value = 0)
+  })
 }
 ```
 
-You're unlikely to create such an obvious problem in your own app, but beware this potential problem if you are updating multiple controls that depend on each other. You will need to carefully reason through the updates to ensure that you're not creating an infinite loop of updates. This is a very good reason that you should only update functions for the most important cases.
+Or maybe you want a action button to be explicit about what it's going to do:
 
-### Reset button
+```{r}
+ui <- fluidPage(
+  numericInput("n", "Simulations", 10),
+  actionButton("simulate", "Simulate")
+)
 
-Reset complex UI to starting state.
+server <- function(input, output, session) {
+  observeEvent(input$n, {
+    label <- paste0("Simulate ", input$n, " times")
+    updateActionButton(session, "simulate", label = label)
+  })
+}
+```
 
 ### Hierarchical select boxes
 
-A particularly useful application of the update functions is to allow interactive drill down across multiple categories. I'm going to start some imaginary data for a sales dashboard, coming from <https://www.kaggle.com/kyanyoga/sample-sales-data>.
-
-```{r}
-sales <- vroom::vroom("sales-dashboard/sales_data_sample.csv")
-sales
-```
+A more complicated, but particularly useful, application of the update functions is to allow interactive drill down across multiple categories. I'm going to start some imaginary data for a sales dashboard, coming from <https://www.kaggle.com/kyanyoga/sample-sales-data>.
 
 For our purposes, I'm going to focus on a natural hierarchy in the data:
 
@@ -86,7 +93,9 @@ I want to create a user interface where you can:
 
 The basic idea is to start with UI that contains three select boxes, and one output table. The choices for the `customername` and `ordernumber` will be dynamically supplied so, I explicitly set `choices = NULL`.
 
-```{r, eval = FALSE}
+```{r}
+sales <- vroom::vroom("sales-dashboard/sales_data_sample.csv")
+
 ui <- fluidPage(
   selectInput("territory", "Territory", choices = unique(sales$TERRITORY)),
   selectInput("customername", "Customer", choices = NULL),
@@ -123,41 +132,92 @@ server <- function(input, output, session) {
 
 You can see a more fleshed out application of this principle in <https://github.com/hadley/mastering-shiny/tree/master/sales-dashboard>.
 
-### Inputs as outputs
+### Circular references
 
-<!-- https://community.rstudio.com/t/mutually-dependent-numericinput-in-shiny/29307 -->
+Ther'es an important drawback to using the update functions that you need to be aware of. From Shiny's perspectve, when modifying `value`, the update functions act exactly as if the user has altered the value, so that the update functions can trigger reactive updates in exactly that same way a human can. This means that you're now stepping outside of the bounds of pure reactive programming, and you need to start worrying about circular references and creating infinite loops. 
+
+For example, take the following simple app. It contains a single input control, and a observer that increments its value by one. Every time `updateNumericInput()` runs, it invalidates `input$n`, causing `updateNumericInput()` to run again, so the app is stuck in an infinite loop constantly increasing the value of `input$n`.
 
 ```{r}
-c_to_f <- function(c) {
-  round((c * 9 / 5) + 32)
+ui <- fluidPage(
+  numericInput("n", "n", 0)
+)
+server <- function(input, output, session) {
+  observeEvent(input$n,
+    updateNumericInput(session, "n", value = input$n + 1)
+  )
 }
+```
 
-f_to_c <- function(f) {
-  round((f - 32) * 5 / 9)
-}
+You're unlikely to create such an obvious problem in your own app, but beware this potential problem if you are updating multiple controls that depend on each other. You will need to carefully reason through the updates to ensure that you're not creating an infinite loop of updates. This is a very good reason that you should only update functions for the most important cases.
 
+This is generally only a concern when you are changing the `value`, be aware that changing some other settings can implicit change the value, e.g. changing set of `choices` for `inputSelect()`.
+
+### Inter-related inputs
+
+One place where it's easy to end up with circular references if you're attempting to connect together multiple inputs. For example, imagine you want to create a temperatue conversion app where you can either enter the temperature in Celsius or in Fahrenheit:
+
+```{r}
 ui <- fluidPage(
   numericInput("temp_c", "Celsius", NA),
   numericInput("temp_f", "Fahrenheit", NA)
 )
 
+c2f <- function(x) {
+  round((x * 9 / 5) + 32)
+}
+
+f2c <- function(x) {
+  round((x - 32) * 5 / 9)
+}
+```
+
+The naive approach
+
+```{r}
 server <- function(input, output, session) {
   observeEvent(input$temp_f, {
-    value <- f_to_c(input$temp_f)
-    if (!identical(input$temp_c, value)) {
-      updateNumericInput(session, "temp_c", value = value)
-    }
+    updateNumericInput(session, "temp_c", value = f2c(input$temp_f))
   })
   
   observeEvent(input$temp_c, {
-    value <- c_to_f(input$temp_c)
-    if (!identical(input$temp_f, value)) {
-      updateNumericInput(session, "temp_f", value = value)
-    }
+    updateNumericInput(session, "temp_f", value = c2f(input$temp_c))
   })
 }
 ```
 
+This _mostly_ works, but if you play around with it carefully you'll notice that sometimes will trigger multiple changes. For example:
+
+* Set 120 F
+* Then click down. F changes to 119, and C is updated to 48.
+* But 48 C is converted to 118 F, so F changes again to 118.
+* Fortunately 118 F is still 48 C, so the updates stop there.
+
+<!-- https://community.rstudio.com/t/mutually-dependent-numericinput-in-shiny/29307 -->
+
+It's not currently possible to solve problem elegantly with Shiny because you need some way to make udpates condition on what control is currently selected. If there was some way to listen to "focus" events 
+
+```{r, eval = FALSE}
+ui <- fluidPage(
+  numericInput("temp_c", "Celsius", NA),
+  numericInput("temp_f", "Fahrenheit", NA),
+  focusInput("focus")
+)
+
+server <- function(input, output, session) {
+  observeEvent(input$temp_f, {
+    if (input$focus != "temp_f") 
+      return()
+    updateNumericInput(session, "temp_f", (input$temp_c * 9 / 5) + 32)
+  })
+  
+  observeEvent(input$temp_c, {
+    if (input$focus != "temp_c") 
+      return()
+    updateNumericInput(session, "temp_f", (input$temp_c * 9 / 5) + 32)
+  })
+}
+```
 
 ## `uiOutput()` and `renderUI()`
 
