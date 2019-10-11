@@ -24,6 +24,7 @@ rmd_files:
     "action-dynamic.Rmd",
     "action-modules.Rmd",
     "action-tidy.Rmd",
+    "action-bookmark.Rmd",
 
     "advanced-ui.Rmd",
 

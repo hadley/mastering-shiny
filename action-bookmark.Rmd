@@ -1,0 +1,5 @@
+# Bookmarking {#action-bookmark}
+
+```{r, include = FALSE}
+source("common.R")
+```

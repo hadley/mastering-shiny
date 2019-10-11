@@ -48,7 +48,6 @@ Built with [bookdown](https://bookdown.org/yihui/bookdown/).
     1. Deployment options
 
 1. Appendix
-    1. Bookmarkable state
     1. Server-side selectize and DT
     1. R Markdown integration
     1. Reproducibility
