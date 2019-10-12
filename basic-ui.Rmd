@@ -155,7 +155,7 @@ app_screenshot(app, "basic-ui/limited-choices-multi")
 knitr::include_graphics("images/basic-ui/multi-select.png", dpi = 300)
 ```
 
-There's no way to select multiple values with radio buttons, but there's an alternative that's conceptually similar: `checkboxInputGroup()`.
+There's no way to select multiple values with radio buttons, but there's an alternative that's conceptually similar: `checkboxGroupInput()`.
 
 ```{r}
 ui <- fluidPage(
@@ -191,7 +191,7 @@ ui <- fluidPage(
 ui_screenshot(ui, "basic-ui/upload")
 ```
 
-`fileInput()` special handling on the server side, and is discussed in detail in Chapter \@ref(action-transfer).
+`fileInput()` requires special handling on the server side, and is discussed in detail in Chapter \@ref(action-transfer).
 
 ### Action buttons
 
