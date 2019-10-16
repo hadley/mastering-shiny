@@ -20,7 +20,7 @@ Shiny makes it significantly easier for the R programmer to create web apps by:
 
 * Providing a carefully curated set of user interface (**UI** for short)
   functions that generate the HTML, CSS, and JavaScript that you need for 
-  common tasks. This means that you don't know need to know the details of 
+  common tasks. This means that you don't need to know the details of 
   HTML/CSS/JS until you want to go beyond the basics that Shiny provides 
   for you.
   
