@@ -69,7 +69,7 @@ Another way to reduce your iteration speed still further is to turn autoreload o
 1. Interactively experiment.
 1. Go to 1.
 
-The chief disadvantage of this technique is that because the app is running in a separate process, it's considerably hard to debug.
+The chief disadvantage of this technique is that because the app is running in a separate process, it's considerably harder to debug.
 
 As your app gets bigger and bigger, you'll find that the "interactively experiment" step starts to become onerous. It's too hard to remember to re-check every component of your app that you might have affected with your changes. Later, in Chapter XYZ, you'll learn the tools of automated testing allows you to turn the interactive experiments you're running into automated code. This lets you run the tests more quickly (because they're automated), and means that you can't forget to run an important test. It requires some initial investment to develop the tests, but the investment pays off handsomely for large apps.
 
