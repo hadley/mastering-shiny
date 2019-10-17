@@ -420,7 +420,7 @@ invisible(app$waitFor("hist"))
 app_screenshot(app, "basic-reactivity/case-study-1", width = 800, height = 300)
 ```
 
-This defintion of `server` and `ui` yields Figure \@ref(fig:ttest). You can find a live version at <https://hadley.shinyapps.io/basic-reactivity-cs/>; I recommend opening the app and having a quick play to make sure you understand its basic operation before you continue reading. 
+This definition of `server` and `ui` yields Figure \@ref(fig:ttest). You can find a live version at <https://hadley.shinyapps.io/basic-reactivity-cs/>; I recommend opening the app and having a quick play to make sure you understand its basic operation before you continue reading. 
 
 ```{r, eval = FALSE, echo = FALSE}
 deployApp(ui, server, name = "basic-reactivity-cs", deps = "ggplot2")
