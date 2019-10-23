@@ -4,9 +4,9 @@
 source("common.R")
 ```
 
-As well as updating the content of the outputs, sometimes you will actually want to add more, or modify the inputs, or generally large parts of your app with code. Generally, you want to avoid these techniques except when they are necessary as they add substantially more moving parts to the process. But when you need them, you need them.
+As well as updating the content of the outputs, sometimes you will actually want to add more, or modify the inputs, or generally change the apperance of the UI with code. This techniques should be used sparingly, because add substantially more complexity to your app, but when you need them, you need them.
 
-In Chapter XYZ, we'll come back to more advanced tecnhiques that require you know a little more about HTML and javascript.
+In Chapter XYZ, we'll come back to more advanced tecnhiques (including `conditionalPanel()`, `insertUI()`, and `removeUI()`) that require you know a little more HTML/CSS/JS.
 
 ```{r setup}
 library(shiny)
@@ -219,29 +219,58 @@ server <- function(input, output, session) {
 }
 ```
 
-## `uiOutput()` and `renderUI()`
+## Dynamic tabs
 
-There's a special UI component that allows you to generate components of the UI on the server.
+```{r}
+ui <- fluidPage(
+  tabsetPanel(
+    type = "pills",
+    tabPanel("Plot", plotOutput("plot")),
+    tabPanel("Summary", verbatimTextOutput("summary")),
+    tabPanel("Table", tableOutput("table"))
+  )
+)
+```
 
-`tagList()` if you need mutliple controls. Want to keep as much as of the fixed structure in UI as possible. Better peformance. Simpler reasoning.
+## Dynamic UI
 
-Output control. Replaces previously generated HTML.
+Sometimes modifying the values of an existing control is not enough, and you need control the number of type of controls. There's a special pair of output and render functions that allow you to do UI on the server: `uiOutput()` and `renderUI()`
+
+Here's a simple example that dynamically creates a different type of input control depending on an input:
 
 ```{r}
 ui <- fluidPage(
   textInput("label", "label"),
-  numericInput("value", "value", value = 0),
-  uiOutput("numeric"),
-  textOutput("selected")
+  selectInput("type", "type", c("slider", "numeric")),
+  uiOutput("numeric")
 )
 server <- function(input, output, session) {
   output$numeric <- renderUI({
-    numericInput("dynamic", input$label, input$value)
+    if (input$type == "slider") {
+      sliderInput("dynamic", input$label, isolate(input$dynamic), min = 0, max = 100)
+    } else {
+      numericInput("dynamic", input$label, isolate(input$dynamic), min = 0, max = 100)  
+    }
   })
-  output$selected <- renderText(input$dynamic)
 }
 ```
 
-Notice that the value you have selected is wiped out when you change the label. This is one of the reasons why, where possible, you should use an update function instead of `renderUI()`. Also note that it takes a fraction of a second to appear after the app loads - that's because it has to be rendered by the server function.
+(We haven't talked about `isolate()` yet; allows you to get a reactive value _without_ creating a reactive dependency.)
 
-Note that you are now creating IDs in two places so that when you add to `ui`, you have to be careful not to call the control `dynamic`. Later, in Chapter \@ref(action-modules) we'll see how modules can help avoid this problem by namespacing the control. 
+Note the way I set the default value to `input$dynamic`; that ensures the selected value is not lost when the control type changes. If you're generating a lot of dynamic UI, it's good practice to think about the user experience and make sure that existing data isn't lost.
+
+Also note that it takes a fraction of a second to appear after the app loads - that's because it has to be rendered by the server function. Relying too much on `renderUI()` can create a laggy UI.
+
+Note that you are now creating IDs in two places so that when you add to `ui`, you have to be careful not to call the control `dynamic`. Later, in Chapter \@ref(action-modules) we'll see how modules can help avoid this problem.
+
+### Multiple controls
+
+`tagList()` if you need mutliple controls. Want to keep as much as of the fixed structure in UI as possible. Better peformance. Simpler reasoning.
+
+Using functional programming to generate multiple controls. And equivalent code on the reactive side.
+
+### Dynamic filtering
+
+Select dataset, then generate.
+
+
