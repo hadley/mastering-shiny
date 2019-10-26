@@ -147,7 +147,7 @@ Here I decided to have one row for the inputs (accepting that I'm probably going
 ```{r code = section_get("neiss/prototype.R", "ui")}
 ```
 
-Note the use of `setNames()` in the `seleectInput()` `choices`: this shows the product name in the UI and returns the product code to the server.
+Note the use of `setNames()` in the `selectInput()` `choices`: this shows the product name in the UI and returns the product code to the server.
 
 The server function relatively straightforward. I first convert the `selected` and `summary` variables (defined above) to reactive expressions. This is a reasonable general pattern: you create variables in your data analysis to decompose the analysis into steps, and to avoid recomputing things multiple times, and reactive expressions play the same role in Shiny apps. 
 
