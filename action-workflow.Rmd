@@ -193,7 +193,7 @@ Warning: Error in *: non-numeric argument to binary operator
 
 There are three basic parts to the call stack:
 
-*   The first few calls start the the app. 
+*   The first few calls start the app. 
 
     ```
     1: source
