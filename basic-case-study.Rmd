@@ -262,6 +262,6 @@ knitr::include_graphics("screenshots/basic-case-study/narrative.png", dpi = scre
 1.  Provide a way to step through every narrative systematically with forward
     and backward buttons. 
     
-    Advanced: Make the list of narratives "circular" so that so that advancing 
+    Advanced: Make the list of narratives "circular" so that advancing 
     forward from the last narrative takes you to the first.
 
