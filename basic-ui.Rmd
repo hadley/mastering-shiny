@@ -411,7 +411,7 @@ fluidPage(
 )
 ```
 
-Even without knowing anything about the layout functions you can read the function names to guess what this app is going to look like. You might imagine that this code swill generate a classic app design: a title bar at top, followed by a sidebar (containing a slider), with the main panel containing a plot.
+Even without knowing anything about the layout functions you can read the function names to guess what this app is going to look like. You might imagine that this code will generate a classic app design: a title bar at top, followed by a sidebar (containing a slider), with the main panel containing a plot.
 
 ### Page functions
 
