@@ -193,16 +193,74 @@ There's no way around this problem because you have one idea (the temperature) w
 
 ## Dynamic tabs
 
+The next step up in complexity is to selectively show and hide parts of the UI.
+
+level of sophistication is a bit of a trick: you can make your UI complex and still responsive by selectively showing and hiding part of it. The easiest way to selectively display part of a UI is to slightly abuse the `tabetPanel()` UI. Currently[^tab-future] you need a dash of css to make it work: in the following UI specification `tags$style("#switcher { display:none; }")` hides the tab switcher. If you adapt this for your own code make sure to repace `switcher` with id of your the `tabsetPanel()`.
+
+[^tab-future]: Hopefully, it will be built into `tabsetPanel()` in the future; follow <https://github.com/rstudio/shiny/issues/2680> for details.
+
 ```{r}
 ui <- fluidPage(
-  tabsetPanel(
-    type = "pills",
-    tabPanel("Plot", plotOutput("plot")),
-    tabPanel("Summary", verbatimTextOutput("summary")),
-    tabPanel("Table", tableOutput("table"))
+  tags$style("#switcher { display:none; }"),
+  sidebarLayout(
+    sidebarPanel(
+      selectInput("controller", "Show", choices = paste0("panel", 1:3))
+    ),
+    mainPanel(
+      tabsetPanel(
+        id = "switcher",
+        tabPanel("panel1", "Panel 1 content"),
+        tabPanel("panel2", "Panel 2 content"),
+        tabPanel("panel3", "Panel 3 content")
+      )
+    )
   )
 )
+
+server <- function(input, output, session) {
+  observeEvent(input$controller, {
+    updateTabsetPanel(session, "switcher", selected = input$controller)
+  })
+}
 ```
+
+### Wizard interface
+
+There are many creative uses for this basic ideas. The following code shows you how might create a "wizard", a type of interface that makes it easier to collect a lot of information by breaking it down into a progression of simple steps. 
+
+```{r}
+ui <- fluidPage(
+  tags$style("#wizard { display:none; }"),
+  tabsetPanel(id = "wizard",
+    tabPanel("page1", 
+      "Welcome!",
+      actionButton("page12", "next")
+    ),
+    tabPanel("page2", 
+      "Only one page to go",
+      actionButton("page21", "prev"),
+      actionButton("page23", "next")
+    ),
+    tabPanel("page3", 
+      "You're done!",
+      actionButton("page32", "prev")
+    )
+  )
+)
+
+server <- function(input, output, session) {
+  switch_tab <- function(page) {
+    updateTabsetPanel(session, "wizard", selected = page)
+  }
+  
+  observeEvent(input$page12, switch_tab("page2"))
+  observeEvent(input$page21, switch_tab("page1"))
+  observeEvent(input$page23, switch_tab("page3"))
+  observeEvent(input$page32, switch_tab("page2"))
+}
+```
+
+You can imagine how you might change this code so to only show certain pages if some conditions are met. For example, you'd only collect additional information if some condition was true.
 
 ## Dynamic UI
 
@@ -245,4 +303,116 @@ Using functional programming to generate multiple controls. And equivalent code 
 
 Select dataset, then generate.
 
+```{r}
+make_ui <- function(df, var) {
+  x <- df[[var]]
+  if (is.numeric(x)) {
+    rng <- range(x)
+    sliderInput(var, var, min = rng[1], max = rng[2], value = rng)
+  } else if (is.factor(x)) {
+    levs <- levels(x)
+    selectInput(var, var, choices = levs, selected = levs, multiple = TRUE)
+  } else {
+    # Not supported
+    NULL
+  }
+}
+
+filter_var <- function(input, df, var) {
+  x <- df[[var]]
+
+  if (is.numeric(x)) {
+    x >= input[[var]][1] & x <= input[[var]][2]
+  } else if (is.factor(x)) {
+    x %in% input[[var]]
+  } else {
+    # No control
+    TRUE
+  }
+}
+```
+
+
+```{r}
+ui <- fluidPage(
+  sidebarLayout(
+    sidebarPanel(
+      make_ui(iris, "Sepal.Length"),
+      make_ui(iris, "Sepal.Width"),
+      make_ui(iris, "Species")
+    ),
+    mainPanel(
+      tableOutput("data")
+    )
+  )
+)
+server <- function(input, output, session) {
+  selected <- reactive({
+    filter_var(input, iris, "Sepal.Length") &
+      filter_var(input, iris, "Sepal.Width") &
+      filter_var(input, iris, "Species")
+  })
+  
+  output$data <- renderTable(iris[selected(), ])
+}
+```
+
+
+Generalise to any number of columns
+
+```{r}
+library(purrr)
+
+ui <- fluidPage(
+  sidebarLayout(
+    sidebarPanel(
+      tagList(map(names(iris), ~ make_ui(iris, .x)))
+    ),
+    mainPanel(
+      tableOutput("data")
+    )
+  )
+)
+server <- function(input, output, session) {
+  selected <- reactive({
+    each_var <- map(names(iris), ~ filter_var(input, iris, .x))
+    reduce(each_var, `&`)
+  })
+  
+  output$data <- renderTable(iris[selected(), ])
+}
+```
+
+Allow user to select dataset
+
+```{r}
+ui <- fluidPage(
+  sidebarLayout(
+    sidebarPanel(
+      selectInput("dataset", label = "Dataset", choices = ls("package:datasets")),
+      uiOutput("filter")
+    ),
+    mainPanel(
+      tableOutput("data")
+    )
+  )
+)
+server <- function(input, output, session) {
+  data <- reactive({
+    get(input$dataset, "package:datasets")
+  })
+  vars <- reactive(names(data()))
+  
+  output$filter <- renderUI(
+    tagList(map(vars(), ~ make_ui(data(), .x)))
+  )
+  
+  selected <- reactive({
+    each_var <- map(vars(), ~ filter_var(input, data(), .x))
+    reduce(each_var, `&`)
+  })
+  
+  output$data <- renderTable(data()[selected(), ])
+}
+```
 
