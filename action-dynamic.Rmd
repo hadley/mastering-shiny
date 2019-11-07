@@ -193,9 +193,9 @@ There's no way around this problem because you have one idea (the temperature) w
 
 ## Dynamic tabs
 
-The next step up in complexity is to selectively show and hide parts of the UI.
+The next step up in complexity is to selectively show and hide parts of the UI. Later, when you learn more about CSS and JS, you'll learn more approaches, but there's one powerful technique that you can use already: concealing optional UI in a tabset. This is a clever hack, that allows you to show and hide UI as needed, without having to re-generate it from scratch (as you'll learn how to do in the next section).
 
-level of sophistication is a bit of a trick: you can make your UI complex and still responsive by selectively showing and hiding part of it. The easiest way to selectively display part of a UI is to slightly abuse the `tabetPanel()` UI. Currently[^tab-future] you need a dash of css to make it work: in the following UI specification `tags$style("#switcher { display:none; }")` hides the tab switcher. If you adapt this for your own code make sure to repace `switcher` with id of your the `tabsetPanel()`.
+Currently[^tab-future] you need a dash of css to make it work: in the following UI specification `tags$style("#switcher { display:none; }")` hides the tab switcher. If you adapt this for your own code make sure to repace `switcher` with id of your the `tabsetPanel()`.
 
 [^tab-future]: Hopefully, it will be built into `tabsetPanel()` in the future; follow <https://github.com/rstudio/shiny/issues/2680> for details.
 
@@ -224,9 +224,80 @@ server <- function(input, output, session) {
 }
 ```
 
+There are two main ideas here:
+
+* Use tabset panel with hidden tabs.
+* Use `updateTabsetPanel()` to switch tabs as needed.
+
+This is a simple idea, but it gives you a considerable amount of flexibility. And with a little creativity you can do some neat things. The following two sections illustrate how you might use it to collect different information depending on another selection, or how you might create a wizard like interface.
+
+### Conditional UI
+
+Imagine that you want to create a shiny app that allows the user to simulate from the normal, uniform, and expontential distributions. Each distribution has different parameters so how do you let the user pick different ones?
+
+We can use a tabset to provide a different set of controls for each distribution:
+
+```{r}
+param_tabs <- tagList(
+  tags$style("#params { display:none; }"),
+  tabsetPanel(id = "params",
+    tabPanel("normal",
+      numericInput("mean", "mean", value = 1),
+      numericInput("sd", "standard deviation", min = 0, value = 1)
+    ),
+    tabPanel("uniform", 
+      numericInput("min", "min", value = 0),
+      numericInput("max", "max", value = 1)
+    ),
+    tabPanel("exponential",
+      numericInput("rate", "rate", value = 1, min = 0),
+    )
+  )
+)
+```
+
+We then embed that inside a fuller UI. Here I'm going to show a histogram of the results, and the values individually so you can copy and paste them.
+
+```{r}
+ui <- fluidPage(
+  sidebarLayout(
+    sidebarPanel(
+      selectInput("dist", "Distribution", choices = c("normal", "uniform", "exponential")),
+      numericInput("n", "Number of samples", value = 100),
+      param_tabs,
+    ),
+    mainPanel(
+      plotOutput("hist"),
+      textOutput("values")
+    )
+  )
+)
+```
+
+The server function has two main components: an `observeEvent()` to automatically switch controls when the distribution changes, and a reactive that samples from the selected distribution.
+
+```{r}
+server <- function(input, output, session) {
+  observeEvent(input$dist, {
+    updateTabsetPanel(session, "params", selected = input$dist)
+  }) 
+  
+  sample <- reactive({
+    switch(input$dist,
+      normal = rnorm(input$n, input$mean, input$sd),
+      uniform = runif(input$n, input$min, input$max),
+      exponential = rexp(input$n, input$rate)
+    )
+  })
+  output$hist <- renderPlot(hist(sample()))
+  output$values <- renderText(round(sample(), 3))
+}
+shinyApp(ui, server)
+```
+
 ### Wizard interface
 
-There are many creative uses for this basic ideas. The following code shows you how might create a "wizard", a type of interface that makes it easier to collect a lot of information by breaking it down into a progression of simple steps. 
+The following code shows you how might create a "wizard", a type of interface that makes it easier to collect a lot of information by breaking it down into a progression of simple steps. 
 
 ```{r}
 ui <- fluidPage(
@@ -287,17 +358,23 @@ server <- function(input, output, session) {
 
 (We haven't talked about `isolate()` yet; allows you to get a reactive value _without_ creating a reactive dependency.)
 
-Note the way I set the default value to `input$dynamic`; that ensures the selected value is not lost when the control type changes. If you're generating a lot of dynamic UI, it's good practice to think about the user experience and make sure that existing data isn't lost.
+Want to keep as much as of the fixed structure in UI as possible. Better peformance. Simpler reasoning.
+
+Note the way I set the default value to `input$dynamic`; that ensures the selected value is not lost when the control type changes. If you're generating a lot of dynamic UI, it's good practice to think about the user experience and make sure that existing data isn't lost. This is one reason that selecting showing and hiding UI (as above) is a better appraoch it works for you - because you're not destroying and recreating the controls, you don't need to do anything to prserve the values.
 
 Also note that it takes a fraction of a second to appear after the app loads - that's because it has to be rendered by the server function. Relying too much on `renderUI()` can create a laggy UI.
 
 Note that you are now creating IDs in two places so that when you add to `ui`, you have to be careful not to call the control `dynamic`. Later, in Chapter \@ref(action-modules) we'll see how modules can help avoid this problem.
 
+Dynamic UI is most useful when you are generating an arbitrary number or type of controls. That typically means that you'll be generating UI with code, and function programming is a good fit for this sort of task. If you're not familiar with the basic `map()` and `reduce()` of functional programming, you might want to take a brief detour to read <https://adv-r.hadley.nz/functionals.html> before continuing.
+
 ### Multiple controls
 
-`tagList()` if you need mutliple controls. Want to keep as much as of the fixed structure in UI as possible. Better peformance. Simpler reasoning.
+`tagList()` if you need mutliple controls. 
 
 Using functional programming to generate multiple controls. And equivalent code on the reactive side.
+
+
 
 ### Dynamic filtering
 
