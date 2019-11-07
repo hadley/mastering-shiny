@@ -33,6 +33,8 @@ rmd_files:
     "reactivity-tracking.Rmd",
     "reactivity-scoping.Rmd",
     "reactivity-components.Rmd",
+
+    "best-practices.Rmd",
   ]
 
 
