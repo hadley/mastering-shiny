@@ -39,7 +39,7 @@ Built with [bookdown](https://bookdown.org/yihui/bookdown/).
         * `isolate()`
     1. Async programming with promises
 
-1. Taming Shiny
+1. Shiny in production
     1. Troubleshooting and debugging
     1. Testing with shinytest
     1. Managing dependencies with packrat

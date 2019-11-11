@@ -34,7 +34,8 @@ rmd_files:
     "reactivity-scoping.Rmd",
     "reactivity-components.Rmd",
 
-    "best-practices.Rmd",
+    "prod.Rmd",
+    "prod-best-practices.Rmd",
   ]
 
 
