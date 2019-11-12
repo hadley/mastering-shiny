@@ -2,7 +2,9 @@ Package: masteringshiny
 Title: Mastering Shiny
 Version: 0.0.1
 Imports: 
+    gapminder,
     ggforce,
+    openintro,
     shiny,
     shinythemes,
     tidyverse,

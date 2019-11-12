@@ -90,25 +90,28 @@ There are many ways to use update functions in this way; be on the look out for 
 
 ### Hierarchical select boxes
 
-A more complicated, but particularly useful, application of the update functions is to allow interactive drill down across multiple categories. I'm going to start some imaginary data for a sales dashboard, coming from <https://www.kaggle.com/kyanyoga/sample-sales-data>.
+A more complicated, but particularly useful, application of the update functions is to allow interactive drill down across multiple categories. I'll illustrate their usage with some imaginary data for a sales dashboard that comes from <https://www.kaggle.com/kyanyoga/sample-sales-data>.
+
+```{r}
+sales <- vroom::vroom("sales-dashboard/sales_data_sample.csv")
+sales
+```
 
 For our purposes, I'm going to focus on a natural hierarchy in the data:
 
-* Each territory contains customers
-* Each customer has multiple orders
-* Each order contains rows
+* Each territory contains customers.
+* Each customer has multiple orders.
+* Each order contains rows.
 
 I want to create a user interface where you can:
 
 * Select a territory to see all customers.
-* Select customer to see all orders.
-* Select order to see data.
+* Select a customer to see all orders.
+* Select an order to see the underlying rows.
 
-The basic idea is to start with UI that contains three select boxes and one output table. The choices for the `customername` and `ordernumber` will be dynamically supplied so I start with `choices = NULL`.
+The essence of the UI is simple: I'll create three select boxes and one output table. The choices for the `customername` and `ordernumber` select boxes will be dynamically generated, so I set `choices = NULL`.
 
 ```{r}
-sales <- vroom::vroom("sales-dashboard/sales_data_sample.csv")
-
 ui <- fluidPage(
   selectInput("territory", "Territory", choices = unique(sales$TERRITORY)),
   selectInput("customername", "Customer", choices = NULL),
@@ -119,18 +122,18 @@ ui <- fluidPage(
 
 In the server function, I work top-down:
 
-1.  I create a reactive, `territory`, that contains `sales` just for the
-    selected territory 
+1.  I create a reactive, `territory()`, that contains the rows from `sales` 
+    that match the selected territory.
 
-1.  Whenever `territory()` changes, I update the list of possible customer
-    choices.
+1.  Whenever `territory()` changes, I update the list of `choices` in 
+    the `input$customername` select box.
     
-1.  I create a reactive, `customer`,  that contains only the rows from
-    `territory` matching the selected customer.
+1.  I create another reactive, `customer()`, that contains the rows from 
+    `territory()` that match the selected customer.
     
-1.  Whenever `customer` changes, I update the `choices` for the order
-    select box.
-    
+1.  Whenever `customer()` changes, I update the list of `choices` in the
+    the `input$ordernumber` select box.
+
 1.  I display the selected orders in `output$data`.
 
 ```{r}
@@ -146,7 +149,7 @@ server <- function(input, output, session) {
   customer <- reactive({
     filter(territory(), CUSTOMERNAME == input$customername)
   })
-  observeEvent(input$customername, {
+  observeEvent(customer(), {
     choices <- unique(customer()$ORDERNUMBER)
     updateSelectInput(session, "ordernumber", choices = choices)
   })
@@ -157,19 +160,17 @@ server <- function(input, output, session) {
 }
 ```
 
-<!-- TODO: diagram -->
+<!-- TODO: figure -->
 
 You can see a more fleshed out application of this principle in <https://github.com/hadley/mastering-shiny/tree/master/sales-dashboard>.
 
-Consider using this, or a similar technique, whenever the user has to select from a large number of choices. You're free to use any other inputs for filtering: if you (e.g.) wanted to make it easier to find orders based on the total value, you might want to use `sliderInput()`s instead.
-
 ### Circular references
 
-If you want to use update functions to change the `value`[^other-params] of inputs, there's an important issue we need to discuss. From Shiny's perspectve, using an update function to modify `value` is no different to the user modifying the value. That means an update function can trigger reactive updates in exactly the same way that a human can. You are now stepping outside of the bounds of pure reactive programming, so you need to start worrying about circular references and creating infinite loops. 
+There's an important issue we need to discuss if you want to use update functions to change the `value`[^other-params] of inputs. From Shiny's perspectve, using an update function to modify `value` is no different to the user modifying the value by clicking or typing. That means an update function can trigger reactive updates in exactly the same way that a human can. This means that you are now stepping outside of the bounds of pure reactive programming, and you need to start worrying about circular references and infinite loops. 
 
-[^other-params]: This is generally only a concern when you are changing the `value`, but be aware that changing some other parameters can occassionally change the value, as when changing set of `choices` for `selectInput()`, or when changing `min` and `max` for `sliderInput()`.
+[^other-params]: This is generally only a concern when you are changing the `value`, but be some other parameters can change the value indirectly. For example, if you modify the `choices` for `selectInput()`, or `min` and `max` for `sliderInput()`, the current `value` will be modified if it's no longer in the allowed set of values.
 
-For example, take the following simple app. It contains a single input control and a observer that increments its value by one. Every time `updateNumericInput()` runs, it invalidates `input$n`, causing `updateNumericInput()` to run again, so the app is stuck in an infinite loop constantly increasing the value of `input$n`.
+For example, take the following simple app. It contains a single input control and a observer that increments its value by one. Every time `updateNumericInput()` runs, it changes `input$n`, causing `updateNumericInput()` to run again, so the app gets stuck in an infinite loop constantly increasing the value of `input$n`.
 
 ```{r}
 ui <- fluidPage(
@@ -182,11 +183,11 @@ server <- function(input, output, session) {
 }
 ```
 
-You're unlikely to create such an obvious problem in your own app, but beware this potential problem if you are updating multiple controls that depend on one another. You will need to carefully reason through the updates to ensure that you're not creating an infinite loop of updates.
+You're unlikely to create such an obvious problem in your own app, but it can crop up if you updating multiple controls that depend on one another, as in the next example.
 
 ### Inter-related inputs
 
-One place where it's easy to end up with circular references if you're attempting to have multiple "sources of truth" in an app. For example, imagine you want to create a temperatue conversion app where you can either enter the temperature in Celsius or in Fahrenheit:
+One place where it's easy to end up with circular references is when you have multiple "sources of truth" in an app. For example, imagine that you want to create a temperatue conversion app where you can either enter the temperature in Celsius or in Fahrenheit:
 
 ```{r}
 ui <- fluidPage(
@@ -214,15 +215,61 @@ If you play around with this app, you'll notice that it _mostly_ works, but you 
 * 48 C converts to 118 F, so F changes again to 118.
 * Fortunately 118 F is still 48 C, so the updates stop there.
 
-There's no way around this problem because you have one idea (the temperature) with two expressions in the app (Celsius and Fahrenheit). Here we are lucky that cycle quickly converges to a value that satisfies both constraints.
+There's no way around this problem because you have one idea (the temperature) with two expressions in the app (Celsius and Fahrenheit). Here we are lucky that cycle quickly converges to a value that satisfies both constraints. In general, you are better off avoiding these situations, unless you are willing to very carefully analysis the convergence properties of the underlying dynamic system that you have created.
 
 <!-- Similar problem: https://community.rstudio.com/t/mutually-dependent-numericinput-in-shiny/29307 -->
 
+### Exercises
+
+1.  Complete the user interface below with a server function that updates
+    `input$date` so that you can only select dates in `input$year`.
+    
+    ```{r}
+    ui <- fluidPage(
+      numericInput("year", "year", value = 2020),
+      dateInput("date", "date")
+    )
+    ```
+    
+1.  Complete the user interface below with a server function that updates
+    `input$county` choices based on `input$state`. For an added challenge,
+    also change the label from "County" to "Parrish" for Louisana and 
+    "Borrough" for "Alaska".
+
+    ```{r}
+    library(openintro)
+    states <- unique(county$state)
+    
+    ui <- fluidPage(
+      selectInput("state", "State", choices = states),
+      selectInput("county", "County", choices = NULL)
+    )
+    ```
+
+1.  Complete the user interface below with a server function that updates
+    `input$country` choices based on the `input$continent`. Use 
+    `output$data` to display all matching rows.
+
+    ```{r}
+    library(gapminder)
+    continents <- unique(gapminder$continent)
+    
+    ui <- fluidPage(
+      selectInput("continent", "Continent", choices = continents), 
+      selectInput("country", "Country", choices = NULL),
+      tableOutput("data")
+    )
+    ```
+
+1.  Extend the previous app so that you can also choose to select no continent,
+    and hence see all countries. You'll need to add `""` to the list of
+    choices, and then handle that specially when filtering.
+
 ## Showing and hiding
 
-The next step up in complexity is to selectively show and hide parts of the UI. Later, when you learn more about CSS and JS, you'll learn more approaches, but there's one powerful technique that you can use already: concealing optional UI in a tabset. This is a clever hack, that allows you to show and hide UI as needed, without having to re-generate it from scratch (as you'll learn how to do in the next section).
+The next step up in complexity is to selectively show and hide parts of the UI. You'll learn a number of sophisticated approaches later, once you've learned a little JS and CSS, but there's a useful technique that you can use now: concealing optional UI in a tabset. This is a clever hack that allows you to show and hide UI as needed, without having to re-generate it from scratch (as you'll learn in the next section).
 
-Currently[^tab-future] you need a dash of css to make it work: in the following UI specification `tags$style("#switcher { display:none; }")` hides the tab switcher. If you adapt this for your own code make sure to repace `switcher` with id of your the `tabsetPanel()`.
+Currently[^tab-future] you need a dash of CSS to make it work. In the following UI specification, `tags$style("#switcher { display:none; }")` hides the tab switcher. If you adapt this for your own code make sure to repace `switcher` with id of your the `tabsetPanel()`.
 
 [^tab-future]: Hopefully, it will be built into `tabsetPanel()` in the future; follow <https://github.com/rstudio/shiny/issues/2680> for details.
 
@@ -254,15 +301,15 @@ server <- function(input, output, session) {
 There are two main ideas here:
 
 * Use tabset panel with hidden tabs.
-* Use `updateTabsetPanel()` to switch tabs as needed.
+* Use `updateTabsetPanel()` to switch tabs from the server.
 
-This is a simple idea, but it gives you a considerable amount of flexibility. And with a little creativity you can do some neat things. The following two sections illustrate how you might use it to collect different information depending on another selection, or how you might create a wizard like interface.
+This is a simple idea, but when combined with a little creativity, it gives you a considerable amount of power. The following two sections illustrate give a couple of small examples of how you might use it in practice.
 
 ### Conditional UI
 
-Imagine that you want to create a shiny app that allows the user to simulate from the normal, uniform, and expontential distributions. Each distribution has different parameters so how do you let the user pick different ones?
+Imagine that you want to create a shiny app that allows the user to simulate from the normal, uniform, and exponential distributions. Each distribution has different parameters, so we'll need some way to show different controls for different distributions. The tabset approach provides an elegant way to do so.
 
-We can use a tabset to provide a different set of controls for each distribution:
+First, I'll create the UI for the tabset, and then show you how it embeds into a bigger app. The basic idea is pretty simple: we have a tabset where each panel provides the user interface for one distribution.
 
 ```{r}
 param_tabs <- tagList(
@@ -283,25 +330,26 @@ param_tabs <- tagList(
 )
 ```
 
-We then embed that inside a fuller UI. Here I'm going to show a histogram of the results, and the values individually so you can copy and paste them.
+I'll then embed that inside a bigger UI which allows the user to pick the number of sample, and shows a histogram of the results.
 
 ```{r}
 ui <- fluidPage(
   sidebarLayout(
     sidebarPanel(
-      selectInput("dist", "Distribution", choices = c("normal", "uniform", "exponential")),
+      selectInput("dist", "Distribution", 
+        choices = c("normal", "uniform", "exponential")
+      ),
       numericInput("n", "Number of samples", value = 100),
       param_tabs,
     ),
     mainPanel(
-      plotOutput("hist"),
-      textOutput("values")
+      plotOutput("hist")
     )
   )
 )
 ```
 
-The server function has two main components: an `observeEvent()` to automatically switch controls when the distribution changes, and a reactive that samples from the selected distribution.
+Note that I've carefully matched the `input$dist` choices to the names of the tab panels. That makes it easy to write the `observeEvent()` code that automatically switches controls when the distribution changes. 
 
 ```{r}
 server <- function(input, output, session) {
@@ -317,14 +365,15 @@ server <- function(input, output, session) {
     )
   })
   output$hist <- renderPlot(hist(sample()))
-  output$values <- renderText(round(sample(), 3))
 }
 shinyApp(ui, server)
 ```
 
+Note that I also pull out the sampling code into it's own reactive. That's not strictly necessary here, but I think it makes the app a little easier to understand.
+
 ### Wizard interface
 
-The following code shows you how might create a "wizard", a type of interface that makes it easier to collect a lot of information by breaking it down into a progression of simple steps. 
+You can also use this idea to a "wizard", a type of interface that makes it easier to collect a bunch of information by spreading it across multiple pages. Here we embed action buttons within each "page", making it easy to go forward and back.
 
 ```{r}
 ui <- fluidPage(
@@ -358,7 +407,8 @@ server <- function(input, output, session) {
 }
 ```
 
-You can imagine how you might change this code so to only show certain pages if some conditions are met. For example, you'd only collect additional information if some condition was true.
+### Exercises
+
 
 ## Dynamic UI
 
