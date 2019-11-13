@@ -9,7 +9,11 @@ bookdown::gitbook:
         <li><a href="./">Mastering Shiny</a></li>
     edit: https://github.com/hadley/mastering-shiny/edit/master/%s
     download: []
-    sharing: no
+    sharing:
+      facebook: no
+      twitter: no
+      github: yes
+      all: []
 bookdown::pdf_book:
   includes:
     in_header: preamble.tex
