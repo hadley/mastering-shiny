@@ -431,7 +431,7 @@ Technically, `fluidPage()` is all you need for an app, because you can put input
 
 ### Page with sidebar
 
-`sidebarLayout()`, along with `titlePanel()`, `sidebarLayout()`, `sidebarPanel()`, and `mainPanel()`,  makes it easy to create a two-column layout with inputs on the left and outputs on the right. The basic code is shown below; it generates the structure shown in Figure \@ref(fig:ui-sidebar).
+`sidebarLayout()`, along with `titlePanel()`, `sidebarPanel()`, and `mainPanel()`,  makes it easy to create a two-column layout with inputs on the left and outputs on the right. The basic code is shown below; it generates the structure shown in Figure \@ref(fig:ui-sidebar).
 
 ```{r, eval = FALSE}
 fluidPage(

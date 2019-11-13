@@ -162,7 +162,7 @@ app_screenshot(app, "basic-reactivity/connection-4", width = 200)
 
 [^debounce]: If you're running the live app, notice that you have to type fairly slowly for the output to update one letter at a time. That's because Shiny uses a technique called __debouncing__, which means that it waits for a few ms before sending an update. That considerably reduces the amount of work that Shiny needs to do, without appreciably reducing the response time of the app.
 
-This is the big idea in Shiny: you don't need to tell an output when to update, because Shiny automatically figures it out for you. How does it work? What exactly is going on in the body of the function? Let's think about at the code inside the server function more precisely:
+This is the big idea in Shiny: you don't need to tell an output when to update, because Shiny automatically figures it out for you. How does it work? What exactly is going on in the body of the function? Let's think about the code inside the server function more precisely:
 
 ```{r, eval = FALSE}
 output$greeting <- renderText({
@@ -311,17 +311,17 @@ Reactive expressions have a flavour of both inputs and outputs:
 * Like outputs, reactive expressions depend on inputs and automatically know
   when they need updating.
 
-Because of this duality, some functions work with either reactive inputs or expressions, and some functions work with either reactive expressions or reactive outputs. We'll use __producers__ to refer either reactive inputs or expressions, and __consumers__ to refer to either reactive expressions or outputs. Figure \@ref(fig:prod-consumer) shows this relationship with a Venn diagram.
+Because of this duality, some functions work with either reactive inputs or expressions, and some functions work with either reactive expressions or reactive outputs. We'll use __producers__ to refer to either reactive inputs or expressions, and __consumers__ to refer to either reactive expressions or outputs. Figure \@ref(fig:prod-consumer) shows this relationship with a Venn diagram.
 
 ```{r prod-consumer, echo = FALSE, out.width = NULL, fig.cap = "Inputs and expressions are reactive producers; expressions and outputs are reactive consumers"}
 knitr::include_graphics("diagrams/basic-reactivity/producers-consumers.png", dpi = 300)
 ```
 
-We're going to need a more complex app to see the benefits of using reactive expression. First, we'll set the stage by defining some regular R functions that we'll use to power our app.
+We're going to need a more complex app to see the benefits of using reactive expressions. First, we'll set the stage by defining some regular R functions that we'll use to power our app.
 
 ### The motivation
 
-Imagine I want to compare two simulated datasets with a plot and a hypothesis test. I've done a little experimentation and come up with the functions below: `histogram()` visualises the two distributions with a histogram, and `t_test()` uses a t-test to compares means and summarises the results with a string:
+Imagine I want to compare two simulated datasets with a plot and a hypothesis test. I've done a little experimentation and come up with the functions below: `histogram()` visualises the two distributions with a histogram, and `t_test()` uses a t-test to compare means and summarises the results with a string:
 
 ```{r}
 library(ggplot2)
