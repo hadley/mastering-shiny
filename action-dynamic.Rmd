@@ -451,7 +451,7 @@ server <- function(input, output, session) {
 }
 ```
 
-Maintaining existing user input is one of the big challenges of working with `renderUI()`. This is one reason that selecting showing and hiding UI (as above) is a better appraoch it works for you - because you're not destroying and recreating the controls, you don't need to do anything to prserve the values.
+Maintaining existing user input is one of the big challenges of working with `renderUI()`. This is one reason that selecting showing and hiding UI (as above) is a better approach it works for you - because you're not destroying and recreating the controls, you don't need to do anything to prserve the values.
 
 Dynamic UI is most useful when you are generating an arbitrary number or type of controls. That typically means that you'll be generating UI with code, and function programming is a good fit for this sort of task. If you're not familiar with the basic `map()` and `reduce()` of functional programming, you might want to take a brief detour to read <https://adv-r.hadley.nz/functionals.html> before continuing.
 
@@ -498,7 +498,7 @@ server <- function(input, output, session) {
 }
 ```
 
-If ran this app, you'd discover a really annyoing behaviour: whenever you change the number of colours, all the data you've entered disappears. We can fix this problem by using the same technique as before: setting `value` to the current value (using `isolate()` so we don't create an reactive dependency that we don't want).
+If ran this app, you'd discover a really annoying behaviour: whenever you change the number of colours, all the data you've entered disappears. We can fix this problem by using the same technique as before: setting `value` to the current value (using `isolate()` so we don't create an reactive dependency that we don't want).
 
 I'll also tweak the apperance to look a little nicer, including displaying the selected colours in a plot.
 
