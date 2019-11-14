@@ -19,7 +19,7 @@ library(tidyverse)
 
 ## The data
 
-We're going to explore data from the Data from the National Electronic Injury Surveillance System (NEISS), collected by Consumer Product Safety Commission. This is a long-term study that records all accidents seen in a representative sample of hospitals in the United States. It's an interesting dataset to explore because every one is already familiar with the domain, and each observation is accompanied by a short narrative that explains how the accident occurred. You can find out more about this dataset at <https://github.com/hadley/neiss>
+We're going to explore data from the National Electronic Injury Surveillance System (NEISS), collected by the Consumer Product Safety Commission. This is a long-term study that records all accidents seen in a representative sample of hospitals in the United States. It's an interesting dataset to explore because every one is already familiar with the domain, and each observation is accompanied by a short narrative that explains how the accident occurred. You can find out more about this dataset at <https://github.com/hadley/neiss>
 
 In this chapter, I'm going to focus on just the data from 2017. This keeps the data small enough (~10 meg) that it's easy to store in git (along with the rest of the book), which means we don't need to think about sophisticated strategies for importing the data quickly (we'll come back to those later in the book). You can see the code I used to create the extract for this chapter at <https://github.com/hadley/mastering-shiny/blob/master/neiss/data.R>.
 
@@ -140,7 +140,7 @@ Having done this exploration for one product, it would be be very nice if we cou
 
 When building a complex app, I strongly recommend starting as simple as possible, so that you can confirm the basic mechanics work before you start doing something more complicated. Here I'll start with one input (the product code), three tables, and one plot. 
 
-When making a first prototype, the challenge is the "as simple _as possible_". There's a tension between getting the basics working quickly and planning for the future of the app. Either extreme can be bad: if you design too narrowly, you'll spend a lot of time later on reworking your app; if you design too rigorously, you'll spend a bunch of time writing code that later ends up on cutting floor. To help get the balance right, I often do a few pencil-and-paper sketches to rapidly explore the UI and reactive graph before committing to code.
+When making a first prototype, the challenge is the "as simple _as possible_". There's a tension between getting the basics working quickly and planning for the future of the app. Either extreme can be bad: if you design too narrowly, you'll spend a lot of time later on reworking your app; if you design too rigorously, you'll spend a bunch of time writing code that later ends up on the cutting floor. To help get the balance right, I often do a few pencil-and-paper sketches to rapidly explore the UI and reactive graph before committing to code.
 
 Here I decided to have one row for the inputs (accepting that I'm probably going to add more inputs before this app is done), one row for all three tables (giving each table 4 columns, 1/3 of the 12 column width), and then one row for the plot:
 
@@ -149,7 +149,7 @@ Here I decided to have one row for the inputs (accepting that I'm probably going
 
 Note the use of `setNames()` in the `selectInput()` `choices`: this shows the product name in the UI and returns the product code to the server.
 
-The server function relatively straightforward. I first convert the `selected` and `summary` variables (defined above) to reactive expressions. This is a reasonable general pattern: you create variables in your data analysis to decompose the analysis into steps, and to avoid recomputing things multiple times, and reactive expressions play the same role in Shiny apps. 
+The server function is relatively straightforward. I first convert the `selected` and `summary` variables (defined above) to reactive expressions. This is a reasonable general pattern: you create variables in your data analysis to decompose the analysis into steps, and to avoid recomputing things multiple times, and reactive expressions play the same role in Shiny apps. 
 
 Often it's a good idea to spend a little time cleaning up your analysis code before you start your Shiny app, so you can think about these problems in regular R code, before you add the additional complexity of reactivity.
 
@@ -158,7 +158,7 @@ Often it's a good idea to spend a little time cleaning up your analysis code bef
 
 Note that creating the `summary` reactive isn't strictly necessary here, as it's only used by a single reactive consumer. But it's good practice to keep computing and plotting separate as it makes the flow of the app easier to understand, and will make it easier to generalise in the future.
 
-A screenshot of resulting app is shown in Figure \@ref(fig:prototype). You can find the source code at <https://github.com/hadley/mastering-shiny/tree/master/neiss/prototype.R> and try out a live version of the app at XYZ.
+A screenshot of the resulting app is shown in Figure \@ref(fig:prototype). You can find the source code at <https://github.com/hadley/mastering-shiny/tree/master/neiss/prototype.R> and try out a live version of the app at XYZ.
 
 ```{r, eval = FALSE, include = FALSE}
 app <- testAppFromFile("neiss/prototype.R")
@@ -191,7 +191,7 @@ I then use this in the server function:
 
 I made one other change to improve the aesthetics of the app: I forced all tables to take up the maximum width (i.e. fill the column that they appear in). This makes the output more aesthetically pleasing because it reduces the amount of incidental variation.
 
-A screenshot of resulting app is shown in Figure \@ref(fig:polish-tables). You can find the source code at <https://github.com/hadley/mastering-shiny/tree/master/neiss/polish-tables.R> and try out a live version of the app at XYZ.
+A screenshot of the resulting app is shown in Figure \@ref(fig:polish-tables). You can find the source code at <https://github.com/hadley/mastering-shiny/tree/master/neiss/polish-tables.R> and try out a live version of the app at XYZ.
 
 ```{r, eval = FALSE, include = FALSE}
 app <- testAppFromFile("neiss/polish-tables.R")
@@ -203,7 +203,7 @@ knitr::include_graphics("screenshots/basic-case-study/polish-tables.png", dpi = 
 
 ## Rate vs count
 
-So far, we're displaying only a single plot, but we'd like to give the user the choice between visualising the number of injuries or the population-standardise rate. First I add a control to the UI. Here I've chosen to use a `selectInput()` because it makes both states explicit, and it would be easy to add new states in the future:
+So far, we're displaying only a single plot, but we'd like to give the user the choice between visualising the number of injuries or the population-standardised rate. First I add a control to the UI. Here I've chosen to use a `selectInput()` because it makes both states explicit, and it would be easy to add new states in the future:
 
 ```{r, code = section_get("neiss/rate-vs-count.R", "first-row"), eval = FALSE}
 ```
@@ -215,7 +215,7 @@ Then I condition on that input when generating the plot:
 ```{r, code = section_get("neiss/rate-vs-count.R", "plot"), eval = FALSE}
 ```
 
-A screenshot of resulting app is shown in Figure \@ref(fig:rate-vs-count). You can find the source code at <https://github.com/hadley/mastering-shiny/tree/master/neiss/rate-vs-count.R> and try out a live version of the app at XYZ.
+A screenshot of the resulting app is shown in Figure \@ref(fig:rate-vs-count). You can find the source code at <https://github.com/hadley/mastering-shiny/tree/master/neiss/rate-vs-count.R> and try out a live version of the app at XYZ.
 
 ```{r, eval = FALSE, include = FALSE}
 app <- testAppFromFile("neiss/rate-vs-count.R")
@@ -227,9 +227,9 @@ knitr::include_graphics("screenshots/basic-case-study/rate-vs-count.png", dpi = 
 
 ## Narrative
 
-Finally, I want provide some way to access the narratives because they are so interesting, and they give an informal way to cross-check the hypotheses you come up when looking at the plots. In the R code, I sample multiple narratives at once, but there's no reason to do that in an app where you can explore interactively.
+Finally, I want to provide some way to access the narratives because they are so interesting, and they give an informal way to cross-check the hypotheses you come up with when looking at the plots. In the R code, I sample multiple narratives at once, but there's no reason to do that in an app where you can explore interactively.
 
-There are two parts to the solution. First we add a new row to the bottom of UI. I use an action button to trigger a new story, and and put the narrative in a `textOutput()`:
+There are two parts to the solution. First we add a new row to the bottom of UI. I use an action button to trigger a new story, and put the narrative in a `textOutput()`:
 
 ```{r, code = section_get("neiss/narrative.R", "narrative-ui"), eval = FALSE}
 ```
@@ -239,7 +239,7 @@ The result of an action button is an integer that increments each time it's clic
 ```{r, code = section_get("neiss/narrative.R", "narrative-server"), eval = FALSE}
 ```
 
-A screenshot of resulting app is shown in Figure \@ref(fig:narrative). You can find the source code at <https://github.com/hadley/mastering-shiny/tree/master/neiss/narrative.R> and try out a live version of the app at XYZ.
+A screenshot of the resulting app is shown in Figure \@ref(fig:narrative). You can find the source code at <https://github.com/hadley/mastering-shiny/tree/master/neiss/narrative.R> and try out a live version of the app at XYZ.
 
 ```{r, eval = FALSE, include = FALSE}
 app <- testAppFromFile("neiss/narrative.R")

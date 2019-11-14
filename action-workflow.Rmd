@@ -14,13 +14,13 @@ The goal of this chapter is to help you improve three important Shiny workflows:
 * Debugging, the art and craft of figuring out what's gone wrong with your 
   code and brainstorming solutions to fix it.
 
-* Writing reprexes, self-contain chunks of code that illustrate a problem.
+* Writing reprexes, self-contained chunks of code that illustrate a problem.
   Reprexes are a powerful debugging technique, and they are essential if you
   want to get help from someone else.
 
 ## Development workflow 
 
-The goal of optimising your development workflow is to reduce the time between making a change and seeing the outcome. The fastest you can iterate, the fast you can experiment, and the faster you can become a better Shiny developer. There are two main workflows to optimise here: creating the app for the first time, and speeding up the iterative cycle of tweaking code and trying out the results.
+The goal of optimising your development workflow is to reduce the time between making a change and seeing the outcome. The faster you can iterate, the faster you can experiment, and the faster you can become a better Shiny developer. There are two main workflows to optimise here: creating the app for the first time, and speeding up the iterative cycle of tweaking code and trying out the results.
 
 ### Creating the app
 
@@ -35,7 +35,7 @@ server <- function(input, output, session) {
 shinyApp(ui, server)
 ```
 
-You're likely quickly get sick of typing that code in, so RStudio provides a couple of shortcuts:
+You'll likely quickly get sick of typing that code in, so RStudio provides a couple of shortcuts:
 
 *   If you already have your future `app.R` open, type `shinyapp` then press 
     `Shift` + `Tab` to insert the Shiny app snippet.[^snippet]
@@ -55,7 +55,7 @@ You might think it's not worthwhile to learn these shortcuts because you'll only
 
 ### Seeing your changes
 
-You'll _create_ a few apps a day, but you'll _run_ apps hundred of times, so mastering the development workflow is particularly important. The first way to reduce your iteration speed is to avoid clicking on the "Run App" button, and instead learn the keyboard shortcut `Cmd/Ctrl` + `Shift` + `Enter`. This gives you the following development workflow:
+You'll _create_ a few apps a day, but you'll _run_ apps hundreds of times, so mastering the development workflow is particularly important. The first way to reduce your iteration speed is to avoid clicking on the "Run App" button, and instead learn the keyboard shortcut `Cmd/Ctrl` + `Shift` + `Enter`. This gives you the following development workflow:
 
 1. Write some code.
 1. Launch the app with `Cmd/Ctrl` + `Shift` + `Enter`.
@@ -63,7 +63,7 @@ You'll _create_ a few apps a day, but you'll _run_ apps hundred of times, so mas
 1. Close the app.
 1. Go to 1.
 
-Another way to reduce your iteration speed still further is to turn autoreload on (`options(shiny.autoreload = TRUE)`) and then run the app in a background job, as described in <https://github.com/sol-eng/background-jobs/tree/master/shiny-job>. With this workflow as soon as you save a file, your app will relaunch: no needed to close and restart. This leads to an even faster workflow:
+Another way to reduce your iteration speed still further is to turn autoreload on (`options(shiny.autoreload = TRUE)`) and then run the app in a background job, as described in <https://github.com/sol-eng/background-jobs/tree/master/shiny-job>. With this workflow as soon as you save a file, your app will relaunch: no need to close and restart. This leads to an even faster workflow:
 
 1. Write some code and press `Cmd/Ctrl` + `S` to save to the file.
 1. Interactively experiment.
@@ -71,11 +71,11 @@ Another way to reduce your iteration speed still further is to turn autoreload o
 
 The chief disadvantage of this technique is that because the app is running in a separate process, it's considerably harder to debug.
 
-As your app gets bigger and bigger, you'll find that the "interactively experiment" step starts to become onerous. It's too hard to remember to re-check every component of your app that you might have affected with your changes. Later, in Chapter XYZ, you'll learn the tools of automated testing allows you to turn the interactive experiments you're running into automated code. This lets you run the tests more quickly (because they're automated), and means that you can't forget to run an important test. It requires some initial investment to develop the tests, but the investment pays off handsomely for large apps.
+As your app gets bigger and bigger, you'll find that the "interactively experiment" step starts to become onerous. It's too hard to remember to re-check every component of your app that you might have affected with your changes. Later, in Chapter XYZ, you'll learn the tools of automated testing, which allows you to turn the interactive experiments you're running into automated code. This lets you run the tests more quickly (because they're automated), and means that you can't forget to run an important test. It requires some initial investment to develop the tests, but the investment pays off handsomely for large apps.
 
 ### Controlling the view
 
-By default, when you run the app, it will appear in an pop-out window. There are two other options that you can choose from the Run App drop down:
+By default, when you run the app, it will appear in a pop-out window. There are two other options that you can choose from the Run App drop down:
 
 ```{r, echo = FALSE, out.width = NULL}
 knitr::include_graphics("images/basic-app/run-app-details.png")

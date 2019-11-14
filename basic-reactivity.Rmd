@@ -659,7 +659,7 @@ Sys.sleep(0.5)
 app_screenshot(app, "basic-reactivity/action-button", width = NULL)
 ```
 
-```{r sim-button1-react, echo = FALSE, out.width = NULL, fig.cap="This reactive graph doesn't accomplish goal; we're added a dependency instead of replacing the existing dependencies."}
+```{r sim-button1-react, echo = FALSE, out.width = NULL, fig.cap="This reactive graph doesn't accomplish our goal; we've added a dependency instead of replacing the existing dependencies."}
 knitr::include_graphics("diagrams/basic-reactivity/timing-button.png", dpi = 300)
 ```
 
@@ -718,4 +718,4 @@ Observers and outputs are closely related. You can think of outputs as having a 
 knitr::include_graphics("diagrams/basic-reactivity/graph-3.png", dpi = 300)
 ```
 
-This concludes our whirlwind tour of reactivity. The next chapter will help you practice all the material you've seen so far by creating an bigger Shiny app to supports a data analysis.
+This concludes our whirlwind tour of reactivity. The next chapter will help you practice all the material you've seen so far by creating a bigger Shiny app that supports data analysis.
