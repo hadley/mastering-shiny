@@ -2,6 +2,7 @@
 
 ```{r, include = FALSE}
 source("common.R")
+source("demo.R")
 ```
 
 So far, we've seen a clean separation between the user interface and the server function. The user interface is defined statically, when the app is launched. That means it can't respond to anything that happens in the app. In this chapter, you'll learn how to create __dynamic__ user interfaces, using code run in the server function. 
@@ -29,8 +30,8 @@ Take this very simple example. The app has three two inputs that control the ran
 
 ```{r}
 ui <- fluidPage(
-  numericInput("min", "min", 0),
-  numericInput("max", "max", 3),
+  numericInput("min", "Minimum", 0),
+  numericInput("max", "Maximum", 3),
   sliderInput("n", "n", min = 0, max = 3, value = 1)
 )
 server <- function(input, output, session) {
@@ -43,7 +44,18 @@ server <- function(input, output, session) {
 }
 ```
 
-<!-- figure showing four screenshots after updating min and max  -->
+```{r update-basics, fig.cap = "The app on load (left), after increasing max (middle), and then decreasing min (right).", out.width = "33%", fig.show = "hold", fig.align = "default", echo = FALSE, message = FALSE, cache = FALSE}
+demo <- demo_inline("update-basics", ui, server)
+demo$resize(350)
+demo$screenshot("onload")
+demo$set_values(max = 4)
+demo$screenshot("max-increase")
+demo$set_values(min = -1)
+demo$screenshot("min-decrease")
+demo$deploy()
+```
+
+`r demo$figure()` shows the app in action, and you can play with it yourself at `r demo$link()`.
 
 [^observe]: Note that I've used `observeEvent()` here, although `observe()` would also have worked and would yield shorter code. I generally prefer `observeEvent()` because its argument cleanly separate the event you're listening for from the action you want to take in response.
 
@@ -572,7 +584,7 @@ And then I'll write the server side equivalent of this function: it takes the va
 ```{r}
 filter_var <- function(x, val) {
   if (is.numeric(x)) {
-    x >= val[1] & x <= val[2]
+    !is.na(x) & x >= val[1] & x <= val[2]
   } else if (is.factor(x)) {
     x %in% val
   } else {
@@ -671,6 +683,19 @@ server <- function(input, output, session) {
   output$data <- renderTable(data()[selected(), ])
 }
 ```
+
+```{r filtering-final, fig.cap = "A dynamic user interface automatically generated from the fields of the selected dataset", out.width = "100%", fig.show = "hold", fig.align = "default", echo = FALSE, message = FALSE, cache = FALSE}
+demo <- demo_inline("filtering-final", ui, server, 
+  packages = "purrr", 
+  data = list(dfs = dfs, make_ui = make_ui, filter_var = filter_var)
+)
+demo$set_values(dataset = "Formaldehyde")
+demo$resize(800)
+demo$screenshot()
+demo$deploy()
+```
+
+`r demo$figure()` shows the app in action, and you can play with it yourself at `r demo$link()`.
 
 ### Exercises
 
