@@ -133,6 +133,10 @@ demoApp <- R6::R6Class("demoApp", public = list(
   deploy = function() {
     if (self$running) {
       message("Deploying to shinyapps.io")
+      if (!requireNamespace("rsconnect", quietly = TRUE)) {
+        return(invisible(self))
+      }
+
       rsconnect::deployApp(
         appDir = self$path(),
         appName = paste0("ms-", self$name),
