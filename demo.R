@@ -78,7 +78,7 @@ demoApp <- R6::R6Class("demoApp", public = list(
     if (old == new) {
       FALSE
     } else {
-      message(self$name(), " hash changed: ", old, " -> ", new)
+      message(self$name, " hash changed: ", old, " -> ", new)
       TRUE
     }
   },
