@@ -42,7 +42,7 @@ demoApp <- R6::R6Class("demoApp", public = list(
   },
 
   run = function() {
-    self$running <- self$outdated()
+    self$running <- self$outdated() && !is_ci()
 
     if (self$running) {
       app_from_components(self$path(), self$ui, self$server, self$packages, self$data)
@@ -73,7 +73,14 @@ demoApp <- R6::R6Class("demoApp", public = list(
       return(TRUE)
     }
 
-    readLines(path) != self$hash()
+    old <- readLines(path)
+    new <- self$hash()
+    if (old == new) {
+      FALSE
+    } else {
+      message(self$name(), " hash changed: ", old, " -> ", new)
+      TRUE
+    }
   },
 
   path = function(...) {
@@ -230,3 +237,5 @@ resource_paths_get <- function() {
   resources <- shiny:::.globals$resources
   vapply(resources, "[[", "directoryPath", FUN.VALUE = character(1))
 }
+
+is_ci <- function() isTRUE(as.logical(Sys.getenv("CI")))
