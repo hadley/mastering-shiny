@@ -60,7 +60,7 @@ demoApp <- R6::R6Class("demoApp", public = list(
   },
 
   hash = function() {
-    digest::digest(list(self$ui, self$server, self$packages, self$data))
+    digest::digest(list(as.character(self$ui), self$server, self$packages, self$data))
   },
 
   save_hash = function() {
