@@ -106,7 +106,46 @@ demoApp <- R6::R6Class("demoApp", public = list(
       for (nm in names(vals)) {
         self$driver$setValue(nm, vals[[nm]])
       }
+      Sys.sleep(0.1)
     }
+    invisible(self)
+  },
+
+  execute_js = function(js) {
+    if (self$running) {
+      self$driver$executeScript(js)
+    }
+    invisible(self)
+  },
+
+  click = function(id) {
+    js <- glue::glue('$("#{id}").click()');
+    self$execute_js(js)
+  },
+
+  drop_down = function(id, pos = NULL) {
+    js <- glue::glue('
+      $("#{id}")
+        .siblings()
+        .filter(".selectize-control")
+        .find(".selectize-input")
+        .click();
+    ')
+    self$execute_js(js)
+
+    if (!is.null(pos)) {
+      js <- glue::glue('
+        $($("#{id}")
+          .siblings()
+          .filter(".selectize-control")
+          .find(".selectize-dropdown-content")
+          .children()
+          .get({pos - 1}))
+          .mouseenter();
+        ')
+      self$execute_js(js)
+    }
+
     invisible(self)
   },
 
@@ -137,9 +176,9 @@ demoApp <- R6::R6Class("demoApp", public = list(
     }
   },
 
-  deploy = function() {
+  deploy = function(quiet = TRUE) {
     if (self$running) {
-      message("Deploying to shinyapps.io")
+      message("Deploying ", self$name, " to shinyapps.io")
       if (!requireNamespace("rsconnect", quietly = TRUE)) {
         return(invisible(self))
       }
@@ -150,7 +189,7 @@ demoApp <- R6::R6Class("demoApp", public = list(
         appTitle = paste0("Mastering Shiny: ", self$name),
         server = "shinyapps.io",
         forceUpdate = TRUE,
-        logLevel = "quiet",
+        logLevel = if (quiet) "quiet" else "normal",
         launch.browser = FALSE
       )
       fs::dir_delete(self$path("rsconnect"))
@@ -165,6 +204,13 @@ demoApp <- R6::R6Class("demoApp", public = list(
 
   figure = function() {
     paste0("Figure \\@ref(fig:", self$name, ")")
+  },
+
+  caption = function(text = NULL) {
+    paste0(
+      text, if (!is.null(text)) " ",
+      "See live at ", self$link(), "."
+    )
   }
 ))
 

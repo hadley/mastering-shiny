@@ -6,17 +6,17 @@ source("demo.R")
 ```
 
 So far, we've seen a clean separation between the user interface and the server function. The user interface is defined statically, when the app is launched. That means it can't respond to anything that happens in the app. In this chapter, you'll learn how to create __dynamic__ user interfaces, using code run in the server function. 
-
 There are three key techniques for creating dynamic user interfaces:
 
 * Using the `update` functions to modify the parameters of input controls.
 
-* Using `tabsetPanel()` to conditionally show and hide different UI.
+* Using `tabsetPanel()` to conditionally show and hide parts of the user 
+  interface.
 
-* Using `uiOutput()` and `renderUI()` to generate entinre parts of the user 
-  interface from code. 
+* Using `uiOutput()` and `renderUI()` to generate selected parts of the user 
+  interface with code. 
 
-These three tools give you considerable power to respond to the user's actions by modifying the user interface. I'll demonstrate some of the more useful ways in which you can apply them, but ultimately, you are only constrained by your creativity. That said, these tools can make your app substantially more difficult to reason about, so you should deploy them sparingly, and always use the simplest technique that solves your problem.
+These three tools give you considerable power to respond to the user by modifying inputs and outputs. I'll demonstrate some of the more useful ways in which you can apply them, but ultimately, you are only constrained by your creativity. That said, these tools can make your app substantially more difficult to reason about, so deploy them sparingly, and always strive for the simplest technique that solves your problem.
 
 ```{r setup}
 library(shiny)
@@ -24,9 +24,9 @@ library(shiny)
 
 ## Updating inputs
 
-We'll begin with the simplest technique that allows you to tweak the parameters of an input after it has been created. Every input control, e.g. `textInput()`, is paired with a update function, e.g. `updateTextInput()`, that allows you to modify the control after it has been created. Each update function has the same arguments as the corresponding constructor, allowing you to change any of arguments after construction.
+We'll begin with a simple technique that allows you to modify an input after it has been created. Every input control, e.g. `textInput()`, is paired with an __update function__, e.g. `updateTextInput()`, that allows you to modify the control after it has been created. The update funtions look a little different to other Shiny functions: they all takes the current `session` as the first argument, and the name of the input (as a string) as the second. The remaining arguments match the arguments to the input constructor.
 
-Take this very simple example. The app has three two inputs that control the range (the `min` and `max`) of the a slider. The key idea is to use `observeEvent()`[^observe] to trigger `updateNumericInput()` whenever the `min` or `max` inputs change. `updateNumericInput()` looks a little different to other Shiny functions: it takes the current `session` as the first argument, and the name of the input (as a string) as the second. The remaining arguments match the arguments to the input constructor.
+Take this very simple example. The app has two inputs that control the range (the `min` and `max`) of another input, a slider. The key idea is to use `observeEvent()`[^observe] to trigger `updateNumericInput()` whenever the `min` or `max` inputs change. 
 
 ```{r}
 ui <- fluidPage(
@@ -44,7 +44,7 @@ server <- function(input, output, session) {
 }
 ```
 
-```{r update-basics, fig.cap = "The app on load (left), after increasing max (middle), and then decreasing min (right).", out.width = "33%", fig.show = "hold", fig.align = "default", echo = FALSE, message = FALSE, cache = FALSE}
+```{r update-basics, fig.cap = demo$caption("The app on load (left), after increasing max (middle), and then decreasing min (right)."), out.width = "33%", fig.show = "hold", fig.align = "default", echo = FALSE, message = FALSE, cache = FALSE}
 demo <- demo_inline("update-basics", ui, server)
 demo$resize(350)
 demo$screenshot("onload")
@@ -55,15 +55,15 @@ demo$screenshot("min-decrease")
 demo$deploy()
 ```
 
-`r demo$figure()` shows the app in action, and you can play with it yourself at `r demo$link()`.
+`r demo$figure()` shows the app in action.
 
-[^observe]: Note that I've used `observeEvent()` here, although `observe()` would also have worked and would yield shorter code. I generally prefer `observeEvent()` because its argument cleanly separate the event you're listening for from the action you want to take in response.
+[^observe]: Note that I've used `observeEvent()` here, although `observe()` would also work and would be more concise. I generally prefer `observeEvent()` because its arguments cleanly separate the event you're listening for from the action you want to take in response.
 
-To help you get the hang of the update functions, I'll next show a couple more simple examples. Then we'll dive into a more complicated case study using hierarchical select boxes. I'll finish off by discussing circular references, a major challenge with update functions, and the related problem of multiple sources of truth.
+To help you get the hang of the update functions, I'll show a couple more simple examples. Then we'll dive into a more complicated case study using hierarchical select boxes, and I'll finish off by discussing circular references and the related problem of multiple sources of truth.
 
 ### Simple uses
 
-The simplest uses of the update functions are to provide small conveniences for the user. For example, maybe you want to make it easy to reset some parameters back to their starting place. The following snippet shows how you might combine an `actionButton()`, `observeEvent()` and `updateNumericInput()`:
+The simplest uses of the update functions are to provide small conveniences for the user. For example, maybe you want to make it easy to reset parameters back to their initial value. The following snippet shows how you might combine an `actionButton()`, `observeEvent()` and `updateNumericInput()`:
 
 ```{r}
 ui <- fluidPage(
@@ -82,6 +82,19 @@ server <- function(input, output, session) {
 }
 ```
 
+```{r update-reset, fig.cap = demo$caption(), out.width = "33%", fig.show = "hold", fig.align = "default", echo = FALSE, message = FALSE, cache = FALSE}
+demo <- demo_inline("update-reset", ui, server)
+demo$resize(350)
+demo$screenshot("onload")
+demo$set_values(x1 = 5, x2 = -5)
+demo$screenshot("set")
+demo$click("reset")
+demo$screenshot("reset")
+demo$deploy()
+```
+
+You can play with it yourself at `r demo$link()`.
+
 A similar application is to tweak the text of an action button so you know exactly what it's going to do:
 
 ```{r}
@@ -97,6 +110,19 @@ server <- function(input, output, session) {
   })
 }
 ```
+
+```{r update-button, fig.cap = demo$caption(), out.width = "33%", fig.show = "hold", fig.align = "default", echo = FALSE, message = FALSE, cache = FALSE}
+demo <- demo_inline("update-button", ui, server)
+demo$resize(350)
+demo$screenshot("onload")
+demo$set_values(n = 1)
+demo$screenshot("set1")
+demo$set_values(n = 100)
+demo$screenshot("set100")
+demo$deploy()
+```
+
+You can see this app in action at `r demo$link()`.
 
 There are many ways to use update functions in this way; be on the look out for ways to give more information to the user when you are working on sophisticated applications. A particularly important application is making it easier to select from a long list of possible options, through step-by-step filtering. That's often a problem for "hierarchical select boxes".
 
@@ -159,6 +185,7 @@ server <- function(input, output, session) {
   })
   
   customer <- reactive({
+    req(input$customername)
     filter(territory(), CUSTOMERNAME == input$customername)
   })
   observeEvent(customer(), {
@@ -167,14 +194,30 @@ server <- function(input, output, session) {
   })
   
   output$data <- renderTable({
-    filter(customer(), ORDERNUMBER == input$ordernumber)
+    req(input$ordernumber)
+    customer() %>% 
+      filter(ORDERNUMBER == input$ordernumber) %>% 
+      select(QUANTITYORDERED, PRICEEACH, PRODUCTCODE)
   })
 }
 ```
 
-<!-- TODO: figure -->
+```{r update-nested, fig.cap = demo$caption('I select "EMEA" (left), then "Lyon Souveniers" (middle), then (right) look at the orders.'), out.width = "33%", fig.show = "hold", fig.align = "default", echo = FALSE, message = FALSE, cache = FALSE}
+demo <- demo_inline("update-nested", ui, server, packages = "dplyr", data = list(sales = sales))
+demo$set_values(territory = "EMEA") # so we get some data to size whole page
+demo$resize(400)
+demo$set_values(territory = "NA")
+demo$drop_down("territory", 2)
+demo$screenshot("territory")
+demo$set_values(territory = "EMEA")
+demo$drop_down("customername", 2)
+demo$screenshot("customername")
+demo$set_values(customername = "Lyon Souveniers")
+demo$screenshot("orders")
+demo$deploy()
+```
 
-You can see a more fleshed out application of this principle in <https://github.com/hadley/mastering-shiny/tree/master/sales-dashboard>.
+Try out this simple example at `r demo$link()`, or see a more fully fleshed out application at <https://github.com/hadley/mastering-shiny/tree/master/sales-dashboard>.
 
 ### Circular references
 
@@ -227,9 +270,22 @@ If you play around with this app, you'll notice that it _mostly_ works, but you 
 * 48 C converts to 118 F, so F changes again to 118.
 * Fortunately 118 F is still 48 C, so the updates stop there.
 
-There's no way around this problem because you have one idea (the temperature) with two expressions in the app (Celsius and Fahrenheit). Here we are lucky that cycle quickly converges to a value that satisfies both constraints. In general, you are better off avoiding these situations, unless you are willing to very carefully analysis the convergence properties of the underlying dynamic system that you have created.
+```{r update-temperature, out.width = "33%", fig.show = "hold", fig.align = "default", echo = FALSE, message = FALSE, cache = FALSE}
+demo <- demo_inline("update-temperature", ui, server)
+demo$resize(300)
+demo$set_values(temp_f = 120)
+Sys.sleep(0.1)
+demo$screenshot("f-120")
+demo$set_values(temp_f = 119)
+demo$screenshot("f-119")
+Sys.sleep(0.1)
+demo$screenshot("f-118")
+demo$deploy()
+```
 
-<!-- Similar problem: https://community.rstudio.com/t/mutually-dependent-numericinput-in-shiny/29307 -->
+You can try this out yourself at `r demo$link()`.
+
+There's no way around this problem because you have one idea (the temperature) with two expressions in the app (Celsius and Fahrenheit). Here we are lucky that cycle quickly converges to a value that satisfies both constraints. In general, you are better off avoiding these situations, unless you are willing to very carefully analysis the convergence properties of the underlying dynamic system that you have created.
 
 ### Exercises
 
@@ -277,6 +333,9 @@ There's no way around this problem because you have one idea (the temperature) w
     and hence see all countries. You'll need to add `""` to the list of
     choices, and then handle that specially when filtering.
 
+1.  What is at the heart of the problem described at 
+    <https://community.rstudio.com/t/29307>?
+
 ## Dynamic visibility
 
 The next step up in complexity is to selectively show and hide parts of the UI. You'll learn a number of sophisticated approaches later, once you've learned a little JS and CSS, but there's a useful technique that you can use now: concealing optional UI in a tabset. This is a clever hack that allows you to show and hide UI as needed, without having to re-generate it from scratch (as you'll learn in the next section).
@@ -310,7 +369,16 @@ server <- function(input, output, session) {
 }
 ```
 
-<!-- TODO: add figure -->
+```{r dynamic-panels, fig.cap = demo$caption(), out.width = "33%", fig.show = "hold", fig.align = "default", echo = FALSE, message = FALSE, cache = FALSE}
+demo <- demo_inline("dynamic-panels", ui, server)
+demo$resize(300, 220)
+demo$screenshot()
+demo$set_values(controller = "panel2")
+demo$screenshot("panel2")
+demo$set_values(controller = "panel3")
+demo$screenshot("panel3")
+demo$deploy()
+```
 
 There are two main ideas here:
 
@@ -380,7 +448,14 @@ server <- function(input, output, session) {
 }
 ```
 
-<!-- TODO: figure -->
+```{r dynamic-conditional, fig.cap = demo$caption(), out.width = "50%", fig.show = "hold", fig.align = "default", echo = FALSE, message = FALSE, cache = FALSE}
+demo <- demo_inline("dynamic-conditional", ui, server)
+demo$resize(800)
+demo$screenshot("normal")
+demo$set_values(dist = "uniform")
+demo$screenshot("uniform")
+demo$deploy()
+```
 
 ### Wizard interface
 
