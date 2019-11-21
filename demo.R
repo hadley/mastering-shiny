@@ -87,6 +87,12 @@ demoApp <- R6::R6Class("demoApp", public = list(
     fs::path("demos", self$name, ...)
   },
 
+  sleep = function(x) {
+    if (self$running) {
+      Sys.sleep(x)
+    }
+  },
+
   resize = function(width, height = NULL) {
     if (self$running) {
       if (!is.null(height)) {

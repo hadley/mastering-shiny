@@ -447,7 +447,7 @@ server <- function(input, output, session) {
 ```{r dynamic-conditional, fig.cap = demo$caption("Results for normal (left), uniform (middle), and exponential (right) distributions."), out.width = "33%", fig.show = "hold", fig.align = "default", echo = FALSE, message = FALSE, cache = FALSE}
 demo <- demo_inline("dynamic-conditional", ui, server)
 demo$resize(400)
-Sys.sleep(0.2)
+demo$sleep(1)
 s1 <- demo$screenshot("normal")
 demo$set_values(dist = "uniform")
 Sys.sleep(0.1)
