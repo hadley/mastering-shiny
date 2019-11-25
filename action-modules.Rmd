@@ -26,7 +26,7 @@ Advantages of functions and modules:
     you can just change it in one place.
   
 *   You can spread your app across multiple files, so that it can be more 
-    easily digested in chunks. Because you're using finctions and modules
+    easily digested in chunks. Because you're using functions and modules
     you can read the files independently. You don't have to load all the 
     pieces into your head to understand how the whole thing hangs together.
     
@@ -76,7 +76,7 @@ There are two advantages to using a function:
 * It makes it clear from the outside exactly how what inputs your function
   takes. When looking at a reactive expression or output, there's no way to
   easily tell exactly what values it depends on, except by carefully reading
-  the code block. The function defintion is a nice signpost that tells you 
+  the code block. The function definition is a nice signpost that tells you 
   exactly what to inspect.  
 
 A function also _enforces_ this independence --- if you try and refer to an input that you did not pass into the function, you'll get an error. This enforced independence becomes increasingly important as you create bigger and bigger apps because it ensures that pieces of your app are independent and can be analysed in isolation.
@@ -125,7 +125,7 @@ ui <- fluidRow(
 )
 ```
 
-If you're comfortable with functional programming, you could reduce the code still further as below. htmltools (the package that provides the underlying html code to Shiny) supports tidy dots only in the development version. `fluidRow(!!!list(a, b))` is equivalent to `fluidRow(a, b)`. This technique is sometimes calld splatting because you're splatting the elements of a list into the arguments of a function.
+If you're comfortable with functional programming, you could reduce the code still further as below. htmltools (the package that provides the underlying html code to Shiny) supports tidy dots only in the development version. `fluidRow(!!!list(a, b))` is equivalent to `fluidRow(a, b)`. This technique is sometimes called splatting because you're splatting the elements of a list into the arguments of a function.
 
 ```{r}
 if (packageVersion("htmltools") >= "0.3.6.9004") {
@@ -387,7 +387,7 @@ There are two problems with this approach:
     ```
 
     Debugging the problem that this creates will be painful because it will 
-    reveal itself through failure of reactivity - the output won't upate as you
+    reveal itself through failure of reactivity - the output won't update as you
     expect, or you'll get weird errors because two controls are fighting for 
     the same input value. 
 
