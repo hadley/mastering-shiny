@@ -6,14 +6,15 @@ Imports:
     ggforce,
     openintro,
     shiny,
+    shinyFeedback,
     shinythemes,
     tidyverse,
-    vroom,
-    shinyFeedback
+    vroom
 Suggests:
-    bookdown, 
+    bookdown,
     desc,
     png,
     sessioninfo,
     shinytest,
     webshot (>= 0.5.0.9000)
+Encoding: UTF-8
