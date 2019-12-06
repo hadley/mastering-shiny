@@ -8,7 +8,8 @@ Imports:
     shiny,
     shinythemes,
     tidyverse,
-    vroom
+    vroom,
+    shinyFeedback
 Suggests:
     bookdown, 
     desc,

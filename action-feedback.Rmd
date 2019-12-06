@@ -2,11 +2,10 @@
 
 ```{r, include = FALSE}
 source("common.R")
+source("demo.R")
 ```
 
-Important to respond to the user as they interact with your app. In this chapter we'll show how you can dynamically push feedback out of R and into the browser.  
-
-Many of the techniques here are best described as side-effects so that they can appear only at the end of the reactive graph.
+It's important to give the user feedback as they interact with your app. Some feedback occurs naturally through outputs, but often you'll need a side-channel to let the user know that they've given the app an invalid input or its taking a little while for some action to occur. In this chapter, you'll learn how to keep the user up to date with what's happening with validation message and notifications. Many of the techniques described here are best thought of as side-effects; they are things that happen at the end of the reactive graph.
 
 ```{r setup}
 library(shiny)
@@ -14,29 +13,162 @@ library(shiny)
 
 ## Validation
 
+The first and most important feedback you can give to the user is that they've given you bad input. 
+
+It's particularly important to think through how the user might use your app incorrectly so that you can give them informative messages in the UI, rather than allowing errors to trickle through into the R code where the error messages might not be so important.
+
+In this section, you'll learn about the `req()` and `validate()` functions.
+
 ### Ignore missing inputs
 
-Most frequent offender is `textInput()`, because it starts off blank. Can also use with `inputSelect()` with a choice of `""`. Another important use case is with `fileInput()`, see Section \@ref(#upload) for more details.
+Sometimes you don't want to do anything until the user has performed some action. By default, a reactive will perform computation as soon as the app loads, but sometimes you want to wait until the user has provided some data.
 
-The easiest way to fix this problem is with `req()`: it checks that the input has been set before proceeding. `req()` sends a special signal to Shiny telling it that the reactive isn't ready yet[^technically]
+This occurs primarily with three controls:
 
-[^technically]: Technically, it leaves any downstream reactive consumers in an invalidated state. We'll come back to this terminology in Chapter \@ref{reactive-components}.
+* `textInput()` starts off blank (`""`) so you may want to delay computation
+  until the user has entered some text.
+  
+* In `inputSelect()` you may have provided an empty choice, `""`, to indicate
+  no selection.
+  
+* `fileInput()` will have an empty result until the user has uploaded a file.
+  See Section \@ref(#upload) for more details.
+
+The easiest way to fix this problem is with `req()`: it checks that the input has been set before proceeding. `req()` sends a special signal to Shiny telling it that the reactive isn't ready yet. For example, consider the following app which will generate a greeting in English or Maori. If you run this app, you'll see an error, as in Figure \@ref(fig:require-simple). That's because there's no entry in the `greetings` vector that corresponds to the choice of `""`.
 
 
+```{r}
+ui <- fluidPage(
+  selectInput("language", "Language", choices = c("", "English", "Maori")),
+  textInput("name", "Name"),
+  textOutput("greeting")
+)
 
-You can use `req()` inside of an output, but it's good practice to use inside a `reactive()` because it isolates computation in one place.
+server <- function(input, output, session) {
+  greetings <- c(
+    English = "Hello", 
+    Maori = "Ki ora"
+  )
+  output$greeting <- renderText({
+    paste0(greetings[[input$language]], " ", input$name, "!")
+  })
+}
+```
 
-Truthi-ness. `req()` is designed so that `req(input$x)` will do what you expect regardless of what type of input `x` is. You can see the details in `?isTruthy`
+```{r require-simple, echo = FALSE, message = FALSE, cache = FALSE, fig.cap = "The app displays an uninformation error when it is loaded because language hasn't been selected yet", out.width = "50%", fig.show = "hold"}
+demo <- demo_inline("require-simple", ui, server)
+demo$resize(400)
+demo$screenshot()
+```
 
+You can fix this problem by using `req()`. Now nothing will be displayed until the user has suppled values for both language and name, as shown in Figure \@ref(fig:require-simple2).
 
+```{r}
+server <- function(input, output, session) {
+  greetings <- c(
+    English = "Hello", 
+    Maori = "Ki ora"
+  )
+  output$greeting <- renderText({
+    req(input$language, input$name)
+    paste0(greetings[[input$language]], " ", input$name, "!")
+  })
+}
+```
+
+```{r require-simple2, fig.cap = "By using `req()`, the output is only shown once both language and name have been supplied", out.width = "33%", fig.show = "hold", fig.align = "default", echo = FALSE, message = FALSE, cache = FALSE}
+demo <- demo_inline("require-simple2", ui, server)
+demo$resize(400)
+s1 <- demo$screenshot("on-load")
+demo$set_values(language = "English")
+s2 <- demo$screenshot("langauge")
+demo$set_values(name = "Hadley")
+s3 <- demo$screenshot("name")
+knitr::include_graphics(c(s1, s2, s3))
+```
+
+`req()` is designed so that `req(input$x)` should just work regardless of what type of input `x` is: if you're interested you can read about the details in `?isTruthy`. You can also use `req()` with your own logical statement if needed. For example, `req(input$a > 0)` will only trigger computation when a is greater than 0.
+
+In certain cases, you might want to leave the last output up. For example, imagine you allow the user to type the name of a dataset. As they're typing, reactives will be firing, and it'd be nice to only change the output once they've typed a complete name.
+
+```{r}
+ui <- fluidPage(
+  textInput("dataset", "Dataset name"), 
+  tableOutput("data")
+)
+server <- function(input, output, session) {
+  output$data <- renderTable({
+    req(input$dataset)
+    req(exists(input$dataset, "package:datasets"), cancelOutput = TRUE)
+    head(get(input$dataset, "package:datasets"))
+  })
+}
+```
+
+Also note that I've used `req()` twice; the first time prevents `exists("")` being called, which triggers an error.
+
+`req()` works by signalling a special condition (condition is the term that refers jointly to errors, warnings, and messages). This special condition causes all downstream reactives and outputs to stop executing. Technically, it leaves any downstream reactive consumers in an invalidated state. We'll come back to this terminology in Chapter \@ref{reactive-components}.
 
 ### Validate input
 
-You can extend the same technique to provide other feedback.
+If you want to give additional feedback to the user, a great way to do so is with the [shinyFeedback](https://github.com/merlinoa/shinyFeedback) package. There are two steps to use it. First, you add `useShinyFeedback()` to the ui:
 
-`validate()`
+```{r}
+ui <- fluidPage(
+  shinyFeedback::useShinyFeedback(),
+  
+  textInput("dataset", "Dataset name"), 
+  tableOutput("data")
+)
+```
 
-With `tryCatch()`
+Then you call `feedbackDanger()` or `feedbackWarning()` in the server function. Since the logic is starting to get complicated, I've pulled out the validation into a reactive. The sequence of operations is basically the same as before except now that I pull out `exist` into a separate variable and use it for both `feedbackDanger()` and `req()`.
+
+```{r}
+server <- function(input, output, session) {
+  data <- reactive({
+    req(input$dataset)
+    
+    exists <- exists(input$dataset, "package:datasets")
+    shinyFeedback::feedbackDanger("dataset", !exists, "Unknown dataset")
+    req(exists, cancelOutput = TRUE)
+
+    get(input$dataset, "package:datasets")
+  })
+  
+  output$data <- renderTable({
+    head(data())
+  })
+}
+```
+
+Note that `feedbackDanger()` is parameterised in the opposite direction to `req()` so it gets a `!`.
+
+### Validate output
+
+Sometimes the problem is not related to a single input, but is related to an invalid combination of inputs. In this case, rather than putting the error message next to the input, it might make more sense to put it in the output. You can do so with a tool built into shiny: `validate()`.
+
+```{r}
+ui <- fluidPage(
+  numericInput("x", "x", value = 0),
+  selectInput("trans", "transformation", choices = c("square", "log", "square-root")),
+  textOutput("out")
+)
+
+server <- function(input, output, server) {
+  output$out <- renderText({
+    if (input$x < 0 && input$trans %in% c("log", "square-root")) {
+      validate("x can not be negative for this transformation")
+    }
+    
+    switch(input$trans,
+      square = input$x ^ 2,
+      "square-root" = sqrt(input$x),
+      log = log(input$x)
+    )
+  })
+}
+```
 
 ## Notifications
 
