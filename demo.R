@@ -1,3 +1,4 @@
+shiny:::withPrivateSeed(set.seed(100))
 
 #' @examples
 #' ui <- fluidPage("Hello world!")
