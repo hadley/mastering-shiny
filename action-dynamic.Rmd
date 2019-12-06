@@ -812,7 +812,7 @@ server <- function(input, output, session) {
     reduce(each_var, `&`)
   })
   
-  output$data <- renderTable(head(iris[selected(), ], 12))
+  output$data <- renderTable(head(data()[selected(), ], 12))
 }
 ```
 
