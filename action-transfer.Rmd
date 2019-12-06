@@ -84,7 +84,7 @@ ui <- fluidPage(
 server <- function(input, output, session) {
   data <- reactive({
     req(input$file)
-    ext <- tools::file_ext(input$file$filename)
+    ext <- tools::file_ext(input$file$name)
     validate(need(ext == "csv", "Please upload a CSV file"))
     
     vroom::vroom(input$file$datapath, delim = ",")
