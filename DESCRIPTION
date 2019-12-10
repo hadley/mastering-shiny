@@ -9,7 +9,8 @@ Imports:
     shinyFeedback,
     shinythemes,
     tidyverse,
-    vroom
+    vroom,
+    waiter
 Suggests:
     bookdown,
     desc,
