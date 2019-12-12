@@ -5,12 +5,9 @@ source("common.R")
 source("demo.R")
 ```
 
-It's important to give the user feedback as they interact with your app. Some feedback occurs naturally through outputs, but often you'll need a side-channel to let the user know that they've given the app an invalid input or its taking a little while for some action to occur. In this chapter, you'll learn how to keep the user up to date with what's happening with validation message and notifications. Many of the techniques described here are best thought of as side-effects; they are things that happen at the end of the reactive graph.
+It's important to give the user feedback as they interact with your app. Some feedback occurs naturally through outputs, but often you'll need a side-channel to let the user know that they've given the app an invalid input or its taking a little while for some action to occur. In this chapter, you'll learn how to keep the user up to date with what's happening with. 
 
-* Validation
-* Notification
-* Progress bars
-* Dialog boxes
+We'll start with __validation__, informing the user when an input value is incorrect. We'll continue to __notification__, sending general messages to the user, then __progress bars__ to give precise information about long running operations. We'll finish up by talking about protecting dangerous actions with __confirmation__ and __undo__.
 
 ```{r setup}
 library(shiny)
@@ -40,7 +37,6 @@ This occurs primarily with three controls:
   See Section \@ref(#upload) for more details.
 
 The easiest way to fix this problem is with `req()`: it checks that the input has been set before proceeding. `req()` sends a special signal to Shiny telling it that the reactive isn't ready yet. For example, consider the following app which will generate a greeting in English or Maori. If you run this app, you'll see an error, as in Figure \@ref(fig:require-simple). That's because there's no entry in the `greetings` vector that corresponds to the choice of `""`.
-
 
 ```{r}
 ui <- fluidPage(
@@ -121,7 +117,6 @@ If you want to give additional feedback to the user, a great way to do so is wit
 ```{r}
 ui <- fluidPage(
   shinyFeedback::useShinyFeedback(),
-  
   textInput("dataset", "Dataset name"), 
   tableOutput("data")
 )
@@ -177,7 +172,7 @@ server <- function(input, output, server) {
 
 ## Notifications
 
-In other cases, their might not be a problem, but you just want to let the user know what's happening, particularly if you need to perform some operation that takes a while. You can use `showNotification()` to display a notification dialog. Notifications automatically automatically stack in the bottom right corner of the page.
+In other cases, there might not be a problem, but you just want to let the user know what's happening, particularly if you need to perform some operation that takes a while. You can use `showNotification()` to display a notification dialog. Notifications automatically automatically stack in the bottom right corner of the page.
 
 ### Transient notification
 
@@ -375,52 +370,146 @@ server <- function(input, output, session) {
 
 See the complete list of progreess animations at `?waiter::spinners`.
 
-## Dialogs
+## Confirming and undoing
 
-Sometimes you need to give more information to the user than you can fit in a simple notification, or you want the user to take some action, or  or the information is so important that you want to force the user to read and respond.
+Sometimes an action is potentially dangerous, and you either want to make sure that the user _really_ wants to do it, or you want to give them the ability to back out before it's too late. The three techniques in this section layout your basic options and give you some tips for how you might implement them in your app.
 
-This is called a "modal" dialog because it creates a new "mode" of interaction; you can't interact with the main application until you have dealt with the dialog.
+### Explicit confirmation
 
-### Simple
+The simplest approach to protecting the user from accidentally performing a dangerous action is to require an explicit confirmation. The easiest way is to use a dialog box which forces the user to pick from one of a small set of actions. In Shiny, you create a dialog box with `modalDialog()`. This is called a "modal" dialog because it creates a new "mode" of interaction; you can't interact with the main application until you have dealt with the dialog.
+
+Imagine you have an Shiny app that deletes some files from a directory (or rows in a database etc). This is hard to undo so you want to make sure that the user is really sure. You could create a dialog box that requires an explicit confirmation as follows:
 
 ```{r}
-delete_all <- modalDialog(
-  "ALL FILES DELETED", 
-  footer = NULL,
-  easyClose = TRUE
-)
-
-modal_ui <- modalDialog(
-  "This is really important!",
+modal_confirm <- modalDialog(
   "Are you sure you want to continue?",
+  title = "Deleting files",
   footer = list(
-    actionButton("yes", "yes"),
-    actionButton("no", "no")
+    actionButton("cancel", "Cancel"),
+    actionButton("ok", "Delete", class = "btn btn-danger")
   )
 )
 ```
 
+There are a few small, but important, details to consider when creating a dialog box:
+
+* What should you call the buttons? It's best to be descriptive, so avoid
+  yes/no or continue/cancel in favour of recaptiulating the key verb.
+
+* How should you order the buttons? Do you put cancel first (like the Mac), 
+  or continue first (like Windows)? Your best option is to mirror the platform
+  that you think most people will be using. 
+
+* Can you make the dangerous option more obvious? Here I've used 
+  `class = "btn btn-danger"` to style the button prominently.
+  
+Jakob Nielsen has more good advice at  <http://www.useit.com/alertbox/ok-cancel.html>
+
+Let's use this dialog in a real (if very simple) app. Our UI exposes a single button to "delete all the files":
+
 ```{r}
 ui <- fluidPage(
-  actionButton("go", "Go")
+  actionButton("delete", "Delete all files?")
 )
+```
 
+There are two new ideas in the `server()`: 
+
+* We use `showModal()` and `removeModal()` to show and hide the dialog.
+
+* We observe events generated by the UI from `modal_confirm`. These objects
+  aren't created statically in the `ui`, but are instead dynamically added
+  in the `server()` by `showModal()`. You'll see that technique in much 
+  more detail in Chapter \@ref(action-dynamic).
+
+```{r}
 server <- function(input, output, session) {
-  observeEvent(input$go, {
-    showModal(modal_ui)
+  observeEvent(input$delete, {
+    showModal(modal_confirm)
   })
   
-  observeEvent(input$yes, 
-    showModal(delete_all)
-  )
-  observeEvent(input$no, 
+  observeEvent(input$ok, {
+    showNotification("Files deleted")
+    removeModal()
+  })
+  observeEvent(input$cancel, 
     removeModal()
   )
 }
 ```
 
-### Complex 
+ We'll come back to more sophisticated uses of modal dialog boxes in Section \@ref(dynamic-dialog).
 
-A dialog box can contain any `UI` inside of it.
+### Undoing an action
 
-Another way of creating dynamic UI. See Chapter \@ref(action-dynamic) for more details.
+Explicit confirmation is most useful for destructive actions that are only performed infrequently. You should avoid it if you want to reduce the errors made by frequent actions. For example, this technique would not work for twitter - if there was a dialog box that said "Are you sure you want to tweet this?" you would soon learn to automatically click yes, and still feel the same feeling of regret of noticing a typo 10s after tweeting.
+
+In this situation a better approach is to wait few seconds before actually performing the action, giving the user a chance to notice any problems and undo them. This isn't really an undo (since you're not actually doing anything), but it's an evocative word that users will understand.
+
+I illustrate the technique with a website that I personally wish had an undo button: Twitter. The essence of the Twitter UI is very simple: there's a text area to compose your tweet and a button to send it:
+
+```{r}
+ui <- fluidPage(
+  textAreaInput("message", 
+    label = NULL, 
+    placeholder = "What's happening?",
+    rows = 3
+  ),
+  actionButton("tweet", "Tweet")
+)
+```
+
+The `server()` is quite complex and I'm not going to explain it now, hoping that I can make it simpler.
+
+```{r}
+server <- function(input, output, session) {
+  delete_scheduled <- reactiveVal(FALSE)
+  delete_waiting <- reactiveVal(FALSE)
+  last_message <- NULL
+  
+  observeEvent(input$tweet, {
+    message <- glue::glue("Tweeted '{input$message}'")
+    last_message <<- input$message
+
+    showNotification(
+      message,
+      action = actionButton("undo", "Undo?"),
+      duration = NULL,
+      closeButton = FALSE,
+      id = "tweeted",
+      type = "warning"
+    )
+    updateTextAreaInput(session, "message", value = "")
+    delete_scheduled(TRUE)
+    delete_waiting(FALSE)
+  })
+  
+  observe({
+    if (!delete_scheduled()) {
+      return()
+    }
+    
+    if (isolate(delete_waiting())) {
+      removeNotification("tweeted")
+      delete_waiting(FALSE)
+      delete_scheduled(FALSE)
+    } else {
+      delete_waiting(TRUE)
+      invalidateLater(3000)
+    }
+  })
+  
+  observeEvent(input$undo, {
+    removeNotification("tweeted")
+    showNotification("Tweet retracted")
+    updateTextAreaInput(session, "message", value = last_message)
+    delete_scheduled(FALSE)
+  })
+}
+```
+
+### Trash
+
+For actions that you might regret days later, a more sophisticated pattern is to implement something like the trash or recycling bin on your computer. When you delete a file, it isn't permanently deleted but instead is moved to a holding cell, which requires a separate action to empty. This is like the "undo" option on steroids; you have a lot of time to regret your action. It's also a bit like the confirmation; you have to do two separate actions to make deletion permanent.
+
+The primary downside of this technique is that it is substantially more complicated to implement (you have to have a separate "holding cell" that stores the information need to undo the action), and requires regular intervention from the user to avoid accumulating. For that reason, I think it's beyond the scope of all but the most complicated Shiny apps, so I'm not going to show an implementation here.

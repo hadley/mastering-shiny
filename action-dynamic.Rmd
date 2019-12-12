@@ -498,9 +498,15 @@ server <- function(input, output, session) {
 ### Exercises
 
 
+## Dialog boxes {#dynamic-dialog}
+
+The simplest way to create UI with code is to add a dialog box. A dialog box is "modal" because it creates a new "mode" of interaction; you can't interact with the main application until you have dealt with the dialog.
+
+`modalDialog()` works much like `fluidPage()`: 
+
 ## Creating UI with code
 
-Sometimes neither of the techniques described above gives you the level of dynamism that you need. There's one last technique that gives you the ability to create any controls (both inputs and outputs) with code in the server function. You've always created your UI with code; this technique gives you the ability to re-generate while the app is running, not just define it when the app starts.
+Sometimes none of the techniques described above gives you the level of dynamism that you need. There's one last technique that gives you the ability to create any controls (both inputs and outputs) with code in the server function. You've always created your UI with code; this technique gives you the ability to re-generate while the app is running, not just define it when the app starts.
 
 This technique has two components:
 
