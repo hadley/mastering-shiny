@@ -5,30 +5,87 @@ source("common.R")
 source("demo.R")
 ```
 
-It's important to give the user feedback as they interact with your app. Some feedback occurs naturally through outputs, but often you'll need a side-channel to let the user know that they've given the app an invalid input or its taking a little while for some action to occur. In this chapter, you'll learn how to keep the user up to date with what's happening with. 
+You can often make your app more usable by giving the user more insight in to what is happening. This might take the form of better messages when inputs are invalid, or progress updates for operations that take a long time. Some feedback occurs naturally through outputs, which you already know how to use, but you'll often need something else. The goal of this chapter is to show you what your other options are.
 
-We'll start with __validation__, informing the user when an input value is incorrect. We'll continue to __notification__, sending general messages to the user, then __progress bars__ to give precise information about long running operations. We'll finish up by talking about protecting dangerous actions with __confirmation__ and __undo__.
+We'll start with techniques for __validation__, informing the user when an input (or combination of inputs) is in an invalid state. We'll then continue on to __notification__, sending general messages to the user, and __progress bars__, which give the details for time consuming operations made up of many small steps. We'll finish up by discussing dangerous actions, and how you give you users peace of mind with __confirmation__ dialogs or the ability to __undo__ an action.
+
+In this chapter, as well as shiny, we'll also use [shinyFeedback](https://github.com/merlinoa/shinyFeedback) by Andy Merlino, and [waiter](http://waiter.john-coene.com/), by John Coene.
 
 ```{r setup}
 library(shiny)
 ```
 
+We currently require the development versions of those packages:
+
+```{r, eval = FALSE}
+remotes::install_github("JohnCoene/waiter")
+remotes::install_github("merlinoa/shinyFeedback")
+```
+
 ## Validation
 
-The first and most important feedback you can give to the user is that they've given you bad input. 
+The first and most important feedback you can give to the user is that they've given you bad input. This analogous to writing good functions in R: user-friendly functions give clear error message describing what the expected input is and how you have violated those expectations. Thinking through how the user might missuse your app allows you to porivde informative messages in the UI, rather than allowing errors to trickle through into the R code and generate uninformative errors.
 
-It's particularly important to think through how the user might use your app incorrectly so that you can give them informative messages in the UI, rather than allowing errors to trickle through into the R code where the error messages might not be so important.
+### Validating input
 
-In this section, you'll learn about the `req()` and `validate()` functions.
+If you want to give additional feedback to the user, a great way to do so is with the [shinyFeedback](https://github.com/merlinoa/shinyFeedback) package. There are two steps to use it. First, you add `useShinyFeedback()` to the ui:
 
-### Ignore missing inputs
+```{r}
+ui <- fluidPage(
+  shinyFeedback::useShinyFeedback(),
+  numericInput("n", "n", value = 10),
+  textOutput("half")
+)
+```
 
-Sometimes you don't want to do anything until the user has performed some action. By default, a reactive will perform computation as soon as the app loads, but sometimes you want to wait until the user has provided some data.
+Then call one of the feedback functions in your server function. There are four variants: `feedback()`, `feedbackWarning()`, `feedbackDanger()`, and `feedbackSuccess()`. They all have three key arguments:
 
-This occurs primarily with three controls:
+* `inputId`, the id of the input where the feedback should be place.
+* `show`, a logical determining whether or not to show the feedback.
+* `text`, the text to display.
 
-* `textInput()` starts off blank (`""`) so you may want to delay computation
-  until the user has entered some text.
+We could use that function to display a warning message for odd numbers:
+
+```{r}
+server <- function(input, output, session) {
+  observeEvent(input$n,
+    shinyFeedback::feedbackWarning(
+      "n", 
+      input$n %% 2 != 0,
+      "Please select an even number"
+    )  
+  )
+  output$half <- renderText(input$n / 2)
+}
+```
+
+These feedback functions also have `color` and `icon` arguments that you can use to further customise the appearance. See the documentation for more details.
+
+Notice, however, that while the error message is displayed, the output is still updated. Typically you don't want that because invalid inputs are likely to cause uninformative R errors which you don't want to show to the user. To fix that problem, you need a new tool: `req()`, shorted for "required".
+
+```{r}
+server <- function(input, output, session) {
+  half <- reactive({
+    even <- input$n %% 2 == 0
+    shinyFeedback::feedbackWarning("n", !even, "Please select an even number")
+    req(even)
+    input$n / 2    
+  })
+  
+  output$half <- renderText(half())
+}
+```
+
+When `req()` is not true, it sends a special signal to tell Shiny that the reactive is not complete, so any reactive consumers that follow it in the reactive graph will not be updated. 
+
+We'll take a brief digression to talk about `req()` before we come back to using it in concert with validate.
+
+### Pausing execution with `req()`
+
+It's easiest to understand `req()` by starting with a simple case where it's important outside of validation. An input triggers reactive updates once on app load, before the user does anything. Typically, you'll provide default `value`s in your inputs so that the app starts in a valid state, but sometimes you want to wait until the user has provided some data. This occurs primarily with three controls:
+
+* In `textInput()`, you might want to require the user enter text because
+  you've used the default `value = ""`.
   
 * In `inputSelect()` you may have provided an empty choice, `""`, to indicate
   no selection.
@@ -90,29 +147,11 @@ knitr::include_graphics(c(s1, s2, s3))
 
 `req()` is designed so that `req(input$x)` should just work regardless of what type of input `x` is: if you're interested you can read about the details in `?isTruthy`. You can also use `req()` with your own logical statement if needed. For example, `req(input$a > 0)` will only trigger computation when a is greater than 0.
 
-In certain cases, you might want to leave the last output up. For example, imagine you allow the user to type the name of a dataset. As they're typing, reactives will be firing, and it'd be nice to only change the output once they've typed a complete name.
-
-```{r}
-ui <- fluidPage(
-  textInput("dataset", "Dataset name"), 
-  tableOutput("data")
-)
-server <- function(input, output, session) {
-  output$data <- renderTable({
-    req(input$dataset)
-    req(exists(input$dataset, "package:datasets"), cancelOutput = TRUE)
-    head(get(input$dataset, "package:datasets"))
-  })
-}
-```
+`req()` works by signalling a special condition (condition is the term that refers jointly to errors, warnings, and messages). This special condition causes all downstream reactives and outputs to stop executing. Technically, it leaves any downstream reactive consumers in an invalidated state. We'll come back to this terminology in Chapter \@ref{reactive-components}.
 
 Also note that I've used `req()` twice; the first time prevents `exists("")` being called, which triggers an error.
 
-`req()` works by signalling a special condition (condition is the term that refers jointly to errors, warnings, and messages). This special condition causes all downstream reactives and outputs to stop executing. Technically, it leaves any downstream reactive consumers in an invalidated state. We'll come back to this terminology in Chapter \@ref{reactive-components}.
-
-### Validate input
-
-If you want to give additional feedback to the user, a great way to do so is with the [shinyFeedback](https://github.com/merlinoa/shinyFeedback) package. There are two steps to use it. First, you add `useShinyFeedback()` to the ui:
+### `req()` and validation
 
 ```{r}
 ui <- fluidPage(
@@ -120,11 +159,7 @@ ui <- fluidPage(
   textInput("dataset", "Dataset name"), 
   tableOutput("data")
 )
-```
 
-Then you call `feedbackDanger()` or `feedbackWarning()` in the server function. Since the logic is starting to get complicated, I've pulled out the validation into a reactive. The sequence of operations is basically the same as before except now that I pull out `exist` into a separate variable and use it for both `feedbackDanger()` and `req()`.
-
-```{r}
 server <- function(input, output, session) {
   data <- reactive({
     req(input$dataset)
@@ -142,7 +177,8 @@ server <- function(input, output, session) {
 }
 ```
 
-Note that `feedbackDanger()` is parameterised in the opposite direction to `req()` so it needs a `!` on its condition.
+`cancelOutput`: In certain cases, you might want to leave the last output up. For example, imagine you allow the user to type the name of a dataset. As they're typing, reactives will be firing, and it'd be nice to only change the output once they've typed a complete name.
+
 
 ### Validate output
 
