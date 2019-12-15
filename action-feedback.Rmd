@@ -61,7 +61,7 @@ server <- function(input, output, session) {
 
 These feedback functions also have `color` and `icon` arguments that you can use to further customise the appearance. See the documentation for more details.
 
-Notice, however, that while the error message is displayed, the output is still updated. Typically you don't want that because invalid inputs are likely to cause uninformative R errors which you don't want to show to the user. To fix that problem, you need a new tool: `req()`, shorted for "required".
+Notice, however, that while the error message is displayed, the output is still updated. Typically you don't want that because invalid inputs are likely to cause uninformative R errors which you don't want to show to the user. To fix that problem, you need a new tool: `req()`, shorted for "required". It looks like this:
 
 ```{r}
 server <- function(input, output, session) {
@@ -76,24 +76,28 @@ server <- function(input, output, session) {
 }
 ```
 
-When `req()` is not true, it sends a special signal to tell Shiny that the reactive is not complete, so any reactive consumers that follow it in the reactive graph will not be updated. 
+When the input to `req()` is not true[^truthy], it sends a special signal to tell Shiny that the reactive does not have all the inputs that it requires, so it is "paused". That means any reactive consumers that follow it in the reactive graph will not be updated. We'll take a brief digression to talk about `req()` before we come back to using it in concert with validate.
 
-We'll take a brief digression to talk about `req()` before we come back to using it in concert with validate.
+[^truthy]: More precisely, `req()` proceeds only if its inputs are __truthy__, i.e. any value apart from `FALSE`, `NULL` , `""`, or a handful of other special cases described in `?isTruthy`.
 
 ### Pausing execution with `req()`
 
-It's easiest to understand `req()` by starting with a simple case where it's important outside of validation. An input triggers reactive updates once on app load, before the user does anything. Typically, you'll provide default `value`s in your inputs so that the app starts in a valid state, but sometimes you want to wait until the user has provided some data. This occurs primarily with three controls:
+It's easiest to understand `req()` by starting outside of validation. You may have noticed that when you start an app, the complete reactive graph is computed even before the user does anything. This usually works well, because you have carefully chosen meaningful default `value`s for your inputs. Sometimes, however, you want to wait until the user actually does something.
 
-* In `textInput()`, you might want to require the user enter text because
-  you've used the default `value = ""`.
-  
-* In `inputSelect()` you may have provided an empty choice, `""`, to indicate
-  no selection.
-  
-* `fileInput()` will have an empty result until the user has uploaded a file.
-  See Section \@ref(#upload) for more details.
+This need tends to crop up mainly with three controls:
 
-The easiest way to fix this problem is with `req()`: it checks that the input has been set before proceeding. `req()` sends a special signal to Shiny telling it that the reactive isn't ready yet. For example, consider the following app which will generate a greeting in English or Maori. If you run this app, you'll see an error, as in Figure \@ref(fig:require-simple). That's because there's no entry in the `greetings` vector that corresponds to the choice of `""`.
+* In `textInput()`, you've used `value = ""`, and you don't want to do 
+  anything until the user types something.
+  
+* In `inputSelect()`, you've provide an empty choice, `""`, and you don't
+  want to do anything until the user makes a selection.
+  
+* In `fileInput()`, which has an empty result before the user has uploaded 
+  anything. We'll come back to this in Section \@ref(#upload).
+
+We need some way to "pause" reactives so that nothing happens until some condition is true. That's the job of `req()` which checks for required values before allowing a reactive producer to continue.
+
+For example, consider the following app which will generate a greeting in English or Maori. If you run this app, you'll see an error, as in Figure \@ref(fig:require-simple), because there's no entry in the `greetings` vector that corresponds to the default choice of `""`.
 
 ```{r}
 ui <- fluidPage(
@@ -119,7 +123,7 @@ demo$resize(400)
 demo$screenshot()
 ```
 
-You can fix this problem by using `req()`. Now nothing will be displayed until the user has suppled values for both language and name, as shown in Figure \@ref(fig:require-simple2).
+We can fix this problem by using `req()`, as below. Now nothing will be displayed until the user has suppled values for both language and name, as shown in Figure \@ref(fig:require-simple2).
 
 ```{r}
 server <- function(input, output, session) {
@@ -145,13 +149,15 @@ s3 <- demo$screenshot("name")
 knitr::include_graphics(c(s1, s2, s3))
 ```
 
-`req()` is designed so that `req(input$x)` should just work regardless of what type of input `x` is: if you're interested you can read about the details in `?isTruthy`. You can also use `req()` with your own logical statement if needed. For example, `req(input$a > 0)` will only trigger computation when a is greater than 0.
+`req()` works by signalling a special __condition__[^condition]. This special condition causes all downstream reactives and outputs to stop executing. Technically, it leaves any downstream reactive consumers in an invalidated state. We'll come back to this terminology in Chapter \@ref{reactive-components}.
 
-`req()` works by signalling a special condition (condition is the term that refers jointly to errors, warnings, and messages). This special condition causes all downstream reactives and outputs to stop executing. Technically, it leaves any downstream reactive consumers in an invalidated state. We'll come back to this terminology in Chapter \@ref{reactive-components}.
+[^condition]: Condition refers jointly to errors, warnings, and messages. If you're interested, you can learn more of the details of R's condition system in <https://adv-r.hadley.nz/conditions.html>.
 
-Also note that I've used `req()` twice; the first time prevents `exists("")` being called, which triggers an error.
+`req()` is designed so that `req(input$x)` will only proceed if the user has supplied a value, regardless of the type of the input control. You can also use `req()` with your own logical statement if needed. For example, `req(input$a > 0)` will permit computation to proceed when `a` is greater than 0; this is typically the form you'll use when performing validation, as we'll see next.
 
 ### `req()` and validation
+
+Let's combine `req()` and shinyFeedback to solve a more challenging problem. I'm going to return to the simple app we made in Chapter \@ref(basic-app) which allowed you to select a built-in dataset and see its contents. I'm going to make it more general and more complex by using `textInput()` instead of `selectInput()`. The UI changes very little:
 
 ```{r}
 ui <- fluidPage(
@@ -159,7 +165,21 @@ ui <- fluidPage(
   textInput("dataset", "Dataset name"), 
   tableOutput("data")
 )
+```
 
+But the server function needs to get a little more complex. We're going to use `req()` in two ways: 
+
+* We only want to proceed with computation if the user has entered a
+  value so we do `req(input$dataset)`.
+  
+* Then we check to see if the supplied name actually exists. If it doesn't,
+  we display an error message, and then use `req()` to pause computation.
+  Note the use of `cancelOutput = TRUE`: normally "pausing" a reactive will
+  reset all downstream outputs; using `cancelOutput = TRUE` leaves them
+  displaying the last good value. This is import for `inputText()` which 
+  may trigger an update while you're in the middle of typing a name.
+
+```{r}
 server <- function(input, output, session) {
   data <- reactive({
     req(input$dataset)
@@ -177,12 +197,11 @@ server <- function(input, output, session) {
 }
 ```
 
-`cancelOutput`: In certain cases, you might want to leave the last output up. For example, imagine you allow the user to type the name of a dataset. As they're typing, reactives will be firing, and it'd be nice to only change the output once they've typed a complete name.
-
-
 ### Validate output
 
-Sometimes the problem is not related to a single input, but is related to an invalid combination of inputs. In this case, rather than putting the error message next to the input, it might make more sense to put it in the output. You can do so with a tool built into shiny: `validate()`. When called inside a reactive or a output, `validate(message)` stops execution of the rest of the code and instead displays `message` in any downstream outputs.
+shinyFeedback is great when the problem is related to a single input. But sometimes the invalid state is a result of a combination of inputs. In this case it doesn't really make sense to put the error next to an input (which one would you put it beside?) and instead it makes more sense to put it in the output. 
+
+You can do so with a tool built into shiny: `validate()`. When called inside a reactive or a output, `validate(message)` stops execution of the rest of the code and instead displays `message` in any downstream outputs. The following code shows a simple example where we don't want to log or square-root negative values.
 
 ```{r}
 ui <- fluidPage(
@@ -208,7 +227,7 @@ server <- function(input, output, server) {
 
 ## Notifications
 
-In other cases, there might not be a problem, but you just want to let the user know what's happening, particularly if you need to perform some operation that takes a while. You can use `showNotification()` to display a notification dialog. Notifications automatically automatically stack in the bottom right corner of the page.
+If there isn't a problem and just want to let the user know what's happening, then you need a __notification__. Notifications are particularly useful for long-running operations and can be generated with `showNotification()`. Notifications automatically automatically stack in the bottom right corner of the page.
 
 ### Transient notification
 
@@ -235,12 +254,12 @@ By default, the message will disappear after 5 seconds, which you can override b
 
 ### Removing on completion
 
-If you have a longer running action that you'd like to notify the user about, you can manually remove the notification once the action has completed. In this case you'll need:
+If you have a longer running action that you'd like to notify the user about, you can manually remove the notification once the action has completed. In this case you'll need to:
 
-* `duration = NULL` and `closeButton = FALSE` so that the notification 
+* Set `duration = NULL` and `closeButton = FALSE` so that the notification 
   stays visibile until the data loading is done.
   
-* To store `id` returned by `showNotification()`, and then call 
+* Store `id` returned by `showNotification()`, and then pass this value to 
   `removeNotification()` to remove it once it's done. The most reliable way to 
   do that is to wrap it in `on.exit()`, which ensures that the notification is 
   removed regardless of how the reactive completes. It also has the nice property 
@@ -248,7 +267,7 @@ If you have a longer running action that you'd like to notify the user about, yo
 
 The following example puts the pieces together to shows how you might keep the user up to date when reading in a large csv file[^csv]:
 
-[^csv]: For this specific case you should also look at `data.table::fread()` and `vroom::vroom()` to read in the file; they can be orders of magnitude faster than `read.csv()`.
+[^csv]: If reading csv files is a bottleneck in your application should consider using `data.table::fread()` and `vroom::vroom()` instead; they can be orders of magnitude faster than `read.csv()`.
 
 ```{r}
 server <- function(input, output, session) {
@@ -286,7 +305,7 @@ server <- function(input, output, session) {
     notify("Herding llamas...", id = id)
     Sys.sleep(1)
 
-    notify("Notifying sherpas...", id = id)
+    notify("Orthogonalizing matrices...", id = id)
     Sys.sleep(1)
         
     mtcars
@@ -298,11 +317,9 @@ server <- function(input, output, session) {
 
 ## Progress bars
 
-For long-running tasks, the best type of feedback is a progress bar. As well as telling you where you are in the process, it also helps you estimate how much longer it's going to be: should you take a deep breath, go get a coffee, or come back tomorrow? 
+For long-running tasks, the best type of feedback is a progress bar. As well as telling you where you are in the process, it also helps you estimate how much longer it's going to be: should you take a deep breath, go get a coffee, or come back tomorrow? In this section, I'll show two techniques for displaying progress bars, one built into Shiny, and one from the [waiter](https://waiter.john-coene.com/) package developed by John Coene. Both work roughly the same way, first creating an R6 object and then calling an update method after each step.
 
-In this section I'll show two techniques for displaying progress bars, one build into Shiny, and one from the [waiter](https://waiter.john-coene.com/) package developed by John Coene. Both work roughly the same way, first creating an R6 object and then calling an update method after each step.
-
-Unfortunately both techniques suffer from the same drawbacks. To use a progress bar you need to be able to divide the a big task into a known number of small pieces that each take roughly the same amount of time. This is often hard, particularly since the underlying code is often written in C and you have no insight into what it's doing. We are working on tools in the progress package so that packages like dplyr, readr, and vroom will generate progress bars that you can easily forward to Shiny, and I'll update this chapter with an example when that technology is mature
+Unfortunately both techniques suffer from the major drawback: to use a progress bar you need to be able to divide the a big task into a known number of small pieces that each take roughly the same amount of time. This is often hard, particularly since the underlying code is often written in C and you have no insight into what it s doing. We are working on tools in the [progress package](https://github.com/r-lib/progress) so that packages like dplyr, readr, and vroom will generate progress bars that you can easily forward to Shiny. I'll update this chapter when that approach is mature enough to take advantage of.
 
 ### Shiny
 
@@ -318,6 +335,8 @@ for (i in 1:5) {
 
 progress$close()
 ```
+
+To use a Shiny progress bar, you:
 
 1.  Create a progress bar object with `Progress$new(max = number_of_steps)`.
 
@@ -353,15 +372,13 @@ Here I'm using `Sys.sleep()` to simulate a long running operation; in your code 
 
 ### Waiter
 
-[waiter](https://waiter.john-coene.com/)
-
-Adapating the above code to work with Waiter is straightforward. In the UI, we add `use_waitress()`:
+The built-in progress bar is great for the basics, but if you want something that provides more visual options, you might try the waiter package: [waiter](https://waiter.john-coene.com/). Adapating the above code to work with Waiter is straightforward. In the UI, we add `use_waitress()`:
 
 ```{r}
 library(waiter)
 
 ui <- fluidPage(
-  use_waitress(),
+  waiter::use_waitress(),
   numericInput("steps", "How many steps?", 10),
   actionButton("go", "go")
 )
@@ -372,13 +389,13 @@ And then we replace `Progress` with `Waitress`:
 ```{r}
 server <- function(input, output, session) {
   observeEvent(input$go, {
-    waitress <- Waitress$new()
+    waitress <- waiter::Waitress$new(max = input$steps)
     waitress$start()
-    on.exit(waitress$hide())
+    on.exit(waitress$close())
     
     for (i in seq_len(input$steps)) {
       Sys.sleep(0.5)
-      waitress$increase(1 / input$steps * 100)
+      waitress$inc(1)
     }
   })
 }
@@ -387,19 +404,49 @@ server <- function(input, output, session) {
 The neat thing about Waitress is that you can overlay it on an existing input or output.
 
 ```{r, eval = FALSE}
-waitress <- Waitress$new(id = "#steps", theme = "overlay")
+waitress <- Waitress$new(id = "steps", theme = "overlay")
 ```
 
-One very nice feature of waiter (indeed, the titular feature) is that if you don't know exactly how long the process will take you can use a spinner (a waiter) instead:
+### Indeterminate progress bars
 
-```{r, eval = FALSE}
+Sometimes you don't know exactly how long an operation will take, and you just want to display an spinner.
+
+You can display a whole page spinner:
+
+```{r}
+ui <- fluidPage(
+  waiter::use_waiter(),
+  actionButton("go", "go")
+)
+
 server <- function(input, output, session) {
   observeEvent(input$go, {
-    waiter <- Waiter$new(id = "steps")
-    waiter$start()
+    # req(input$go)
+    waiter <- waiter::Waiter$new(NULL)
+    waiter$show()
     on.exit(waiter$hide())
     
-    Sys.sleep(0.5 * input$steps)
+    Sys.sleep(3)
+  })
+}
+```
+
+Or spinners for specific outputs. In this case, waiter will automatically hide the spinner when the output updates, so it's even easier.
+
+```{r}
+ui <- fluidPage(
+  waiter::use_waiter(),
+  actionButton("go", "go"),
+  plotOutput("plot"),
+)
+
+server <- function(input, output, session) {
+  output$plot <- renderPlot({
+    req(input$go)
+    waiter::Waiter$new("plot")$show()
+    
+    Sys.sleep(3)
+    plot(runif(50), runif(50))
   })
 }
 ```
