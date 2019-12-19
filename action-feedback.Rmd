@@ -227,18 +227,28 @@ server <- function(input, output, server) {
 
 ## Notifications
 
-If there isn't a problem and just want to let the user know what's happening, then you need a __notification__. Notifications are particularly useful for long-running operations and can be generated with `showNotification()`. Notifications automatically automatically stack in the bottom right corner of the page.
+If there isn't a problem and just want to let the user know what's happening, then you want a __notification__. In Shiny, notifications are created with `showNotification()`, and stack in the bottom right of the page. There are three basic ways to use `showNotification()`:
+
+* To show a transient notification, that automatically disappears after a fixed
+  amount of time.
+  
+* To show a notification when a process starts, and remove it when the process 
+  ends.
+
+* To update a single notification with progressive updates.
+
+These three techniques are discussed in turn below.
 
 ### Transient notification
 
-The simplest way to use `showNotification()` is to call it with the message you want to display to the user:
+The simplest way to use `showNotification()` is to call it with a single argument: the message that you want to display.
 
 ```{r}
 ui <- fluidPage(
-  actionButton("night", "Good night")
+  actionButton("goodnight", "Good night")
 )
 server <- function(input, output, session) {
-  observeEvent(input$night, {
+  observeEvent(input$goodnight, {
     showNotification("So long")
     Sys.sleep(1)
     showNotification("Farewell")
@@ -250,22 +260,37 @@ server <- function(input, output, session) {
 }
 ```
 
-By default, the message will disappear after 5 seconds, which you can override by setting `duration`. The user can also dismiss earlier by clicking on the close button. If you want to make the notification more prominent, you can set the `type`, to one of "message", "warning", or "error".
+By default, the message will disappear after 5 seconds, which you can override by setting `duration`, or the user can dismiss it earlier by clicking the close button. If you want to make the notification more prominent, you can set the `type` argument to one of "message", "warning", or "error".
+
+```{r}
+server <- function(input, output, session) {
+  observeEvent(input$goodnight, {
+    showNotification("So long")
+    Sys.sleep(1)
+    showNotification("Farewell", type = "message")
+    Sys.sleep(1)
+    showNotification("Auf Wiedersehen", type = "warning")
+    Sys.sleep(1)
+    showNotification("Adieu", type = "error")
+  })
+}
+```
 
 ### Removing on completion
 
-If you have a longer running action that you'd like to notify the user about, you can manually remove the notification once the action has completed. In this case you'll need to:
+Transient actions disappear after a fixed amount of time, but it's often useful to tie the presence of a notification to a long-running task. In this case, you want to show the notification when the task starts, and remove the notification when the task completes. To do this, you'll need to:
 
 * Set `duration = NULL` and `closeButton = FALSE` so that the notification 
-  stays visibile until the data loading is done.
+  stays visible until the task is complete.
   
 * Store `id` returned by `showNotification()`, and then pass this value to 
-  `removeNotification()` to remove it once it's done. The most reliable way to 
-  do that is to wrap it in `on.exit()`, which ensures that the notification is 
-  removed regardless of how the reactive completes. It also has the nice property 
-  that you can put the show and remove functions right next to each other.
+  `removeNotification()` to remove it when done. The most reliable way to 
+  do so is to use `on.exit()`, which ensures that the notification is removed 
+  regardless of how the task completes (either successfully or with an error).
+  You can learn more about `on.exit()` at
+  <https://adv-r.hadley.nz/functions.html#on-exit>.
 
-The following example puts the pieces together to shows how you might keep the user up to date when reading in a large csv file[^csv]:
+The following example puts the pieces together to show how you might keep the user up to date when reading in a large csv file[^csv]:
 
 [^csv]: If reading csv files is a bottleneck in your application should consider using `data.table::fread()` and `vroom::vroom()` instead; they can be orders of magnitude faster than `read.csv()`.
 
@@ -275,14 +300,16 @@ server <- function(input, output, session) {
     id <- showNotification("Reading data...", duration = NULL, closeButton = FALSE)
     on.exit(removeNotification(id), add = TRUE)
     
-    read.csv(path())
+    read.csv(input$path)
   })
 }
 ```
 
+Generally, these sort of notifications will live in a reactive, because that ensures that the long-running task is only re-run when absolutely needed.
+
 ### Progressive updates
 
-By default, multiple calls to `showNotification()` will create multiple notifications on the notification stack. You can update a single notification by capturing the `id` from the first call and using it in subsequent calls. 
+As you saw in the first example, multiple calls to `showNotification()` usually create multiple notifications. You can instead update a single notification by capturing the `id` from the first call and using it in subsequent calls. This is useful if your long-running task has multiple subcomponents.
 
 ```{r}
 ui <- fluidPage(
@@ -319,52 +346,54 @@ server <- function(input, output, session) {
 
 For long-running tasks, the best type of feedback is a progress bar. As well as telling you where you are in the process, it also helps you estimate how much longer it's going to be: should you take a deep breath, go get a coffee, or come back tomorrow? In this section, I'll show two techniques for displaying progress bars, one built into Shiny, and one from the [waiter](https://waiter.john-coene.com/) package developed by John Coene. Both work roughly the same way, first creating an R6 object and then calling an update method after each step.
 
-Unfortunately both techniques suffer from the major drawback: to use a progress bar you need to be able to divide the a big task into a known number of small pieces that each take roughly the same amount of time. This is often hard, particularly since the underlying code is often written in C and you have no insight into what it s doing. We are working on tools in the [progress package](https://github.com/r-lib/progress) so that packages like dplyr, readr, and vroom will generate progress bars that you can easily forward to Shiny. I'll update this chapter when that approach is mature enough to take advantage of.
+Unfortunately both techniques suffer from the major drawback: to use a progress bar you need to be able to divide the a big task into a known number of small pieces that each take roughly the same amount of time. This is often hard, particularly since the underlying code is often written in C and it has no way to communicate progres updates to you. We are working on tools in the [progress package](https://github.com/r-lib/progress) so that packages like dplyr, readr, and vroom will generate progress bars that you can easily forward to Shiny. I'll update this chapter when that approach is mature enough to use.
 
 ### Shiny
 
-The following code block shows the basic lifecycle of a progress bar:
+The following code block shows the basic lifecycle of a Shiny progress bar:
 
 ```{r, eval = FALSE}
+# Create a progress bar object with `Progress$new(max = number_of_steps)`.
 progress <- Progress$new(max = 5)
+
+# Display the progress bar by calling the `$set()` message, 
+# providing a title for the progress bar in the `message` argument.
 progress$set(message = "Starting process")
 
+# Call `$inc()` repeatedly, once for each step.
 for (i in 1:5) {
   progress$inc(1)
 }
 
+# When done, call `$close()` to terminate the progress bar.
 progress$close()
 ```
 
-To use a Shiny progress bar, you:
-
-1.  Create a progress bar object with `Progress$new(max = number_of_steps)`.
-
-1.  Display the progress bar by calling the `$set()` message , providing the a 
-    title for the progress bar in the `message` argument.
-
-1.  Call `$inc()` repeatedly, once for each step.
-
-1.  When done, call `$close()` to terminate the progress bar.
-
-And here's how that might look in a complete Shiny app:
+Here's how that might look in a complete Shiny app:
 
 ```{r}
 ui <- fluidPage(
   numericInput("steps", "How many steps?", 10),
-  actionButton("go", "go")
+  actionButton("go", "go"),
+  textOutput("result")
 )
+
 server <- function(input, output, session) {
-  observeEvent(input$go, {
+  data <- reactive({
+    req(input$go)
+    
     progress <- Progress$new(max = input$steps)
     on.exit(progress$close())
     
-    progress$set(message = "Starting")
+    progress$set(message = "Computing random number")
     for (i in seq_len(input$steps)) {
       Sys.sleep(0.5)
       progress$inc(1)
     }
+    runif(1)
   })
+  
+  output$result <- renderText(round(data(), 2))
 }
 ```
 
@@ -375,63 +404,76 @@ Here I'm using `Sys.sleep()` to simulate a long running operation; in your code 
 The built-in progress bar is great for the basics, but if you want something that provides more visual options, you might try the waiter package: [waiter](https://waiter.john-coene.com/). Adapating the above code to work with Waiter is straightforward. In the UI, we add `use_waitress()`:
 
 ```{r}
-library(waiter)
-
 ui <- fluidPage(
   waiter::use_waitress(),
   numericInput("steps", "How many steps?", 10),
-  actionButton("go", "go")
+  actionButton("go", "go"),
+  textOutput("result")
 )
 ```
 
-And then we replace `Progress` with `Waitress`:
+And then we replace `Progress` with `Waitress`. We skip the `$set()` call because waiter's progress bars don't have labels.
 
 ```{r}
 server <- function(input, output, session) {
-  observeEvent(input$go, {
+  data <- reactive({
+    req(input$go)
     waitress <- waiter::Waitress$new(max = input$steps)
-    waitress$start()
     on.exit(waitress$close())
     
     for (i in seq_len(input$steps)) {
       Sys.sleep(0.5)
       waitress$inc(1)
     }
+    
+    runif(1)
   })
+  
+  output$result <- renderText(round(data(), 2))
 }
 ```
 
-The neat thing about Waitress is that you can overlay it on an existing input or output.
+The default display is a thin progress bar at the top of the page, but there are a number of ways to customise the output:
 
-```{r, eval = FALSE}
-waitress <- Waitress$new(id = "steps", theme = "overlay")
-```
+*   You can override the default `theme` to use one of:
 
-### Indeterminate progress bars
+    * `overlay`: an opaque progress bar that hides the whole page
+    * `overlay-opacity`: a translucent progress bar that covers the whole page
+    * `overlay-percent`: an opaque progress bar that also displays numeric percentage.
 
-Sometimes you don't know exactly how long an operation will take, and you just want to display an spinner.
+*   And instead of showing a progress bar for the entire page, can overlay it 
+    on an existing input or output by setting the `id` parameter, e.g.:
+  
+    ```{r, eval = FALSE}
+    waitress <- Waitress$new(id = "steps", theme = "overlay")
+    ```
 
-You can display a whole page spinner:
+### Spinners
+
+Sometimes you don't know exactly how long an operation will take, and you just want to display an animated spinner that reassures the user that something is happening. You can also use the waiter package for this task; just switch from using a `Waitress` to using a `Waiter`: 
 
 ```{r}
 ui <- fluidPage(
   waiter::use_waiter(),
-  actionButton("go", "go")
+  actionButton("go", "go"),
+  textOutput("result")
 )
 
 server <- function(input, output, session) {
-  observeEvent(input$go, {
-    # req(input$go)
-    waiter <- waiter::Waiter$new(NULL)
+  data <- reactive({
+    req(input$go)
+    waiter <- waiter::Waiter$new()
     waiter$show()
     on.exit(waiter$hide())
     
-    Sys.sleep(3)
+    Sys.sleep(sample(5, 1))
+    runif(1)
   })
+  output$result <- renderText(round(data(), 2))
 }
 ```
 
-Or spinners for specific outputs. In this case, waiter will automatically hide the spinner when the output updates, so it's even easier.
+Like Waitress, you can also use Waiters for specific outputs. These waiters can automatically remove the spinner when the output updates, so the code is even simpler:
 
 ```{r}
 ui <- fluidPage(
@@ -441,21 +483,23 @@ ui <- fluidPage(
 )
 
 server <- function(input, output, session) {
-  output$plot <- renderPlot({
+  data <- reactive({
     req(input$go)
-    waiter::Waiter$new("plot")$show()
+    waiter::Waiter$new(id = "plot")$show()
     
     Sys.sleep(3)
-    plot(runif(50), runif(50))
+    data.frame(x = runif(50), y = runif(50))
   })
+  
+  output$plot <- renderPlot(plot(data()))
 }
 ```
 
-See the complete list of progreess animations at `?waiter::spinners`.
+The waiter package provides a large variety of spinners to choose from; see your options at `?waiter::spinners` and then choose one with (e.g.) `Waiter$new(html = spin_ripple())`. 
 
 ## Confirming and undoing
 
-Sometimes an action is potentially dangerous, and you either want to make sure that the user _really_ wants to do it, or you want to give them the ability to back out before it's too late. The three techniques in this section layout your basic options and give you some tips for how you might implement them in your app.
+Sometimes an action is potentially dangerous, and you either want to make sure that the user _really_ wants to do it, or you want to give them the ability to back out before it's too late. The three techniques in this section lay out your basic options and give you some tips for how you might implement them in your app.
 
 ### Explicit confirmation
 
@@ -486,7 +530,7 @@ There are a few small, but important, details to consider when creating a dialog
 * Can you make the dangerous option more obvious? Here I've used 
   `class = "btn btn-danger"` to style the button prominently.
   
-Jakob Nielsen has more good advice at  <http://www.useit.com/alertbox/ok-cancel.html>
+Jakob Nielsen has more good advice at <http://www.useit.com/alertbox/ok-cancel.html>.
 
 Let's use this dialog in a real (if very simple) app. Our UI exposes a single button to "delete all the files":
 
@@ -521,7 +565,7 @@ server <- function(input, output, session) {
 }
 ```
 
- We'll come back to more sophisticated uses of modal dialog boxes in Section \@ref(dynamic-dialog).
+We'll come back to more sophisticated uses of modal dialog boxes in Section \@ref(dynamic-dialog).
 
 ### Undoing an action
 
@@ -542,51 +586,46 @@ ui <- fluidPage(
 )
 ```
 
-The `server()` is quite complex and I'm not going to explain it now, hoping that I can make it simpler.
+The server function is quite complex and requires some techniques that we haven't talked about. Don't worry too much about understanding the code, focus on the basic idea: we use some special arguments to `observeEvent()` to run some code after a few seconds. The big new idea is that we capture the result of `observeEvent()` and save it to a variable; this allows us to destroy the observer so the code that would really send the tweet is never run.
 
 ```{r}
+runLater <- function(action, seconds = 3) {
+  observeEvent(
+    invalidateLater(seconds * 1000), action, 
+    ignoreInit = TRUE, 
+    once = TRUE, 
+    ignoreNULL = FALSE
+  )
+}
+
 server <- function(input, output, session) {
-  delete_scheduled <- reactiveVal(FALSE)
-  delete_waiting <- reactiveVal(FALSE)
+  waiting <- NULL
   last_message <- NULL
   
   observeEvent(input$tweet, {
-    message <- glue::glue("Tweeted '{input$message}'")
+    notification <- glue::glue("Tweeted '{input$message}'")
     last_message <<- input$message
+    updateTextAreaInput(session, "message", value = "")
 
     showNotification(
-      message,
+      notification,
       action = actionButton("undo", "Undo?"),
       duration = NULL,
       closeButton = FALSE,
       id = "tweeted",
       type = "warning"
     )
-    updateTextAreaInput(session, "message", value = "")
-    delete_scheduled(TRUE)
-    delete_waiting(FALSE)
-  })
-  
-  observe({
-    if (!delete_scheduled()) {
-      return()
-    }
-    
-    if (isolate(delete_waiting())) {
+
+    waiting <<- runLater({
+      cat("Actually sending tweet...\n")
       removeNotification("tweeted")
-      delete_waiting(FALSE)
-      delete_scheduled(FALSE)
-    } else {
-      delete_waiting(TRUE)
-      invalidateLater(3000)
-    }
+    })
   })
   
   observeEvent(input$undo, {
-    removeNotification("tweeted")
-    showNotification("Tweet retracted")
+    waiting$destroy()
+    showNotification("Tweet retracted", id = "tweeted")
     updateTextAreaInput(session, "message", value = last_message)
-    delete_scheduled(FALSE)
   })
 }
 ```
