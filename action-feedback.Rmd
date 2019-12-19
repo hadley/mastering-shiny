@@ -594,7 +594,8 @@ runLater <- function(action, seconds = 3) {
     invalidateLater(seconds * 1000), action, 
     ignoreInit = TRUE, 
     once = TRUE, 
-    ignoreNULL = FALSE
+    ignoreNULL = FALSE,
+    autoDestroy = FALSE
   )
 }
 
