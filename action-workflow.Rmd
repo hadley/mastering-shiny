@@ -109,7 +109,7 @@ There are three main cases of problems which we'll discuss below:
   is the most challenging problem because it's unique to Shiny, so you can't
   take advantage of your existing R debugging skills. 
 
-It's frustrating when these situations arise, but if you can turn them into opportunities to practice your debugging skills.
+It's frustrating when these situations arise, but you can turn them into opportunities to practice your debugging skills.
 
 We'll come back to another important technique, making a minimal reproducible example, in the next section. Creating a minimal example is crucial if you get stuck and need to get help from someone else. But creating a minimal example is also a profoundly important skill when debugging your own code. Typically you have a lot of code that works just fine, and a very small amount of code that's causing problems. If you can narrow in on the problematic code by removing the code that works, you'll be able to iterate on a solution much more quickly. This is a technique that I use all the time.
 
@@ -137,7 +137,7 @@ The call stack is the sequence of calls that lead to the problem:
 3: h(x)
 ```
 
-You might be familiar with `traceback()` from R already. This is a function that you can run interactively to see that sequence of calls that lead to an error, _after_ the error has occured. You can't use this function in Shiny because you can't interactively run code while an app is running, instead Shiny will automatically print the call stack out for you. For example, take this simple app that uses the `f()` function I defined above:
+You might be familiar with `traceback()` from R already. This is a function that you can run interactively to see the sequence of calls that lead to an error, _after_ the error has occured. You can't use this function in Shiny because you can't interactively run code while an app is running, instead Shiny will automatically print the call stack out for you. For example, take this simple app that uses the `f()` function I defined above:
 
 ```{r, eval = FALSE}
 library(shiny)
@@ -380,7 +380,7 @@ Typically, the most challenging part of making your app work on someone elses co
     smaller the dataset that you supply, the easier it will be for others to
     help you with your problem.
     
-If reading data from disk seems to be an irreducible part of the problem, a strategy of last resort is to provide a complete project containing both an `app.R` and the needed data files. The best way to provide this is as a RStudio project hosted on GitHub, but failing that, you can carefully make a zip file than can be run locally. Make sure that you use relative paths (i.e. `read.csv("my-data.csv"`) not `read.csv("c:\\my-user-name\\files\\my-data.csv")`) so that your code still works when run on a different computer.
+If reading data from disk seems to be an irreducible part of the problem, a strategy of last resort is to provide a complete project containing both an `app.R` and the needed data files. The best way to provide this is as a RStudio project hosted on GitHub, but failing that, you can carefully make a zip file that can be run locally. Make sure that you use relative paths (i.e. `read.csv("my-data.csv"`) not `read.csv("c:\\my-user-name\\files\\my-data.csv")`) so that your code still works when run on a different computer.
 
 ### Making a minimal reprex
 
@@ -388,7 +388,7 @@ Creating a reproducible example is a great first step because it means that some
 
 Creating the smallest possible reprex is particularly important for Shiny apps, which can be quite large and complicated. Rather than forcing the person trying to help you to understand all the details of your app, you are more likely to get higher quality help faster if you can extract out the exact piece of the app that you're struggling with. As an added benefit, this process will often lead you to discover what the problem is, so you don't have to wait for help from someone else!
 
-Reducing a bunch of code to the essential problem is a skill, and you probably won't be very good it at first. That's ok! Even the smallest reduction in code complexity helps the person helping you, and over time your complexity reduction skills will approve.
+Reducing a bunch of code to the essential problem is a skill, and you probably won't be very good at it at first. That's ok! Even the smallest reduction in code complexity helps the person helping you, and over time your complexity reduction skills will approve.
 
 If you don't know what part of your code is triggering the problem, a good way to find it is to remove sections of code from your application, piece by piece, until the problem goes away. If removing a particular piece of code makes the problem stop, it's likely that that code is related to the problem. Alternatively, sometimes it's simpler to start with a fresh, empty, app and progressively build it up until you find the problem again.
 
@@ -466,7 +466,7 @@ server <- function(input, output, session) {
 shinyApp(server, ui)
 ```
 
-If you run this reprex, you'll see the same problem in the initial post: an error starting "Type mismatch for min, max, and value. Each must be Date, POSIXt, or number". This is a solid reprex: I can easily run it on my computer, and it immediately illustrates the problem. However, it's a bit long, so it's not clear what's causing the problem.
+If you run this reprex, you'll see the same problem in the initial post: an error stating "Type mismatch for min, max, and value. Each must be Date, POSIXt, or number". This is a solid reprex: I can easily run it on my computer, and it immediately illustrates the problem. However, it's a bit long, so it's not clear what's causing the problem.
 
 To make this reprex simpler we can carefully work through each line of code and see if it's important. While doing this, I discovered:
 
@@ -509,7 +509,7 @@ server <- function(input, output, session) {
 
 Next, I noticed that this example uses a relatively sophisticated Shiny technique where the UI is generated in the server function. But here `renderUI()` is not referring to any reactive inputs, so it should work the same way if moved out of the server function and into the UI. 
 
-This yielded a particularly nice results, because now the error occurs much earlier, before we even start the app:
+This yielded a particularly nice result, because now the error occurs much earlier, before we even start the app:
 
 ```{r, error = TRUE}
 ui <- fluidPage(
@@ -523,7 +523,7 @@ ui <- fluidPage(
 )
 ```
 
-And now we can take the hint from the error message and look at each of the inputs we're feeing to `min`, `max`, and `value` to see where the problem is:
+And now we can take the hint from the error message and look at each of the inputs we're feeding to `min`, `max`, and `value` to see where the problem is:
 
 ```{r}
 min(datetime)
@@ -531,7 +531,7 @@ max(datetime)
 c(min, max)
 ```
 
-Now the problem is obvious: we've haven't assigned `min` and `max` variables, so we're accidentally passing the `min()` and `max()` functions into `sliderInput()`. One way to solve that problem is to use `range()` instead:
+Now the problem is obvious: we haven't assigned `min` and `max` variables, so we're accidentally passing the `min()` and `max()` functions into `sliderInput()`. One way to solve that problem is to use `range()` instead:
 
 ```{r}
 ui <- fluidPage(
@@ -547,7 +547,7 @@ ui <- fluidPage(
 
 This is fairly typical of creating a reprex: often, when you simplify the problem to the absolute key components the problem becomes obvious. Creating a good reprex is an incredibly powerful debugging technique.
 
-To simplify this reprex, I had to do a bunch of experimenting and reading up on functions that I wasn't very familiar with[^is.POSIXt]. This is typically much easier if its your own code, because you already understand what all the parts do. Still, you'll often need to do a bunch of experimentation to figure out where exactly the problem is coming from. That can be frustrating and feel time consuming, but it has a number of benefits:
+To simplify this reprex, I had to do a bunch of experimenting and reading up on functions that I wasn't very familiar with[^is.POSIXt]. This is typically much easier if it's your own code, because you already understand what all the parts do. Still, you'll often need to do a bunch of experimentation to figure out where exactly the problem is coming from. That can be frustrating and feel time consuming, but it has a number of benefits:
 
 * It enables you to create a description of the problem that is accessible to
   anyone who knows Shiny, not anyone who knows Shiny **and** the particular
