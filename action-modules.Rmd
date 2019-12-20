@@ -4,11 +4,11 @@
 source("common.R")
 ```
 
-At the same time, you may have been creating a lot of your app via copy and paste, so that parts of your app may be very similar to each other. The do not repeat yourself, or DRY, principle of software engineering (popularised by the Pragmatic Programmers) states that "Every piece of knowledge must have a single, unambiguous, authoritative representation within a system".
+If you have been creating a lot of your app via copy and paste, parts of your app may be very similar to each other. The do not repeat yourself, or DRY, principle of software engineering (popularised by the Pragmatic Programmers) states that "Every piece of knowledge must have a single, unambiguous, authoritative representation within a system".
 
-Copy and paste is a great starting technique but if you rely on it too much you'll end up with apps that are hard to understand (because it's hard to see the important differences when you have a lot of copy and pasted code) and are fragile to changes (because it's easy to forget to update one of the places that you've duplicated code)
+Copy and paste is a great starting technique but if you rely on it too much you'll end up with apps that are hard to understand (because it's hard to see the important differences when you have a lot of copy and pasted code) and are fragile to changes (because it's easy to forget to update one of the places that you've duplicated code).
 
-A good rule of thumb is that if you've copy and pasted something three times, it's a good time to make a function or use some other technique to reduce the amount of duplication.
+A good rule of thumb is that if you have copy and pasted something three times, it's a good time to make a function or use some other technique to reduce the amount of duplication.
 
 These techniques also allow you to spread your app code across multiple files. As your app grows, sandwhiching all of your code into a single `app.R` will start to become painful. This chapter describes the techniques you can use to break your app apart into smaller independent pieces, starting with functions and culminating with modules.
 
@@ -16,13 +16,13 @@ If you learned Shiny with an older version of Shiny, you might be more familiar 
 
 Advantages of functions and modules:
 
-*   Clearly isolate behaviour through specified inputs and outputs means it
+*   Clearly isolated behaviour through specified inputs and outputs means it
     is easier to understand how parts of your app fit together, and you don't
     have to worry about spooky action at a distance where changing one part
     of your app changes the way an apparently unrelated part works.
    
 *   Reducing duplication makes it easier to respond to changing needs because
-    instead of having to track down and change every place you pasted code,
+    instead of having to track down and change every place you duplicated code,
     you can just change it in one place.
   
 *   You can spread your app across multiple files, so that it can be more 
@@ -30,7 +30,7 @@ Advantages of functions and modules:
     you can read the files independently. You don't have to load all the 
     pieces into your head to understand how the whole thing hangs together.
     
-Often the hardest part is decomposing your big problem into smaller independent pieces. I include some case studies here to help you get a sense of how this feels, but ultimately it's a skill that can only be learned with practice. Try and set aside some time each week where you're not improving the behaviour or appearance of you app, but simply making it easier to understand. This will make your app easier to change in the future, and as you practice these skills your first attempt will become higher quality.
+Often the hardest part is decomposing your big problem into smaller independent pieces. I include some case studies here to help you get a sense of how this feels, but ultimately it's a skill that can only be learned with practice. Try and set aside some time each week where you're not improving the behaviour or appearance of your app, but simply making it easier to understand. This will make your app easier to change in the future, and as you practice these skills your first attempt will become higher quality.
 
 ```{r setup}
 library(shiny)
@@ -73,7 +73,7 @@ There are two advantages to using a function:
 
 * It allows you to move it to a separate file
 
-* It makes it clear from the outside exactly how what inputs your function
+* It makes it clear from the outside exactly what inputs your function
   takes. When looking at a reactive expression or output, there's no way to
   easily tell exactly what values it depends on, except by carefully reading
   the code block. The function definition is a nice signpost that tells you 
@@ -81,7 +81,7 @@ There are two advantages to using a function:
 
 A function also _enforces_ this independence --- if you try and refer to an input that you did not pass into the function, you'll get an error. This enforced independence becomes increasingly important as you create bigger and bigger apps because it ensures that pieces of your app are independent and can be analysed in isolation.
 
-As your collection of helper functions grow, you might want to pull them out into their ownits own file. I recommend put that file in a `R/` directory underneath the app directory. Then load it at the top of your `app.R`:
+As your collection of helper functions grow, you might want to pull them out into their own files. I recommend putting that file in a `R/` directory underneath the app directory. Then load it at the top of your `app.R`:
 
 ```{r, eval = FALSE}
 library(shiny)
@@ -179,13 +179,13 @@ fluidRow(
 )
 ```
 
-It's a little hard to see what's going on here because repeated code makes differences harder to see. When looking at this code I see two places where I could extract out a function:
+It's a little hard to see what's going on here because repeated code makes the differences harder to see. When looking at this code I see two places where I could extract out a function:
 
 * The call to `box()` repeats `width = 4` and `solidHeader = TRUE`.
-  The intent of this code appears to be make a header, so I'll call the
+  It appears that the intent of this code is making a header, so I'll call the
   function `headerBox`.
 
-* The call to `selectInput()` repeats `multiple = TRUE` and all use the 
+* The calls to `selectInput()` repeat `multiple = TRUE` and all use the 
   same strategy for determining the choices: pulling unique values from 
   a data frame column. This function is tied to a specific dataset,
   so I'll call it `ngoSelectInput()`.
@@ -231,7 +231,7 @@ dfSelectInput <- function(df, var, label, multiple = TRUE) {
 }
 ```
 
-This would be a good idea if you saw that pattern repeated in multiple places. But you'll probably also need to introduce some additional component for the id. Otherwise `dfSelect(df1, "x")` and `dfSelect(df2, "x")` would generate a control with the same id, which is obviously going to cause problems. This is the problem of namespacing; we want some how to have a hierarchy in the names. We'll come back to this in modules, as this is one of the big problems that they solve.
+This would be a good idea if you saw that pattern repeated in multiple places. But you'll probably also need to introduce some additional component for the id. Otherwise `dfSelect(df1, "x")` and `dfSelect(df2, "x")` would generate a control with the same id, which is obviously going to cause problems. This is the problem of namespacing; we want somehow to have a hierarchy in the names. We'll come back to this in modules, as this is one of the big problems that they solve.
 
 
 If you had a lot more controls, I'd consider using functional programming to generate them. Again, I'll just show an example so if you're already familiar with FP you can see my basic approach. The key idea is to capture all the data you need to generate the columns in a single data frame, which is convenient to create with `tibble::tribble()`. A data frame is useful here because it easily generalises to any number of arguments
@@ -263,7 +263,7 @@ select <-  map(vars$var, function(v) expr(.data[[!!v]] == input[[!!v]]))
 select
 ```
 
-If you haven't seen `.data` before, it comes from tidy evaluation, the system that allows you to programming with tidyverse package that are designed for interactive exploration (like dplyr). It's not necessary when writing interactive code (and it's not strictly necessary here) but it makes the parallel between the data frame and the inputs more clear. We'll talk more about tidy evaluation in Chapter XXX.
+If you haven't seen `.data` before, it comes from tidy evaluation, the system that allows you to program with tidyverse packages that are designed for interactive exploration (like dplyr). It's not necessary when writing interactive code (and it's not strictly necessary here) but it makes the parallel between the data frame and the inputs more clear. We'll talk more about tidy evaluation in Chapter XXX.
 
 Again we'd use `!!!` to splat the generated expressions into `filter()`:
 
@@ -275,17 +275,19 @@ Don't worry if this all looks like gibberish: you can just use copy and paste in
 
 ## Using modules
 
-Functions are great but they're effectively isolate to either extract pure UI code, or pure computation used inside reactives. They don't help (why?) if you want to build more complicated components that link UI and server.
+Functions are great but they're effectively only useful for exracting out pure UI code or pure computation used inside reactives. They don't help (why?) if you want to build more complicated components that link UI and server.
 
-Modules are way to create an app within an app. They force isolation of behaviour so that one module can't affect another, and code outside of a module can only affect the inside in a way that the module allows.
+A Shiny module is a pair of functions, corresponding to the front end UI and the backend server function. 
 
-A Shiny module is a pair of functions, corresponding to the front end UI and the backend server function.
+Modules are way to create an app within an app. They force isolation of behaviour so that one module can't affect another, and code outside of a module can only affect the inside in a way that the module explicitly allows.
 
 ### Without modules
 
 To illustrate why we need modules, and can't just use regular functions, consider the following simple app. It allows the user to input their birthday as a string: this is a little faster than using a `dateInput()` since there's no need to scroll through a calendar. But it means that we need to check that they've entered a correct date and give an informative message if they haven't.
 
 ```{r}
+library(lubridate)
+
 ui <- fluidPage(
   textInput("date", "When were you born? (yyyy-mm-dd)"),
   textOutput("error"),
@@ -313,7 +315,7 @@ server <- function(input, output, session) {
 }
 ```
 
-It seems plausible that as your app gets bigger you might want to use this date control in multiple places, so lets have a go at extracting it out in to functions. We'll need two functions: one to generate the UI, and one to do the computation on the server side:
+It seems plausible that as your app gets bigger you might want to use this date control in multiple places, so lets have a go at extracting it out into functions. We'll need two functions -- one to generate the UI, and one to do the computation on the server side:
 
 ```{r}
 ymdInputUI <- function(label) {
@@ -387,7 +389,7 @@ There are two problems with this approach:
     ```
 
     Debugging the problem that this creates will be painful because it will 
-    reveal itself through failure of reactivity - the output won't update as you
+    reveal itself through failure of reactivity -- the output won't update as you
     expect, or you'll get weird errors because two controls are fighting for 
     the same input value. 
 
@@ -411,7 +413,7 @@ ymdInputUI <- function(id, label) {
 }
 ```
 
-The key idea is that the argument to `NS()` is supplied by the person using the component, and the arguments to the function it produces is supply by the person who wrote the component. This two-phase creation makes ensures that the final name combines properties needed by both the app author and the module author. This is a bit confusing at first, because you're likely to be both the app and module author.
+The key idea is that the argument to `NS()` is supplied by the person using the component, and the arguments to the function it produces is supplied by the person who wrote the component. This two-phase creation ensures that the final name combines properties needed by both the app author and the module author. This is a bit confusing at first, because you're likely to be both the app and module author.
 
 We now need to specify an `id` when creating the UI. This is important because it puts this id in the same place as all the others, so it's easy to spot if you've used the same input id in multiple places. 
 
@@ -422,7 +424,7 @@ ui <- fluidPage(
 )
 ```
 
-We need to make a similar change to the server side of the module. Here instead of `NS()` we use `callModule()`. `callModule()` automatically tweaks the `input` and `output` so it looks for `date` inside the `id` namespace. You can think if it as doing `input[[id]]birthday` (but it's actually `input[[paste(id, "-", birthday)]]`).
+We need to make a similar change to the server side of the module. Here instead of `NS()` we use `callModule()`. `callModule()` automatically tweaks the `input` and `output` so it looks for `date` inside the `id` namespace. You can think of it as doing `input[[id]]birthday` (but it's actually `input[[paste(id, "-", birthday)]]`).
 
 ```{r}
 ymdInput <- function(id) {
@@ -574,7 +576,7 @@ continents <- sort(unique(country_df$continent))
 
 ui <- fluidPage(
   selectInput("continent", "Continent", choices = continents),
-  selectInput("country", "country", choices = NULL)
+  selectInput("country", "Country", choices = NULL)
 )
 
 server <- function(input, output, session) {
@@ -598,6 +600,69 @@ shinyApp(ui, server)
 
 * Leave in a list. 
 * Use zeallot
+
+### Exercises
+
+1. The following app plots user selected variables from the `msleep` dataset 
+   for three different types of mammals (carnivores, omnivores, and herbivores), 
+   with one tab for each type of mammal. Remove the redundancy in the 
+   `selectInput()` definitions with the use of functions.
+
+```{r, eval = FALSE}
+library(tidyverse)
+
+ui <- fluidPage(
+  selectInput(inputId = "x",
+              label = "X-axis:",
+              choices = c("sleep_total", "sleep_rem", "sleep_cycle", 
+                          "awake", "brainwt", "bodywt"),
+              selected = "sleep_rem"),
+  selectInput(inputId = "y",
+              label = "Y-axis:",
+              choices = c("sleep_total", "sleep_rem", "sleep_cycle", 
+                          "awake", "brainwt", "bodywt"),
+              selected = "sleep_total"),
+  tabsetPanel(id = "vore",
+              tabPanel("Carnivore",
+                       plotOutput("plot_carni")),
+              tabPanel("Omnivore",
+                       plotOutput("plot_omni")),
+              tabPanel("Herbivore",
+                       plotOutput("plot_herbi")))
+)
+
+server <- function(input, output, session) {
+
+  # make subsets
+  carni <- reactive( filter(msleep, vore == "carni") )
+  omni  <- reactive( filter(msleep, vore == "omni")  )
+  herbi <- reactive( filter(msleep, vore == "herbi") )
+
+  # make plots
+  output$plot_carni <- renderPlot({
+    ggplot(data = carni(), aes_string(x = input$x, y = input$y)) +
+      geom_point()
+  })
+  output$plot_omni <- renderPlot({
+    ggplot(data = omni(), aes_string(x = input$x, y = input$y)) +
+      geom_point()
+  })
+  output$plot_herbi <- renderPlot({
+    ggplot(data = herbi(), aes_string(x = input$x, y = input$y)) +
+      geom_point()
+  })
+
+}
+
+shinyApp(ui = ui, server = server)
+```
+
+2. Continue working with the same app from the previous exercise, and further 
+   remove redundancy in the code by modularizing how subsets and plots are 
+   created.
+   
+3. Suppose you have an app that is slow to launch when a user visits it. Can  
+   modularizing your app code help solve this problem? Explain your reasoning.
 
 ## Packages
 
