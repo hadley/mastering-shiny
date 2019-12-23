@@ -16,7 +16,7 @@ We'll start by discussing file uploads, showing you the basic UI and server comp
 
 ### UI
 
-The UI needed to support file uploads is simple: just use `fileInput()` in your UI.
+The UI needed to support file uploads is simple: just add `fileInput()` to your UI:
 
 ```{r}
 ui <- fluidPage(
@@ -38,7 +38,7 @@ Handling `fileInput()` on the server is a little more complicated than other inp
   `options(shiny.maxRequestSize = 10 * 1024^2)`.
 
 * `type`: the "MIME type"[^mime-type] of the file. This is a formal 
-  specification of the file type, and is usually derived from the extension. 
+  specification of the file type that is usually derived from the extension. 
   It is rarely needed in Shiny apps.
 
 * `datapath`: the path to where the data has been uploaded on the server.
@@ -66,18 +66,17 @@ Note my use of the `label` and `buttonLabel` arguments to mildly customise the a
 
 If the user is uploading a dataset, there are three details that you need to be aware of:
 
-* `input$file` is initialised to  `NULL` on page load, and so you'll need
+* `input$file` is initialised to  `NULL` on page load, so you'll need
   `req(input$file)` to make sure your code waits until the first file is 
   uploaded.
   
 * The `accept` argument allows you to limit the possible inputs. The easiest 
   way is to supply a character vector of file extensions, like 
-  `accept = ".csv"`.
-  
-* The `accept` argument is only a suggestion to the browser, and is not always
-  enforced, so it's good practice to also validate it (e.g. Section 
-  \@ref(validate)) the yourself. The easiest way to get the file extension in R 
-  is `tools::file_ext()`, but note that it strips the leading `.`.
+  `accept = ".csv"`. But the `accept` argument is only a suggestion to 
+  the browser, and is not always enforced, so it's good practice to also
+  validate it (e.g. Section \@ref(validate)) the yourself. The easiest way 
+  to get the file extension in R is `tools::file_ext()`, but note that it 
+  strips the leading `.`.
 
 Putting all these ideas together gives us the following app where you can upload a `.csv` file and see the first `n` rows:
 
@@ -123,9 +122,9 @@ ui <- fluidPage(
 )
 ```
 
-You can customise the appearance using the `class` argument by using one of `"btn-primary"`, `"btn-success"`, `"btn-info"`, `"btn-warning"`, or `"btn-danger"`. You can also change the size with `"btn-lg"`, `"btn-sm"`, `"btn-xs"`. Finally, you can make buttons span the entire width of the element they are embedded within using `".btn-block"`. See the underlying details at  <http://bootstrapdocs.com/v3.3.6/docs/css/#buttons>. You can also add `icon` with `icon`.
+You can customise the appearance using the `class` argument by using one of `"btn-primary"`, `"btn-success"`, `"btn-info"`, `"btn-warning"`, or `"btn-danger"`. You can also change the size with `"btn-lg"`, `"btn-sm"`, `"btn-xs"`. Finally, you can make buttons span the entire width of the element they are embedded within using `"btn-block"`. See the detail of the underlying CSS classes at <http://bootstrapdocs.com/v3.3.6/docs/css/#buttons>. You can also add a custom icon with the `icon` argument.
 
-Unlike other outputs, you don't use a render function. Instead, you use `downloadHandler()`, which looks something like this:
+Unlike other outputs, `downloadButton()` is not paired with a render function. Instead, you use `downloadHandler()`, which looks something like this:
 
 ```{r, eval = FALSE}
 output$download <- downloadHandler(
@@ -138,7 +137,7 @@ output$download <- downloadHandler(
 )
 ```
 
-It has two arguments, both functions:
+`downloadHandler()` has two arguments, both functions:
 
 *   `filename` should be a function with no arguments that returns a file
     name (as a string). The job of this function is to create the name that will
@@ -152,7 +151,7 @@ Next we'll put these pieces together to show how to transfer data files or repor
 
 ### Downloading data
 
-The following app shows off the basics of data download by allowing you to download any dataset in the datasets package as a tab separated file[^tsv-csv] file.  I recommend using `.tsv` (tab separated value) instead of `.csv` (comma separated values) because many European countries use commas to separate the whole and fractional parts of a number (e.g. `1,23` vs `1.23`). This means they can't use commas to separate fields and instead use semi-colons. You can avoid this complexity by using tab separated files.
+The following app shows off the basics of data download by allowing you to download any dataset in the datasets package as a tab separated file[^tsv-csv] file. I recommend using `.tsv` (tab separated value) instead of `.csv` (comma separated values) because many European countries use commas to separate the whole and fractional parts of a number (e.g. `1,23` vs `1.23`). This means they can't use commas to separate fields and instead use semi-colons. You can avoid this complexity by using tab separated files.
 
 ```{r}
 ui <- fluidPage(
@@ -185,11 +184,13 @@ server <- function(input, output, session) {
 }
 ```
 
+Note the use of `validate()` to only allow the user to download datasets that are data frames. A better approach would be to pre-filter the list, but this lets you see another application of `validate()`.
+
 ### Downloading reports
 
-As well as data, another useful application of downloads is to provide a report that summarises the result of interactive exploration in the Shiny app. One powerful way to generate such a report is with a parameterised RMarkdown document,  <https://bookdown.org/yihui/rmarkdown/parameterized-reports.html>. 
+As well downloading data, you may want the users of your app to download a report, that summarises the result of interactive exploration in the Shiny app. This is quite a lot of extra work, because you also need to display the same information in a different format, but it is very useful for high-stakes apps.
 
-A parameterised RMarkdown file has a `params` field in the YAML metadata:
+One powerful way to generate such a report is with a parameterised RMarkdown document, <https://bookdown.org/yihui/rmarkdown/parameterized-reports.html>. A parameterised RMarkdown file has a `params` field in the YAML metadata:
 
 ```yaml
 title: My Document
@@ -201,9 +202,11 @@ params:
   data: file.csv
 ```
 
-You can refer to these values inside the document using `params$year`, `params$region` etc. The values in the YAML metadata are basically defaults; you'll generally override them by providing the `params` argument in a call to `rmarkdown::render()`. This makes it easy to generate many different reports from the same `.Rmd`.
+And inside the document, you can refer to these values using `params$year`, `params$region` etc. 
 
-Here's a simple example taken from <https://shiny.rstudio.com/articles/generating-reports.html>, which describes this technique in more detail.
+The values in the YAML metadata are basically defaults; you'll generally override them by providing the `params` argument in a call to `rmarkdown::render()`. This makes it easy to generate many different reports from the same `.Rmd`. 
+
+Here's a simple example adapted from <https://shiny.rstudio.com/articles/generating-reports.html>, which describes this technique in more detail. The key idea is to call `rmarkdown::render()` from the `content` argument of `downloadHander()`. If you want to produce other output formats, just change the output format in the `.Rmd`, and make sure to update the extension.
 
 ```{r}
 ui <- fluidPage(
@@ -227,8 +230,6 @@ server <- function(input, output, session) {
 }
 ```
 
-If you want to produce other output formats, just change the output format in the `.Rmd`, and make sure to update the extension.
-
 There are a few other tricks worth knowing about:
 
 *   If the report takes some time to generate, use one of the techniques from
@@ -237,7 +238,8 @@ There are a few other tricks worth knowing about:
 
 *   In many deployment scenarios, you won't be able to write to the working 
     directory, which RMarkdown will attempt to do. You can work around this by 
-    copying the report to a temporary directory:
+    copying the report to a temporary directory when your app starts (i.e. 
+    outside of `server()`):
 
     ```{r}
     report_path <- tempfile(fileext = ".Rmd")
@@ -283,46 +285,62 @@ To finish up, we'll work through a small case study where we upload a file (with
 
 To make it easier to understand how to use the app, I've used `sidebarLayout()` to divide the app into three main steps:
 
-1. Uploading and parsing the file.
-2. Cleaning the file.
-3. Downloading the file.
+1.  Uploading and parsing the file:
+
+    ```{r}
+    ui_upload <- sidebarLayout(
+      sidebarPanel(
+        fileInput("file", "Data", buttonLabel = "Upload..."),
+        textInput("delim", "Delimiter (leave blank to guess)", ""),
+        numericInput("skip", "Rows to skip", 0, min = 0),
+        numericInput("rows", "Rows to preview", 10, min = 1)
+      ),
+      mainPanel(
+        h3("Raw data"),
+        tableOutput("preview1")
+      )
+    )
+    ```
+
+2.  Cleaning the file.
+
+    ```{r}
+    ui_clean <- sidebarLayout(
+      sidebarPanel(
+        checkboxInput("snake", "Rename columns to snake case?"),
+        checkboxInput("constant", "Remove constant columns?"),
+        checkboxInput("empty", "Remove empty cols?")
+      ),
+      mainPanel(
+        h3("Cleaner data"),
+        tableOutput("preview2")
+      )
+    )
+    ```
+
+3.  Downloading the file.
+
+    ```{r}
+    ui_download <- fluidRow(
+      column(width = 12, downloadButton("download", class = "btn-block"))
+    )
+    ```
+
+Which get assembled into a single `fluidPage()`:
 
 ```{r}
 ui <- fluidPage(
-  sidebarLayout(
-    sidebarPanel(
-      fileInput("file", "Data", buttonLabel = "Upload..."),
-      textInput("delim", "Delimiter (leave blank to guess)", ""),
-      numericInput("skip", "Rows to skip", 0, min = 0),
-      numericInput("rows", "Rows to preview", 10, min = 1)
-    ),
-    mainPanel(
-      h2("Raw data"),
-      tableOutput("preview1")
-    )
-  ),
-  sidebarLayout(
-    sidebarPanel(
-      checkboxInput("snake", "Rename columns to snake case?"),
-      checkboxInput("constant", "Remove constant columns?"),
-      checkboxInput("empty", "Remove empty cols?")
-    ),
-    mainPanel(
-      h2("Cleaner data"),
-      tableOutput("preview2")
-    )
-  ),
-  fluidRow(
-    column(width = 12, downloadButton("download", class = "btn-block"))
-  )
+  ui_upload,
+  ui_clean,
+  ui_download
 )
 ```
 
-And this same organisation makes it easier to understand the app:
+This same organisation makes it easier to understand the app:
 
 ```{r}
 server <- function(input, output, session) {
-  # Input ---------------------------------------------------------------
+  # Upload ---------------------------------------------------------------
   raw <- reactive({
     req(input$file)
     delim <- if (input$delim == "") NULL else input$delim
@@ -330,7 +348,7 @@ server <- function(input, output, session) {
   })
   output$preview1 <- renderTable(head(raw(), input$rows))
   
-  # Transformation ------------------------------------------------------
+  # Clean ----------------------------------------------------------------
   tidied <- reactive({
     out <- raw()
     if (input$snake) {
@@ -347,7 +365,7 @@ server <- function(input, output, session) {
   })
   output$preview2 <- renderTable(head(tidied(), input$rows))
   
-  # Output ---------------------------------------------------------------
+  # Download -------------------------------------------------------------
   output$download <- downloadHandler(
     filename = function() {
       paste0(tools::file_path_sans_ext(input$file$name), ".tsv")
