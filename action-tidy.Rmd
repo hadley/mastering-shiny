@@ -4,13 +4,55 @@
 source("common.R")
 ```
 
-If you are using the tidyverse from shiny, you will almost certainly encounter the challenge of programming with tidy evaluation. Tidy evaluation is the technique that allows you to refer to variables within a data frame, without having to think about it, or do anything special. That's what makes code like this work:
+If you are using the tidyverse from Shiny, you will almost certainly encounter the challenge of programming with tidy evaluation. Tidy evaluation is the technique that allows you to refer to variables within a data frame, without having to think about it, or do anything special. That's what makes code like this work:
 
 ```{r, eval = FALSE}
 diamonds %>% filter(x == z)
 
 ggplot(diamonds, aes(x = carat, y = price)) + 
   geom_hex()
+```
+
+First we'll go over the basic motivation, and the key idea that makes tidy evaluation more convenient for data analysis and less convenient for programming, and then we'll talk about the two primary use cases: 
+
+* You want the user to select variables in the app.
+* You want to reduce duplication in your app code.
+
+See also <http://ggplot2.tidyverse.org/dev/articles/ggplot2-in-packages.html> (and dplyr equivalent when it exists).
+
+## Motivation
+
+Tidy evaluation works because it allows to avoid to realising that when we say "variable", we're actually talking about two different things:
+
+* Environment variables (or env-vars for short), and "computer science"
+  variables that live in environemnts.
+
+* Data frame variables (or df-var for short), are "statistical" variables 
+  that live inside a data frame.
+
+Tidy evaluation allows you to write code like this where you refer to the env-var `min_carat` and df-var `carat` in the same way. 
+
+```{r, eval = FALSE}
+min_carat <- 1
+diamonds %>% filter(carat > min_carat)
+```
+
+When you're programming with env-variables you'll find that tidy evaluation just works:
+
+```{r, message = FALSE}
+library(dplyr)
+diamonds <- ggplot2::diamonds
+
+ui <- fluidPage(
+  numericInput("min", "min", 1, min = 0, step = 0.1),
+  tableOutput("output")
+)
+server <- function(input, output, session) {
+  data <- reactive({
+    arrange(filter(diamonds, carat > input$min), carat)
+  })
+  output$output <- renderTable(head(data()))
+}
 ```
 
 The problem that you will quickly encouter with Shiny is that you want to write code like:
@@ -22,14 +64,13 @@ ggplot(diamonds, aes(x = input$x, y = input$y)) +
   geom_hex()
 ```
 
-But this doesn't work because dplyr and ggplot2 will attempt to look for a variable called `input` in 
+But this doesn't work because dplyr and ggplot2 will attempt to look for a df-variable called `input`, when you want to look for the name of a df-variable stored inside the env-var `input`.
 
-There are two primary cases: 
+Instead of `object$var`, we're going to use `object[["var"]]`. Because this lets us store the name of a df-variable in a env-variable.
 
-* You want the user to select variables in the app.
-* You want to reduce duplication in your app code.
+I think the key reason that tidy evaluation is hard to program with, is that it forces you to grapple with this distinction that was previously unimportant. 
 
-## User selections
+## User supplied variables
 
 Key challenge is to turn the string giving the name of the variable (e.g. `"cyl"`) into a variable. The way to do that with tidy evaluation is with the special `.data` pronoun.
 
@@ -50,11 +91,9 @@ server <- function(input, output, session) {
 }
 ```
 
-(I use the special `ggforce::position_auto()` to automatically spread the points out when one axis is discretes)
+I use the special `ggforce::position_auto()` to automatically spread the points out when one axis is discrete. Once you've mastered the basics of tidy evaluation you'll quickly find that the challenge becomes making your app general enough to work with many different types of variable.
 
-<http://ggplot2.tidyverse.org/dev/articles/ggplot2-in-packages.html>
-
-This will work with any input that returns a string.
+### Filtering and arranging
 
 Same idea works for dplyr:
 
@@ -68,10 +107,13 @@ ui <- fluidPage(
   tableOutput("data")
 )
 server <- function(input, output, session) {
-
   observeEvent(input$var, {
     range <- range(mtcars[[input$var]])
-    updateSliderInput(session, "min", value = range[[1]], min = range[[1]], max = range[[2]])
+    updateSliderInput(session, "min", 
+      value = range[[1]], 
+      min = range[[1]], 
+      max = range[[2]]
+    )
   })
   
   output$data <- renderTable({
@@ -85,7 +127,6 @@ server <- function(input, output, session) {
 What if you wanted to conditionally sort in either asceding or descending order?
 
 ```{r}
-library(shiny)
 ui <- fluidPage(
   selectInput("var", "Sort by", choices = names(mtcars)),
   checkboxInput("desc", "Descending order?"),
@@ -101,10 +142,15 @@ server <- function(input, output, session) {
   })
   output$data <- renderTable(sorted())
 }
-shinyApp(ui, server)
 ```
 
 As you provide more control, you'll find the code gets more and more complicated, and it becomes harder and harder to create a user interface that is both comprehensive _and_ user friendly. This is why I've always focussed on code tools for data analysis: creating good UIs is really really hard!
+
+### Selection vs action semantics
+
+Most tidy-evaluation functions have what we call "action" semantics: this means that you can do any calculation inside. Other function have "selection" semantics: you can't do any general computation, but you can select variables using helpers like `starts_with()`, and `ends_with()`. Includes `dplyr::select()`, but also many tidy functions. Note that `group_by()` has action semantics, so you can do (e.g.) `df %>% group_by(x = round(x), y = round(y))`.
+
+Using selection helpers is quite simple: just use `all_of(input$vars)`. The use of `all_of` ensures that they only look in the data frame, not in the environment.
 
 ### `parse()`
 
@@ -112,8 +158,9 @@ You may have considered using `parse()` + `eval()`.  This is a bad idea because 
 
 ## Reducing duplication
 
+Another way you might want to use tidy evaluation is to reduce duplication. This is not directly related to Shiny, but it's a useful technique that crops up a lot when making more complex apps.
 
-### Case study
+For example, in our example in Section \@ref(hierarchical-select), we did some copying and pasting to produce a series of filtered datasets:
 
 ```{r, eval = FALSE}
 territory <- reactive({
@@ -131,18 +178,16 @@ order <- reactive({
 ```
 
 ```{r, eval = FALSE}
-# TODO: needs better name
-reactive_filter_by_input <- function(data, input, var) {
-  var <- ensym(var)
-  
+filter_by_var <- function(data, input, var) {
   reactive({
     req(input[[var]])
-    filter(data, .data[[var]] == input[[var]])
+    filter(data, .data[[toupper(var)]] == input[[var]])
   })
 }
 
-order <- reactive_filter_by_input(sales, input, "TERRITORY")
-customer <- reactive_filter_by_input(order(), input, "CUSTOMER")
-order <- reactive_filter_by_input(customer(), input, "TERRITORY")
+order <- filter_by_var(sales(), input, "territory")
+customer <- filter_by_var(order(), input, "customer")
+order <- filter_by_var(customer(), input, "ordernumber")
 ```
 
+Key idea is that `input` is a list, and as well as accessing components directly with `$`, we can also access them indirectly with `[[`.

@@ -123,7 +123,7 @@ knitr::include_graphics(c(s1, s2, s3))
 
 There are many ways to use update functions in this way; be on the look out for ways to give more information to the user when you are working on sophisticated applications. A particularly important application is making it easier to select from a long list of possible options, through step-by-step filtering. That's often a problem for "hierarchical select boxes".
 
-### Hierarchical select boxes
+### Hierarchical select boxes {#hierarchical-select}
 
 A more complicated, but particularly useful, application of the update functions is to allow interactive drill down across multiple categories. I'll illustrate their usage with some imaginary data for a sales dashboard that comes from <https://www.kaggle.com/kyanyoga/sample-sales-data>.
 
