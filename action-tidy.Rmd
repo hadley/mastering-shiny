@@ -124,7 +124,7 @@ server <- function(input, output, session) {
 }
 ```
 
-What if you wanted to conditionally sort in either asceding or descending order?
+Most other problems can be solved by combining this techique with your existing programming skills. For example, what if you wanted to conditionally sort in either ascending or descending order?
 
 ```{r}
 ui <- fluidPage(
@@ -146,15 +146,51 @@ server <- function(input, output, session) {
 
 As you provide more control, you'll find the code gets more and more complicated, and it becomes harder and harder to create a user interface that is both comprehensive _and_ user friendly. This is why I've always focussed on code tools for data analysis: creating good UIs is really really hard!
 
-### Selection vs action semantics
+### Selection semantics
 
 Most tidy-evaluation functions have what we call "action" semantics: this means that you can do any calculation inside. Other function have "selection" semantics: you can't do any general computation, but you can select variables using helpers like `starts_with()`, and `ends_with()`. Includes `dplyr::select()`, but also many tidy functions. Note that `group_by()` has action semantics, so you can do (e.g.) `df %>% group_by(x = round(x), y = round(y))`.
 
 Using selection helpers is quite simple: just use `all_of(input$vars)`. The use of `all_of` ensures that they only look in the data frame, not in the environment.
 
-### `parse()`
+### Multiple variables
 
-You may have considered using `parse()` + `eval()`.  This is a bad idea because it means that the user of your app can run arbitrary R code. This isn't super important if its a Shiny app that only use you, but it's a good habit to get into --- otherwise it's very easy to accidentally create a security hole in an app that you share more widely.
+There are two ways to select multiple variables. 
+
+```{r}
+ui <- fluidPage(
+  selectInput("vars", "Variables", names(mtcars), multiple = TRUE),
+  tableOutput("count")
+)
+```
+
+The first approach is to follow the recipe below. Wrap the character vector of variable names in `syms()` and combine it with `!!!`. This approach works due to some deeper tidy eval theory that you probably don't want to care about.
+
+```{r}
+server <- function(input, output, session) {
+  data <- reactive({
+    req(input$vars)
+    mtcars %>% group_by(!!!syms(input$vars))
+  })
+  
+  output$count <- renderTable(summarise(data(), n = n()))
+}
+```
+
+The other approach is to use selection semantics. If the function you're working with uses action semantics, then you can use `across()` to access action semantics. This will be available in dplyr 1.0.0. 
+
+```{r}
+server <- function(input, output, session) {
+  data <- reactive({
+    req(input$vars)
+    vars <- one_of(input$vars)
+    mtcars %>% group_by(across(vars))
+  })
+  
+  output$count <- renderTable(summarise(data(), n = n()))
+}
+```
+
+The nice thing about `across()` is that you can use the second argument to transform each column, or you can wrap `across()` to perform some other computation. For example, `df %>% filter(rowSums(across(is.logical) > 0))` would select all rows with at least one true.
 
 ## Reducing duplication
 
@@ -191,3 +227,7 @@ order <- filter_by_var(customer(), input, "ordernumber")
 ```
 
 Key idea is that `input` is a list, and as well as accessing components directly with `$`, we can also access them indirectly with `[[`.
+
+## `parse()`
+
+Finally, it's worth a note about using `paste()` + `parse()` + `eval()`.  It's tempting approach because it means that you don't have to learn much new. But it has some major downsides. This is a bad idea because it means that the user of your app can run arbitrary R code. This isn't super important if its a Shiny app that only use you, but it's a good habit to get into --- otherwise it's very easy to accidentally create a security hole in an app that you share more widely.
