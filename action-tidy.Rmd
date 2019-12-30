@@ -13,64 +13,98 @@ ggplot(diamonds, aes(x = carat, y = price)) +
   geom_hex()
 ```
 
-First we'll go over the basic motivation, and the key idea that makes tidy evaluation more convenient for data analysis and less convenient for programming, and then we'll talk about the two primary use cases: 
+First we'll go over the basic motivation, and the key idea that makes tidy evaluation more convenient for data analysis and less convenient for programming.
 
-* You want the user to select variables in the app.
-* You want to reduce duplication in your app code.
+This article will focus on the combination of tidy evaluation with Shiny. If you want to learn more about the general challenges of using tidy evaluation in a package, see
+<http://ggplot2.tidyverse.org/dev/articles/ggplot2-in-packages.html> (or the dplyr equivalent, when it exists).
 
-See also <http://ggplot2.tidyverse.org/dev/articles/ggplot2-in-packages.html> (and dplyr equivalent when it exists).
+```{r setup}
+library(shiny)
+
+data(diamonds, package = "ggplot2")
+library(dplyr, warn.conflicts = FALSE)
+```
 
 ## Motivation
 
-Tidy evaluation works because it allows to avoid to realising that when we say "variable", we're actually talking about two different things:
+The key idea of tidy evaluation is that it blurs the line between two meaning of "variable":
 
-* Environment variables (or env-vars for short), and "computer science"
-  variables that live in environemnts.
+* Environment variables (env-vars for short), are programming variables. 
+  Formally, they are between names and values that are usually created by `<-`.
 
-* Data frame variables (or df-var for short), are "statistical" variables 
-  that live inside a data frame.
+* Data frame variables (data-vars for short), are "statistical" variables 
+  that live inside a data frame. In base R you usually access them with `$` and
+  `[[`.
+  
+Take this piece of code:
 
-Tidy evaluation allows you to write code like this where you refer to the env-var `min_carat` and df-var `carat` in the same way. 
+```{r}
+df <- data.frame(x = runif(3), y = runif(3))
+df$x
+```
 
-```{r, eval = FALSE}
+It creates a env-var called `df`, that contains two data-vars `x` and `y`. Then it extracts the data-var `x` out of the data frame `df` using `$`.
+
+Tidy evaluation makes it to write data analysis code because it blurs the distinction between the two. In most (but not all) base R functions you need to refer to a data-variable with `$`, leading to code that repeats the name of the data frame many times:
+
+```{r}
+diamonds[diamonds$x == 0 | diamonds$y == 0, ]
+```
+
+The dplyr equivalent, `filter()`, uses tidy evaluation to allow you to refer to a data-var as if it was a env-var:
+
+```{r}
+filter(diamonds, x == 0 | y == 0)
+```
+
+(dplyr's `filter()` is inspired by base R's `subset()`. `subset()` uses an ad hoc approach to each the same reasult as tidy evaluation, so unfortunately the same techniques don't apply to it.)
+
+You usually these verbs purely with data-vars, but they work equally well with env-vars:
+
+```{r}
 min_carat <- 1
 diamonds %>% filter(carat > min_carat)
 ```
 
+I think this blurring of the meaning of variable is a really nice feature for interactive data analysis, because it allows you to refer to data-vars as is, without any prefix. And this seems to be fairly intuitive, since many newer R users will attempt to write `diamonds[x == 0 | y == 0, ]`. But when you start to program with these tools, you're going to have to grapple with the distinction. And this will be hard because you've never had to think about it before, so it'll take a while for your brain to learn these new concepts and categories. However, once you've teased apart the idea of "variable" in data-varialbe and env-variable, I think you'll find it fairly easy to use.
+
+### Challenges
+
 When you're programming with env-variables you'll find that tidy evaluation just works:
 
-```{r, message = FALSE}
-library(dplyr)
-diamonds <- ggplot2::diamonds
-
+```{r}
 ui <- fluidPage(
   numericInput("min", "min", 1, min = 0, step = 0.1),
   tableOutput("output")
 )
 server <- function(input, output, session) {
-  data <- reactive({
-    arrange(filter(diamonds, carat > input$min), carat)
-  })
+  data <- reactive(filter(diamonds, carat > input$min))
   output$output <- renderTable(head(data()))
 }
 ```
 
 The problem that you will quickly encouter with Shiny is that you want to write code like:
 
-```{r, eval = FALSE}
-diamonds %>% filter(input$var == input$val)
-
-ggplot(diamonds, aes(x = input$x, y = input$y)) + 
-  geom_hex()
+```{r}
+ui <- fluidPage(
+  selectInput("var", "Variable", choices = names(diamonds)),
+  tableOutput("output")
+)
+server <- function(input, output, session) {
+  data <- reactive(filter(diamonds, input$var > 0))
+  output$output <- renderTable(head(data()))
+}
 ```
 
-But this doesn't work because dplyr and ggplot2 will attempt to look for a df-variable called `input`, when you want to look for the name of a df-variable stored inside the env-var `input`.
+This doesn't work because `input$var` isn't a data-var: it's an env-var containing the name of a data-var (stored as string). Unfortunately it also fails to give a useful error message because `input$var` will be a string like "carat" and:
 
-Instead of `object$var`, we're going to use `object[["var"]]`. Because this lets us store the name of a df-variable in a env-variable.
-
-I think the key reason that tidy evaluation is hard to program with, is that it forces you to grapple with this distinction that was previously unimportant. 
+```{r}
+"carat" > 0
+```
 
 ## User supplied variables
+
+Tidy evaluation solves this conundrum by introducing a special pronoun called `.data`. 
 
 Key challenge is to turn the string giving the name of the variable (e.g. `"cyl"`) into a variable. The way to do that with tidy evaluation is with the special `.data` pronoun.
 
@@ -146,13 +180,13 @@ server <- function(input, output, session) {
 
 As you provide more control, you'll find the code gets more and more complicated, and it becomes harder and harder to create a user interface that is both comprehensive _and_ user friendly. This is why I've always focussed on code tools for data analysis: creating good UIs is really really hard!
 
-### Selection semantics
+## Selection semantics
 
 Most tidy-evaluation functions have what we call "action" semantics: this means that you can do any calculation inside. Other function have "selection" semantics: you can't do any general computation, but you can select variables using helpers like `starts_with()`, and `ends_with()`. Includes `dplyr::select()`, but also many tidy functions. Note that `group_by()` has action semantics, so you can do (e.g.) `df %>% group_by(x = round(x), y = round(y))`.
 
 Using selection helpers is quite simple: just use `all_of(input$vars)`. The use of `all_of` ensures that they only look in the data frame, not in the environment.
 
-### Multiple variables
+## Multiple variables
 
 There are two ways to select multiple variables. 
 
@@ -191,42 +225,6 @@ server <- function(input, output, session) {
 ```
 
 The nice thing about `across()` is that you can use the second argument to transform each column, or you can wrap `across()` to perform some other computation. For example, `df %>% filter(rowSums(across(is.logical) > 0))` would select all rows with at least one true.
-
-## Reducing duplication
-
-Another way you might want to use tidy evaluation is to reduce duplication. This is not directly related to Shiny, but it's a useful technique that crops up a lot when making more complex apps.
-
-For example, in our example in Section \@ref(hierarchical-select), we did some copying and pasting to produce a series of filtered datasets:
-
-```{r, eval = FALSE}
-territory <- reactive({
-  req(input$territory)
-  filter(sales, TERRITORY == input$territory)
-})
-customer <- reactive({
-  req(input$customername)
-  filter(territory(), CUSTOMERNAME == input$customername)
-})
-order <- reactive({
-  req(input$ordernumber)
-  filter(customer(), ORDERNUMBER == input$ordernumber)
-})
-```
-
-```{r, eval = FALSE}
-filter_by_var <- function(data, input, var) {
-  reactive({
-    req(input[[var]])
-    filter(data, .data[[toupper(var)]] == input[[var]])
-  })
-}
-
-order <- filter_by_var(sales(), input, "territory")
-customer <- filter_by_var(order(), input, "customer")
-order <- filter_by_var(customer(), input, "ordernumber")
-```
-
-Key idea is that `input` is a list, and as well as accessing components directly with `$`, we can also access them indirectly with `[[`.
 
 ## `parse()`
 
