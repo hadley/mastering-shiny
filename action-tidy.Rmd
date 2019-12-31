@@ -18,11 +18,13 @@ First we'll go over the basic motivation, and the key idea that makes tidy evalu
 This article will focus on the combination of tidy evaluation with Shiny. If you want to learn more about the general challenges of using tidy evaluation in a package, see
 <http://ggplot2.tidyverse.org/dev/articles/ggplot2-in-packages.html> (or the dplyr equivalent, when it exists).
 
+As well as Shiny, this chapter will use both ggplot2 and dplyr to show the main use cases of tidy evaluation and Shiny together.
+
 ```{r setup}
 library(shiny)
 
-data(diamonds, package = "ggplot2")
 library(dplyr, warn.conflicts = FALSE)
+library(ggplot2)
 ```
 
 ## Motivation
@@ -68,22 +70,19 @@ diamonds %>% filter(carat > min_carat)
 
 I think this blurring of the meaning of variable is a really nice feature for interactive data analysis, because it allows you to refer to data-vars as is, without any prefix. And this seems to be fairly intuitive, since many newer R users will attempt to write `diamonds[x == 0 | y == 0, ]`. But when you start to program with these tools, you're going to have to grapple with the distinction. And this will be hard because you've never had to think about it before, so it'll take a while for your brain to learn these new concepts and categories. However, once you've teased apart the idea of "variable" in data-varialbe and env-variable, I think you'll find it fairly easy to use.
 
-### Challenges
+## Solutions
 
-When you're programming with env-variables you'll find that tidy evaluation just works:
+### Tidy evaluation in Shiny apps
+
+The key to resolving this ambiguity is to make use of two __pronouns__ that are built into tidy evaluation: `.data` and `.env`. As you might guess from the name, these pronouns allow you to remove the ambiguity introduced by tidy evaluation. For example, we can rewrite the filter used above:
 
 ```{r}
-ui <- fluidPage(
-  numericInput("min", "min", 1, min = 0, step = 0.1),
-  tableOutput("output")
-)
-server <- function(input, output, session) {
-  data <- reactive(filter(diamonds, carat > input$min))
-  output$output <- renderTable(head(data()))
-}
+diamonds %>% filter(.data$carat > .env$min_carat)
 ```
 
-The problem that you will quickly encouter with Shiny is that you want to write code like:
+This doesn't immediately help us in Shiny apps, because the results from inputs are usually  strings, and using `.data$var` isn't going to work becaues it's going to look for a data-var called `var`, not a data-var stored in the env-var `var`. Fortunately base R already has a solution for this: `.data[[var]]`.
+
+Let's apply this to a simple example:
 
 ```{r}
 ui <- fluidPage(
@@ -102,15 +101,46 @@ This doesn't work because `input$var` isn't a data-var: it's an env-var containi
 "carat" > 0
 ```
 
-## User supplied variables
-
-Tidy evaluation solves this conundrum by introducing a special pronoun called `.data`. 
-
-Key challenge is to turn the string giving the name of the variable (e.g. `"cyl"`) into a variable. The way to do that with tidy evaluation is with the special `.data` pronoun.
+We can fix the problem by using `.data` and `[[`:
 
 ```{r}
-library(ggplot2)
+server <- function(input, output, session) {
+  data <- reactive(filter(diamonds, .data[[input$var]] > 0))
+  output$output <- renderTable(head(data()))
+}
+```
 
+### Tidy evaluation in functions
+
+You should note that this a slightly different problem to use of tidy evaluation functions. Where we need a slightly different solution. You can use `.data` + `[[`, but it doesn't create a very user friendly function:
+
+```{r}
+filter_var <- function(df, var, val) {
+  filter(df, .data[[var]] > val)
+}
+filter_var(diamonds, "carat", 4)
+```
+
+This function is a bit weird because it takes the name of the variable as a string, so it doesn't work like most other tidyverse functions. Here we need to use a slightly different technique:
+
+```{r}
+filter_var <- function(df, var, val) {
+  filter(df, {{ var }} > val)
+}
+filter_var(diamonds, carat, 4)
+```
+
+The use of `{{` tells 
+
+### `parse()`
+
+Finally, it's worth a note about using `paste()` + `parse()` + `eval()`.  It's tempting approach because it means that you don't have to learn much new. But it has some major downsides. This is a bad idea because it means that the user of your app can run arbitrary R code. This isn't super important if its a Shiny app that only use you, but it's a good habit to get into --- otherwise it's very easy to accidentally create a security hole in an app that you share more widely.
+
+## Case studies
+
+### Plotting
+
+```{r}
 ui <- fluidPage(
   selectInput("x", "X variable", choices = names(iris)),
   selectInput("y", "Y variable", choices = names(iris)),
@@ -127,6 +157,32 @@ server <- function(input, output, session) {
 
 I use the special `ggforce::position_auto()` to automatically spread the points out when one axis is discrete. Once you've mastered the basics of tidy evaluation you'll quickly find that the challenge becomes making your app general enough to work with many different types of variable.
 
+Instead of using `position_auto()` we could allow the user to pick the geom:
+
+```{r}
+ui <- fluidPage(
+  selectInput("x", "X variable", choices = names(iris)),
+  selectInput("y", "Y variable", choices = names(iris)),
+  selectInput("geom", "geom", c("point", "smooth", "jitter")),
+  plotOutput("plot")
+)
+server <- function(input, output, session) {
+  plot_geom <- reactive({
+    switch(input$geom,
+      point = geom_point(),
+      smooth = geom_smooth(se = FALSE),
+      jitter = geom_jitter()
+    )
+  })
+  
+  output$plot <- renderPlot({
+    ggplot(iris, aes(.data[[input$x]], .data[[input$y]])) +
+      plot_geom() + 
+      labs(x = input$x, y = input$y)
+  })
+}
+```
+
 ### Filtering and arranging
 
 Same idea works for dplyr:
@@ -142,12 +198,8 @@ ui <- fluidPage(
 )
 server <- function(input, output, session) {
   observeEvent(input$var, {
-    range <- range(mtcars[[input$var]])
-    updateSliderInput(session, "min", 
-      value = range[[1]], 
-      min = range[[1]], 
-      max = range[[2]]
-    )
+    rng <- range(mtcars[[input$var]])
+    updateSliderInput(session, "min", value = rng[[1]], min = rng[[1]], max = rng[[2]])
   })
   
   output$data <- renderTable({
@@ -180,13 +232,99 @@ server <- function(input, output, session) {
 
 As you provide more control, you'll find the code gets more and more complicated, and it becomes harder and harder to create a user interface that is both comprehensive _and_ user friendly. This is why I've always focussed on code tools for data analysis: creating good UIs is really really hard!
 
-## Selection semantics
+## Additional challenges
+
+### User supplied data
+
+Take the following app: it allows the user to upload a tsv file, then select a variable, and filter by it. It will work for the vast majority of inputs you might try it with:
+
+```{r}
+ui <- fluidPage(
+  fileInput("data", "dataset", accept = ".tsv"),
+  selectInput("var", "var", character()),
+  numericInput("min", "min", 1, min = 0, step = 1),
+  tableOutput("output")
+)
+server <- function(input, output, session) {
+  data <- reactive({
+    req(input$data)
+    vroom::vroom(input$data$datapath)
+  })
+  observeEvent(data(), {
+    updateSelectInput(session, "var", choices = names(data()))
+  })
+  observeEvent(input$var, {
+    val <- data()[[input$var]]
+    updateNumericInput(session, "min", value = min(val))
+  })
+  
+  output$output <- renderTable({
+    req(input$var)
+    
+    data() %>% 
+      filter(.data[[input$var]] > input$min) %>% 
+      arrange(.data[[input$var]]) %>% 
+      head(10)
+  })
+}
+```
+
+However, there is a subtle problem with the use of filter. Let's zoom in on that code so we can play around.
+
+```{r}
+df <- data.frame(x = 1, y = 2)
+input <- list(var = "x", min = 0)
+
+df %>% filter(.data[[input$var]] > input$min)
+```
+
+If you experiment, you'll find that this works perfectly for the vast majority of data frames. However, there's one big problem: if the data frame contains a variable called `input`:
+
+```{r, error = TRUE}
+df <- data.frame(x = 1, y = 2, input = 3)
+df %>% filter(.data[[input$var]] > input$min)
+```
+
+We can resolve this problem by telling `filter()` to never look in the data frame for `input$var`.
+
+```{r}
+df <- data.frame(x = 1, y = 2, input = 3)
+df %>% filter(.data[[input$var]] > .env$input$min)
+```
+
+(Alternatively you can use `!!`, `df %>% filter(.data[[input$var]] > !!input$min)`. This happens at a slightly different time, and I think is mildly less appealing because it lacks the symmetry of `.data` vs `.env`, and you need to know about `!!`. But it's a fine solution if you know about `!!` already and are happy with the way this works.) 
+
+At this point you might wonder if you're better off without `filter()`, and just write the equivalent base R code:
+
+```{r}
+df[df[[input$var]] > input$min, ]
+```
+
+That's fine too, as long as you're aware of all the edge cases where `filter()` behaves differently. (One of the advantages of the tidyverse is not just the routine application, but the careful thought that we've applied to edge cases so that functions work more consistently. I don't want to oversell this, but at the some time, it's easy to forget the quirks of specific base R functions.)
+
+### Selection semantics
 
 Most tidy-evaluation functions have what we call "action" semantics: this means that you can do any calculation inside. Other function have "selection" semantics: you can't do any general computation, but you can select variables using helpers like `starts_with()`, and `ends_with()`. Includes `dplyr::select()`, but also many tidy functions. Note that `group_by()` has action semantics, so you can do (e.g.) `df %>% group_by(x = round(x), y = round(y))`.
 
 Using selection helpers is quite simple: just use `all_of(input$vars)`. The use of `all_of` ensures that they only look in the data frame, not in the environment.
 
-## Multiple variables
+```{r}
+ui <- fluidPage(
+  selectInput("vars", "Variables", names(mtcars), multiple = TRUE),
+  tableOutput("data")
+)
+
+server <- function(input, output, session) {
+  output$data <- renderTable({
+    req(input$vars)
+    mtcars %>% select(one_of(input$vars))
+  })
+}
+```
+
+(using `one_of()` until tidyselect on CRAN. `one_of()` has the same behaviour as `all_of()` but `all_of()` has a better name.
+
+### Multiple variables
 
 There are two ways to select multiple variables. 
 
@@ -197,13 +335,13 @@ ui <- fluidPage(
 )
 ```
 
-The first approach is to follow the recipe below. Wrap the character vector of variable names in `syms()` and combine it with `!!!`. This approach works due to some deeper tidy eval theory that you probably don't want to care about.
+dplyr 0.8 and below.
 
 ```{r}
 server <- function(input, output, session) {
   data <- reactive({
     req(input$vars)
-    mtcars %>% group_by(!!!syms(input$vars))
+    mtcars %>% group_by_at(input$vars)
   })
   
   output$count <- renderTable(summarise(data(), n = n()))
@@ -226,6 +364,25 @@ server <- function(input, output, session) {
 
 The nice thing about `across()` is that you can use the second argument to transform each column, or you can wrap `across()` to perform some other computation. For example, `df %>% filter(rowSums(across(is.logical) > 0))` would select all rows with at least one true.
 
-## `parse()`
+```{r}
+ui <- fluidPage(
+  selectInput("vars_g", "Group by", names(mtcars), multiple = TRUE),
+  selectInput("vars_s", "Summarise", names(mtcars), multiple = TRUE),
+  tableOutput("data")
+)
+server <- function(input, output, session) {
+  output$data <- renderTable({
+    mtcars %>% 
+      group_by(across(all_of(input$vars_g))) %>% 
+      summarise(across(all_of(input$vars_s), mean), n = n())
+  })
+}
 
-Finally, it's worth a note about using `paste()` + `parse()` + `eval()`.  It's tempting approach because it means that you don't have to learn much new. But it has some major downsides. This is a bad idea because it means that the user of your app can run arbitrary R code. This isn't super important if its a Shiny app that only use you, but it's a good habit to get into --- otherwise it's very easy to accidentally create a security hole in an app that you share more widely.
+server <- function(input, output, session) {
+  output$data <- renderTable({
+    mtcars %>% 
+      group_by_at(input$vars_g) %>% 
+      summarise_at(input$vars_s, mean)
+  })
+}
+```
