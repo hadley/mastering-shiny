@@ -27,7 +27,7 @@ library(dplyr, warn.conflicts = FALSE)
 library(ggplot2)
 ```
 
-## Motivation
+## Motivation {#tidy-motivation}
 
 The key idea of tidy evaluation is that it blurs the line between two meaning of "variable":
 
@@ -234,9 +234,102 @@ As you provide more control, you'll find the code gets more and more complicated
 
 ## Additional challenges
 
-### User supplied data
+The final section of this chapter covers a grab bag of additional topics that are important for various applications.
 
-Take the following app: it allows the user to upload a tsv file, then select a variable, and filter by it. It will work for the vast majority of inputs you might try it with:
+### Selection semantics
+
+Most tidyverse functions (e.g. `dplyr::mutate()`, `dplyr::filter()`, `dplyr::group_by()`, `ggplot2::aes()`) have what we call __action__ semantics, which means that you can perform any action inside of them. Other function have __selection__ semantics; instead of general computation you can select variables using a special domain specific language that includes helpers like `starts_with()`, and `ends_with()`. The most important function that has selection semantics is `dplyr::select()`, but the set also includes many tidyr like `pivot_longer()` and `pivot_wider()`, `separate()`, `extract()`, and `unite()` functions. Selection semantics are powered by the tidyselect package.
+
+Working with functions that use selection semantics is slightly different to those that use action semantics because there is no `.data` pronoun. Instead you use the helper `one_of()` or `all_of()`[^one-vs-all]:
+
+[^one-vs-all]: `one_of()` is available in all versions of the tidyselect package, but the name is not very informative, so we recommend using `all_of()` if it's available to you.
+
+```{r}
+ui <- fluidPage(
+  selectInput("vars", "Variables", names(mtcars), multiple = TRUE),
+  tableOutput("data")
+)
+
+server <- function(input, output, session) {
+  output$data <- renderTable({
+    req(input$vars)
+    mtcars %>% select(one_of(input$vars))
+  })
+}
+```
+
+(If you wanted all of the variables _except_ those selected you could use `-one_of(input$vars)))`.
+
+### Multiple variables
+
+As shown in the previous example, working with multiple variables is trivial when you're working with a function that uses selection semantics: you can just pass a character vector of variable names in to `one_of()`/`all_of()`. The challenge is operating on multiple variables when the function has action semantics, as is common with dplyr functions. There are two ways to work with multiple variables, depending on which version of dplyr you are working with. I'll illustrate them with an app that allows you to select any number of variables to count their unique values.
+
+```{r}
+ui <- fluidPage(
+  selectInput("vars", "Variables", names(mtcars), multiple = TRUE),
+  tableOutput("count")
+)
+```
+
+In dplyr 0.8 and earlier, every function that uses action semantics also has a variant that has selection semantics, with the suffix `_at`. The easiest approach is to just to switch from action to selection semantics by changing the function that you're programing with.
+
+```{r}
+server <- function(input, output, session) {
+  output$count <- renderTable({
+    req(input$vars)
+    
+    mtcars %>% 
+      group_by_at(input$vars) %>% 
+      summarise(n = n())
+  })
+}
+```
+
+dplyr 1.0.0 provides a more flexible approach: inside of any function with action semantics, you can use `across()` to access selection semantics:
+
+```{r}
+server <- function(input, output, session) {
+  output$count <- renderTable({
+    req(input$vars)
+    
+    mtcars %>% 
+      group_by(across(all_of(input$vars))) %>% 
+      summarise(n = n())
+  })
+}
+```
+
+Things are mildly more complicated for `mutate()` and `summarise()` because you also need to supply a function to perform the operation.
+
+```{r}
+ui <- fluidPage(
+  selectInput("vars_g", "Group by", names(mtcars), multiple = TRUE),
+  selectInput("vars_s", "Summarise", names(mtcars), multiple = TRUE),
+  tableOutput("data")
+)
+
+# dplyr 0.8.0
+server <- function(input, output, session) {
+  output$data <- renderTable({
+    mtcars %>% 
+      group_by(across(all_of(input$vars_g))) %>% 
+      summarise(across(all_of(input$vars_s), mean), n = n())
+  })
+}
+
+# dplyr 1.0.0
+server <- function(input, output, session) {
+  output$data <- renderTable({
+    mtcars %>% 
+      group_by_at(input$vars_g) %>% 
+      summarise_at(input$vars_s, mean)
+  })
+}
+```
+
+### Action semantics and user supplied data
+
+There is one additional complication when you're working with user supplied data and action semantics. Take the following app: it allows the user to upload a tsv file, then select a variable, and filter by it. It will work for the vast majority of inputs you might try it with:
 
 ```{r}
 ui <- fluidPage(
@@ -269,7 +362,7 @@ server <- function(input, output, session) {
 }
 ```
 
-However, there is a subtle problem with the use of filter. Let's zoom in on that code so we can play around.
+There is a subtle problem with the use of `filter()`. Let's focus in on that code so we can play around and see the problem more easily outside of the app.
 
 ```{r}
 df <- data.frame(x = 1, y = 2)
@@ -278,21 +371,27 @@ input <- list(var = "x", min = 0)
 df %>% filter(.data[[input$var]] > input$min)
 ```
 
-If you experiment, you'll find that this works perfectly for the vast majority of data frames. However, there's one big problem: if the data frame contains a variable called `input`:
+If you experiment with this code, you'll find that it appears to work just fine for vast majority of data frames. However, there's one big problem: what happens the data frame contains a variable called `input`?
 
 ```{r, error = TRUE}
 df <- data.frame(x = 1, y = 2, input = 3)
 df %>% filter(.data[[input$var]] > input$min)
 ```
 
-We can resolve this problem by telling `filter()` to never look in the data frame for `input$var`.
+We get an error message because `filter()` is attempting to evaluate `df$input$min`:
+
+```{r, error = TRUE}
+df$input$min
+```
+
+This problem is again due to the ambiguity of data-variables and env-variables. Tidy evaluation always prefers to use a data-variable if both are available. We can resolve the amibugity by telling `filter()` not to look in the data frame for `input`, and instead only use an env-variable[^bang-bang]:
 
 ```{r}
 df <- data.frame(x = 1, y = 2, input = 3)
 df %>% filter(.data[[input$var]] > .env$input$min)
 ```
 
-(Alternatively you can use `!!`, `df %>% filter(.data[[input$var]] > !!input$min)`. This happens at a slightly different time, and I think is mildly less appealing because it lacks the symmetry of `.data` vs `.env`, and you need to know about `!!`. But it's a fine solution if you know about `!!` already and are happy with the way this works.) 
+[^bang-bang]: Instead of use `.env`, you can also use use `!!` if you know about it, e.g. `df %>% filter(.data[[input$var]] > !!input$min)`. This is evaluated at a slightly different time, and I think is mildly less appealing because it lacks the symmetry of `.data` vs `.env`, and you need to know about `!!`. But it's a fine solution if you're happy with `!!`.
 
 At this point you might wonder if you're better off without `filter()`, and just write the equivalent base R code:
 
@@ -300,89 +399,11 @@ At this point you might wonder if you're better off without `filter()`, and just
 df[df[[input$var]] > input$min, ]
 ```
 
-That's fine too, as long as you're aware of all the edge cases where `filter()` behaves differently. (One of the advantages of the tidyverse is not just the routine application, but the careful thought that we've applied to edge cases so that functions work more consistently. I don't want to oversell this, but at the some time, it's easy to forget the quirks of specific base R functions.)
+That's fine too, as long as you're aware of all the edge cases where `filter()` behaves differently. In this case:
 
-### Selection semantics
-
-Most tidy-evaluation functions have what we call "action" semantics: this means that you can do any calculation inside. Other function have "selection" semantics: you can't do any general computation, but you can select variables using helpers like `starts_with()`, and `ends_with()`. Includes `dplyr::select()`, but also many tidy functions. Note that `group_by()` has action semantics, so you can do (e.g.) `df %>% group_by(x = round(x), y = round(y))`.
-
-Using selection helpers is quite simple: just use `all_of(input$vars)`. The use of `all_of` ensures that they only look in the data frame, not in the environment.
-
-```{r}
-ui <- fluidPage(
-  selectInput("vars", "Variables", names(mtcars), multiple = TRUE),
-  tableOutput("data")
-)
-
-server <- function(input, output, session) {
-  output$data <- renderTable({
-    req(input$vars)
-    mtcars %>% select(one_of(input$vars))
-  })
-}
-```
-
-(using `one_of()` until tidyselect on CRAN. `one_of()` has the same behaviour as `all_of()` but `all_of()` has a better name.
-
-### Multiple variables
-
-There are two ways to select multiple variables. 
-
-```{r}
-ui <- fluidPage(
-  selectInput("vars", "Variables", names(mtcars), multiple = TRUE),
-  tableOutput("count")
-)
-```
-
-dplyr 0.8 and below.
-
-```{r}
-server <- function(input, output, session) {
-  data <- reactive({
-    req(input$vars)
-    mtcars %>% group_by_at(input$vars)
-  })
+* You'll need `drop = FALSE` if `df` contains a single column (otherwise you'll 
+  get a vector instead of a data frame)
   
-  output$count <- renderTable(summarise(data(), n = n()))
-}
-```
+* You'll need to use `which()` or similar to drop any missing values.
 
-The other approach is to use selection semantics. If the function you're working with uses action semantics, then you can use `across()` to access action semantics. This will be available in dplyr 1.0.0. 
-
-```{r}
-server <- function(input, output, session) {
-  data <- reactive({
-    req(input$vars)
-    vars <- one_of(input$vars)
-    mtcars %>% group_by(across(vars))
-  })
-  
-  output$count <- renderTable(summarise(data(), n = n()))
-}
-```
-
-The nice thing about `across()` is that you can use the second argument to transform each column, or you can wrap `across()` to perform some other computation. For example, `df %>% filter(rowSums(across(is.logical) > 0))` would select all rows with at least one true.
-
-```{r}
-ui <- fluidPage(
-  selectInput("vars_g", "Group by", names(mtcars), multiple = TRUE),
-  selectInput("vars_s", "Summarise", names(mtcars), multiple = TRUE),
-  tableOutput("data")
-)
-server <- function(input, output, session) {
-  output$data <- renderTable({
-    mtcars %>% 
-      group_by(across(all_of(input$vars_g))) %>% 
-      summarise(across(all_of(input$vars_s), mean), n = n())
-  })
-}
-
-server <- function(input, output, session) {
-  output$data <- renderTable({
-    mtcars %>% 
-      group_by_at(input$vars_g) %>% 
-      summarise_at(input$vars_s, mean)
-  })
-}
-```
+In general, if you're using dplyr for very simple cases, you might find it easier to use implementations that don't rely on tidy evaluation. However, in my opinion, one of the major advantages of the tidyverse is not just in routine application, but in the careful thought that has been applied to edge cases so that functions work more consistently. I don't want to oversell this, but at the same time, it's easy to forget the quirks of specific base R functions, and write code that works 95% of the time, but fails in unusual ways the other 5% of the time.
