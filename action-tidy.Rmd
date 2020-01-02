@@ -29,7 +29,7 @@ library(ggplot2)
 
 ## Motivation {#tidy-motivation}
 
-The key idea of tidy evaluation is that it blurs the line between two meaning of "variable":
+One of the key features of tidy evaluation is the idea of **data masting** which blurs the line between two meanings of "variable":
 
 * Environment variables (env-vars for short), are programming variables. 
   Formally, they are between names and values that are usually created by `<-`.
@@ -45,30 +45,32 @@ df <- data.frame(x = runif(3), y = runif(3))
 df$x
 ```
 
-It creates a env-var called `df`, that contains two data-vars `x` and `y`. Then it extracts the data-var `x` out of the data frame `df` using `$`.
+It creates a env-variable called `df`, that contains two data-variables, `x` and `y`. Then it extracts the data-variable `x` out of the data frame `df` using `$`.
 
-Tidy evaluation makes it to write data analysis code because it blurs the distinction between the two. In most (but not all) base R functions you need to refer to a data-variable with `$`, leading to code that repeats the name of the data frame many times:
+Tidy evaluation makes it easier to write data analysis code because it blurs the distinction between the two types of variables, allowing you to refer to data-variables without any additional syntax. In most (but not all) base R functions you need to refer to a data-variable with `$`, leading to code that repeats the name of the data frame many times:
 
 ```{r}
 diamonds[diamonds$x == 0 | diamonds$y == 0, ]
 ```
 
-The dplyr equivalent, `filter()`, uses tidy evaluation to allow you to refer to a data-var as if it was a env-var:
+The dplyr equivalent, `filter()`, uses tidy evaluation to allow you to refer to data-variables as if they were env-variables:
 
 ```{r}
 filter(diamonds, x == 0 | y == 0)
 ```
 
-(dplyr's `filter()` is inspired by base R's `subset()`. `subset()` uses an ad hoc approach to each the same reasult as tidy evaluation, so unfortunately the same techniques don't apply to it.)
+(dplyr's `filter()` is inspired by base R's `subset()`. `subset()` provides data masking, but not with tidy evaluation, so unfortunately the same techniques don't apply to it.)
 
-You usually these verbs purely with data-vars, but they work equally well with env-vars:
+You usually use these verbs purely with data-vars, but they work equally well with env-vars[^fun-scoping]:
+
+[^fun-scoping]: And because of R's scoping rules, all function calls are found in the 
 
 ```{r}
 min_carat <- 1
 diamonds %>% filter(carat > min_carat)
 ```
 
-I think this blurring of the meaning of variable is a really nice feature for interactive data analysis, because it allows you to refer to data-vars as is, without any prefix. And this seems to be fairly intuitive, since many newer R users will attempt to write `diamonds[x == 0 | y == 0, ]`. But when you start to program with these tools, you're going to have to grapple with the distinction. And this will be hard because you've never had to think about it before, so it'll take a while for your brain to learn these new concepts and categories. However, once you've teased apart the idea of "variable" in data-varialbe and env-variable, I think you'll find it fairly easy to use.
+I think this blurring of the meaning of variable is a really nice feature for interactive data analysis, because it allows you to refer to data-vars as is, without any prefix. And this seems to be fairly intuitive, since many newer R users will attempt to write `diamonds[x == 0 | y == 0, ]`. But when you start to program with these tools, you're going to have to grapple with the distinction. And this will be hard because you've never had to think about it before, so it'll take a while for your brain to learn these new concepts and categories. However, once you've teased apart the idea of "variable" in data-variable and env-variable, I think you'll find it fairly straightforward to use.
 
 ## Solutions
 
@@ -130,11 +132,13 @@ filter_var <- function(df, var, val) {
 filter_var(diamonds, carat, 4)
 ```
 
-The use of `{{` tells 
+The use of `{{` tells the tidy evaluation engine that the `var` argument should also use tidy-evaluation, so rather than looking for a data-variable called `var`, it should look for the name of a data-variable inside the `var` env-variable.
 
 ### `parse()`
 
 Finally, it's worth a note about using `paste()` + `parse()` + `eval()`.  It's tempting approach because it means that you don't have to learn much new. But it has some major downsides. This is a bad idea because it means that the user of your app can run arbitrary R code. This isn't super important if its a Shiny app that only use you, but it's a good habit to get into --- otherwise it's very easy to accidentally create a security hole in an app that you share more widely.
+
+(You shouldn't feel bad if this is the only way you can figure out to solve a problem, but when you have a bit more mental space, I'd recommend spending some time figuring out how to do it without string manipulation. This will help you to become a better R programmer.)
 
 ## Case studies
 
@@ -391,6 +395,8 @@ df <- data.frame(x = 1, y = 2, input = 3)
 df %>% filter(.data[[input$var]] > .env$input$min)
 ```
 
+(You might wonder if the same problem applies to `.data` and `.env`? What happens if the data frame contains those variables? In the unlikely event of having columns with those names you'll need to refer to them with `.data$.data` and `.data$.env`)
+
 [^bang-bang]: Instead of use `.env`, you can also use use `!!` if you know about it, e.g. `df %>% filter(.data[[input$var]] > !!input$min)`. This is evaluated at a slightly different time, and I think is mildly less appealing because it lacks the symmetry of `.data` vs `.env`, and you need to know about `!!`. But it's a fine solution if you're happy with `!!`.
 
 At this point you might wonder if you're better off without `filter()`, and just write the equivalent base R code:
@@ -406,4 +412,8 @@ That's fine too, as long as you're aware of all the edge cases where `filter()` 
   
 * You'll need to use `which()` or similar to drop any missing values.
 
-In general, if you're using dplyr for very simple cases, you might find it easier to use implementations that don't rely on tidy evaluation. However, in my opinion, one of the major advantages of the tidyverse is not just in routine application, but in the careful thought that has been applied to edge cases so that functions work more consistently. I don't want to oversell this, but at the same time, it's easy to forget the quirks of specific base R functions, and write code that works 95% of the time, but fails in unusual ways the other 5% of the time.
+* You can't do group-wise filtering (e.g. `filter(df, n() == 1)`)
+
+In general, if you're using dplyr for very simple cases, you might find it easier to use base R functions that don't use data masking. However, in my opinion, one of the major advantages of the tidyverse is not just in routine application, but in the careful thought that has been applied to edge cases so that functions work more consistently. I don't want to oversell this, but at the same time, it's easy to forget the quirks of specific base R functions, and write code that works 95% of the time, but fails in unusual ways the other 5% of the time.
+
+Another way to think about it: data masking is optimised for interactive data exploration, which makes programming with it a little harder. Instead, we could have optimised the tidyverse for programming, making interactive data analysis a little harder. But then you might as well use python.
