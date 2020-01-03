@@ -7,7 +7,7 @@ source("demo.R")
 
 You can often make your app more usable by giving the user more insight in to what is happening. This might take the form of better messages when inputs are invalid, or progress updates for operations that take a long time. Some feedback occurs naturally through outputs, which you already know how to use, but you'll often need something else. The goal of this chapter is to show you what your other options are.
 
-We'll start with techniques for __validation__, informing the user when an input (or combination of inputs) is in an invalid state. We'll then continue on to __notification__, sending general messages to the user, and __progress bars__, which give the details for time consuming operations made up of many small steps. We'll finish up by discussing dangerous actions, and how you give you users peace of mind with __confirmation__ dialogs or the ability to __undo__ an action.
+We'll start with techniques for __validation__, informing the user when an input (or combination of inputs) is in an invalid state. We'll then continue on to __notification__, sending general messages to the user, and __progress bars__, which give the details for time consuming operations made up of many small steps. We'll finish up by discussing dangerous actions, and how you give your users peace of mind with __confirmation__ dialogs or the ability to __undo__ an action.
 
 In this chapter, as well as shiny, we'll also use [shinyFeedback](https://github.com/merlinoa/shinyFeedback) by Andy Merlino, and [waiter](http://waiter.john-coene.com/), by John Coene.
 
