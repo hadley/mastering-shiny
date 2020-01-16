@@ -35,7 +35,7 @@ Take this simple example of converting a temperature from Celsius to Fahrentheit
 
 ```{r}
 temp_c <- 10
-temp_f <- (temp_c + 32) * 9 / 5 
+temp_f <- (temp_c * 9 / 5) + 32
 temp_f
 ```
 
@@ -61,7 +61,7 @@ You could instead attack this problem with a function:
 temp_c <- 10
 temp_f <- function() {
   message("Converting") 
-  (temp_c + 32) * 9 / 5 
+  (temp_c * 9 / 5) + 32
 }
 temp_f()
 ```
@@ -113,7 +113,7 @@ So if Shiny had been invented five years earlier, we might've have written somet
 temp_c <- DynamicValue$new()
 temp_c$onUpdate({
   message("Converting") 
-  temp_f <<- (temp_c$get() + 32) * 9 / 5 
+  temp_f <<- (temp_c$get() * 9 / 5) + 32
 })
 
 temp_c$set(10)
@@ -152,7 +152,7 @@ Now we can create a reactive expression that depends on this value. As you've se
 ```{r}
 temp_f <- reactive({
   message("Converting") 
-  (temp_c() + 32) * 9 / 5 
+  (temp_c() * 9 / 5) + 32
 })
 temp_f()
 ```
