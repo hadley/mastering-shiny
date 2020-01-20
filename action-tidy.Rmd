@@ -104,7 +104,7 @@ This form isn't terribly useful but it does allow indirection:
 ```{r}
 data_var <- "carat"
 env_var <- "min_carat"
-diamonds %>% filter(.data[[var]] > .env[[env_var]])
+diamonds %>% filter(.data[[data_var]] > .env[[env_var]])
 ```
 
 Let's apply this to a simple example:
