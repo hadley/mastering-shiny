@@ -4,14 +4,14 @@
 source("common.R")
 ```
 
-If you are using the tidyverse from Shiny, you will almost certainly encounter the challenge of programming with tidy evaluation. Tidy evaluation is one the underlying components of the tidyverse that faciliate interactive data exploration, but poses some additional challenges when you want to refer to variables indirectly.
+If you are using Shiny with the tidyverse, you will almost certainly encounter the challenge of programming with tidy evaluation. Tidy evaluation is a tool that the tidyverse uses to faciliate fluid interactive data exploration, but it comes with a cost: it's hard to refer to variables indirectly, and hence harder to program with.
 
-There are two forms of tidy evaluation that you're likely to come across:
+This chapter will show you how to use Shiny with the two most common forms of tidy evaluation:
 
 *   **Data-masking** allows you to refer to variables within a data frame
     without repeating the name of the data frame. For example, this code can 
-    use the `x`, `z`, `carat`, and `price` in from the `diamonds` dataset 
-    because `filter()` and `aes()` use data-masking.
+    use the `x`, `z`, `carat`, and `price` variables from the `diamonds` 
+    dataset because `filter()` and `aes()` use data-masking.
     
     ```{r, eval = FALSE}
     diamonds %>% filter(x == z)
@@ -20,17 +20,18 @@ There are two forms of tidy evaluation that you're likely to come across:
     ```
 
 *   **Tidy-selection** allows you to concisely select variables by their
-    position, name, or value. The following code selects all variables from
-    `iris` that start with "sepal", and all numeric variables in the `diamonds`
-    dataset.
+    position, name, or value. For example, the following code selects all 
+    variables from `iris` that start with "sepal", and all numeric variables
+    from `diamonds`[^dplyr-1.0.0]:
     
     ```{r, eval = FALSE}
     iris %>% select(starts_with("sepal"))
     diamonds %>% select(is.numeric)
     ```
 
-In this chapter, you'll learn how to use both data-masking and tidy-selection within your Shiny app. To learn more about using tidy evaluation in a function or package, you'll need to turn to other resources like 
-[_Using ggplot2 in packages_](http://ggplot2.tidyverse.org/dev/articles/ggplot2-in-packages.html) or [_Programming with dplyr_](http://dplyr.tidyverse.org/dev/articles/programming.html). We'll pair Shiny with ggplot2 and dplyr, the two most popular packages that use tidy evaluation.
+[^dplyr-1.0.0]: Selecting variables based on their type requires dplyr 1.0.0, which is currently in development.
+
+In this chapter, you'll learn how to use data-masking and tidy-selection functions from ggplot2 and dplyr with your Shiny app. To learn more about using tidy evaluation in a function or package, you'll need to turn to other resources like [_Using ggplot2 in packages_](http://ggplot2.tidyverse.org/dev/articles/ggplot2-in-packages.html) or [_Programming with dplyr_](http://dplyr.tidyverse.org/dev/articles/programming.html).
 
 ```{r setup}
 library(shiny)
@@ -39,7 +40,7 @@ library(dplyr, warn.conflicts = FALSE)
 library(ggplot2)
 ```
 
-## Data-masking {#tidy-motivation}
+## Data-masking
 
 Data-masking allows you to use variables in the "current" data frame without any extra syntax. It's used in many dplyr functions like `arrange()`, `filter()`, `group_by()`, `mutate()`, and `summarise()`, and in ggplot2's `aes()`. Data-masking works by blurring the lines between two meanings of "variable":
 
@@ -73,7 +74,13 @@ diamonds[diamonds$x == 0 | diamonds$y == 0, ]
 
 [^subset]: `dplyr::filter()` is inspired by `base::subset()`. `subset()` uses data-masking, but not through tidy evaluation, so unfortunately the techniques discussed in this chapter don't apply to it.
 
-You usually use these verbs purely with data-variables, but they work equally well with env-variables[^fun-scoping]:
+### Indirection
+
+The blurring of data-variables and env-variables makes data analysis easier at the cost of making indirection harder. In Shiny[^embracing], indirection happens when you have the name of data-variable stored in an env-variable, and is the key in use data-masking with Shiny apps. 
+
+[^embracing]: There's another form of indirection that happens when you're write functions which is solved using `{{ x }}`, called embracing. You can learn more about that in  [_Programming with dplyr_](http://dplyr.tidyverse.org/dev/articles/programming.html).
+
+To make the problem concrete, take the following code which uses data-masking to refer to a data-variable (`carat`) and env-variable (`min_carat`) in the same way[^fun-scoping]:
 
 ```{r}
 min_carat <- 1
@@ -82,9 +89,7 @@ diamonds %>% filter(carat > min_carat)
 
 [^fun-scoping]: Note that an expression like `carat > min_carat` has to look for three things: `carat`, `min_carat`, and `>`. That's because R uses the same rules to look for functions and objects. If `filter()` didn't also look in the environment, it wouldn't be able to find any functions.
 
-### Indirection
-
-The blurring of data-variables and env-variables makes data analysis easier at the cost of making indirection harder. In Shiny[^embracing], indirection happens when you have the name of data-variable stored in an env-variable, and is the key in use data-masking with Shiny apps. Indirection isn't a problem with base R because you can switch from `$` to `[[`:
+Imagine we want to extend this code so that it works for any variable and any value. That is straightforward with base R because you can switch from `$` to `[[`:
 
 ```{r, results = FALSE}
 var <- "carat"
@@ -92,58 +97,45 @@ min <- 1
 diamonds[diamonds[[var]] > min, ]
 ```
 
-[^embracing]: There's another form of indirection that happens when you're write functions which is solved using `{{ x }}`, called embracing. You can learn more about that in  [_Programming with dplyr_](http://dplyr.tidyverse.org/dev/articles/programming.html).
-
 Data-masking solves the indirection problem in a similar way, by introducing an object, `.data` that you can subset using either `$` or `[[`. To get started we can rewrite our previous `filter()` call to use `.data` to make it clear we're that `carat` is a data-variable[^env]:
 
 ```{r, results = FALSE}
 diamonds %>% filter(.data$carat > min)
 ```
 
-[^env]: `.data` is paired with `.env` which is usually less useful, but we'll come back to it later in Section.
+[^env]: `.data` is paired with `.env`, which is usually not needed, but we'll come back to it later in Section \@ref(user-data).
 
-This form isn't particularly useful (allow it does allow you to eliminate a pesky `R CMD check` `NOTE`), but because we have some object to index into, we can switch from `$` to `[[`:
-
-```{r, results = FALSE}
-diamonds %>% filter(.data[["carat"]] > min)
-```
-
-Which in turn allows indirection:
+This form isn't particularly useful (unless you're writing a package, in which case it eliminates a pesky `R CMD check` `NOTE`), but because we have some object to index into, we can switch from `$` to `[[`:
 
 ```{r, results = FALSE}
 var <- "carat"
 diamonds %>% filter(.data[[var]] > min)
 ```
 
-### In Shiny apps
-
-Let's apply this to a simple Shiny app. The following example tries to let the user to select any variable from `diamonds` and find all rows where that variable is greater than zero:
+Let's wrap this up into a simple Shiny app. The UI will have a input to select the variable, an input for the minimum value, and a output to show the data, and the server function will wrap the `filter()` call in a reactive, render the first few rows.
 
 ```{r}
 ui <- fluidPage(
   selectInput("var", "Variable", choices = names(diamonds)),
+  numericInput("min", "Minimum")
   tableOutput("output")
 )
 server <- function(input, output, session) {
-  data <- reactive(filter(diamonds, input$var > 0))
+  data <- reactive(filter(diamonds, .data[[input$var]] > input$min))
   output$output <- renderTable(head(data()))
 }
 ```
 
-This code doesn't work because `input$var` isn't a data-var: it's an env-var containing the name of a data-var (stored as string). Unfortunately it also fails to work in an uninformative way because `input$var` will be a string like "carat" and:
-
-```{r}
-"carat" > 0
-```
-
-We can fix the problem, and allow indirection, by using the technique described above:
+Note that if we didn't use `.data`, as below, the app will not work correct, but also won't generate an error message. That's because `input$var` will be a string like `"carat"` and `"carat" > 0` is valid R expression that evaluates to `TRUE`, selecting all rows.
 
 ```{r}
 server <- function(input, output, session) {
-  data <- reactive(filter(diamonds, .data[[input$var]] > 0))
+  data <- reactive(filter(diamonds, input$var > input$min))
   output$output <- renderTable(head(data()))
 }
 ```
+
+Now that you've seen the basics, we'll develop a couple of more realistic, but still simple, Shiny apps.
 
 ### Example: ggplot2
 
@@ -165,9 +157,7 @@ server <- function(input, output, session) {
 }
 ```
 
-I've used the elegant `ggforce::position_auto()` to automatically spread the points out when one axis is discrete. Once you've mastered the basics of tidy evaluation you'll quickly find that the challenge becomes making your app general enough to work with many different types of variable.
-
-Alternatively, instead of using `position_auto()`, we could allow the user to pick the geom:
+Here I've used `ggforce::position_auto()` so that `geom_point()` works nicely regardless of whether the x and y variables are continuous or discrete. Alternatively, instead of using `position_auto()`, we could allow the user to pick the geom. The following app uses a `switch()` statement to genereate a reactive geom that is later added to the plot.
 
 ```{r}
 ui <- fluidPage(
@@ -191,6 +181,8 @@ server <- function(input, output, session) {
   })
 }
 ```
+
+This is one of the challenges of programming with user selected variables: your code has to become more complicated to handle all the cases the user might generate.
 
 ### Example: dplyr
 
@@ -237,11 +229,11 @@ server <- function(input, output, session) {
 }
 ```
 
-As you provide more control, you'll find the code gets more and more complicated, and it becomes harder and harder to create a user interface that is both comprehensive _and_ user friendly. This is why I've always focussed on code tools for data analysis: creating good UIs is really really hard!
+As you provide more control, you'll find your code gets more and more complicated, and it becomes harder and harder to create a user interface that is both comprehensive and user friendly. This is why I've always focussed on code tools for data analysis: creating good UIs is really really hard!
 
-### User supplied data
+### User supplied data {#user-data}
 
-There is one additional complication when you're working with user supplied data. Take the following app: it allows the user to upload a tsv file, then select a variable and filter by it. It will work for the vast majority of inputs that you might try it with:
+Before we move on to talk about tidy-selection, there's one last topic we need to discuss: user supplied data. Take the following app: it allows the user to upload a tsv file, then select a variable and filter by it. It will work for the vast majority of inputs that you might try it with:
 
 ```{r}
 ui <- fluidPage(
@@ -274,7 +266,7 @@ server <- function(input, output, session) {
 }
 ```
 
-There is a subtle problem with the use of `filter()` here. Let's pull out that bit of the code so we can play around with directly outside the app:
+There is a subtle problem with the use of `filter()` here. Let's pull the call to `filter()` so we can play around with it directly, outside of the app:
 
 ```{r}
 df <- data.frame(x = 1, y = 2)
@@ -296,7 +288,7 @@ We get an error message because `filter()` is attempting to evaluate `df$input$m
 df$input$min
 ```
 
-This problem is again due to the ambiguity of data-variables and env-variables. Tidy evaluation always prefers to use a data-variable if both are available. We can resolve the amibugity by using `.env`[^inception] to tell `filter()` only look for env-variables called min:
+This problem is due to the ambiguity of data-variables and env-variables, and because data-masking prefers to use a data-variable if both are available. We can resolve the problem by using `.env`[^inception] to tell `filter()` only look for `min` in the env-variables:
 
 ```{r}
 df %>% filter(.data[[input$var]] > .env$input$min)
@@ -304,7 +296,7 @@ df %>% filter(.data[[input$var]] > .env$input$min)
 
 [^inception]: You might wonder if the same problem applies to variables called `.data` and `.env`. In the unlikely event of having columns with those names you'll need to refer to them with explicitly `.data$.data` and `.data$.env`.
 
-Note that you only need to worry about this probelm when working with user supplied data; when working with your own data, you can ensure the names of the data-variables don't clash with the names of env-variables.
+Note that you only need to worry about this problem when working with user supplied data; when working with your own data, you can ensure the names of your data-variables don't clash with the names of your env-variables.
 
 ### Why not use base R?
 
@@ -316,8 +308,8 @@ df[df[[input$var]] > input$min, ]
 
 That's a totally legitimate position, as long as you're aware of the work that `filter()` does for you so you can generate the equivalent base R code. In this case:
 
-* You'll need `drop = FALSE` if `df` contains a single column (otherwise you'll 
-  get a vector instead of a data frame).
+* You'll need `drop = FALSE` if `df` contains a single column (otherwise 
+  you'll get a vector instead of a data frame).
   
 * You'll need to use `which()` or similar to drop any missing values.
 
@@ -327,7 +319,7 @@ In general, if you're using dplyr for very simple cases, you might find it easie
 
 ## Tidy-selection
 
-Tidy-selection provides a concise way of selecting columns by position, name, or type. It's used in `dplyr::select()` and `dplyr::across()`, and many functions from tidyr like `pivot_longer()`, `pivot_wider()`, `separate()`, `extract()`, and `unite()` functions. 
+Tidy-selection provides a concise way of selecting columns by position, name, or type. It's used in `dplyr::select()` and `dplyr::across()`, and in many functions from tidyr, like `pivot_longer()`, `pivot_wider()`, `separate()`, `extract()`, and `unite()`. 
 
 ### Indirection
 
@@ -353,9 +345,9 @@ server <- function(input, output, session) {
 
 ### Tidy-selection and data-masking
 
-Working with multiple variables is trivial when you're working with a function that uses selection semantics: you can just pass a character vector of variable names in to `any_of()`/`all_of()`. Wouldn't it be nice if we could do that in data-masking functions too? 
+Working with multiple variables is trivial when you're working with a function that uses tidy-selection: you can just pass a character vector of variable names in to `any_of()` or `all_of()`. Wouldn't it be nice if we could do that in data-masking functions too? That's the idea of the `across()` function, which was implemented in dplyr 1.0.0. It allows you to access tidy-selection inside of the data-masking functions. 
 
-That's the idea of the `across()` function, which appeared in dplyr 1.0.0. It allows you to access tidy-selection inside of the data-masking functions. It is commonly used with either one or two arguments. The first argument selects variables, so is useful in functions like `group_by()` or `distinct()`. For example, the following app allows you to select any number of variables and count their unique values.
+`across()` is typically used with either one or two arguments. The first argument selects variables, and is useful in functions like `group_by()` or `distinct()`. For example, the following app allows you to select any number of variables and count their unique values.
 
 ```{r}
 ui <- fluidPage(
@@ -374,7 +366,7 @@ server <- function(input, output, session) {
 }
 ```
 
-The second argument is applied to each select column in turn. That makes it a good fit for `mutate()` and `summarise()` where you typically want to transform each variable in some way:
+The second argument is a function (or list of functions) that's applied to each selected column. That makes it a good fit for `mutate()` and `summarise()` where you typically want to transform each variable in some way. For example, the following code lets the user select any number of grouping variables, and any number of variables to summarise with their means.
 
 ```{r}
 ui <- fluidPage(
@@ -413,9 +405,9 @@ server <- function(input, output, session) {
 }
 ```
 
-## `parse()`
+## `parse()` + `eval()`
 
-Before we go, it's worth talking about `paste()` + `parse()` + `eval()`. If you have no idea what this combination it, you can skip this section, but if you have used it in the past I'd recommend switching to the approaches described up. 
+Before we go, it's worth a brief comment about `paste()` + `parse()` + `eval()`. If you have no idea what this combination it, you can skip this section, but if you have used it, I'd like to pass on a small note of caution.
 
 It's a tempting approach because it requires learning very few new ideas. But it has some major downsides: because you are pasting strings together, it's very easy to accidentally create invalid code, or code that can be abused to do something that you didn't want. This isn't super important if its a Shiny app that only you use, but it's a good habit to get into --- otherwise it's very easy to accidentally create a security hole in an app that you share more widely.
 
