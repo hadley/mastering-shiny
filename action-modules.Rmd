@@ -527,7 +527,7 @@ radioButtonsWithOther <- function(id, label, choices, selected = NULL, placehold
 }
 
 radioButtonsWithOtherServer <- function(input, output, session) {
-  observeEvent(input$primary, {
+  observeEvent(input$other, {
     req(input$other)
     updateRadioButtons(session, "primary", selected = "other")
   })
