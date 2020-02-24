@@ -1,5 +1,69 @@
 # Bookmarking {#action-bookmark}
 
+By default, Shiny apps have one major drawback compared to most web apps you'll see in the wild: there's no easy way to share your current view of the app with other people. The root cause of this is Shiny's reactivity: it makes creating an app much easier at the cost of making it hard to figure out exactly how the precise state of an app came to be (a necessary prerequisite for sharing state). 
+
 ```{r, include = FALSE}
 source("common.R")
 ```
+
+Bookmarking saves the values of all inputs, in to one of two forms (which we'll discuss shortly). When the application is restored using that state, the inputs are seeded with the saved values. As long as the application’s reactive graph structure is straightforward, this will replay all reactive expressions and outputs, yielding the same app that you see. The mostly likely source of problems is randomness.
+
+## Basic idea
+
+UI code must go in a function.  And include `bookmarkButton()`.
+
+```{r}
+ui <- function(request) {
+  fluidPage(
+    textInput("txt", "Enter text"),
+    checkboxInput("caps", "Capitalize"),
+    verbatimTextOutput("out"),
+    bookmarkButton()
+  )
+}
+```
+
+Then in `shinyApp()` call, add the `enableBookmarking` argument. We'll learn about the two possible values a little later.
+
+```{r, eval = FALSE}
+shinyApp(ui, server, enableBookmarking = "url")
+```
+
+### Updating the url
+
+```{r}
+# Automatically boomark every time an input changes
+observe({
+  reactiveValuesToList(input)
+  session$doBookmark()
+})
+# Update the query string
+onBookmarked(updateQueryString)
+```
+  
+## Two ways to store state
+
+```{r, eval = FALSE}
+shinyApp(ui, server, enableBookmarking = "url")
+shinyApp(ui, server, enableBookmarking = "server")
+```
+
+* Encoding state in the URL. Best if state is smaller. Values visible in URL.
+
+* Saving state to the state. Best if state is larger (i.e. lots of inputs).
+  Must use if you want to store the state of file inputs.  When prototyping
+  locally these files will be saved in `shiny_bookmarks/` in the working
+  directory.
+  
+You use them by supplying the `enableBookmarking` argument to `shinyApp()`.
+
+## Challenges
+
+* Excluding inputs: `setBookmarkExclude(c("x", "y"))`
+
+* Random numbers: `set.seed()`; `repeatable()`. 
+
+* Bookmarking and restoring tabs: make sure to supply an `id`
+
+* State not determined by the reactive graph. Use `onBookmark()` and 
+  `onRestore()` <https://shiny.rstudio.com/articles/advanced-bookmarking.html>
