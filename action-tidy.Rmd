@@ -117,7 +117,7 @@ Let's wrap this up into a simple Shiny app. The UI will have a input to select t
 ```{r}
 ui <- fluidPage(
   selectInput("var", "Variable", choices = names(diamonds)),
-  numericInput("min", "Minimum")
+  numericInput("min", "Minimum", value = 1),
   tableOutput("output")
 )
 server <- function(input, output, session) {
