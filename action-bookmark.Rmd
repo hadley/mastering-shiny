@@ -1,69 +1,128 @@
 # Bookmarking {#action-bookmark}
 
-By default, Shiny apps have one major drawback compared to most web apps you'll see in the wild: there's no easy way to share your current view of the app with other people. The root cause of this is Shiny's reactivity: it makes creating an app much easier at the cost of making it hard to figure out exactly how the precise state of an app came to be (a necessary prerequisite for sharing state). 
-
 ```{r, include = FALSE}
 source("common.R")
 ```
 
-Bookmarking saves the values of all inputs, in to one of two forms (which we'll discuss shortly). When the application is restored using that state, the inputs are seeded with the saved values. As long as the application’s reactive graph structure is straightforward, this will replay all reactive expressions and outputs, yielding the same app that you see. The mostly likely source of problems is randomness.
+By default, Shiny apps have one major drawback compared to most apps you'll on the internet: the app url does not capture the current state of the app. This means that you can't bookmark the current state and return to it in the future, and there's no way to share your current location with someone else in an email or text. While unfortunately Shiny can't do this by default, fortunately it's a behaviour that you can opt-in to with a little extra work. This chapter will show you how.
+
+```{r}
+library(shiny)
+```
 
 ## Basic idea
 
-UI code must go in a function.  And include `bookmarkButton()`.
+Let's take a simple app that we want to make bookmarkable. This app draws Lissajous figures which replicate the motion of a pendulum. There are two parameters to tweak, and having found an interesting pattern you might want to share it with a friend:
+
+```{r}
+ui <- fluidPage(
+  sliderInput("omega", "omega", value = 0, min = -2, max = 2, step = 0.01),
+  sliderInput("delta", "delta", value = pi / 2, min = 0, max = 2, step = 0.01),
+  plotOutput("fig")
+)
+server <- function(input, output, session) {
+  t <- seq(0, 100, length = 1e4)
+  x <- reactive(sin(input$omega * t + input$delta))
+  y <- reactive(sin(t))
+  
+  output$fig <- renderPlot({
+    plot(x(), y(), axes = FALSE, xlab = "", ylab = "", type = "l", lwd = 2)
+  })
+}
+```
+
+There are three things we need to do to make this app bookmarkable:
+
+1.  Add `bookmarkButton()` to the UI. This will generate a button that the 
+    user clicks to generate the bookmarkable url.
+
+1.  Turn `ui` into a function. This is needed because of the way that 
+    bookmarkable state has to replay previous values: there's no longer really
+    one UI, but many possible starting UIs depending on the previously 
+    bookmarked values.
+    
+1.  Add `enableBookmarking = "url"` to the `shinyApp()` call.
+
+This gives us:
 
 ```{r}
 ui <- function(request) {
   fluidPage(
-    textInput("txt", "Enter text"),
-    checkboxInput("caps", "Capitalize"),
-    verbatimTextOutput("out"),
+    sliderInput("omega", "omega", value = 1, min = -2, max = 2, step = 0.01),
+    sliderInput("delta", "delta", value = pi / 2, min = 0, max = 2, step = 0.01),
+    plotOutput("fig"),
     bookmarkButton()
   )
 }
 ```
-
-Then in `shinyApp()` call, add the `enableBookmarking` argument. We'll learn about the two possible values a little later.
-
 ```{r, eval = FALSE}
 shinyApp(ui, server, enableBookmarking = "url")
 ```
 
 ### Updating the url
 
-```{r}
-# Automatically boomark every time an input changes
-observe({
-  reactiveValuesToList(input)
-  session$doBookmark()
-})
-# Update the query string
-onBookmarked(updateQueryString)
-```
-  
-## Two ways to store state
+Instead of providing an explicit button, another options is to automatically update the url in the browser. This means that the usual bookmark action will work, and you can copy and paste the current url.
 
+```{r}
+server <- function(input, output, session) {
+  t <- seq(0, 100, length = 1e4)
+  x <- reactive(sin(input$omega * t + input$delta))
+  y <- reactive(sin(t))
+  
+  output$fig <- renderPlot({
+    plot(x(), y(), axes = FALSE, xlab = "", ylab = "", type = "l", lwd = 2)
+  })
+  
+  # Automatically bookmark every time an input changes
+  observe({
+    reactiveValuesToList(input)
+    session$doBookmark()
+  })
+  # Update the query string
+  onBookmarked(updateQueryString)
+}
+```
 ```{r, eval = FALSE}
 shinyApp(ui, server, enableBookmarking = "url")
-shinyApp(ui, server, enableBookmarking = "server")
 ```
 
-* Encoding state in the URL. Best if state is smaller. Values visible in URL.
+You could of course now remove the bookmark button if you were so inclined.
 
-* Saving state to the state. Best if state is larger (i.e. lots of inputs).
-  Must use if you want to store the state of file inputs.  When prototyping
-  locally these files will be saved in `shiny_bookmarks/` in the working
-  directory.
+### Storing state
+
+To bookmark an app means to store the current state of the inputs so it can be later replayed. There are ways you can do this:
+
+* `enableBookmarking = "url"`, which we've used so far. This stores the state
+  directly in the URL. This has the advantage of being very simple. The primary
+  downside is that if you have many or complex inputs, it will create very 
+  long URLs. This limitation also means that it can't work with file uploads.
   
-You use them by supplying the `enableBookmarking` argument to `shinyApp()`.
+* `enableBookmarking = "server"`, saves the state to an `.rds` file on the 
+  server. This always generates a short URL but requires additional storage 
+  on the server. While your testing locally you'll see these files saved in 
+  `shiny_bookmarks/` in the working directory. Doesn't work on shinyapps.io.
 
 ## Challenges
 
-* Excluding inputs: `setBookmarkExclude(c("x", "y"))`
+When the application is restored using that state, the inputs are seeded with the saved values. This will replay all reactive expressions and outputs, yielding the same app that you see, as long as the application’s reactive graph structure is straightforward. 
 
-* Random numbers: `set.seed()`; `repeatable()`. 
+* If your app uses random numbers, by default the random numbers will be 
+  different between the apps. You can work around this by either using
+  `set.seed()` to set the global seed or using `repeatable()` to set the
+  random seed locally. 
 
-* Bookmarking and restoring tabs: make sure to supply an `id`
+* If you have tabs and want to bookmark and restore the active tab,
+  make sure to supply an `id` in your call to `tabsetPanel()`.
 
-* State not determined by the reactive graph. Use `onBookmark()` and 
-  `onRestore()` <https://shiny.rstudio.com/articles/advanced-bookmarking.html>
+* If there are inputs that should not be bookmarked, for example because 
+  they're private information that should be shared include a called to 
+  `setBookmarkExclude()` somewhere in your server function. For example,
+  `setBookmarkExclude(c("secret1", "secret2"))` will ensure that the
+  `secret1` and `secret2` inputs are not bookmarked.
+
+* If you are manually managing reactive state in your own `reactiveValues()`
+  object (as we'll discuss in Chapter XYZ), you'll need to use the 
+  `onBookmark()` and `onRestore()` callbacks to manually save and load your 
+  additional state. See 
+  <https://shiny.rstudio.com/articles/advanced-bookmarking.html> for more 
+  details.
