@@ -49,7 +49,7 @@ Data-masking allows you to use variables in the "current" data frame without any
 
 * Data frame variables (data-variables for short) are "statistical" variables 
   that live inside a data frame. They usually come from data loaded by functions 
-  like `read.csv()`, or a created by manipulating other variables.
+  like `read.csv()`, or are created by manipulating other variables.
 
 To make these terms more concrete, take this piece of code:
 
@@ -76,7 +76,7 @@ diamonds[diamonds$x == 0 | diamonds$y == 0, ]
 
 ### Indirection
 
-The blurring of data-variables and env-variables makes data analysis easier at the cost of making indirection harder. In Shiny[^embracing], indirection happens when you have the name of data-variable stored in an env-variable, and is the key in use data-masking with Shiny apps. 
+The blurring of data-variables and env-variables makes data analysis easier at the cost of making indirection harder. In Shiny[^embracing], indirection happens when you have the name of a data-variable stored in an env-variable, and is the key in using data-masking with Shiny apps. 
 
 [^embracing]: There's another form of indirection that happens when you're write functions which is solved using `{{ x }}`, called embracing. You can learn more about that in  [_Programming with dplyr_](http://dplyr.tidyverse.org/dev/articles/programming.html).
 
@@ -97,7 +97,7 @@ min <- 1
 diamonds[diamonds[[var]] > min, ]
 ```
 
-Data-masking solves the indirection problem in a similar way, by introducing an object, `.data` that you can subset using either `$` or `[[`. To get started we can rewrite our previous `filter()` call to use `.data` to make it clear we're that `carat` is a data-variable[^env]:
+Data-masking solves the indirection problem in a similar way, by introducing an object, `.data` that you can subset using either `$` or `[[`. To get started we can rewrite our previous `filter()` call to use `.data` to make it clear that `carat` is a data-variable[^env]:
 
 ```{r, results = FALSE}
 diamonds %>% filter(.data$carat > min)
@@ -112,7 +112,7 @@ var <- "carat"
 diamonds %>% filter(.data[[var]] > min)
 ```
 
-Let's wrap this up into a simple Shiny app. The UI will have a input to select the variable, an input for the minimum value, and a output to show the data, and the server function will wrap the `filter()` call in a reactive, render the first few rows.
+Let's wrap this up into a simple Shiny app. The UI will have a input to select the variable, an input for the minimum value, and a output to show the data, and the server function will wrap the `filter()` call in a reactive and render the first few rows.
 
 ```{r}
 ui <- fluidPage(
@@ -126,7 +126,7 @@ server <- function(input, output, session) {
 }
 ```
 
-Note that if we didn't use `.data`, as below, the app will not work correct, but also won't generate an error message. That's because `input$var` will be a string like `"carat"` and `"carat" > 0` is valid R expression that evaluates to `TRUE`, selecting all rows.
+Note that if we didn't use `.data`, as below, the app will not work correctly, but also won't generate an error message. That's because `input$var` will be a string like `"carat"` and `"carat" > 0` is valid R expression that evaluates to `TRUE`, selecting all rows.
 
 ```{r}
 server <- function(input, output, session) {
@@ -407,8 +407,8 @@ server <- function(input, output, session) {
 
 ## `parse()` + `eval()`
 
-Before we go, it's worth a brief comment about `paste()` + `parse()` + `eval()`. If you have no idea what this combination it, you can skip this section, but if you have used it, I'd like to pass on a small note of caution.
+Before we go, it's worth a brief comment about `paste()` + `parse()` + `eval()`. If you have no idea what this combination is, you can skip this section, but if you have used it, I'd like to pass on a small note of caution.
 
-It's a tempting approach because it requires learning very few new ideas. But it has some major downsides: because you are pasting strings together, it's very easy to accidentally create invalid code, or code that can be abused to do something that you didn't want. This isn't super important if its a Shiny app that only you use, but it's a good habit to get into --- otherwise it's very easy to accidentally create a security hole in an app that you share more widely.
+It's a tempting approach because it requires learning very few new ideas. But it has some major downsides: because you are pasting strings together, it's very easy to accidentally create invalid code, or code that can be abused to do something that you didn't want. This isn't super important if its a Shiny app that only you use, but it isn't a good habit to get into --- otherwise it's very easy to accidentally create a security hole in an app that you share more widely.
 
 (You shouldn't feel bad if this is the only way you can figure out to solve a problem, but when you have a bit more mental space, I'd recommend spending some time figuring out how to do it without string manipulation. This will help you to become a better R programmer.)
