@@ -23,6 +23,7 @@ rmd_files:
     "action-dynamic.Rmd",
     "action-transfer.Rmd",
     "action-bookmark.Rmd",
+    "action-functions.Rmd",
     "action-modules.Rmd",
     "action-tidy.Rmd",
 
