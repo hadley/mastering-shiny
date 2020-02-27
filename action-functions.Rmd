@@ -4,11 +4,17 @@
 source("common.R")
 ```
 
-Sometimes you can extract out duplicated code using functions. For example, if you've copied and pasted some UI code to create variants with different names:
+If you have been creating a lot of your app via copy and paste, parts of your app may be very similar to each other. The do not repeat yourself, or DRY, principle of software engineering (popularised by the Pragmatic Programmers) states that "Every piece of knowledge must have a single, unambiguous, authoritative representation within a system".
 
-Or you have a self contained set of reactives:
+Copy and paste is a great starting technique but if you rely on it too much you'll end up with apps that are hard to understand (because it's hard to see the important differences when you have a lot of copy and pasted code) and are fragile to changes (because it's easy to forget to update one of the places that you've duplicated code).
 
-However, a function alone with only take you so far because typically you'll have some connection between the front end and back end, and you need some way to coordinate the two. Shiny uses identifiers so you need some way to share them. This gives rise to Shiny __modules__.
+A good rule of thumb is that if you have copy and pasted something three times, it's a good time to make a function or use some other technique to reduce the amount of duplication.
+
+These techniques also allow you to spread your app code across multiple files. As your app grows, sandwhiching all of your code into a single `app.R` will start to become painful. This and the next chapter describes the techniques you can use to break your app apart into smaller independent pieces, starting with functions and culminating with modules. 
+
+For more complicated apps, particularly apps that multiple people contribute to, there are substantial advantages to turning your app into a package. In that case, you might want to check out the [golem](https://thinkr-open.github.io/golem/) package and accompanying ["Buidling Big Shiny Apps"](https://thinkr-open.github.io/building-shiny-apps-workflow/) book.
+
+However, a function alone with only take you so far because typically you'll have some connection between the front end and back end, and you need some way to coordinate the two. Shiny uses identifiers so you need some way to share them. This gives rise to Shiny __modules__. We'll come back to this in the next chapter.
 
 ```{r setup}
 library(shiny)
