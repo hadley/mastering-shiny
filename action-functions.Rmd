@@ -4,60 +4,29 @@
 source("common.R")
 ```
 
-If you have been creating a lot of your app via copy and paste, parts of your app may be very similar to each other. The do not repeat yourself, or DRY, principle of software engineering (popularised by the Pragmatic Programmers) states that "Every piece of knowledge must have a single, unambiguous, authoritative representation within a system".
+If you have been creating a lot of your app via copy and paste, parts of your app may be very similar to each other. Copy and paste is a great starting technique but if you rely on it too much you end up with two major problems:
 
-Copy and paste is a great starting technique but if you rely on it too much you'll end up with apps that are hard to understand (because it's hard to see the important differences when you have a lot of copy and pasted code) and are fragile to changes (because it's easy to forget to update one of the places that you've duplicated code).
+* Your app is hard to understand because it's hard to see the important 
+  differences when you have a lot of copy and pasted code.
+  
+* Your app is hard to update because it's easy to forget to update one of the 
+  places that you've duplicated code). 
+  
+A good rule of thumb is that if you have copy and pasted something three times, it's a good time use some other technique to reduce the amount of duplication. In this chapter, we'll show how you can use functions to reuse duplication in code on either the UI or the server. This isn't the only technique you'll need in Shiny, but it's a good place to start. In the next chapter, you'll learn about __modules__, which allow you to reduce duplicated code that requires coordination across the UI and server.
 
-A good rule of thumb is that if you have copy and pasted something three times, it's a good time to make a function or use some other technique to reduce the amount of duplication.
+There are two advantages to using a function:
 
-These techniques also allow you to spread your app code across multiple files. As your app grows, sandwhiching all of your code into a single `app.R` will start to become painful. This and the next chapter describes the techniques you can use to break your app apart into smaller independent pieces, starting with functions and culminating with modules. 
+* It allows you to move it to a separate file. 
 
-For more complicated apps, particularly apps that multiple people contribute to, there are substantial advantages to turning your app into a package. In that case, you might want to check out the [golem](https://thinkr-open.github.io/golem/) package and accompanying ["Buidling Big Shiny Apps"](https://thinkr-open.github.io/building-shiny-apps-workflow/) book.
-
-However, a function alone with only take you so far because typically you'll have some connection between the front end and back end, and you need some way to coordinate the two. Shiny uses identifiers so you need some way to share them. This gives rise to Shiny __modules__. We'll come back to this in the next chapter.
+* It makes it clear from the outside exactly what inputs your function
+  takes. 
 
 ```{r setup}
 library(shiny)
 ```
 
-## Helper functions
-
-If, given specific values, your app requires complex calculation, first start by pulling that calculation out into separate function:
-
-```{r}
-server <- function(input, output, session) {
-  data <- reactive({
-    # complex data calculation involving input$x, input$y, input$z
-  })
-}
-```
-
-```{r}
-my_helper <- function(x, y, z) {
-  ...
-}
-
-server <- function(input, output, session) {
-  data <- reactive(my_helper(input$x, input$y, input$z))
-}
-```
-
-When extracting out such helpers, avoid putting any reactive component inside the function. Instead, pass them in through the arguments.
-
-There are two advantages to using a function:
-
-* It allows you to move it to a separate file
-
-* It makes it clear from the outside exactly what inputs your function
-  takes. When looking at a reactive expression or output, there's no way to
-  easily tell exactly what values it depends on, except by carefully reading
-  the code block. The function definition is a nice signpost that tells you 
-  exactly what to inspect.  
-
-A function also _enforces_ this independence --- if you try and refer to an input that you did not pass into the function, you'll get an error. This enforced independence becomes increasingly important as you create bigger and bigger apps because it ensures that pieces of your app are independent and can be analysed in isolation.
-
-As your collection of helper functions grow, you might want to pull them out into their own files. I recommend putting that file in a `R/` directory underneath the app directory. Then load it at the top of your `app.R`:
-
+## Organisation
+  
 ```{r, eval = FALSE}
 library(shiny)
 
@@ -70,9 +39,15 @@ server <- function(input, output, session) {
 
 (A future version of shiny will automatically source all files in `R/`, <https://github.com/rstudio/shiny/pull/2547>, so you'll be able to remove the `source()` line.)
 
-## UI functions
+As your collection of helper functions grow, you might want to pull them out into their own files. I recommend putting that file in a `R/` directory underneath the app directory. Then load it at the top of your `app.R`:
+
+For more complicated apps, particularly apps that multiple people contribute to, there are substantial advantages to turning your app into a package. In that case, you might want to check out the [golem](https://thinkr-open.github.io/golem/) package and accompanying ["Buidling Big Shiny Apps"](https://thinkr-open.github.io/building-shiny-apps-workflow/) book. I think a particularly important power is that the package infrastructure makes it possible to test your helper functions; and they can be tested independently of reactivity.
+
+## Duplication in UI
 
 You can apply these same ideas to generating your UI. If you have a bunch of controls that you use again and again and again, it's worth doing some up front work to make a function that saves some typing.
+
+### Basic idea
 
 This can be useful even if all you're doing is changing three or four default arguments. For example, imagine that you're creating a bunch of sliders that need to each run from 0 to 1, starting at 0.5, with a 0.1 step. You _could_ do a bunch of copy and paste:
 
@@ -100,7 +75,7 @@ ui <- fluidRow(
 )
 ```
 
-If you're comfortable with functional programming, you could reduce the code still further as below. htmltools (the package that provides the underlying html code to Shiny) supports tidy dots only in the development version. `fluidRow(!!!list(a, b))` is equivalent to `fluidRow(a, b)`. This technique is sometimes called splatting because you're splatting the elements of a list into the arguments of a function.
+If you're comfortable with functional programming, you could reduce the code still further:
 
 ```{r}
 vars <- c("alpha", "beta", "gamma", "delta")
@@ -108,13 +83,15 @@ sliders <- purrr::map(vars, sliderInput01)
 ui <- fluidRow(!!!sliders)
 ```
 
-I'm not going to teach functional programming here, but I will show off some examples. It's a good example of where improving your general R programming skills pays off in your Shiny apps. 
+There are two big ideas here:
 
-### Reactives
+* Using a function like `map()` to generate a list containing one slider for 
+  each element of `vars`.
+  
+* Using `!!!` to __splat__ the elements of the list into individual arguments
+  to `fluidRow()`. `fluidRow(!!!list(a, b))` is equivalent to `fluidRow(a, b)`.
 
-<!-- https://community.rstudio.com/t/r-shiny-apply-custom-function-to-datatable/39790/3 -->
-
-Note that you want to keep as much reactivity inside the server function as possible. So it takes a generic `path` and it returns a data frame, not a reactive.
+I'm not going to teach functional programming in this book, but I will show a few aspirational examples. It's a good example of where improving your general R programming skills pays off in your Shiny apps. 
 
 ### Case study
 
@@ -194,7 +171,7 @@ ngo_filtered <- reactive({
 })
 ```
 
-You might consider genearalising to handle multiple datasets:
+You might consider generalising to handle multiple datasets:
 
 ```{r}
 dfSelectInput <- function(df, var, label, multiple = TRUE) {
@@ -206,8 +183,7 @@ dfSelectInput <- function(df, var, label, multiple = TRUE) {
 
 This would be a good idea if you saw that pattern repeated in multiple places. But you'll probably also need to introduce some additional component for the id. Otherwise `dfSelect(df1, "x")` and `dfSelect(df2, "x")` would generate a control with the same id, which is obviously going to cause problems. This is the problem of namespacing; we want somehow to have a hierarchy in the names. We'll come back to this in modules, as this is one of the big problems that they solve.
 
-
-If you had a lot more controls, I'd consider using functional programming to generate them. Again, I'll just show an example so if you're already familiar with FP you can see my basic approach. The key idea is to capture all the data you need to generate the columns in a single data frame, which is convenient to create with `tibble::tribble()`. A data frame is useful here because it easily generalises to any number of arguments
+If you had a lot more controls, I'd consider using functional programming to generate them. Again, I'll just show an example so if you're already familiar with functional programming you can see my basic approach. The key idea is to capture all the data you need to generate the columns in a single data frame, which is convenient to create with `tibble::tribble()`. A data frame is useful here because it easily generalises to any number of arguments
 
 ```{r}
 library(purrr)
@@ -219,7 +195,7 @@ vars <- tibble::tribble(
 )
 ```
 
-Then we use `purrr::pmap()` to turn each row in the data frame to a call to `ngoSelectInput()`, use `map()` to wrap each select input into a boxHeader, and then `!!!` to 
+Then we use `purrr::pmap()` to turn each row in the data frame to a call to `ngoSelectInput()`, use `map()` to wrap each select input into a boxHeader, and then `!!!` to splat into a row.
 
 ```{r, eval = FALSE}
 vars %>% 
@@ -228,7 +204,41 @@ vars %>%
   fluidRow(!!!.)           # collapse into a single fluidRow()
 ```
 
-If you have really advanced FP skills, you can even generate the call to `dplyr::filter()`:
+## Duplication in server
+
+<!-- https://community.rstudio.com/t/r-shiny-apply-custom-function-to-datatable/39790/3 -->
+
+If, given specific values, your app requires complex calculation, first start by pulling that calculation out into separate function:
+
+```{r}
+server <- function(input, output, session) {
+  data <- reactive({
+    # complex data calculation involving input$x, input$y, input$z
+  })
+}
+```
+
+```{r}
+my_helper <- function(x, y, z) {
+  ...
+}
+
+server <- function(input, output, session) {
+  data <- reactive(my_helper(input$x, input$y, input$z))
+}
+```
+
+When extracting out such helpers, avoid putting any reactive component inside the function. Instead, pass them in through the arguments. 
+
+Reactivity should only live in the server function, or a module server function, which we'll talk about next.
+
+A function also _enforces_ this independence --- if you try and refer to an input that you did not pass into the function, you'll get an error. This enforced independence becomes increasingly important as you create bigger and bigger apps because it ensures that pieces of your app are independent and can be analysed in isolation. 
+
+When looking at a reactive expression or output, there's no way to easily tell exactly what values it depends on, except by carefully reading the code block. The function definition is a nice signpost that tells you  exactly what to inspect.  
+
+### Functional programming
+
+If you're a functional programming aficionado, you could even generate the call to `dplyr::filter()`:
 
 ```{r}
 library(rlang)
@@ -245,3 +255,121 @@ filter(ngo, !!!select)
 ```
 
 Don't worry if this all looks like gibberish: you can just use copy and paste instead. 
+
+## Limitation of functions
+
+Functions are great when you have duplicated code in the UI or server that is unconnected to the other side. 
+
+To illustrate why we need modules, and can't just use regular functions, consider the following simple app. It allows the user to input their birthday as a string: this is a little faster than using a `dateInput()` since there's no need to scroll through a calendar. But it means that we need to check that they've entered a correct date and give an informative message if they haven't.
+
+```{r}
+library(lubridate)
+
+ui <- fluidPage(
+  textInput("date", "When were you born? (yyyy-mm-dd)"),
+  textOutput("error"),
+  textOutput("age")
+)
+
+server <- function(input, output, session) {
+  birthday <- reactive({
+    req(input$date)
+    ymd(input$date, quiet = TRUE)
+  })
+  
+  output$error <- renderText({
+    if (is.na(birthday())) {
+      "Please enter valid date in yyyy-mm-dd form"
+    }
+  })
+  age <- reactive({
+    req(birthday())
+    (birthday() %--% today()) %/% years(1)
+  })
+  output$age <- renderText({
+    paste0("You are ", age(), " years old")
+  })
+}
+```
+
+It seems plausible that as your app gets bigger you might want to use this date control in multiple places, so lets have a go at extracting it out into functions. We'll need two functions: one to generate the UI, and one to do the computation on the server side:
+
+```{r}
+ymdInputUI <- function(label) {
+  label <- paste0(label, " (yyyy-mm-dd)")
+  
+  fluidRow(
+    textInput("date", label),
+    textOutput("error")
+  )
+}
+
+ymdInputServer <- function(input, output, session) {
+  date <- reactive({
+    req(input$date)
+    ymd(input$date, quiet = TRUE)
+  })
+  
+  output$error <- renderText({
+    if (is.na(date())) {
+      "Please enter valid date in yyyy-mm-dd form"
+    }
+  })
+
+  date
+}
+```
+
+That leads to the following app:
+
+```{r}
+ui <- fluidPage(
+  ymdInputUI("When were you born?"),
+  textOutput("age")
+)
+
+server <- function(input, output, session) {
+  birthday <- ymdInputSever(input, output, session)
+  
+  age <- reactive({
+    req(birthday())
+    (birthday() %--% today()) %/% years(1)
+  })
+  
+  output$age <- renderText({
+    paste0("You are ", age(), " years old")
+  })
+}
+```
+
+There are two problems with this approach:
+
+*   It always assumes that the control is called `date`. This means that 
+    we can't have two controls in the same app.
+  
+    ```{r}
+    ui <- fluidPage(
+      ymdInputUI("When was your mother born?"),
+      ymdInputUI("When was your father born?")
+    )
+    ```
+  
+*   The UI has a output with id `error` that you can't see when reading 
+    the UI code. This makes it very easy to accidentally break the app by
+    introducing two controls with the same id:
+  
+    ```{r}
+    ui <- fluidPage(
+      ymdInputUI("When were you born?"),
+      textOutput("error")
+    )
+    ```
+
+    Debugging the problem that this creates will be painful because it will 
+    reveal itself through failure of reactivity -- the output won't update as you
+    expect, or you'll get weird errors because two controls are fighting for 
+    the same input value. 
+
+These problems arise because we've used functions to isolate local variables; the code is simpler to understand because any variables created inside of `ymdInputUI()` and `ymdInputServer()` can't be accessed outside. But there's another important way that Shiny code can interface: through the names of input and output controls.
+
+This is the problem that modules are designed to solve: creating inputs and reactives that are completely isolated from the rest of your app. Learning how to use modules will take a little time, but it will pay off by giving you the ability to write components that are guaranteed to be isolated from everything else in your app.
