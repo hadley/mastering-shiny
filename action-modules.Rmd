@@ -154,7 +154,7 @@ server <- function(input, output, session) {
 Convert to a module and generalise a little.
 
 ```{r}
-radioButtonsExtraInput <- function(id, label, choices, selected = NULL, placeholder = NULL) {
+radioButtonsExtraUI <- function(id, label, choices, selected = NULL, placeholder = NULL) {
   ns <- NS(id)
   
   radioButtons(ns("primary"), "Gender:",
@@ -167,7 +167,7 @@ radioButtonsExtraInput <- function(id, label, choices, selected = NULL, placehol
   )
 }
 
-radioButtonsExtra <- function(id) {
+radioButtonsExtraServer <- function(id) {
   moduleFunction(id, function(input, output, server) {
     observeEvent(input$primary, {
       req(input$other)
@@ -185,7 +185,7 @@ radioButtonsExtra <- function(id) {
 }
 
 ui <- fluidPage(
-  radioButtonsWithOtherUi("gender", 
+  radioButtonsExtraUI("gender", 
     label = "Gender", 
     choices = list(
       male = "Male",
@@ -199,7 +199,7 @@ ui <- fluidPage(
 )
 
 server <- function(input, output, session) {
-  gender <- radioButtonsWithOther("gender")
+  gender <- radioButtonsExtraServer("gender")
 
   output$txt <- renderText({
     paste("You chose", gender())
