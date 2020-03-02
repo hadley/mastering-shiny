@@ -4,18 +4,25 @@
 source("common.R")
 ```
 
-Before reading chapter make sure that you're already familiar with how to use functions to reduce duplication in a Shiny app.
+Before reading chapter make sure that you're already with the previous chapter on using functions to reduce duplication in a Shiny app. Modules provide very similar benefits to functions, but have an explicit connection between ui and server components through **namespacing**.
+
 
 There are two main reasons to use modules:
 
 *   To isolate subcomponents of your app through specified inputs and outputs.
-    This makes it easier to understand how you app works because you don't
+    This makes it easier to understand how your app works because you don't
     have to load all the pieces into your head to understand how the whole 
     thing hangs together. It also allows you to spread a large app across 
     multiple files.
     
 *   To create reusable user interface components that encompass both 
     client-side HTML and server-side behaviour. 
+
+These are not discrete cases, but points of a spectrum:
+
+* No inputs or outputs
+* Inputs or outputs
+* Inputs and outputs
 
 Often the hardest part is decomposing your big problem into smaller independent pieces. I include some case studies here to help you get a sense of how this feels, but ultimately it's a skill that can only be learned with practice. Try and set aside some time each week where you're not improving the behaviour or appearance of your app, but simply making it easier to understand. This will make your app easier to change in the future, and as you practice these skills your first attempt will become higher quality.
 
@@ -29,7 +36,149 @@ moduleFunction <- function(id, module) {
 }
 ```
 
+## What is a module?
+
+A module is just a pair of functions. One function is responsible for generating the UI components; one function is responsible for generating the server side. Both functions take "id" as the first argument, and do something with it. This is the key difference with modules, and is what guarantees their isolation and allows you to use them multiple times in the same app.
+
+Let's take a very simple app and divide it up into module.
+
+```{r}
+ui <- fluidPage(
+  selectInput("var", "Variable", names(mtcars)),
+  numericInput("bins", "bins", 10, min = 1),
+  plotOutput("hist")
+)
+server <- function(input, output, session) {
+  data <- reactive(mtcars[[input$var]])
+  output$hist <- renderPlot({
+    hist(data(), breaks = input$bins, main = input$var)
+  })
+}
+```
+
+```{r}
+histogramUi <- function(id) {
+  list(
+    selectInput(NS(id, "var"), "Variable", names(mtcars)),
+    numericInput(NS(id, "bins"), "bins", 10, min = 1),
+    plotOutput(NS(id, "hist"))
+  )
+}
+```
+
+```{r}
+histogramServer <- function(id) {
+  moduleFunction(id, function(input, output, server) {
+    data <- reactive(mtcars[[input$var]])
+    output$hist <- renderPlot({
+      hist(data(), breaks = input$bins, main = input$var)
+    })
+  })
+}
+```
+
+
+```{r}
+ui <- fluidPage(
+  histogramUi("hist1")
+)
+server <- function(input, output, session) {
+  histogramServer("hist1")
+}
+```
+
+Two big advantages. Firstly all the code inside the histogram is isolated. The UI below would still work because the histogram module is isolated from the new bins input. You can imagine how helpful this would be when working with large apps!
+
+```{r}
+ui <- fluidPage(
+  histogramUi("hist1"),
+  sliderInput("bins", "bins", 5, min = 1, max = 10)
+)
+```
+
+The other advantage is that you can easily reuse in multiple places in the app.
+
+```{r}
+ui <- fluidPage(
+  histogramUi("hist1"),
+  histogramUi("hist2")
+)
+server <- function(input, output, session) {
+  histogramServer("hist1")
+  histogramServer("hist2")
+}
+```
+
+### Single function
+
+```{r}
+histogramModule <- function(id, df) {
+  ui <- function() {
+    list(
+      selectInput(NS(id, "var"), "Variable", names(df)),
+      numericInput(NS(id, "bins"), "bins", 10, min = 1),
+      plotOutput(NS(id, "hist"))
+    )
+  }
+  server <- function() {
+    moduleFunction(id, function(input, output, server) {
+      data <- reactive(df[[input$var]])
+      output$hist <- renderPlot({
+        hist(data(), breaks = input$bins, main = input$var)
+      })
+    })
+  }
+  
+  list(ui = ui, server = server)
+}
+
+hist1 <- histogramModule("mtcars", mtcars)
+hist2 <- histogramModule("iris", iris)
+
+ui <- fluidPage(
+  tabsetPanel(
+    tabPanel("mtcars", hist1$ui()),
+    tabPanel("iris", hist2$ui())
+  )
+)
+server <- function(input, output, session) {
+  hist1$server()
+  hist2$server()
+}
+```
+
+
 ## Isolation
+
+Common design for large apps is to arrange independent components with a tabset. This is useful design pattern for the user because it keeps related inputs close to their outputs, reducing the cognitive burden of using the app. Shiny modules allow you to also get the benefits on the backend: you can convert each tab to a separate pair of isolated UI and server functions that live in their own file. This makes your code easier to understand because its now split up across multiple files; each file can be analysed independently, because the outside connections are clearly demarcated.
+
+```{r}
+dists <- c(
+  "Normal" = "norm",
+  "Uniform" = "unif",
+  "Log-normal" = "lnorm",
+  "Exponential" = "exp"
+)
+
+ui <- fluidPage(
+  titlePanel("Tabsets"),
+  sidebarLayout(
+    sidebarPanel(
+      radioButtons("dist", "Distribution type:", dists),
+      sliderInput("n", "Number of observations:", value = 500, min = 1, max = 1000)
+    ),
+
+    mainPanel(
+      tabsetPanel(
+        tabPanel("Plot", plotOutput("plot")),
+        tabPanel("Summary", verbatimTextOutput("summary")),
+        tabPanel("Table", tableOutput("table"))
+      )
+    )
+  )
+)
+```
+
 
 ## Reusable components
 
@@ -307,3 +456,7 @@ shinyApp(ui = ui, server = server)
    
 3. Suppose you have an app that is slow to launch when a user visits it. Can  
    modularizing your app code help solve this problem? Explain your reasoning.
+
+## Dynamic UI
+
+One extra little trick - you can get the currenct namespace through `session`.
