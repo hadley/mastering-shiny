@@ -6,7 +6,6 @@ source("common.R")
 
 Before reading chapter make sure that you're already with the previous chapter on using functions to reduce duplication in a Shiny app. Modules provide very similar benefits to functions, but have an explicit connection between ui and server components through **namespacing**.
 
-
 There are two main reasons to use modules:
 
 *   To isolate subcomponents of your app through specified inputs and outputs.
@@ -29,8 +28,9 @@ Often the hardest part is decomposing your big problem into smaller independent 
 ```{r setup}
 library(shiny)
 
-# We're experimenting with a new style of module construction that
-# will appear in the next version of Shiny.
+# This is a new style of module construction that will appear in shiny 1.5.0.
+# For now, we're adding a simple shim that you can use in your own, and delete
+# when shiny 1.5.0 is out.
 moduleFunction <- function(id, module) {
   callModule(module, id)
 }
@@ -38,9 +38,9 @@ moduleFunction <- function(id, module) {
 
 ## What is a module?
 
-A module is just a pair of functions. One function is responsible for generating the UI components; one function is responsible for generating the server side. Both functions take "id" as the first argument, and do something with it. This is the key difference with modules, and is what guarantees their isolation and allows you to use them multiple times in the same app.
+A module is just a pair of functions. One function is responsible for generating the UI components; one function is responsible for generating the server side. Both functions take "id" as the first argument, and use it in a standard way. This is the key difference with modules, and is what guarantees their isolation and allows you to use them multiple times in the same app.
 
-Let's take a very simple app and divide it up into module.
+Let's take a very simple app and divide it up into modules. This app is so simple that there's no real benefit to modularising it, but it will serve to illustrate the main differences with modules before we dive into more realistic use cases. This app draws a plot of a histogram for user selected variable and number of bins.
 
 ```{r}
 ui <- fluidPage(
@@ -56,6 +56,23 @@ server <- function(input, output, session) {
 }
 ```
 
+### Module UI
+
+To turn this into a module we need to wrap both UI and server components in specially constructed functions. We'll start with the UI. There are two steps:
+
+* We wrap it inside a function. The function must take an `id` argument.
+  It can also take other arguments; we'll come back to that later
+  
+* Each existing ID needs to get "namespaced". Practically this means you
+  transform (e.g.) `"var"` to `NS(id, "var")`. The key idea is that the first 
+  argument to `NS()` is supplied by the user of the module, and the second 
+  argument is supplied by the author of the module. This two-part creation 
+  means that you as a module author don't need to worry about clashing with
+  other UI components created by the user. You have your own "space" of names
+  that you control. This is the key idea of namespaces.
+
+This yields the following function:
+
 ```{r}
 histogramUi <- function(id) {
   list(
@@ -65,6 +82,12 @@ histogramUi <- function(id) {
   )
 }
 ```
+
+Note that here we wrap the UI components in a list; that means they will get included in the parent container. Returning a list is most flexible because it allows the caller of the module to put it in whatever container they want. But if in your app, you always place the module in the same container you might want to include that in the UI function and instead return a `column()` or a `fluidRow()`.
+
+### Module server
+
+Next we tackle the server function. This gets wrapped inside a another function which must have an `id` argument (again, it can have other arguments and we'll come back to those shortly). The module server calls `moduleFunction()` with the id, and a function that looks like a regular server function. This always has arguments `input`, `output`, and `session`.
 
 ```{r}
 histogramServer <- function(id) {
@@ -77,6 +100,13 @@ histogramServer <- function(id) {
 }
 ```
 
+The code inside the module server is isolated - it can only read from inputs and write to output defined by the UI function with the matching ID. If you want to take input from reactives elsewhere in the app, you'll need to pass them to the module function explicitly; we'll come back to that later.
+
+Note that the namespacing in the UI is explicit; you have to manually instrument each `id` argument with `NS()`. The namespace in the server is **implicit**; Shiny automatically modifies the `input` and `output` arguments so work it works automatically without your intervention.
+
+### Updated app
+
+Now that we have these pieces we can rewrite our app to use them:
 
 ```{r}
 ui <- fluidPage(
@@ -87,7 +117,17 @@ server <- function(input, output, session) {
 }
 ```
 
-Two big advantages. Firstly all the code inside the histogram is isolated. The UI below would still work because the histogram module is isolated from the new bins input. You can imagine how helpful this would be when working with large apps!
+Note that, just like regular inputs/output and reactives the UI and server are linked by a shared ID. Otherwise they're black boxes and you can't see inside them. Shortly we'll see how you can add inputs and outputs to your reactives so that they can interact with other parts of your app.
+
+## Dynamic UI
+
+One extra little trick - you can get the current namespace through `session`.
+
+### Advantages
+
+There are two big advantages to using a module: isolation and reusability.
+
+Firstly all the code inside the histogram is isolated. The UI below would still works because the histogram module is isolated from the new bins input. You can imagine how helpful this would be when working with large apps!
 
 ```{r}
 ui <- fluidPage(
@@ -109,46 +149,7 @@ server <- function(input, output, session) {
 }
 ```
 
-### Single function
-
-```{r}
-histogramModule <- function(id, df) {
-  ui <- function() {
-    list(
-      selectInput(NS(id, "var"), "Variable", names(df)),
-      numericInput(NS(id, "bins"), "bins", 10, min = 1),
-      plotOutput(NS(id, "hist"))
-    )
-  }
-  server <- function() {
-    moduleFunction(id, function(input, output, server) {
-      data <- reactive(df[[input$var]])
-      output$hist <- renderPlot({
-        hist(data(), breaks = input$bins, main = input$var)
-      })
-    })
-  }
-  
-  list(ui = ui, server = server)
-}
-
-hist1 <- histogramModule("mtcars", mtcars)
-hist2 <- histogramModule("iris", iris)
-
-ui <- fluidPage(
-  tabsetPanel(
-    tabPanel("mtcars", hist1$ui()),
-    tabPanel("iris", hist2$ui())
-  )
-)
-server <- function(input, output, session) {
-  hist1$server()
-  hist2$server()
-}
-```
-
-
-## Isolation
+## Isolated components
 
 Common design for large apps is to arrange independent components with a tabset. This is useful design pattern for the user because it keeps related inputs close to their outputs, reducing the cognitive burden of using the app. Shiny modules allow you to also get the benefits on the backend: you can convert each tab to a separate pair of isolated UI and server functions that live in their own file. This makes your code easier to understand because its now split up across multiple files; each file can be analysed independently, because the outside connections are clearly demarcated.
 
@@ -179,15 +180,18 @@ ui <- fluidPage(
 )
 ```
 
+## Inputs and outputs
+
+Should you pass a reactive or the current value of a reactive? Always reactive! Only take a constant if it's something that is used only during the setup of your module code.
+
+How to return multiple values? Return a list of reactives.
+
+You'll see quite a bit of advice online to use `session$userData`. I think this is generally bad advice because it takes an end run around namespacing and re-introduces many of the problems that you're trying to avoid by using modules. 
 
 ## Reusable components
 
 
 ## Using modules
-
-A Shiny module is a pair of functions, corresponding to the front end UI and the backend server function. 
-
-Modules are way to create an app within an app. They force isolation of behaviour so that one module can't affect another, and code outside of a module can only affect the inside in a way that the module explicitly allows.
 
 ### Making a module
 
@@ -206,7 +210,6 @@ ymdInput <- function(id, label) {
 
 (Notice I've called this `ymdInput()` to match Shiny's existing style.)
 
-The key idea is that the first argument to `NS()` is supplied by the person using the component, and the arguments to the function it produces is supplied by the person who wrote the component. This two-part creation ensures that the final name combines properties needed by both the app author and the module author. This is a bit confusing at first, because you're likely to be both the app and module author.
 
 We now need to specify an `id` when creating the UI. This is important because it puts this id in the same place as all the others, so it's easy to spot if you've used the same input id in multiple places. 
 
@@ -457,6 +460,99 @@ shinyApp(ui = ui, server = server)
 3. Suppose you have an app that is slow to launch when a user visits it. Can  
    modularizing your app code help solve this problem? Explain your reasoning.
 
-## Dynamic UI
 
-One extra little trick - you can get the currenct namespace through `session`.
+## Single object modules
+
+When many people encounter modules for the first time, they immediately attempt to rewrite into a single "thing", a module object that has both UI and server components. If that didn't occur to you, feel free to skip this last part of the chapter, because it explains why that approach (which occurs to many people) isn't a good fit for Shiny.
+
+Shiny explicitly considered and rejected this design because it has some major limitations. For this to work, you have to define the module outside of the server and the UI. That means there's no way to make any of the inputs to the module reactive. 
+
+In Shiny, UI and server are inherently disconnected; Shiny doesn't know which UI invocation belongs to which server session. You can see this pattern throughout Shiny: for example, `plotOutput()` and `renderPlot()` are connected only by shared ID. Writing modules as separate functions reflects that reality: they're distinct functions that are not connected other than through a shared ID.
+
+To illustrate the problem, lets generalise the motivating example from the first part of the chapter so that the data frame is now a parameter:
+
+```{r}
+histogramUi <- function(id, df) {
+  list(
+    selectInput(NS(id, "var"), "Variable", names(df)),
+    numericInput(NS(id, "bins"), "bins", 10, min = 1),
+    plotOutput(NS(id, "hist"))
+  )
+}
+
+histogramServer <- function(id, df) {
+  moduleFunction(id, function(input, output, server) {
+    data <- reactive(df[[input$var]])
+    output$hist <- renderPlot({
+      hist(data(), breaks = input$bins, main = input$var)
+    })
+  })
+}
+```
+
+And that leads to the following app:
+
+```{r}
+ui <- fluidPage(
+  tabsetPanel(
+    tabPanel("mtcars", histgramUI("mtcars", mtcars)),
+    tabPanel("iris", histogramUI("iris", iris))
+  )
+)
+server <- function(input, output, session) {
+  histgramServer("mtcars", mtcars)
+  histgramServer("iris", iris)
+}
+```
+
+It seems undesirable that we have to repeat both the ID and the name of the dataset in both the UI and server, so it's natural to want to wrap into a single function that returns both the UI and the server:
+
+```{r}
+histogramModule <- function(id, df) {
+  list(ui = histogramUi(id, df), server = histogramServer(id, df))
+}
+```
+
+Then we define the module outside of the UI and server, extracting elements from the list as needed:
+
+```{r}
+hist1 <- histogramModule("mtcars", mtcars)
+hist2 <- histogramModule("iris", iris)
+
+ui <- fluidPage(
+  tabsetPanel(
+    tabPanel("mtcars", hist1$ui()),
+    tabPanel("iris", hist2$ui())
+  )
+)
+server <- function(input, output, session) {
+  hist1$server()
+  hist2$server()
+}
+```
+
+This works, but has a substantial drawback: what if we want to allow the user to select the dataset, i.e. we want to make the `df` argument reactive.
+
+
+```{r}
+ui <- function(id, df = NULL) {
+  list(
+    selectInput(NS(id, "var"), "Variable", if (!is.null(df)) names(df)),
+    numericInput(NS(id, "bins"), "bins", 10, min = 1),
+    plotOutput(NS(id, "hist"))
+  )
+}
+server <- function(id, df) {
+  moduleFunction(id, function(input, output, server) {
+    observeEvent(df, {
+      updateSelectInput(session, "var", choices = names(df()))
+    })
+    data <- reactive(df()[[input$var]])
+    output$hist <- renderPlot({
+      hist(data(), breaks = input$bins, main = input$var)
+    })
+  })
+}
+```
+
+If you find your fingers itching to make a single module object that incorporates both UI and server components it's almost certainly a sign that you've decomposed your repeated code into a module in a suboptimal way.
