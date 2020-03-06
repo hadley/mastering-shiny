@@ -6,6 +6,8 @@ source("common.R")
 
 As your Shiny app grows you will find it increasingly hard to understand how all the pieces fit together, and you may find that any change you make creates news problems that you have to fix before continuing. This is a particularly problem as soon as your UI or server grows beyond the point that it can fit on one screen, or you find it hard to keep all the pieces fit together in your head simultaneously.
 
+TODO: explain namespace
+
 When this happens to you, it's a good time to consider using Shiny modules. Shiny modules require a learning a couple of new ideas (particularly namespacing), but have a big payoff because they enable you to write much more ambitious apps because they support greater isolation and easier reuse:
 
 *   Modules isolate subcomponents of your app so that they can only communicate
@@ -59,9 +61,16 @@ Often the hardest part is decomposing your big problem into smaller independent 
 
 ## Module basics
 
-A module is just a pair of functions. One function is responsible for generating the UI components; one function is responsible for generating the server function. Both functions take "id" as the first argument, and use it in a standard way. This is the key difference with modules, and is what guarantees their isolation and allows you to use them multiple times in the same app.
+A module is very similar to an app. Like an app, it's composed of two pieces:
 
-Let's take a very simple app and divide it up into modules. This app is so simple that there's no real benefit to modularising it, but it will serve to illustrate the main differences with modules before we dive into more realistic use cases. This app draws a plot of a histogram for user selected variable and number of bins.
+* A function that generates to the `ui` specification. (Unlike an app, module 
+  `ui` is always a function.)
+
+* A function that runs code inside the `server` function.
+
+The functions have standard forms. They both take an `id` argument and use it to namespace the module. The namespace is the defining feature of modules: it guarantees their isolation and allows you to use one module in multiple places in the same app.
+
+Let's take a very simple app and turn it into a module. This app is so simple that there's no real benefit to modularising it, but it will serve to illustrate the basic process before we dive into more realistic, and hence complicated, use cases. The app draws a plot of a histogram for a user selected variable and number of bins.
 
 ```{r}
 ui <- fluidPage(
@@ -79,21 +88,16 @@ server <- function(input, output, session) {
 
 ### Module UI
 
-To turn this into a module we need to turn theUI and server components into functions with a special form. We'll start with the UI. There are two steps:
+To turn this into a module we need to turn the UI and server components into module UI and module server functions. We'll start with the UI. There are two steps:
 
-* We wrap it inside a function. The function must take an `id` argument.
-  Going from a specific UI to a recipe for how to create a UI; modules
-  designed for reuse in multiple places will tend to have more arguments.
-  
-* Each existing ID needs to get "namespaced". Practically this means you
-  transform (e.g.) `"var"` to `NS(id, "var")`. The key idea is that the first 
-  argument to `NS()` is supplied by the user of the module, and the second 
-  argument is supplied by the author of the module. This two-part creation 
-  means that you as a module author don't need to worry about clashing with
-  other UI components created by the user. You have your own "space" of names
-  that you control. This is the key idea of namespaces.
+* We put the UI code inside a function. The function must take an `id` argument.
 
-This yields the following function:
+* Each existing ID needs to be wrapped in a call to `NS()`, so that (e.g.)
+  `"var"` becomes `NS(id, "var")`. 
+
+The key idea that makes modules work is that the ID of each component is now determined by two pieces: one piece is supplied by the user of the module, and the other is supplied by the author of the module. This two-part creation means that you as a module author don't need to worry about clashing with other UI components created by the user. You have your own "space" of names that you control.
+
+Making the changes above yields the following function:
 
 ```{r}
 histogramUI <- function(id) {
@@ -107,13 +111,11 @@ histogramUI <- function(id) {
 
 Note that here we return the UI components in a list; that means they will get included in the parent container when added to the final UI. Returning a list is most flexible because it allows the caller of the module to put it in whatever container they want. But if in your app, you always place the module in the same container you might want to include that in the UI function and instead return a `column()` or a `fluidRow()`.
 
-(If you're using dynamic UI, you need one extra little trick - you can get the current namespace through `session$ns`; and you don't need to expicitly pass `id`.)
+(If you're using dynamic UI, you need one extra little trick - you can get the current namespace through `session$ns`; and you don't need to explicitly pass the `id`.)
 
 ### Module server
 
-Next we tackle the server function. This gets wrapped inside a another function which must have an `id` argument (again, it can have other arguments and we'll come back to those shortly): again this function is a recipe for generating the code needed inside the server function.
-
-The module server calls `moduleServer()` with the id, and a function that looks like a regular server function. This always has arguments `input`, `output`, and `session`.
+Next we tackle the server function. This gets wrapped inside _another_ function which must have an `id` argument. This function calls `moduleServer()` with the `id`, and a function that looks like a regular server function:
 
 ```{r}
 histogramServer <- function(id) {
@@ -126,26 +128,11 @@ histogramServer <- function(id) {
 }
 ```
 
-It's important to note that code inside the module server is isolated: it can only read from inputs and write to outputs defined with the matching `id`. If you want to take input from reactives elsewhere in the app, you'll need to pass them to the module function explicitly; we'll come back to that later.
-
-Note that the namespacing in the UI is explicit; you have to manually instrument each `id` argument with `NS()`. The namespace in the server is **implicit**; Shiny automatically modifies the `input` and `output` arguments so work it works automatically without your intervention.
+Unlike the `ui` function, you only need to use `id` in one place: in the call to `moduleServer()`. Shiny automatically namespaces `input` or `output` so that your module code can only access elements with the matching `id`. If you want to take input from reactives elsewhere in the app, you'll need to pass them to the module function explicitly; we'll come back to that later.
 
 ### Updated app
 
-Now that we have these pieces we can rewrite our app to use them:
-
-```{r}
-ui <- fluidPage(
-  histogramUi("hist1")
-)
-server <- function(input, output, session) {
-  histogramServer("hist1")
-}
-```
-
-Note that, just like regular inputs/output and reactives the UI and server are linked by a shared ID. Otherwise they're black boxes and you can't see inside them. Shortly we'll see how you can add inputs and outputs to your reactives so that they can interact with other parts of your app.
-
-I think it's good practice to create a "module" function that makes it easy to instantiate a version of your module as a complete. This should live at the bottom of the file. This allows you to experiment with your module independently of the rest of your app. More complicated modules are likely to require a couple of other inputs or output in order to simulate the inputs and outputs to the module.
+Now that we have the ui and server functions, it's good practice to write a function that uses them to generate an app, which we can use for testing. Here the function isn't strictly needed because it doesn't have any arguments, but it's good practice that will server you well as your modules get more complicated. More complicated modules are likely also like to require additional inputs or outputs.
 
 ```{r}
 histogramModule <- function() {
@@ -159,58 +146,106 @@ histogramModule <- function() {
 }
 ```
 
+Note that, just like regular inputs/output and reactives the UI and server are linked by a shared ID. Otherwise they're black boxes and you can't see inside them: you can't see any inputs, outputs, or reactives inside the module.
+
 ### Naming scheme
 
-Before we continue on, it's worth reflecting on the naming scheme I've used here. Since the module is about histograms, the base name is `histogram`. I then use that name in various places:
+Note that we've used a consistent naming scheme for all the components of our module. I think this is good practice because it makes it obvious that the pieces are connected, and makes it easier for other people reading your code to recognise that you're using a module.
 
-* `R/histogram.R`: where the code lives.
+Since the modules is about histograms, I've called it the `histogram` module. This then leads to:
 
-* `histogramUI()`: the function that generates the UI. If it provide solely 
-  input or output controls I'd call it `histogramInput()` or `histogramOuput()`.
+* `R/histogram.R` holds all the code for the module. If you're using Shiny
+  1.5.0 or greater, these will be automatically loaded; otherwise you'll 
+  need to include a call to `source()` in your `app.R`.
 
-* `histogramServer()`: the function that generates the server function.
+* `histogramUI()` generates the UI. If it provided solely input or output 
+   controls I'd call it `histogramInput()` or `histogramOuput()` respectively.
 
-* `histogramModule()`: a function that creates a complete app for testing.
+* `histogramServer()` generates the server function.
 
-### Advantages
-
-There are two big advantages to using a module: isolation and reuse.
-
-Firstly all the code inside the histogram is isolated. The UI below would still work because the histogram module is isolated from the new bins input. You can imagine how helpful this would be when working with large apps!
-
-```{r}
-ui <- fluidPage(
-  histogramUI("hist1"),
-  sliderInput("bins", "bins", 5, min = 1, max = 10)
-)
-```
-
-The other advantage is that you can easily reuse in multiple places in the app:
-
-```{r}
-ui <- fluidPage(
-  histogramUI("hist1"),
-  histogramUI("hist2")
-)
-server <- function(input, output, session) {
-  histogramServer("hist1")
-  histogramServer("hist2")
-}
-```
-
-This is not very useful here because there are no other parameters.
+* `histogramModule()` creates a complete app for testing.
 
 ## Inputs and outputs
 
-Module UI and server function must always have an `id` argument. But there's no reason that they can't have arguments. And indeed this is the way to pass extra data to your reactives. (You might see advice on-line to use `session$userData`. I think this is generally bad advice because it takes an end run around namespacing and re-introduces many of the problems that you're trying to avoid by using modules. )
+Now that we have a simple module under our belt we can start creating some more useful examples. Sometimes a module with no additional ui or server argument is useful because it allows you to pull out complex code into its own file so you don't have to worry about it interactive with the rest of the app. But usually your modules will have inputs and outputs that allow it to coordinate with other components of your app. Unlike the usual freedom of association inside the server function, modules enforce specific lines of communication. This makes constructing your app a little harder but it makes understanding it much much simpler.
 
-You'll need to think carefully about whether an argument should be a reactive or not. If it's a reactive, that means you module need to respond to changes in its. If it's not a reactive, then it only influences the set up of the module. This also influences how you call module servers:
+(You might see advice on-line to use `session$userData`. I think this is generally bad advice because it takes an end run around namespacing and re-introduces many of the problems that you're trying to avoid by using modules. )
 
-* Should you pass a reactive or the current value of a reactive? Always reactive! Only take a constant if it's something that is used only during the setup of your module code.
+### UI inputs
 
-* Passing `input$foo` is almost certainly wrong.
+Adding arguments to your UI function allows the user greater control over its apperance, often allowing you to use the same module in multiple place in the app. Remember, the module UI is just a regular R function, so you are mostly constrained by your function writing skills. If you're newer to writing functions, start by writing functions that extract out existing repeated patterns in your code. As you get more experience, you can begin to anticipate future needs.
 
-### Summary
+### Server inputs
+
+Module server functions can take two types of inputs:
+
+* Static setup inputs. These values are used to initialise the server and do 
+  not change.
+
+* Reactive inputs, which allow your module to respond to changes initialised
+  by the user. 
+  
+Most inputs will be reactive, so if you're not sure, you should err on the side of making it a reactive.
+
+Because you will get cryptic error messages if you pass an reactive instead of a constant or a constant instead of a reactive, I strongly recommend adding some basic assertions to the top of your module server. Something like this only takes a minute or so to write, but will save you a long of potential future frustration from using your module incorrectly.
+
+```{r, eval = FALSE}
+stopifnot(is.reactive(arg1))
+stopifnot(!is.reactive(arg2))
+```
+
+Note that you should never pass an input directly to an module server. If for example, you pass `input$foo`, it will pass the value of `input$foo` when the app starts, i.e. the initial `value` you set in the control. Instead, you'll need to wrap it in `reactive()` so that it continues to update.
+
+```{r}
+multiplierUI <- function(id) {
+  list(
+    numericInput(NS(id, "x"), NULL, 1),
+    " * ",
+    textOutput(NS(id, "y"), inline = TRUE),
+    " = ",
+    textOutput(NS(id, "result"), inline = TRUE)
+  )
+}
+
+multiplierServer <- function(id, y) {
+  stopifnot(is.reactive(y))
+  
+  moduleServer(id, function(input, output, session) {
+    output$y <- renderText(y())
+    output$result <- renderText(input$x * y())
+  })
+}
+```
+
+
+```{r}
+multiplierModule <- function() {
+  ui <- fluidPage(
+    numericInput("y", "y", value = 10),
+    multiplierUI("mult")
+  )
+  
+  server <- function(input, output, session) {
+    multiplierServer("mult", reactive(input$y))
+  }
+  
+  shinyApp(ui, server)
+}
+multiplierModule()
+```
+
+
+Roxygen documentation conventions are worthwhile even if you don't use roxygen2. Add `@param` and `@returns` arguments to describe exactly how the server component of the module works.
+
+
+
+
+
+### Server outputs
+
+How to return multiple values? Return a list of reactives.
+
+### Case study: summary
 
 ```{r}
 selectNumericVarInput <- function(id) {
@@ -269,11 +304,6 @@ shinyApp(ui, server)
 ```
 
 
-
-
-How to return multiple values? Return a list of reactives.
-
-Roxygen documentation conventions are worthwhile even if you don't use roxygen2. Add `@param` and `@returns` arguments to describe exactly how the server component of the module works.
 
 ## Reusable components
 
@@ -583,3 +613,5 @@ If you find your fingers itching to make a single module object that incorporate
    
 3. Suppose you have an app that is slow to launch when a user visits it. Can  
    modularizing your app code help solve this problem? Explain your reasoning.
+
+1.   Example passing `input$foo` to reactive and it not working.
