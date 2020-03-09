@@ -1,4 +1,4 @@
-# Reducing duplication with functions {#action-functions}
+# Functions {#action-functions}
 
 ```{r, include = FALSE}
 source("common.R")

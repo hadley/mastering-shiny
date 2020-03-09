@@ -1,4 +1,4 @@
-# Reducing duplication with modules {#action-modules}
+# Shiny modules {#action-modules}
 
 ```{r, include = FALSE}
 source("common.R")
