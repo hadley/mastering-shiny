@@ -245,7 +245,7 @@ knitr::include_graphics("images/basic-app/cheatsheet.png", dpi = 300)
     number (`x`) between 1 and 50, and displays the result of multiplying this 
     number by 5. This is their first attempt:
 
-    ```{r, echo = FALSE, out.width = NULL}
+    ```{r, echo = TRUE, out.width = NULL}
     ui <- fluidPage(
       sliderInput("x", label = "If x is", min = 1, max = 50, value = 30),
       "then x times 5 is",
