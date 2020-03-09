@@ -445,7 +445,7 @@ The default display is a thin progress bar at the top of the page, but there are
     on an existing input or output by setting the `id` parameter, e.g.:
   
     ```{r, eval = FALSE}
-    waitress <- Waitress$new(id = "steps", theme = "overlay")
+    waitress <- Waitress$new(selector = "#steps", theme = "overlay")
     ```
 
 ### Spinners
