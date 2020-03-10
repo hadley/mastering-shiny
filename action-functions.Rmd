@@ -43,6 +43,8 @@ As your collection of helper functions grow, you might want to pull them out int
 
 For more complicated apps, particularly apps that multiple people contribute to, there are substantial advantages to turning your app into a package. In that case, you might want to check out the [golem](https://thinkr-open.github.io/golem/) package and accompanying ["Buidling Big Shiny Apps"](https://thinkr-open.github.io/building-shiny-apps-workflow/) book. I think a particularly important power is that the package infrastructure makes it possible to test your helper functions; and they can be tested independently of reactivity.
 
+If you're newer to writing functions, start by writing functions that extract out existing repeated patterns in your code. As you get more experience, you can begin to anticipate future needs.
+
 ## Duplication in UI
 
 You can apply these same ideas to generating your UI. If you have a bunch of controls that you use again and again and again, it's worth doing some up front work to make a function that saves some typing.
