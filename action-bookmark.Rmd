@@ -4,7 +4,7 @@
 source("common.R")
 ```
 
-By default, Shiny apps have one major drawback compared to most apps you'll on the internet: the app URL does not capture the current state of the app. This means that you can't bookmark the current state and return to it in the future, and there's no way to share your current location with someone else in an email or text. While unfortunately Shiny can't do this by default, fortunately it's a behaviour that you can opt-in to with a little extra work. This chapter will show you how.
+By default, Shiny apps have one major drawback compared to most apps you'll see on the internet: the app URL does not capture the current state of the app. This means that you can't bookmark the current state and return to it in the future, and there's no way to share your current location with someone else in an email or text. While unfortunately Shiny can't do this by default, fortunately it's a behaviour that you can opt-in to with a little extra work. This chapter will show you how.
 
 ```{r setup}
 library(shiny)
