@@ -197,36 +197,15 @@ So far we've used a consistent naming scheme for all the components of our modul
 
 ## Inputs and outputs
 
-Now that you've seen the basic mechanics of the module UI and server, we can start creating some more useful examples. Sometimes a module with no additional UI or server arguments is useful because it allows you to pull out complex code into its own file so you don't have to worry about it interactive with the rest of the app. But most of the time your modules will have some inputs and outputs so it can coordinate with the rest of the app. 
+Now that you've seen the basic mechanics of the module UI and server, we can start creating some more useful examples. Sometimes a module with no additional UI or server arguments is useful because it allows you to pull out complex code into its own file so you don't have to worry about it interacting with the rest of the app. But most of the time your modules will need to have some inputs and outputs so they can coordinate with the rest of the app. 
 
-When you first start writing modules, the need to be explicit is going to feel tiresome. And it's certainly much more work than the usual free-form association allowed in the server function. But modules enforce specific lines of communication for a reason: they're a little hard to create, in return for a much simpler architecture. You might see advice on-line to use `session$userData` in an attempt to break out of this restriction. I think you should avoid this technique because it takes an end run around namespacing and re-introduces many of the problems that modules solve.
+When you first start writing modules, the need to be explicit is going to feel tiresome. And it's certainly more work than the usual free-form association allowed in the server function. But modules enforce specific lines of communication for a reason: they're a little hard to create, in return for a much simpler architecture. You might see advice on-line to use `session$userData` or other techniques to break out of the module straitjacket. Be wary of such advice because violating the namespacing rules is likely to re-introduce much complexity to your app.
 
-Both module UI and server function can take additional arguments. Adding arguments to your UI function allows the user greater control over its appearance, often allowing you to use the same module in multiple place in the app. But the module UI is just a regular R function, so you are mostly constrained by your function writing skills, and well covered by Chapter \@ref(action-functions). I'll show a few examples of module UI parameters in passing, but we'll focus on the module server, showing how to get additional data in to, and out of, your modules.
+Both module UI and server function can take additional arguments. Adding arguments to your UI function allows the user greater control over its appearance, allowing you to use the same module in more places in your app. But at its heart, the module UI is just a regular R function, so there's relatively little specific to learn for Shiny. I'll show a few examples of module UI inputs in passing, but here I'll focus on the module server, showing how to get additional data in to, and out of, your modules. See Chapter \@ref(action-functions) to learn more about UI functions.
 
-### Server inputs
+### Getting started: UI input + server output
 
-Module server functions can take two types of inputs:
-
-* Static setup inputs. These values are used to initialise the server and do 
-  not change.
-
-* Reactive inputs, which allow your module to respond to changes initialised
-  by the user. 
-  
-Most inputs will be reactive, so if you're not sure, you should err on the side of making it a reactive.
-
-Because you will get cryptic error messages if you pass an reactive instead of a constant or a constant instead of a reactive, I strongly recommend adding some basic assertions to the top of your module server. Something like this only takes a minute or so to write, but will save you a long of potential future frustration from using your module incorrectly.
-
-```{r, eval = FALSE}
-stopifnot(is.reactive(arg1))
-stopifnot(!is.reactive(arg2))
-```
-
-Note that you should never pass an input directly to an module server. If for example, you pass `input$foo`, it will pass the value of `input$foo` when the app starts, i.e. the initial `value` you set in the control. Instead, you'll need to wrap it in `reactive()` so that it continues to update.
-
-### Case study: select data frames
-
-We'll start by create a module to make it easy to select from built-in data frames. Argument to module UI makes it possible to select built in datasets that are (e.g.) either data frames (`filter = is.data.frame`) or matrices (`filter = is.matrix`).
+We'll start by create a module that allows the user from built-in data frames. This isn't terribly useful in its own right, but it's a useful building block for more complex apps. I add one argument to the module UI to make it possible to select built in datasets that are (e.g.) either data frames (`filter = is.data.frame`) or matrices (`filter = is.matrix`). This is minor enhancement to code that you first saw in Section \@ref(adding-ui).
 
 ```{r}
 datasetInput <- function(id, filter = NULL) {
@@ -240,7 +219,7 @@ datasetInput <- function(id, filter = NULL) {
 }
 ```
 
-Module server is similarly simple. There's only one new idea here, like a function, a module can return a value (almost always a reactive):
+The module server is similarly simple. There's only one new idea here, like a function and unlike a regular server function, most modules return a value. Like regular functions, the return value is the last expression processed in the function; but here it will almost always be a reactive:
 
 ```{r}
 datasetServer <- function(id) {
@@ -250,7 +229,7 @@ datasetServer <- function(id) {
 }
 ```
 
-In your app server, you capture the return value of the module server component with `<-` and then use it elsewhere.
+To use a module server that returns a value, you use `<-` to capture its value in your app server function. You can see that in our module function: we create a new reactive variable `data` that is then used to generate output.
 
 ```{r}
 datasetModule <- function(filter = NULL) {
@@ -267,6 +246,16 @@ datasetModule <- function(filter = NULL) {
 # datasetModule(is.data.frame)
 ```
 
+I've made a few design decisions:
+
+* The module function takes an argument which is passed along to the module UI.
+  This allows you to experiment with different variations of the input.
+
+* I use a tabular output to look at the data. It doesn't really matter what 
+  output I use here, but the more expressive it is, the easier it is to 
+  check that the app sdoes what I expect.
+
+
 ### Case study: numeric variable selector
 
 Start with a simple module that allows the user to select any numeric variable from a reactive data frame. The input is very simple, it's just a `selectInput()`: (we'll fill in the choices shortly)
@@ -277,21 +266,26 @@ selectNumericVarInput <- function(id) {
 }
 ```
 
-Then in the module server we update the choices in the input when the dataset changes. 
+The module server needs to do two things:
 
-This time the module server has an argument: the dataset to select variables from. We check this is a reactive then use it to update the select input with the variable names, and return the values of the variable. (In other situations you might just want to return the name)
+* Update the choices in the input when the dataset changes. 
+
+* Return the values of the variable. (This is a design decision; it other 
+  contexts it might make more sense to return the name)
+  
+This time the module server has an argument: the dataset to select variables from. That needs to be a reactive (more on that shortly), so we check it is indeed a reactive, and then we use it like `data()` everywhere.
 
 ```{r}
-selectNumericVarServer <- function(id, df) {
-  stopifnot(is.reactive(df))
+selectNumericVarServer <- function(id, data) {
+  stopifnot(is.reactive(data))
   
   moduleServer(id, function(input, output, session) {
-    observeEvent(df(), {
-      is_numeric <- vapply(df(), is.numeric, logical(1))
-      updateSelectInput(session, "var", choices = names(df())[is_numeric])
+    observeEvent(data(), {
+      is_numeric <- vapply(data(), is.numeric, logical(1))
+      updateSelectInput(session, "var", choices = names(data())[is_numeric])
     })
     
-    reactive(df()[[input$var]])
+    reactive(data()[[input$var]])
   })
 }
 ```
@@ -315,6 +309,30 @@ selectNumericVarModule <- function() {
 }
 # selectNumericVarModule()
 ```
+
+
+### Server inputs
+
+Module server functions can take two types of inputs:
+
+* Static setup inputs. These values are used to initialise the server and do 
+  not change.
+
+* Reactive inputs, which allow your module to respond to changes initialised
+  by the user. 
+  
+Most inputs will be reactive, so if you're not sure, you should err on the side of making it a reactive.
+
+stopifnot(is.reactive(df))
+
+Because you will get cryptic error messages if you pass an reactive instead of a constant or a constant instead of a reactive, I strongly recommend adding some basic assertions to the top of your module server. Something like this only takes a minute or so to write, but will save you a long of potential future frustration from using your module incorrectly.
+
+```{r, eval = FALSE}
+stopifnot(is.reactive(arg1))
+stopifnot(!is.reactive(arg2))
+```
+
+Note that you should never pass an input directly to an module server. If for example, you pass `input$foo`, it will pass the value of `input$foo` when the app starts, i.e. the initial `value` you set in the control. Instead, you'll need to wrap it in `reactive()` so that it continues to update.
 
 ### Case study: histogram
 
@@ -361,6 +379,81 @@ histogramModule <- function() {
   shinyApp(ui, server)
 } 
 # histogramModule()
+```
+
+### Multiple outputs
+
+One challenge with the previous app is there's no easy way to label the histogram with the name of the variable. We could modify the module to return the name instead of the value, but then the module user would have to do all the subsetting. Instead we could return _both_ the name and the value:
+
+```{r}
+selectNumericVarServer <- function(id, data) {
+  stopifnot(is.reactive(data))
+  
+  moduleServer(id, function(input, output, session) {
+    observeEvent(data(), {
+      is_numeric <- vapply(data(), is.numeric, logical(1))
+      updateSelectInput(session, "var", choices = names(data())[is_numeric])
+    })
+    
+    list(
+      name = reactive(input$var),
+      value = reactive(data()[[input$var]])
+    )
+  })
+}
+```
+
+The key idea is simple: instead of returning one value, we return a list of reactives.
+
+To use this with `histogramServer()` we need to add an additional argument, which will become the plot title. This needs to be reactive (since it will change over the lifetime of the app), so we check for it. Also notice the default value: that too must be a reactive value so we create a "constant" reactive.
+
+```{r}
+histogramServer <- function(id, x, title = reactive(NULL)) {
+  stopifnot(is.reactive(x))
+  stopifnot(is.reactive(title))
+  
+  moduleServer(id, function(input, output, session) {
+    output$hist <- renderPlot(
+      hist(x(), breaks = input$bins, main = title())
+    )
+  })
+}
+```
+
+
+```{r}
+histogramModule <- function() {
+  ui <- fluidPage(
+    sidebarLayout(
+      sidebarPanel(
+        datasetInput("data", is.data.frame),
+        selectNumericVarInput("var"),
+      ),
+      mainPanel(
+        histogramOutput("hist")    
+      )
+    )
+  )
+  
+  server <- function(input, output, session) {
+    data <- datasetServer("data")
+    x <- selectNumericVarServer("var", data)
+    histogramServer("hist", x$value, x$name)
+  }
+  shinyApp(ui, server)
+} 
+```
+
+If you find yourself using the pattern a lot, you might also look into the zeallot package which provides a `%<-%` operator that allows you to assign into multiple variables (sometimes called multiple, unpacking, or destructuring assignment).
+
+```{r}
+library(zeallot)
+
+server <- function(input, output, session) {
+  data <- datasetServer("data")
+  c(value, name) %<-% selectNumericVarServer("var", data)
+  histogramServer("hist", value, name)
+}
 ```
 
 ### Case study: tip calculator
@@ -431,30 +524,22 @@ summaryServer <- function(id, var) {
   })
 }
 
-ui <- fluidPage(
-  selectInput("dfname", "Data frame", choices = c("iris", "mtcars")),
-  selectNumericVarInput("var"),
-  summaryOuput("summary")
-)
-
-server <- function(input, output, session) {
-  df <- reactive(switch(input$dfname, 
-    mtcars = mtcars,
-    iris = iris
-  ))
-  # Testing
-  var <- selectNumericVarServer("var", df)
-  summaryServer("summary", var)
+summaryModule <- function() {
+  ui <- fluidPage(
+    datasetInput("data", is.data.frame),
+    selectNumericVarInput("var"),
+    summaryOuput("summary")
+  )
+  
+  server <- function(input, output, session) {
+    df <- datasetServer("data")
+    var <- selectNumericVarServer("var", df)
+    summaryServer("summary", var)
+  }
+  
+  shinyApp(ui, server)
 }
-
-shinyApp(ui, server)
 ```
-
-### Server outputs
-
-How to return multiple values? Return a list of reactives.
-
-Sidebar with zeallot example.
 
 
 ### Workflow
