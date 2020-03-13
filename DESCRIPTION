@@ -10,7 +10,8 @@ Imports:
     shinythemes,
     tidyverse,
     vroom,
-    waiter
+    waiter,
+    zeallot
 Suggests:
     bookdown,
     desc,
