@@ -123,7 +123,7 @@ Next we tackle the server function. This gets wrapped inside _another_ function 
 
 ```{r}
 histogramServer <- function(id) {
-  moduleServer(id, function(input, output, server) {
+  moduleServer(id, function(input, output, session) {
     data <- reactive(mtcars[[input$var]])
     output$hist <- renderPlot({
       hist(data(), breaks = input$bins, main = input$var)
@@ -223,7 +223,7 @@ The module server is similarly simple. There's only one new idea here, like a fu
 
 ```{r}
 datasetServer <- function(id) {
-  moduleServer(id, function(input, output, server) {
+  moduleServer(id, function(input, output, session) {
     reactive(get(input$dataset, "package:datasets"))
   })
 }
@@ -673,7 +673,7 @@ radioButtonsExtraUI <- function(id, label, choices, selected = NULL, placeholder
 }
 
 radioButtonsExtraServer <- function(id) {
-  moduleServer(id, function(input, output, server) {
+  moduleServer(id, function(input, output, session) {
     observeEvent(input$primary, {
       req(input$other)
       updateRadioButtons(session, "primary", selected = "other")
