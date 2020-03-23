@@ -37,7 +37,7 @@ moduleServer <- function(id, module) {
 }
 ```
 
-## Big picture {#module-motivation}
+## Motivation {#module-motivation}
 
 Before we dive into the details of how to create your own modules, it's useful to get more of a sense for exactly how they change the "shape" of your app. I'm going to borrow an example from [Eric Nantz](https://github.com/rpodcast), who talked about modules at rstudio::conf(2019): <https://youtu.be/ylLLVo2VL50>. Eric was motivated to use module because he had a big complex app, as shown in Figure \@ref(fig:modules-before). Obviously, you don't know anything about the specifics of this app, but you can get some sense of the complexity.
 
@@ -137,7 +137,7 @@ histogramServer <- function(id) {
 Now that we have the ui and server functions, it's good practice to write a function that uses them to generate an app, which we can use for testing. Here the function isn't strictly needed because it doesn't have any arguments, but it's good practice that will server you well as your modules get more complicated. More complicated modules are likely also like to require additional inputs or outputs.
 
 ```{r}
-histogramModule <- function() {
+histogramApp <- function() {
   ui <- fluidPage(
     histogramUI("hist1")
   )
@@ -147,6 +147,8 @@ histogramModule <- function() {
   shinyApp(ui)  
 }
 ```
+
+For more complicated modules this app is also useful for testing as you'll learn in Chapter XXXXX.
 
 ### Namespacing
 
@@ -193,7 +195,9 @@ So far we've used a consistent naming scheme for all the components of our modul
 
 * `histogramServer()` generates the server function.
 
-* `histogramModule()` creates a complete app for testing.
+* `histogramApp()` creates a complete app for testing.
+
+Roxygen documentation conventions are worthwhile even if you don't use roxygen2. Add `@param` and `@returns` arguments to describe exactly how the server component of the module works.
 
 ## Inputs and outputs
 
@@ -205,7 +209,9 @@ Both module UI and server function can take additional arguments. Adding argumen
 
 ### Getting started: UI input + server output
 
-We'll start by create a module that allows the user from built-in data frames. This isn't terribly useful in its own right, but it's a useful building block for more complex apps. I add one argument to the module UI to make it possible to select built in datasets that are (e.g.) either data frames (`filter = is.data.frame`) or matrices (`filter = is.matrix`). This is minor enhancement to code that you first saw in Section \@ref(adding-ui).
+We'll start by create a module that allows the user from built-in data frames. This isn't terribly useful by itself, but it illustrates some of the basic principles, and it's a useful building block for more complex apps. 
+
+I add one argument to the module UI to make it possible to select built in datasets that are (e.g.) either data frames (`filter = is.data.frame`) or matrices (`filter = is.matrix`). This is minor enhancement to code that you first saw in Section \@ref(adding-ui).
 
 ```{r}
 datasetInput <- function(id, filter = NULL) {
@@ -219,7 +225,7 @@ datasetInput <- function(id, filter = NULL) {
 }
 ```
 
-The module server is similarly simple. There's only one new idea here, like a function and unlike a regular server function, most modules return a value. Like regular functions, the return value is the last expression processed in the function; but here it will almost always be a reactive:
+The module server is also simple: we just use `get()` to retrieve the dataset using its name. There's one new idea. Like a function and unlike a regular server function, most modules return a value. Like regular functions, the return value is the last expression processed in the function; in a module server it will almost always be a reactive:
 
 ```{r}
 datasetServer <- function(id) {
@@ -229,10 +235,10 @@ datasetServer <- function(id) {
 }
 ```
 
-To use a module server that returns a value, you use `<-` to capture its value in your app server function. You can see that in our module function: we create a new reactive variable `data` that is then used to generate output.
+To use a module server that returns a value, you capture its value using `<-`. You can see that in our module app: we create a new reactive `data` that's then used to generate output.
 
 ```{r}
-datasetModule <- function(filter = NULL) {
+datasetApp <- function(filter = NULL) {
   ui <- fluidPage(
     datasetInput("dataset", filter = filter),
     tableOutput("data")
@@ -243,18 +249,17 @@ datasetModule <- function(filter = NULL) {
   }
   shinyApp(ui, server)
 }
-# datasetModule(is.data.frame)
+# datasetApp(is.data.frame)
 ```
 
-I've made a few design decisions:
+I've made a few design decisions in this app function:
 
-* The module function takes an argument which is passed along to the module UI.
-  This allows you to experiment with different variations of the input.
+* The app function takes an argument passed along to the module UI; 
+  this allows you to experiment with different variations of the input.
 
 * I use a tabular output to look at the data. It doesn't really matter what 
   output I use here, but the more expressive it is, the easier it is to 
-  check that the app sdoes what I expect.
-
+  check that the app does what I expect.
 
 ### Case study: numeric variable selector
 
@@ -293,7 +298,7 @@ selectNumericVarServer <- function(id, data) {
 Again, we capture the results of the module server and connect it to an output in our module function. The point of this function is to make it possible to test, so we need some way to feed in reactive data frames. That's a good use case for the `dataset` module that we created earlier!
 
 ```{r}
-selectNumericVarModule <- function() {
+selectNumericVarApp <- function() {
   ui <- fluidPage(
     datasetInput("data", is.data.frame),
     selectNumericVarInput("var"),
@@ -307,7 +312,7 @@ selectNumericVarModule <- function() {
   
   shinyApp(ui, server)
 }
-# selectNumericVarModule()
+# selectNumericVarApp()
 ```
 
 
@@ -336,9 +341,9 @@ Note that you should never pass an input directly to an module server. If for ex
 
 ### Case study: histogram
 
-Now lets circle back to original histogram module and refactor it into something more composable. This is the key challenge of creating modules. I wish I could give more concrete advice.
+Now lets circle back to original histogram module and refactor it into something more composable. The key challenge of creating modules is creating functions that are flexible enough to be used in multiple places, but simple enough that they can easily be understood. Figuring out how to write functions that are good building blocks is the journey of a life time; expect that you'll have to do it wrong quite a few times before you get it right. (I wish I could offer more concrete advice here, but currently this is a skill that you'll have to refine through practice and conscious reflection.)
 
-Obviously we want to be able to apply to any variable. It's really primarily an output control; the number of bins is just a handy little feature to tweak the output.
+To make our histogram module useful, we should be able to apply it to any variable. I also think we should consider an output control. It does include an input, the number of bins, but that's used only to tweak the display, and shouldn't exported from the module.
 
 ```{r}
 histogramOutput <- function(id) {
@@ -347,18 +352,25 @@ histogramOutput <- function(id) {
     plotOutput(NS(id, "hist"))
   )
 }
+```
 
-histogramServer <- function(id, x) {
+This needs to be reactive (since it will change over the lifetime of the app), so we check for it. Also notice the default value: that too must be a reactive value so we create a "constant" reactive.
+
+```{r}
+histogramServer <- function(id, x, title = reactive(NULL)) {
   stopifnot(is.reactive(x))
+  stopifnot(is.reactive(title))
   
   moduleServer(id, function(input, output, session) {
     output$hist <- renderPlot(
-      hist(x(), breaks = input$bins, main = NULL)
+      hist(x(), breaks = input$bins, main = title())
     )
   })
 }
+```
 
-histogramModule <- function() {
+```{r}
+histogramApp <- function() {
   ui <- fluidPage(
     sidebarLayout(
       sidebarPanel(
@@ -378,12 +390,14 @@ histogramModule <- function() {
   }
   shinyApp(ui, server)
 } 
-# histogramModule()
+# histogramApp()
 ```
 
 ### Multiple outputs
 
-One challenge with the previous app is there's no easy way to label the histogram with the name of the variable. We could modify the module to return the name instead of the value, but then the module user would have to do all the subsetting. Instead we could return _both_ the name and the value:
+It would be nice if we could label the histogram with the name of the variable that its summarisng. Fixing that problem requires us to look again at our `selectNumericVar` module. We could modify it to return the name of the selected variable, instead of the value, but then the module user would have to do all the subsetting. A better approach would be for the server function to return _both_ the name and the value.
+
+A server function can return multiple values exactly the same way that any R function can return multiple values: by returning a list. Below we modify `selectNumericVarServer()` to return both the name and value, as reactives.
 
 ```{r}
 selectNumericVarServer <- function(id, data) {
@@ -403,38 +417,12 @@ selectNumericVarServer <- function(id, data) {
 }
 ```
 
-The key idea is simple: instead of returning one value, we return a list of reactives.
-
-To use this with `histogramServer()` we need to add an additional argument, which will become the plot title. This needs to be reactive (since it will change over the lifetime of the app), so we check for it. Also notice the default value: that too must be a reactive value so we create a "constant" reactive.
+Now we can update our `histogramApp()` to make use of this. The UI stays the same; but now we pass both the selected variable's value and its name to `histogramServer()`.
 
 ```{r}
-histogramServer <- function(id, x, title = reactive(NULL)) {
-  stopifnot(is.reactive(x))
-  stopifnot(is.reactive(title))
-  
-  moduleServer(id, function(input, output, session) {
-    output$hist <- renderPlot(
-      hist(x(), breaks = input$bins, main = title())
-    )
-  })
-}
-```
+histogramApp <- function() {
+  ui <- fluidPage(...)
 
-
-```{r}
-histogramModule <- function() {
-  ui <- fluidPage(
-    sidebarLayout(
-      sidebarPanel(
-        datasetInput("data", is.data.frame),
-        selectNumericVarInput("var"),
-      ),
-      mainPanel(
-        histogramOutput("hist")    
-      )
-    )
-  )
-  
   server <- function(input, output, session) {
     data <- datasetServer("data")
     x <- selectNumericVarServer("var", data)
@@ -444,15 +432,22 @@ histogramModule <- function() {
 } 
 ```
 
-If you find yourself using the pattern a lot, you might also look into the zeallot package which provides a `%<-%` operator that allows you to assign into multiple variables (sometimes called multiple, unpacking, or destructuring assignment).
+The main challenge with this sort of code is remembering when you use the reactive (e.g. `x$value`) vs. when you use its value (e.g. `x$value()`). Just remember that when passing an argument to a module, you want the module to react to the value changing which means that you have to pass the reactive, not it's current value.
+
+If you find yourself frequently returning multiple value from a reactive, you might also consider using the zeallot package. zeallot provides the  `%<-%` operator which allows you to assign into multiple variables (sometimes called multiple, unpacking, or destructuring assignment). This can useful when returning multiple values because you avoid a layer of indirection.
 
 ```{r}
 library(zeallot)
 
-server <- function(input, output, session) {
-  data <- datasetServer("data")
-  c(value, name) %<-% selectNumericVarServer("var", data)
-  histogramServer("hist", value, name)
+histogramApp <- function() {
+  ui <- fluidPage(...)
+
+  server <- function(input, output, session) {
+    data <- datasetServer("data")
+    c(value, name) %<-% selectNumericVarServer("var", data)
+    histogramServer("hist", value, name)
+  }
+  shinyApp(ui, server)
 }
 ```
 
@@ -483,7 +478,7 @@ tipServer <- function(id, total) {
   })
 }
 
-tipModule <- function() {
+tipApp <- function() {
   ui <- fluidPage(
     numericInput("bill", "Total bill", value = 10),
     tipUI("tip1", value = 10),
@@ -497,34 +492,14 @@ tipModule <- function() {
   
   shinyApp(ui, server)
 }
-# tipModule()
+# tipApp()
 ```
 
 ### Case study: summary
 
 ```{r}
-summaryOuput <- function(id) {
-  tags$ul(
-    tags$li("Min: ", textOutput(NS(id, "min"), inline = TRUE)),
-    tags$li("Max: ", textOutput(NS(id, "max"), inline = TRUE)),
-    tags$li("Missing: ", textOutput(NS(id, "n_na"), inline = TRUE))
-  )
-}
 
-summaryServer <- function(id, var) {
-  moduleServer(id, function(input, output, session) {
-    rng <- reactive({
-      req(var())
-      range(var(), na.rm = TRUE)
-    })
-    
-    output$min <- renderText(rng()[[1]])
-    output$max <- renderText(rng()[[2]])
-    output$n_na <- renderText(sum(is.na(var())))
-  })
-}
-
-summaryModule <- function() {
+summaryApp <- function() {
   ui <- fluidPage(
     datasetInput("data", is.data.frame),
     selectNumericVarInput("var"),
@@ -541,132 +516,20 @@ summaryModule <- function() {
 }
 ```
 
-
-### Workflow
-
-Roxygen documentation conventions are worthwhile even if you don't use roxygen2. Add `@param` and `@returns` arguments to describe exactly how the server component of the module works.
-
-
 ## Reusable components
 
-### Date with error
-
-To convert the code above into a module, we need to make two changes. First we need to add an `id` argument to our UI component, and use it with special `NS()` function. `NS` is short for namespace: it creates a "space" of "names" that is unique to the module. 
-
-First we create the UI. I use the `Input` suffix because from the outside this is about creating an different way of inputing dates; the output is just an implementation detail.
-
-```{r}
-ymdDateInput <- function(id, label) {
-  label <- paste0(label, " (yyyy-mm-dd)")
-  
-  fluidRow(
-    textInput(NS(id, "date"), label),
-    textOutput(NS(id, "error"))
-  )
-}
-```
-
-```{r}
-ymdDateServer <- function(id) {
-  moduleServer(id, function(input, output, session) {
-    date <- reactive({
-      req(input$date)
-      ymd(input$date, quiet = TRUE)
-    })
-    
-    output$error <- renderText({
-      if (is.na(date())) {
-        "Please enter valid date in yyyy-mm-dd form"
-      }
-    })
-  
-    date
-  })
-}
-```
-
-Now the arguments to `ymdInput()` have changed: we pass in the `id`, and Shiny takes care of automatically plumbing up the input, output, and session in the appropriate namespaced way. That why I've removed the `Server` from the name - since the details are hidden from the interface.
-
-```{r}
-ymdDateModule <- function(label) {
-  ui <- fluidPage(
-    ymdDateInput("ymd", label),
-    textOutput("date")
-  )
-  server <- function(input, output, session) {
-    date <- ymdDateServer("ymd")
-    output$date <- renderText(date)
-  }
-}
-
-server <- function(input, output, session) {
-  birthday <- ymdDate("birthday")
-  
-  age <- reactive({
-    req(birthday())
-    (birthday() %--% today()) %/% years(1)
-  })
-  
-  output$age <- renderText({
-    paste0("You are ", age(), " years old")
-  })
-}
-```
-
-To help cement the ideas of modules in your head, the following case studies use module to develop a few simple reusable components.
+The following sections show more advanced modules motivated by real problems. 
 
 ### Limited selection + other
 
-Consider the following app, which provides a way to select gender that is sensitive to the many possible ways that people can express their gender.[^gender]
-
-[^gender]: For a deeper dive on this issue, and a discussion of why many commonly used way of asking about gender can be hurtful to some people, I recommend reading "Designing forms for gender diversity and inclusion" by Sabrina Fonseca: <https://uxdesign.cc/d8194cf1f51>.
-
-```{r}
-ui <- fluidPage(
-  radioButtons("gender", "Gender:",
-    choiceValues = list("male", "female", "self-described", "na"),
-    choiceNames = list(
-      "Male",
-      "Female",
-      textInput("gender_self", NULL, placeholder = "Self-described"),
-      "Prefer not to say"
-    ),
-    selected = "na",
-  ),
-  textOutput("txt")
-)
-
-server <- function(input, output, session) {
-  observeEvent(input$gender_self, {
-    req(input$gender_self)
-    updateRadioButtons(session, "gender", selected = "self-described")
-  })
-  
-  gender <- reactive({
-    if (input$gender == "self-described") {
-      input$gender_self
-    } else {
-      input$gender
-    }
-  })
-  
-  output$txt <- renderText({
-    paste("You chose", gender())
-  })
-}
-```
-
-Convert to a module and generalise a little.
-
 ```{r}
 radioButtonsExtraUI <- function(id, label, choices, selected = NULL, placeholder = NULL) {
-  ns <- NS(id)
-  
-  radioButtons(ns("primary"), "Gender:",
+  radioButtons(NS(id, "primary"), 
+    label = label,
     choiceValues = c(names(choices), "other"),
     choiceNames = c(
       unname(choices),
-      list(textInput(ns("other"), NULL, placeholder = NULL))
+      list(textInput(NS(id, "other"), NULL, placeholder = NULL))
     ),
     selected = selected
   )
@@ -688,7 +551,11 @@ radioButtonsExtraServer <- function(id) {
     })
   })
 }
+```
 
+To demonstrate this module, I'll create an app that provides a way to describe gender that is sensitive to the many possible ways that people can express their gender.  For a deeper dive on this issue, and a discussion of why many commonly used way of asking about gender can be hurtful to some people, I recommend reading "Designing forms for gender diversity and inclusion" by Sabrina Fonseca: <https://uxdesign.cc/d8194cf1f51>.
+
+```{r}
 ui <- fluidPage(
   radioButtonsExtraUI("gender", 
     label = "Gender", 
@@ -720,11 +587,7 @@ server <- function(input, output, session) {
 
 ## Single object modules
 
-When many people encounter modules for the first time, they immediately attempt to rewrite into a single "thing", a module object that has both UI and server components. If that didn't occur to you, feel free to skip this last part of the chapter, because it explains why that approach (which occurs to many people) isn't a good fit for Shiny.
-
-Shiny explicitly considered and rejected this design because it has some major limitations. For this to work, you have to define the module outside of the server and the UI. That means there's no way to make any of the inputs to the module reactive. 
-
-In Shiny, UI and server are inherently disconnected; Shiny doesn't know which UI invocation belongs to which server session. You can see this pattern throughout Shiny: for example, `plotOutput()` and `renderPlot()` are connected only by shared ID. Writing modules as separate functions reflects that reality: they're distinct functions that are not connected other than through a shared ID.
+When some people (like me!) encounter modules for the first time, they immediately attempt to combine the module server and module UI into a single module object. If that didn't occur to you, feel free to skip this last part of the chapter, because it explains why the single object approach is appealing, but only works for the simplest of cases.
 
 To illustrate the problem, lets generalise the motivating example from the first part of the chapter so that the data frame is now a parameter:
 
@@ -765,7 +628,7 @@ server <- function(input, output, session) {
 It seems undesirable that we have to repeat both the ID and the name of the dataset in both the UI and server, so it's natural to want to wrap into a single function that returns both the UI and the server:
 
 ```{r}
-histogramModule <- function(id, df) {
+histogramApp <- function(id, df) {
   list(
     ui = histogramUI(id, df), 
     server = histogramServer(id, df)
@@ -776,8 +639,8 @@ histogramModule <- function(id, df) {
 Then we define the module outside of the UI and server, extracting elements from the list as needed:
 
 ```{r, eval = FALSE}
-hist1 <- histogramModule("mtcars", mtcars)
-hist2 <- histogramModule("iris", iris)
+hist1 <- histogramApp("mtcars", mtcars)
+hist2 <- histogramApp("iris", iris)
 
 ui <- fluidPage(
   tabsetPanel(
@@ -793,9 +656,7 @@ server <- function(input, output, session) {
 
 There are two problems with this code. Firstly, it doesn't work, because `moduleFunction()` must be called inside a server function. But imagine that problem didn't exist or you worked around it some other way. There's still a big problem: what if we want to allow the user to select the dataset, i.e. we want to make the `df` argument reactive. That can't work because the module is instantiated before the server function, i.e. before we know that information. 
 
-This is fundamentally the way that Shiny works: UI controls and server code are fundamentally de-coupled and only communicated through a shared ID. 
-
-If you find your fingers itching to make a single module object that incorporates both UI and server components it's almost certainly a sign that you've decomposed your repeated code into a module in a suboptimal way.
+In Shiny, UI and server are inherently disconnected; Shiny doesn't know which UI invocation belongs to which server session. You can see this pattern throughout Shiny: for example, `plotOutput()` and `renderPlot()` are connected only by shared ID. Writing modules as separate functions reflects that reality: they're distinct functions that are not connected other than through a shared ID.
 
 ## Exercises
 
@@ -860,4 +721,51 @@ If you find your fingers itching to make a single module object that incorporate
 3. Suppose you have an app that is slow to launch when a user visits it. Can  
    modularizing your app code help solve this problem? Explain your reasoning.
 
-1.   Example passing `input$foo` to reactive and it not working.
+1.  Example passing `input$foo` to reactive and it not working.
+
+1.  The following module input provides a text control that lets you type a
+    date in ISO8601 format (yyyy-mm-dd). Complete the module by providing a 
+    server function that uses the "error" output to display a message if the
+    entered value is not a valid date. You can use `strptime(x, "%Y-%m-%d")`
+    to parse the string; it will return `NA` if the value isn't a valid date.
+
+    ```{r}
+    ymdDateInput <- function(id, label) {
+      label <- paste0(label, " (yyyy-mm-dd)")
+      
+      fluidRow(
+        textInput(NS(id, "date"), label),
+        textOutput(NS(id, "error"))
+      )
+    }
+    ```
+
+
+1.  The following code defines output and server components of a module that 
+    takes a numeric input and produces a bulleted list of three summary 
+    statistics. Create an app function that allows you to experiment with it.
+    The app function should take a data frame as input, and use
+    `numericVarSelectInput()` to pick the variable to summarise.
+
+    ```{r}
+    summaryOuput <- function(id) {
+      tags$ul(
+        tags$li("Min: ", textOutput(NS(id, "min"), inline = TRUE)),
+        tags$li("Max: ", textOutput(NS(id, "max"), inline = TRUE)),
+        tags$li("Missing: ", textOutput(NS(id, "n_na"), inline = TRUE))
+      )
+    }
+    
+    summaryServer <- function(id, var) {
+      moduleServer(id, function(input, output, session) {
+        rng <- reactive({
+          req(var())
+          range(var(), na.rm = TRUE)
+        })
+        
+        output$min <- renderText(rng()[[1]])
+        output$max <- renderText(rng()[[2]])
+        output$n_na <- renderText(sum(is.na(var())))
+      })
+    }
+    ```
