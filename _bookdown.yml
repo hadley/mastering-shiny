@@ -24,8 +24,11 @@ rmd_files:
     "action-transfer.Rmd",
     "action-bookmark.Rmd",
     "action-functions.Rmd",
-    "action-modules.Rmd",
     "action-tidy.Rmd",
+
+    "scaling.Rmd",
+    "scaling-modules.Rmd",
+
 
     "advanced-ui.Rmd",
 

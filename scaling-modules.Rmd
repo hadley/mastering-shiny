@@ -1,4 +1,4 @@
-# Shiny modules {#action-modules}
+# Shiny modules {#scaling-modules}
 
 ```{r, include = FALSE}
 source("common.R")
@@ -42,7 +42,7 @@ moduleServer <- function(id, module) {
 Before we dive into the details of how to create your own modules, it's useful to get more of a sense for exactly how they change the "shape" of your app. I'm going to borrow an example from [Eric Nantz](https://github.com/rpodcast), who talked about modules at rstudio::conf(2019): <https://youtu.be/ylLLVo2VL50>. Eric was motivated to use module because he had a big complex app, as shown in Figure \@ref(fig:modules-before). Obviously, you don't know anything about the specifics of this app, but you can get some sense of the complexity.
 
 ```{r modules-before, echo = FALSE, out.width = NULL, fig.cap="A rough sketch of a complex app. I've done my best to display it simply in a diagram, but it's still hard to understand what all the pieces are"}
-knitr::include_graphics("diagrams/action-modules/before.png", dpi = 300)
+knitr::include_graphics("diagrams/scaling-modules/before.png", dpi = 300)
 ```
 
 Figure \@ref(fig:modules-after) shows the sketch of the app design after converting to modules.
@@ -58,7 +58,7 @@ Figure \@ref(fig:modules-after) shows the sketch of the app design after convert
   and both blue components.
 
 ```{r modules-after, echo = FALSE, out.width = NULL, fig.cap="After converting the app to use modules, it's much easier to see key parts of the app, and see what is re-used in multiple places (the blue and yellow components)."}
-knitr::include_graphics("diagrams/action-modules/after.png", dpi = 300)
+knitr::include_graphics("diagrams/scaling-modules/after.png", dpi = 300)
 ```
 
 Once you've master the basic technology of modules, there's still a lot of learn. Often the hardest part is figuring out the best way to decompose your big problem into smaller independent pieces. I include some case studies here to help you get a sense of how this feels, but ultimately it's a skill that can only be learned with practice. Try and set aside some time each week where you're not improving the behaviour or appearance of your app, but simply making it easier to understand. This will make your app easier to change in the future, and as you practice these skills your first attempt will become higher quality.
