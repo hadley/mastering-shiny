@@ -1,5 +1,6 @@
 <!-- badges: start -->
 [![Travis build status](https://travis-ci.org/hadley/mastering-shiny.svg?branch=master)](https://travis-ci.org/hadley/mastering-shiny)
+![Build Book Status](https://github.com/hadley/mastering-shiny/workflows/.github/workflows/build-book.yaml/badge.svg)
 <!-- badges: end -->
 
 This is the work-in-progress repo for the book _Mastering Shiny_ by Hadley Wickham. It is licensed under the Creative Commons [Attribution-NonCommercial-NoDerivatives 4.0 International License](http://creativecommons.org/licenses/by-nc-nd/4.0/). 
