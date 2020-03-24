@@ -11,4 +11,4 @@ Places where that might surprise you:
 * Allowing the user to supply transformation expressions for dplyr or ggplot2.
 * SQL
 
-Also note that Shiny input controls provide client-side validation - a malicious user can avoid this by running code in their browser console. For untrusted input, always do client side validation too.
+Also note that Shiny input controls provide client-side validation - a malicious user can avoid this by running code in their browser console. For untrusted input, always do client side validation too. `Shiny.setInputValue(id, value);`; if that was prevented could still craft a custom websocket message. Each change would make it harder for a lay person to break Shiny's security, but would provide little barrier for an experienced attacker.
