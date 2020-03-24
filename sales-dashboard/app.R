@@ -7,6 +7,7 @@ sales <- vroom::vroom("sales_data_sample.csv")
 
 library(shiny)
 ui <- fluidPage(
+  titlePanel("Sales Dashboard"),
   sidebarLayout(
     sidebarPanel(
       selectInput("territory", "Territory", choices = unique(sales$TERRITORY)),
