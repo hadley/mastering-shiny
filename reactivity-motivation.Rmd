@@ -71,7 +71,7 @@ temp_f()
 This solves the first problem that reactivity is trying to solve: whenever you access `temp_f()` you get the latest computation:
 
 ```{r}
-temp_celsius <- -3
+temp_c <- -3
 temp_f() 
 ```
 
