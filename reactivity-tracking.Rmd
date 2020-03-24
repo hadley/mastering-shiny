@@ -50,7 +50,7 @@ shiny:::currentContext <- prev_ctx
 
 The purpose of the context object is to provide a rendezvous point between the reactive consumer that is executing, and the reactive producers that it's reading from. There are two important methods on context objects:
 
-1. `invalidate()` - Informs the context that a producter that it read from
+1. `invalidate()` - Informs the context that a producer that it read from
     is now potentially out of date (invalidated); and so whatever reactive 
     consumer owns the context should also be considered out of date.
 
