@@ -5,6 +5,8 @@ on:
     # run every day at 11 PM
     - cron: '0 23 * * *'
 
+name: build-book
+
 jobs:
   build:
     runs-on: macOS-latest
