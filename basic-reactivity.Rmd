@@ -294,7 +294,7 @@ This concept is very important and different to most other R code, so I'll say i
 
 ## Reactive expressions
 
-We've quickly skimmed over reactive expressions a couple of times, so you're hopefully getting a sense for what they might do. Now we'll to dive into more of the details, and show why they are so important when constructing real apps. 
+We've quickly skimmed over reactive expressions a couple of times, so you're hopefully getting a sense for what they might do. Now we'll dive into more of the details, and show why they are so important when constructing real apps. 
 
 Reactive expressions are important for two reasons:
 
