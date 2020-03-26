@@ -135,7 +135,7 @@ histogramApp <- function() {
 
 ### Namespacing
 
-Now that we have a complete app, lets circle back and talk about namespacing some more. The key idea that makes modules work is that the the name of each control (i.e. its `id`) is now determined by two pieces: 
+Now that we have a complete app, let's circle back and talk about namespacing some more. The key idea that makes modules work is that the the name of each control (i.e. its `id`) is now determined by two pieces: 
 
 * The first piece comes from the module **user**.
 * The second piece comes from the the module **author**. 
@@ -323,7 +323,7 @@ Module server functions can take two types of inputs:
 * Reactive inputs, which allow your module to respond to changes initialised
   by the user. 
 
-Because you will get cryptic error messages if you pass an reactive instead of a constant or a constant instead of a reactive, I strongly recommend adding some basic assertions to the top of your module server. Something like this only takes a minute or so to write, but will save you a long of potential future frustration from using your module incorrectly.
+Because you will get cryptic error messages if you pass a reactive instead of a constant or a constant instead of a reactive, I strongly recommend adding some basic assertions to the top of your module server. Something like this only takes a minute or so to write, but will save you a lot of potential future frustration from using your module incorrectly.
 
 ```{r}
 selectVarServer <- function(id, data, filter = is.numeric) {
@@ -347,7 +347,7 @@ stopifnot(!is.reactive(filter), is.function(filter))
 
 This code checks that `data` is a reactive, and that `filter` is a non-reactive function. I think it's particularly important to check the types of the inputs in module functions because if the user supplies a non-reactive instead of a reactive you'll get an uninformative error message. `stopifnot()` is quick and dirty way to check for specified types; you can also hand craft a message with an `if` statement and a call to `stop()`, if you to spend more time on it.
 
-Note that you should never pass an input directly to an module server. If for example, you pass `input$foo`, it will pass the value of `input$foo` when the app starts, i.e. the initial `value` you set in the control. Instead, you'll need to wrap it in `reactive()` so that it continues to update.
+Note that you should never pass an input directly to a module server. If for example, you pass `input$foo`, it will pass the value of `input$foo` when the app starts, i.e. the initial `value` you set in the control. Instead, you'll need to wrap it in `reactive()` so that it continues to update.
 
 ### Modules inside of modules
 
