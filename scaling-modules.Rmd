@@ -513,7 +513,7 @@ histogramApp <- function() {
 
 ## Reusable components
 
-Once you've mastered the basic technology of modules, there's still a lot of learn. Often the hardest part is figuring out the best way to decompose your big problem into smaller independent pieces. I include some case studies here to help you get a sense of how this feels, but ultimately it's a skill that can only be learned with practice. Try and set aside some time each week where you're not improving the behaviour or appearance of your app, but simply making it easier to understand. This will make your app easier to change in the future, and as you practice these skills your first attempt will become higher quality.
+Once you've mastered the basic technology of modules, there's still a lot to learn. Often the hardest part is figuring out the best way to decompose your big problem into smaller independent pieces. I include some case studies here to help you get a sense of how this feels, but ultimately it's a skill that can only be learned with practice. Try and set aside some time each week where you're not improving the behaviour or appearance of your app, but simply making it easier to understand. This will make your app easier to change in the future, and as you practice these skills your first attempt will become higher quality.
 
 The following sections show more advanced modules motivated by real problems. 
 
