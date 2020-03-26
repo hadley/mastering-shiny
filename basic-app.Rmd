@@ -37,7 +37,7 @@ shinyApp(ui, server)
 ```
 
 :::sidebar
-**RStudio Tip**: You can easily create a new directory and an `app.R` file contain  a basic shiny app in one step by clicking **File | New Project**, then selecting "New Directory" and "Shiny Web Application". Or, if you've already created the `app.R` file, you can quickly add the app boilerplate by typing "shinyapp" and pressing Shift+Tab.
+**RStudio Tip**: You can easily create a new directory and an `app.R` file containing a basic shiny app in one step by clicking **File | New Project**, then selecting "New Directory" and "Shiny Web Application". Or, if you've already created the `app.R` file, you can quickly add the app boilerplate by typing "shinyapp" and pressing Shift+Tab.
 :::
 
 This is a complete, if trivial, Shiny app! Looking closely at the code above, our `app.R` does four things:

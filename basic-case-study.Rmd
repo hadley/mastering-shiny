@@ -33,7 +33,7 @@ injuries
 Each row represents a single accident with 10 variables:
 
 * `trmt_date` is date the person was seen in the hospital (not when the 
-   accident occured).
+   accident occurred).
 
 * `age`, `sex`, and `race` give demographic information about the person 
   who experienced the accident.
@@ -70,7 +70,7 @@ selected <- injuries %>% filter(prod_code == 1842)
 nrow(selected)
 ```
 
-Next we'll perform some basic summaries looking at the diagnosis, body part, and location where the injury occured. Note that I weight by the `weight` variable so that the counts can be interpreted as estimated total injuries across the whole US.
+Next we'll perform some basic summaries looking at the diagnosis, body part, and location where the injury occurred. Note that I weight by the `weight` variable so that the counts can be interpreted as estimated total injuries across the whole US.
 
 ```{r}
 selected %>% count(diag, wt = weight, sort = TRUE)
