@@ -12,21 +12,25 @@ If you have been creating a lot of your app via copy and paste, parts of your ap
 * Your app is hard to update because it's easy to forget to update one of the 
   places that you've duplicated code). 
   
-A good rule of thumb is that if you have copy and pasted something three times, it's a good time use some other technique to reduce the amount of duplication. In this chapter, we'll show how you can use functions to reuse duplication in code on either the UI or the server. This isn't the only technique you'll need in Shiny, but it's a good place to start. In the next chapter, you'll learn about __modules__, which allow you to reduce duplicated code that requires coordination across the UI and server.
+A good rule of thumb is that if you have copy and pasted something three times, it's a good time use some other technique to reduce the amount of duplication. In this chapter, we'll show how you can use functions to reuse duplication in code on either the UI or the server. This chapter is fairly brief; the goal is to activate your existing function skills and remind you that Shiny code is R code.
 
-There are two advantages to using a function:
+There are four main advantages to using a function. You can:
 
-* It allows you to move it to a separate file. 
+* Put it in a separate file
+* Give it an informative name
+* Isolate code
+* Combine with functional programming techniques
 
-* It makes it clear from the outside exactly what inputs your function
-  takes. 
+This isn't the only technique you'll need in Shiny, but it's a good place to start. In Chapter \@ref(scaling-modules), you'll learn about __modules__, which allow you to reduce duplicated code that requires coordination across the UI and server.
 
 ```{r setup}
 library(shiny)
 ```
 
 ## Organisation
-  
+
+Once you've extracted your code out into a function, you can put that code in another file.
+
 ```{r, eval = FALSE}
 library(shiny)
 
@@ -45,11 +49,9 @@ For more complicated apps, particularly apps that multiple people contribute to,
 
 If you're newer to writing functions, start by writing functions that extract out existing repeated patterns in your code. As you get more experience, you can begin to anticipate future needs.
 
-## Duplication in UI
+## UI
 
 You can apply these same ideas to generating your UI. If you have a bunch of controls that you use again and again and again, it's worth doing some up front work to make a function that saves some typing.
-
-### Basic idea
 
 This can be useful even if all you're doing is changing three or four default arguments. For example, imagine that you're creating a bunch of sliders that need to each run from 0 to 1, starting at 0.5, with a 0.1 step. You _could_ do a bunch of copy and paste:
 
@@ -77,11 +79,15 @@ ui <- fluidRow(
 )
 ```
 
+### Functional programming
+
 If you're comfortable with functional programming, you could reduce the code still further:
 
 ```{r}
+library(purrr)
+
 vars <- c("alpha", "beta", "gamma", "delta")
-sliders <- purrr::map(vars, sliderInput01)
+sliders <- vars %>% map(sliderInput01)
 ui <- fluidRow(!!!sliders)
 ```
 
@@ -95,118 +101,27 @@ There are two big ideas here:
 
 I'm not going to teach functional programming in this book, but I will show a few aspirational examples. It's a good example of where improving your general R programming skills pays off in your Shiny apps. 
 
-### Case study
-
-Lets explore this idea with a realistic Shiny app, inspired by a post, <https://community.rstudio.com/t/38506>, on the RStudio community forum. The post contained some code that looks like this:
-
-```{r eval = FALSE}
-fluidRow(
-  box(
-    width = 4,
-    solidHeader = TRUE,
-    selectInput("traffickingType",
-      label = "Choose a trafficking type: ",
-      choices = sort(unique(ngo$Trafficking.Type)),
-      multiple = TRUE
-    )
-  ),
-  box(
-    width = 4,
-    solidHeader = TRUE,
-    selectInput("traffickingSubType",
-      label = "Choose a trafficking sub type: ",
-      choices = sort(unique(ngo$Trafficking.Sub.Type)),
-      multiple = TRUE
-    )
-  ),
-  box(
-    width = 4,
-    solidHeader = TRUE,
-    selectInput("gender",
-      label = "Choose a gender: ",
-      choices = sort(unique(ngo$Victim.Gender)),
-      multiple = TRUE
-    )
-  )
-)
-```
-
-It's a little hard to see what's going on here because repeated code makes the differences harder to see. When looking at this code I see two places where I could extract out a function:
-
-* The call to `box()` repeats `width = 4` and `solidHeader = TRUE`.
-  It appears that the intent of this code is making a header, so I'll call the
-  function `headerBox`.
-
-* The calls to `selectInput()` repeat `multiple = TRUE` and all use the 
-  same strategy for determining the choices: pulling unique values from 
-  a data frame column. This function is tied to a specific dataset,
-  so I'll call it `ngoSelectInput()`.
-
-That leads me to:
-
-```{r, eval = FALSE}
-ngoSelectInput <- function(var, label, multiple = TRUE) {
-  choices <- sort(unique(ngo[[var]]))
-  label <- paste0("Choose a ", label, ": ")
-  selectInput(var, label, choices = choices, multiple = multiple)
-}
-boxHeader <- function(...) {
-  box(width = 4, solidHeader = TRUE, ...)
-}
-
-fluidRow(
-  boxHeader(ngoSelectInput("Trafficking.Type", "trafficking type")),
-  boxHeader(ngoSelectInput("Trafficking.Sub.Type", "trafficking sub type")),
-  boxHeader(ngoSelectInput("Victim.Gender", "gender"))
-)
-```
-
-I made one simplifying assumption that would also require changes on the server side: when filtering based on a variable, the input name should be the same as the variable name. I think this sort of consistency generally makes for code that's easier to read and remember. For example, the names of the new inputs will match up perfectly to the data frame columns if I produce a reactive with only the selected rows:
+### Varying arguments
 
 ```{r}
-ngo_filtered <- reactive({
-  filter(ngo, 
-    Trafficking.Type %in% input$Trafficking.Type,
-    Trafficking.Sub.Type %in% input$Trafficking.Sub.Type,
-    Victim.Gender %in% input$Victim.Gender
-  )
-})
-```
-
-You might consider generalising to handle multiple datasets:
-
-```{r}
-dfSelectInput <- function(df, var, label, multiple = TRUE) {
-  choices <- sort(unique(df[[var]]))
-  label <- paste0("Choose a ", label, ": ")
-  selectInput(var, label, choices = choices, multiple = multiple)
-}
-```
-
-This would be a good idea if you saw that pattern repeated in multiple places. But you'll probably also need to introduce some additional component for the id. Otherwise `dfSelect(df1, "x")` and `dfSelect(df2, "x")` would generate a control with the same id, which is obviously going to cause problems. This is the problem of namespacing; we want somehow to have a hierarchy in the names. We'll come back to this in modules, as this is one of the big problems that they solve.
-
-If you had a lot more controls, I'd consider using functional programming to generate them. Again, I'll just show an example so if you're already familiar with functional programming you can see my basic approach. The key idea is to capture all the data you need to generate the columns in a single data frame, which is convenient to create with `tibble::tribble()`. A data frame is useful here because it easily generalises to any number of arguments
-
-```{r}
-library(purrr)
 vars <- tibble::tribble(
-  ~ var,                  ~ label,
-  "Trafficking.Type",     "trafficking type",
-  "Trafficking.Sub.Type", "trafficking sub type",
-  "Victim.Gender",        "gender"
+  ~ id,   ~ min, ~ max,
+  "alpha",     0,     1,
+  "beta",      0,    10,
+  "gamma",    -1,     1,
+  "delta",     0,     1,
 )
+
+mySliderInput <- function(id, label = id, min = 0, max = 1) {
+  sliderInput(id, label, min = 0, max = 1, value = 0.5, step = 0.1)
+}
+
+sliders <- vars %>% pmap(mySliderInput)
 ```
 
-Then we use `purrr::pmap()` to turn each row in the data frame to a call to `ngoSelectInput()`, use `map()` to wrap each select input into a boxHeader, and then `!!!` to splat into a row.
+Don't worry if this all looks like gibberish: you can just use copy and paste instead. 
 
-```{r, eval = FALSE}
-vars %>% 
-  pmap(ngoSelectInput) %>% # create one select input for each row
-  map(boxHeader) %>%       # wrap each in a boxHeader()
-  fluidRow(!!!.)           # collapse into a single fluidRow()
-```
-
-## Duplication in server
+## Server
 
 <!-- https://community.rstudio.com/t/r-shiny-apply-custom-function-to-datatable/39790/3 -->
 
@@ -248,130 +163,10 @@ select <-  map(vars$var, function(v) expr(.data[[!!v]] == input[[!!v]]))
 select
 ```
 
-If you haven't seen `.data` before, it comes from tidy evaluation, the system that allows you to program with tidyverse packages that are designed for interactive exploration (like dplyr). It's not necessary when writing interactive code (and it's not strictly necessary here) but it makes the parallel between the data frame and the inputs more clear. We'll talk more about tidy evaluation in Chapter XXX.
+If you haven't seen `.data` before, it comes from tidy evaluation, the system that allows you to program with tidyverse packages that are designed for interactive exploration (like dplyr). It's not necessary when writing interactive code (and it's not strictly necessary here) but it makes the parallel between the data frame and the inputs more clear. We'll talk more about tidy evaluation in Chapter \@ref(action-tidy).
 
 Again we'd use `!!!` to splat the generated expressions into `filter()`:
 
 ```{r, eval = FALSE}
 filter(ngo, !!!select)
 ```
-
-Don't worry if this all looks like gibberish: you can just use copy and paste instead. 
-
-## Limitation of functions
-
-Functions are great when you have duplicated code in the UI or server that is unconnected to the other side. 
-
-To illustrate why we need modules, and can't just use regular functions, consider the following simple app. It allows the user to input their birthday as a string: this is a little faster than using a `dateInput()` since there's no need to scroll through a calendar. But it means that we need to check that they've entered a correct date and give an informative message if they haven't.
-
-```{r}
-library(lubridate)
-
-ui <- fluidPage(
-  textInput("date", "When were you born? (yyyy-mm-dd)"),
-  textOutput("error"),
-  textOutput("age")
-)
-
-server <- function(input, output, session) {
-  birthday <- reactive({
-    req(input$date)
-    ymd(input$date, quiet = TRUE)
-  })
-  
-  output$error <- renderText({
-    if (is.na(birthday())) {
-      "Please enter valid date in yyyy-mm-dd form"
-    }
-  })
-  age <- reactive({
-    req(birthday())
-    (birthday() %--% today()) %/% years(1)
-  })
-  output$age <- renderText({
-    paste0("You are ", age(), " years old")
-  })
-}
-```
-
-It seems plausible that as your app gets bigger you might want to use this date control in multiple places, so lets have a go at extracting it out into functions. We'll need two functions: one to generate the UI, and one to do the computation on the server side:
-
-```{r}
-ymdInputUI <- function(label) {
-  label <- paste0(label, " (yyyy-mm-dd)")
-  
-  fluidRow(
-    textInput("date", label),
-    textOutput("error")
-  )
-}
-
-ymdInputServer <- function(input, output, session) {
-  date <- reactive({
-    req(input$date)
-    ymd(input$date, quiet = TRUE)
-  })
-  
-  output$error <- renderText({
-    if (is.na(date())) {
-      "Please enter valid date in yyyy-mm-dd form"
-    }
-  })
-
-  date
-}
-```
-
-That leads to the following app:
-
-```{r}
-ui <- fluidPage(
-  ymdInputUI("When were you born?"),
-  textOutput("age")
-)
-
-server <- function(input, output, session) {
-  birthday <- ymdInputSever(input, output, session)
-  
-  age <- reactive({
-    req(birthday())
-    (birthday() %--% today()) %/% years(1)
-  })
-  
-  output$age <- renderText({
-    paste0("You are ", age(), " years old")
-  })
-}
-```
-
-There are two problems with this approach:
-
-*   It always assumes that the control is called `date`. This means that 
-    we can't have two controls in the same app.
-  
-    ```{r}
-    ui <- fluidPage(
-      ymdInputUI("When was your mother born?"),
-      ymdInputUI("When was your father born?")
-    )
-    ```
-  
-*   The UI has a output with id `error` that you can't see when reading 
-    the UI code. This makes it very easy to accidentally break the app by
-    introducing two controls with the same id:
-  
-    ```{r}
-    ui <- fluidPage(
-      ymdInputUI("When were you born?"),
-      textOutput("error")
-    )
-    ```
-
-    Debugging the problem that this creates will be painful because it will 
-    reveal itself through failure of reactivity -- the output won't update as you
-    expect, or you'll get weird errors because two controls are fighting for 
-    the same input value. 
-
-These problems arise because we've used functions to isolate local variables; the code is simpler to understand because any variables created inside of `ymdInputUI()` and `ymdInputServer()` can't be accessed outside. But there's another important way that Shiny code can interface: through the names of input and output controls.
-
-This is the problem that modules are designed to solve: creating inputs and reactives that are completely isolated from the rest of your app. Learning how to use modules will take a little time, but it will pay off by giving you the ability to write components that are guaranteed to be isolated from everything else in your app.
