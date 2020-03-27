@@ -18,7 +18,7 @@ library(shiny)
 
 ## The server function
 
-As you've seen, the guts of every Shiny app looks like this:
+As you've seen, the guts of every Shiny app look like this:
 
 ```{r, eval = FALSE}
 library(shiny)
