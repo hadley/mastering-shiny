@@ -62,7 +62,7 @@ server <- function(input, output, session) {
 
 Note my use of the `label` and `buttonLabel` arguments to mildly customise the appearance, and use of `multiple = TRUE` to allow the user to upload multiple files. 
 
-### Uploading data
+### Uploading data {#uploading-data}
 
 If the user is uploading a dataset, there are three details that you need to be aware of:
 

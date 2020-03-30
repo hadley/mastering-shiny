@@ -504,7 +504,7 @@ The simplest way to create UI with code is to add a dialog box. A dialog box is 
 
 `modalDialog()` works much like `fluidPage()`: 
 
-## Creating UI with code
+## Creating UI with code {#programming-ui}
 
 Sometimes none of the techniques described above gives you the level of dynamism that you need. There's one last technique that gives you the ability to create any controls (both inputs and outputs) with code in the server function. You've always created your UI with code; this technique gives you the ability to re-generate while the app is running, not just define it when the app starts.
 
