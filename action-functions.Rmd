@@ -4,9 +4,11 @@
 source("common.R")
 ```
 
-As your app gets bigger, it gets progressively harder to understand. That makes it harder to add new features, and harder to find a solution when something goes wrong (i.e. it's harder to debug).
+Without discipline, as your app gets bigger, it will get harder and harder to understand. In turn, this makes it harder to add new features, and harder to find a solution when something goes wrong (i.e. it's harder to debug). If you're not careful, over time your app will become less and less enjoyable to work on.
 
-Often you can make your app substantially easier to understand and debug by tactically using functions to pull out pieces into unrelated concerns. This tends to have slightly different flavours for UI and server components:
+Shiny allows you to have one giant `app.R` file, containing a massive `ui` specification and large `server` function. But it's hard to understand anything that runs over a single screen of code. So to continue to grow your app, you need to start to break it up into indpenedent pieces.
+
+This chapter will help you to take the first step in that journey, by showing you how to tactically use functions to pull out pieces into unrelated concerns. This tends to have slightly different flavours for UI and server components:
 
 * In the UI, you have components that are repeated in multiple places with
   minor variations. Pulling out repeated code into a function reduce duplication
@@ -24,7 +26,7 @@ I assume that you're already familiar with the basics of functions[^if-not]. The
 
 [^if-not]: If you're not, and you'd like to learn the basics, you might try reading the [Functions chapter](https://r4ds.had.co.nz/functions.html) of _R for Data Science_.
 
-In this chapter, we'll write UI and server functions that are independent; we're using them for different purposes and we're not attempting to couple front end and back end behaviour together. As your apps get more complex you'll also discover cases where the code in the UI is bound to the code in your server function. To solve that problem, you'll need modules, the topic of Chapter \@ref(scaling-modules).
+Once you've mastered the ideas in this chapter, the next step is to learn how to writing code that requires coordination across the front end and back end. This requires **modules**, which you'll learn about in Chapter \@ref(scaling-modules).
 
 ```{r setup}
 library(shiny)
@@ -32,13 +34,22 @@ library(shiny)
 
 ## File organisation
 
-Once you've extract code out into a function, it no longer needs to live in the same `app.R` file as your `ui` and `server()`. For large complex functions, I recommend putting them in `R/{function-name}.R`, but you might collect simple functions like `sliderInput01()` in a `R/utils.R` or similar. If you're using Shiny 1.5.0, running the app will automatically load all files in the `R/` directory, so there's nothing else to do!
+Before we go on to talk about exactly how you might use functions in your app, I want to point our one big immediate benefit: functions can live outside of `app.R`. There are two places you might put them depending on how big they are:
 
-For more complicated apps, particularly apps that multiple people contribute to, there are substantial advantages to turning your app into a package. In that case, you might want to check out the [golem](https://thinkr-open.github.io/golem/) package and accompanying ["Buidling Big Shiny Apps"](https://thinkr-open.github.io/building-shiny-apps-workflow/) book. I think a particularly important power is that the package infrastructure makes it possible to test your helper functions.
+* I recommend putting large functions (and any smaller helper functions that 
+  they need) into their own in `R/{function-name}.R` file.
+  
+* You might want to collect smaller, simpler, functions into one place.
+  I often use `R/utils.R` for this, but if they're primarily used in your ui
+  you might use `R/ui.R`. 
+  
+If you're using Shiny 1.5.0, running the app will automatically load all files in the `R/` directory, so there's nothing else to do!
+
+If you've made an R package before, you might notice that Shiny uses the same convention for storing files containing functions. And indeed, if you're making a complicated app, particularly in conjunction with others, there are substantial advantages to making a full fledged package. If you want to do this, I recommend the reading the ["Buidling Big Shiny Apps"](https://thinkr-open.github.io/building-shiny-apps-workflow/) book and using the accompanying [golem](https://thinkr-open.github.io/golem/) package. We'll touch on packages again when we talk more about testing because packages provide useful infrastructure for testing.
 
 ## UI functions
 
-Let's start with a concrete example of some duplicated code. For example, imagine that you're creating a bunch of sliders that need to each run from 0 to 1, starting at 0.5, with a 0.1 step. You _could_ do a bunch of copy and paste to generate all the sliders:
+Functions are a powerful tool to reduce duplication in your UI code. Let's start with a concrete example of some duplicated code. Imagine that you're creating a bunch of sliders that each need to each from 0 to 1, starting at 0.5, with a 0.1 step. You _could_ do a bunch of copy and paste to generate all the sliders:
 
 ```{r}
 ui <- fluidRow(
@@ -49,19 +60,13 @@ ui <- fluidRow(
 )
 ```
 
-But even for this simple case, I think it's worthwhile to pull worthwhile to recognise the repeated pattern and extract out a function:
+But I think it's worthwhile to recognise the repeated pattern and extract out a function. That makes the UI code substantially simpler:
 
 ```{r}
-sliderInput01 <- function(id, label = id) {
-  sliderInput(id, label, min = 0, max = 1, value = 0.5, step = 0.1)
+sliderInput01 <- function(id) {
+  sliderInput(id, label = id, min = 0, max = 1, value = 0.5, step = 0.1)
 }
-```
 
-(Since this function is so short, I'd be tempted to leave it in `app.R` but if it got bigger, or I accumulated a bunch of other similar functions I'd pull out in `R/ui.R` say.)
-
-Then the UI specification becomes much more concise:
-
-```{r}
 ui <- fluidRow(
   sliderInput01("alpha"),
   sliderInput01("beta"),
@@ -75,8 +80,9 @@ Functions provide a few benefits even in this simple case:
 * We can give the function a evocative name, making it easier to understand 
   what's going on when we re-read the code in the future.
   
-* If we need to change the behaviour (e.g. maybe we want to make the step size
-  smaller), we only need to do it in one place
+* If we need to change the behaviour, we only need to do it in one place.
+  For example, if we decided that we needed a finer resolution for the steps,
+  we only need to write `step = 0.01` in one place, not four.
 
 ### Functional programming
 
@@ -99,8 +105,6 @@ There are two big ideas here:
   so that elements of the list because the children of the container.
 
 If you're like to learn more about `map()` (or its base equivalent, `lapply()`), you might enjoy the [Functionals chapter](https://adv-r.hadley.nz/functionals.html) of _Advanced R_.
-
-### Varying arguments
 
 It's possible to generalise this further if the controls have more than one varying input. First, we create an inline data frame that defines the parameters of each control, using `tibble::tribble()`. Explicitly describing UI structure as data is a useful pattern.
 
@@ -130,16 +134,50 @@ sliders <- pmap(vars, mySliderInput)
 
 Don't worry if this code looks like gibberish to you: you can continue to use copy and paste instead. But in the long-run, I'd recommend learning more about functional programming, because it gives you such a wonderful ability to concisely express otherwise long-winded concepts.
 
-### Dynamic UI
-
 See Section \@ref(programming-ui) for more examples of using these techniques to generate dynamic UI in response to user actions.
 
-### Other ideas
+### Other applications
 
-* `dateInput()` if you use in multiple places, make sure you pull out into 
-  one place so that you can use consistent arguments.
+Whenever you use the same variant of an input control in multiple places, make a function. For example,
 
-* 
+*   If you're using a customised `dateInput()` for your country, pull out into 
+    one place so that you can use consistent arguments. For example, imagine 
+    you wanted a date control for Americans to use to select week days:
+  
+    ```{r}
+    usWeekDateInput <- function(inputId, ...) {
+      dateInput(inputId, ..., format = "dd M, yy", daysofweekdisabled = c(0, 6))
+    }
+    ```
+    
+    Note the use of `...`; it means that you can still pass along any other
+    arguments to `dateInput()`.
+  
+*   Or maybe you want a radio button that makes it easier to provide icons:
+
+    ```{r}
+    iconRadioButtons <- function(inputId, label, choices, selected = NULL) {
+      names <- lapply(choices, icon)
+      values <- if (is.null(names(choices))) names(choices) else choices
+      radioButtons(inputId,
+        label = label,
+        choiceNames = names, choiceValues = values, selected = selected
+      )
+    }
+    ```
+
+
+*   Or if there are multiple selections you reuse in multiple places:
+
+    ```{r}
+    stateSelectInput <- function(inputId, ...) {
+      selectInput(inputId, ..., choices = state.name)
+    }
+    ```
+    
+    (If you're developing a lot of Shiny apps in your organisation, this sort
+    of function is really useful to include in a shared package that everyone
+    can use to make their apps more consistent.)
 
 ## Server functions
 
