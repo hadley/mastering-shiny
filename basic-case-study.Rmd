@@ -1,4 +1,4 @@
-# Case study: emergency room injuries {#basic-case-study}
+# Case study: ER injuries {#basic-case-study}
 
 ```{r include=FALSE}
 source("common.R")
