@@ -32,13 +32,13 @@ rmd_files:
     "scaling-testing.Rmd",
     "scaling-safety.Rmd",
 
-    "advanced-ui.Rmd",
-
     "reactivity-mastering.Rmd",
     "reactivity-motivation.Rmd",
     "reactivity-tracking.Rmd",
     "reactivity-scoping.Rmd",
     "reactivity-components.Rmd",
+
+    "advanced-ui.Rmd",
   ]
 
 
