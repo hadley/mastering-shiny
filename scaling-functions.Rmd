@@ -1,4 +1,4 @@
-# Functions {#action-functions}
+# Functions {#scaling-functions}
 
 ```{r, include = FALSE}
 source("common.R")
@@ -6,7 +6,7 @@ source("common.R")
 
 Without discipline, as your app gets bigger, it will get harder and harder to understand. In turn, this makes it harder to add new features, and harder to find a solution when something goes wrong (i.e. it's harder to debug). If you're not careful, over time your app will become less and less enjoyable to work on.
 
-Shiny allows you to have one giant `app.R` file, containing a massive `ui` specification and large `server` function. But it's hard to understand anything that runs over a single screen of code. So to continue to grow your app, you need to start to break it up into indpenedent pieces.
+Shiny allows you to have one giant `app.R` file, containing a massive `ui` specification and large `server` function. But it's hard to understand anything that runs over a single screen of code. So to continue to grow your app, you need to start to break it up into independent pieces.
 
 This chapter will help you to take the first step in that journey, by showing you how to tactically use functions to pull out pieces into unrelated concerns. This tends to have slightly different flavours for UI and server components:
 

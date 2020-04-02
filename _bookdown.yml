@@ -23,12 +23,13 @@ rmd_files:
     "action-dynamic.Rmd",
     "action-transfer.Rmd",
     "action-bookmark.Rmd",
-    "action-functions.Rmd",
     "action-tidy.Rmd",
 
     "scaling.Rmd",
+    "scaling-functions.Rmd",
     "scaling-modules.Rmd",
-
+    "scaling-safety.Rmd",
+    "scaling-production.Rmd",
 
     "advanced-ui.Rmd",
 
@@ -37,9 +38,6 @@ rmd_files:
     "reactivity-tracking.Rmd",
     "reactivity-scoping.Rmd",
     "reactivity-components.Rmd",
-
-    "prod.Rmd",
-    "prod-best-practices.Rmd",
   ]
 
 

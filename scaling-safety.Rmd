@@ -1,4 +1,4 @@
-# Safety (#scaling-safety)
+# Safety {#scaling-safety}
 
 Part of scaling is exposing your app to more people, including people that you don't fully trust. This chapter discusses some of the things you need to think about if you're going to create a public facing app. (If you're only using your app inside your company this chapter isn't so important as you can generally assume that your own colleages won't deliberately attempt to hack your code).
 

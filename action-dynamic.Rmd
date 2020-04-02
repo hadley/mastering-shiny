@@ -517,7 +517,7 @@ This technique has two components:
 * You use `renderUI()` to fill in the placeholder with UI generated in the 
   server function.
 
-Here's a simple example to illustrate the basic idea. It dynamically creates a different type of input control depending on an input. The resulting app is shown in Figure \@ref(render-simple).
+Here's a simple example to illustrate the basic idea. It dynamically creates a different type of input control depending on an input. The resulting app is shown in Figure \@ref(fig:render-simple).
 
 ```{r}
 ui <- fluidPage(
@@ -787,7 +787,7 @@ demo$resize(800)
 demo$screenshot()
 ```
 
-From there, it's a simple generalisation to work with any data frame. Here I'll illustrate it using the data frames in the datasets package, but you can easily imagine how you might extend this to user uploaded data. See the result in Figure \@ref(filtering-final).
+From there, it's a simple generalisation to work with any data frame. Here I'll illustrate it using the data frames in the datasets package, but you can easily imagine how you might extend this to user uploaded data. See the result in Figure \@ref(fig:filtering-final).
 
 ```{r}
 dfs <- keep(ls("package:datasets"), ~ is.data.frame(get(.x, "package:datasets")))
