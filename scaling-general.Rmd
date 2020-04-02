@@ -10,6 +10,9 @@ Shiny is no different. Early on, you likely spent your time getting comfortable 
   - "I haven't worked on this code in 6 months and I'm afraid I'm going to break it if I make any changes."
   - "Someone else started working with me on the application and we keep interfering with each other."
   - "The app works on my computer but doesn't work on my collaborator's or in production."
+  
+
+The goal of this part of the book is to teach you the most important software engineering principles that will help you build robust, ..., apps. The most important topics are covered in the subsequent chapters, but some parts are just too big for this book, and you'll need to learn more elsewhere.
 
 ## Code organization
 
@@ -47,11 +50,6 @@ If you've written an R package before, you may have noticed that the way we reco
 
 It's possible to go one step further and actually wrap your Shiny app as an R package itself. There are a wide variety of tools in R that can help build and test R packages, so there are a number benefits that come from organizing your app as a package. The R package [golem](https://thinkr-open.github.io/golem/) offers an opinionated way to structure Shiny apps as R packages and a number of convenience functions that make the process easier. For example, `golem::add_module()` creates a new Shiny module and wires it into your app automatically. If you follow the advice in this article, you'll set yourself up to seamlessly convert your app into its own package using golem should you choose to.
 
-## Source code management
-
-Anyone who's been programming for long has inevitably arrived at a state where they've changed their application in ways that broke things and they now want to roll back to a previous, working state. This can be an incredibly arduous task to do manually. Storing your code in a system that tracks versions of your files is a step in the right direction, as you can at least revert to a previous state. But the best case is to have a system that enables you to atomically commit changes to your code in a descriptive way and also to roll back to previous versions of the code. Having a source code management tool becomes especially imperative if multiple people intend to work on a code-base together.
-
-Git is one such tool that is popular in the R community. There is admittedly a learning curve involved before you can become proficient (or even comfortable), but any experienced developer will confirm that the effort required is well worth it. [Happy Git and GitHub for the useR](https://happygitwithr.com/) is a great resource prepared specifically for R users to become familiar with Git.
 
 ## Testing
 
@@ -89,6 +87,12 @@ Another tool for managing dependencies is the [config package](https://github.co
 
 Lastly, be wary of making assumptions about the local file system. If your code has references to data at `C:\data\cars.csv` or `~/my-projects/genes.rds`, for example, you need to realize that these files won't likely exist at these paths when the app is run on another computer. As mentioned earlier, if you do need to load a file from disk, use the config package to add a reference to make clear that this is a dependency and to allow future users to seamlessly update the path where they have the file stored. You should be sure to document how future users could obtain this file if they don't already have it.
 
+## Source code management
+
+Anyone who's been programming for long has inevitably arrived at a state where they've changed their application in ways that broke things and they now want to roll back to a previous, working state. This can be an incredibly arduous task to do manually. Storing your code in a system that tracks versions of your files is a step in the right direction, as you can at least revert to a previous state. But the best case is to have a system that enables you to atomically commit changes to your code in a descriptive way and also to roll back to previous versions of the code. Having a source code management tool becomes especially imperative if multiple people intend to work on a code-base together.
+
+Git is one such tool that is popular in the R community. There is admittedly a learning curve involved before you can become proficient (or even comfortable), but any experienced developer will confirm that the effort required is well worth it. [_Happy Git and GitHub for the useR_](https://happygitwithr.com/), by Jenny Bryan, is a great resource prepared specifically for R users to become familiar with Git.
+
 ## Continuous integration/deployment (CI, CD)
 
 Once you have source code management and a robust set of automated tests in place, you might benefit from continuous integration (CI). CI is a way to perpetually validate that the changes you're making to your application haven't broken anything. You can use it retroactively (to notify you if a change you've already made broke your application) or proactively (to notify you if a change you're proposing would break before you bring in the change). There are a variety of services that can connect to a Git repo and automatically run tests when you push a new commit or propose changes. Depending on where your code is hosted, you can consider [GitHub actions](https://github.com/features/actions), [Travis CI](https://travis-ci.org/), [Azure Pipelines](https://azure.microsoft.com/en-us/services/devops/pipelines/), [AppVeyor](https://www.appveyor.com/), [Jenkins](https://jenkins.io/), [GitLab CI/CD](https://about.gitlab.com/product/continuous-integration/), or others.
@@ -114,7 +118,3 @@ Many software companies have found the benefits of having a programmer other tha
   code.
 
 Typically, a code review involves someone other than the author, but you might benefit from the practice even if you're in an environment in which you don't have anyone else to review your code. Experienced developers will often agree that taking a moment to review their own code before merging it in to the application will often result in them catching something they'd initially overlooked. When you're ready to submit the code, take a few minutes to read through it as a novice Shiny user would. Are there parts of code someone else might find confusing? Are there areas that might need more automated testing to ensure that they're correct and will remain stable moving forward? You might also be able to find someone who isn't currently involved in the app you're writing who would be interested in trading code review services with you.
-
-## Conclusion
-
-Following these principles have helped teams develop large, complex Shiny applications and maintain them over a timespan of many years. You may not find that all of them are a good fit for you right now, but being aware of the different tools that are at your disposal as a Shiny user may help as you work on other applications in other environments.
