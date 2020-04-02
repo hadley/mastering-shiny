@@ -26,10 +26,11 @@ rmd_files:
     "action-tidy.Rmd",
 
     "scaling.Rmd",
+    "scaling-general.Rmd",
     "scaling-functions.Rmd",
     "scaling-modules.Rmd",
+    "scaling-testing.Rmd",
     "scaling-safety.Rmd",
-    "scaling-production.Rmd",
 
     "advanced-ui.Rmd",
 
