@@ -426,26 +426,25 @@ histogramApp <- function() {
 ```
 
 :::sidebar
-Note that if you wanted to allow the module user to place the breaks control and histogram in different places of the app, you could return a named list.
+Note that if you wanted to allow the module user to place the breaks control and histogram in different places of the app, you could use multiple UI functions. It's not terribly useful here, but it's useful to see the basic approach.
 
 ```{r}
-histogramOutput <- function(id) {
-  list(
-    bins = numericInput(NS(id, "bins"), "bins", 10, min = 1, step = 1),
-    hist = plotOutput(NS(id, "hist"))
-  )
+histogramOutputBins <- function(id) {
+  numericInput(NS(id, "bins"), "bins", 10, min = 1, step = 1)
+}
+histogramOutputPlot <- function(id) {
+  plotOutput(NS(id, "hist"))
 }
 
-hist <- histogramOutput("hist")
 ui <- fluidPage(
   sidebarLayout(
     sidebarPanel(
       datasetInput("data", is.data.frame),
       selectVarInput("var"),
-      hist$bins
+      histogramOutputBins("hist")
     ),
     mainPanel(
-      hist$hist
+      histogramOutputBins("hist")
     )
   )
 )
