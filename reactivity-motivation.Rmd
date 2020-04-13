@@ -129,7 +129,7 @@ Unfortunately, this kind of programming is _simple_, not _easy_! As your applica
 
 ### Reactive programming
 
-Reactive programming elegantly solves both problems by combining features of the solutions above. Now we can show you some real Shiny code, using a special Shiny mode, `consoleReactive(TRUE)`, enabling reactivity in the console so you that you can experiment with it directly, outside of an app. This mode is isn't enabled by default because it makes a certain class of bug harder to spot in an app, and it's primary benefit is to help you understand reactivity.
+Reactive programming elegantly solves both problems by combining features of the solutions above. Now we can show you some real Shiny code, using a special Shiny mode, `consoleReactive(TRUE)`, enabling reactivity in the console so you can experiment with it directly, outside of an app. This mode isn't enabled by default because it makes a certain class of bugs harder to spot in an app, and its primary benefit is to help you understand reactivity.
 
 ```{r, cache = FALSE}
 library(shiny)
