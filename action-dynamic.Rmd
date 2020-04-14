@@ -381,7 +381,7 @@ There are two main ideas here:
 * Use tabset panel with hidden tabs.
 * Use `updateTabsetPanel()` to switch tabs from the server.
 
-This is a simple idea, but when combined with a little creativity, it gives you a considerable amount of power. The following two sections illustrate give a couple of small examples of how you might use it in practice.
+This is a simple idea, but when combined with a little creativity, it gives you a considerable amount of power. The following two sections illustrate a couple of small examples of how you might use it in practice.
 
 ### Conditional UI
 
