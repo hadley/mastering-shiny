@@ -122,7 +122,7 @@ Then we create a function where the argument names match the column names:
 
 ```{r}
 mySliderInput <- function(id, label = id, min = 0, max = 1) {
-  sliderInput(id, label, min = 0, max = 1, value = 0.5, step = 0.1)
+  sliderInput(id, label, min = min, max = max, value = 0.5, step = 0.1)
 }
 ```
 
