@@ -385,7 +385,7 @@ This is a simple idea, but when combined with a little creativity, it gives you 
 
 ### Conditional UI
 
-Imagine that you want an app that allows the user to simulate from the normal, uniform, and exponential distributions. Each distribution has different parameters, so we'll need some way to show different controls for different distributions. Here, I'll put the unique user interface for each distribution in its on `tabPanel()`, and then arrange the three tabs into a `tabsetPanel()`.
+Imagine that you want an app that allows the user to simulate from the normal, uniform, and exponential distributions. Each distribution has different parameters, so we'll need some way to show different controls for different distributions. Here, I'll put the unique user interface for each distribution in its own `tabPanel()`, and then arrange the three tabs into a `tabsetPanel()`.
 
 ```{r}
 parameter_tabs <- tagList(
