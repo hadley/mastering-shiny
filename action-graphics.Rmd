@@ -1,0 +1,134 @@
+# Graphics {#action-graphics}
+
+```{r, include = FALSE}
+source("common.R")
+```
+
+```{r setup}
+library(shiny)
+```
+
+`renderPlot()` is a powerful tool for displaying graphics in your app. This chapter will show you how to use it to it's full extent, including how to make your plots interactive, and show you two important related functions: `renderCachedPlot()` and `renderImage()`.
+
+You will learn how to:
+
+* Make your plots interactive, by making them simultaneously inputs and outputs.
+* Cache plots to speed up your app.
+* Render other types of images (apart from plots).
+
+<https://plotly-r.com>
+
+## Interactivity
+
+One of the neatest things about `plotOutput()` is that it can also be used as an input. It has four arguments (`click`, `dblClick`, `hover`, and `brush`) that allow you to set up input components that correspond to four common mouse events. These are used with `clickOpts()`, `dblclickOpts()`, `hoverOpts()` and `brushOpts()`.
+
+<https://shiny.rstudio.com/articles/plot-interaction.html>
+
+Helpers `nearPoints()` and `brushedPoints()`
+
+### Dynamic height and width
+
+One other useful trick. `height` and `width` can be zero-argument functions that return the size in pixels. These are evaluated in a reactive environment so that you can make the size of your plot dynamic.
+
+Here's the basic idea:
+
+```{r}
+ui <- fluidPage(
+  sliderInput("height", "height", min = 100, max = 500, value = 250),
+  sliderInput("width", "width", min = 100, max = 500, value = 250),
+  sliderInput("n", "n", min = 10, max = 100, value = 25),
+  plotOutput("plot", width = 250, height = 250)
+)
+server <- function(input, output, session) {
+  output$plot <- renderPlot(
+    width = function() input$width,
+    height = function() input$height,
+    {
+      plot(rnorm(input$n), rnorm(input$n))
+    }
+  )
+}
+```
+
+Note that the plot is re-drawn, but the code is not rerun (i.e. the random values say the same). This is the same behaviour as when you resize a plot with a dynamic height/width (e.g. 100%).
+
+In real cases, you'd use more complicated expressions in the `width` and `height` functions. For example, if you're using a faceted plot in ggplot2, you might use it to increase the size of the plot to keep the individual facet sizes roughly the same (unfortunately there's no easy way to keep them exactly the same because it's currently v. difficult to find out the size of the fixed elements around the borders of the plot.)
+
+## `renderCachedPlot()`
+
+Really useful if a plot is seen by multiple users, 
+
+<https://shiny.rstudio.com/articles/plot-caching.html>
+
+Mostly a matter of changing `renderPlot()` to `renderCachedPlot()`. But you also need to supply a `cacheKeyExpr`. This is some code that returns an object that basically represents the "state" of the plot; whenever that value changes, the plot will be recomputed.
+
+BASIC EXAMPLE
+
+### Cache key
+
+Best to keep it as simple as possible - should be a list of vectors. 
+
+* Input parameters.
+* Dataset reactive. Avoid using large datasets as a cache key.
+* Timestamp. `proc.time()[[3]] %/% 3600`
+
+Also includes id, and plot size. Also implicitly depends on the current user.
+
+### Sizing policy
+
+Normally plots are rendered to the exact size needed. But that's won't cache will if you have dynamically sized plots. You may want to consider setting the plots to a fixed size; that'll give you the best cache performance.
+
+But `renderCachePlot()` also has a tool work around this. By default it generates a range of plot sizes and resizes with the closest size. You can control with the `sizingPolicy` argument. See the docs for more details.
+
+### Scoping
+
+The default size of 10 MB can hold plenty of plots – a cached plot object is typically between 50 and 250 kB.
+
+* Per app; the default (`cache = "app"`)
+
+* Per user. (`cache = "user"`)
+
+Stored in memory. Can store on disk if you want to share across multiple processes. See docs for details. Beware that restarting the app will no longer clear the cache, so if you change the plotting code, you'll also need to manually reset the cache by deleting the directory. 
+
+Can also store in a database, or you can provide your own backend
+<https://shiny.rstudio.com/articles/plot-caching.html#can-i-write-my-own-caching-backend>.
+
+## Images
+
+If you need to display images that you already have saved on disk. These might come from an external source (maybe a directory of photographs), or perhaps you've generated them with another package (e.g. a 3d scene with`rgl::rgl.snapshot()`).
+
+<https://shiny.rstudio.com/articles/images.html>
+
+Unlike `renderPlot()`, `renderImage()` must return a list:
+
+* `src`: (local) path to the image file. 
+
+* `contentType` entry specifying the MIME type of the image. If one is not 
+  provided, will try to detect the type from the file extension. You should
+  only need to set this if you're generating images without file extensions,
+  which generally you won't do.
+
+* Other components like `width`, `height`
+
+* `class`, `alt` will be added as attributes to the `<img>` tag.
+
+### Static images
+
+Sample app shows directory full of files.
+
+`www/images`: another option is to put images in the `www/` directory. This is somewhat more efficient as it allows the browser to use caching automatically.
+
+`?shiny::addResourcePath`
+
+> Static files under the www/ directory are automatically made available under a request path that begins with /.
+
+Then use `img()` + `renderUI()` to generate img tags.
+
+### Dynamic images
+
+In most cases, you're better off figuring out how to use `renderPlot()` because it takes care of so many details for you, it's easily cached, and the vast majority of R packages that generate images already provided some way to .
+
+* Note the `deleteFile` argument. Set it to `TRUE` if you're rendering the image live, and it should be deleted after its been sent to the user. `outfile <- tempfile(fileext = '.png')`
+
+* You can detect the size of the plot in the browserwith `session$clientData$output_myImage_width` and `session$clientData$output_myImage_height`. (This works for all outputs, but isn't usually needed. ) Also `session$clientData$pixelratio`.
+
