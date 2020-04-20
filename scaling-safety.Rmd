@@ -16,3 +16,8 @@ Also note that Shiny input controls provide client-side validation - a malicious
 Other topics:
 
 * Don't put passwords in code. Instead use `config.yml` or env vars.
+
+* If implementing bookmarkable state, make sure you're not putting any  
+  confidential data in the URL.
+
+* Cached plots shared across users by default.
