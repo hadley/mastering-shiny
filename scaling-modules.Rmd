@@ -152,7 +152,7 @@ The module UI and server differ slightly in how the namespacing is expressed:
   `input` and `output` so that your module code can only access elements with 
   the matching `id`. 
 
-Namespacing turns modules into black boxes. From outside of the module, you can't see any of inputs, outputs, or reactives inside of it. For example, take the app below. The output will never get updated because there is no `input$bins`; the `bins` input can only be seen inside of the `hist1` module.
+Namespacing turns modules into black boxes. From outside of the module, you can't see any of the inputs, outputs, or reactives inside of it. For example, take the app below. The output will never get updated because there is no `input$bins`; the `bins` input can only be seen inside of the `hist1` module.
 
 ```{r}
 ui <- fluidPage(
