@@ -4,7 +4,7 @@
 source("common.R")
 ```
 
-As your Shiny app grows you will find it increasingly hard to understand how all the pieces fit together. Or you might find yourself in a situation where fixing one problem immediately creates a new different problem, and you feel like you're playing wack-a-mole. Or maybe you find yourself spending forever scrolling up and down a veeeeeeery long `app.R` looking for the UI component you're thinking of. These are signs that it's time to break your app up into smaller independent pieces, or **modules**. 
+As your Shiny app grows you will find it increasingly hard to understand how all the pieces fit together. Or you might find yourself in a situation where fixing one problem immediately creates a new different problem, and you feel like you're playing whack-a-mole. Or maybe you find yourself spending forever scrolling up and down a veeeeeeery long `app.R` looking for the UI component you're thinking of. These are signs that it's time to break your app up into smaller independent pieces, or **modules**. 
 
 At the simplest level, a module is just a pair of UI and server functions that live in their own file. But these functions are specially designed to create **namespaces**. What's a namespace? So far, when writing an app, the "names" of the controls (the `id`s) are global: all parts of your server function can see all parts of your UI. Modules give you the ability to create controls that can only be seen from within the module. This is a called a namespace because it creates "spaces" of "names" that are isolated from the rest of the app.
 
