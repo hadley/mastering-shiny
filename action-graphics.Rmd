@@ -6,25 +6,114 @@ source("common.R")
 
 ```{r setup}
 library(shiny)
+library(ggplot2)
 ```
 
-`renderPlot()` is a powerful tool for displaying graphics in your app. This chapter will show you how to use it to it's full extent, including how to make your plots interactive, and show you two important related functions: `renderCachedPlot()` and `renderImage()`.
-
-You will learn how to:
-
-* Make your plots interactive, by making them simultaneously inputs and outputs.
-* Cache plots to speed up your app.
-* Render other types of images (apart from plots).
-
-<https://plotly-r.com>
+We talked briefly about `renderPlot()` in Chapter \@ref(basic-ui); it's a powerful tool for displaying graphics in your app. This chapter will show you how to use it to its full extent, including how to make your plots interactive. You'll also learn two important related functions: `renderCachedPlot()`, which speeds up your app by caching frequently used plots, and `renderImage()`, which allows you to serve images created in other ways.
 
 ## Interactivity
 
-One of the neatest things about `plotOutput()` is that it can also be used as an input. It has four arguments (`click`, `dblClick`, `hover`, and `brush`) that allow you to set up input components that correspond to four common mouse events. These are used with `clickOpts()`, `dblclickOpts()`, `hoverOpts()` and `brushOpts()`.
+One of the neatest things about `plotOutput()` is that it can also be used as an input. It has four arguments (`click`, `dblClick`, `hover`, and `brush`) that allow you to set up input components that correspond to four common mouse events. These are used with `clickOpts()`, `dblclickOpts()`, `hoverOpts()` and `brushOpts()`. Designed to work with both base graphics and ggplot2.
 
-<https://shiny.rstudio.com/articles/plot-interaction.html>
+These events can be divided into two types:
 
-Helpers `nearPoints()` and `brushedPoints()`
+* Point events, `click`, `dblClick` and `hover` which have `x` and `y`
+  events
+  
+* Rectangular event, `brush` has `xmin`, `xmax`, `ymin`, and `ymax`.
+
+
+
+
+
+
+Helpers `nearPoints()` and `brushedPoints()`.
+
+You can learn more at <https://shiny.rstudio.com/articles/plot-interaction.html>.  If you're looking for more general interactivity, you might also want to consider the plotly package, as documented in the book [_Interactive web-based data visualization with R, plotly, and shiny_](https://plotly-r.com), by Carson Sievert.
+
+### Points
+
+
+```{r}
+ui <- basicPage(
+  plotOutput("plot", click = clickOpts("click")),
+  verbatimTextOutput("info")
+)
+
+server <- function(input, output) {
+  output$plot <- renderPlot({
+    plot(mtcars$wt, mtcars$mpg)
+  })
+
+  output$info <- renderPrint({
+    str(input$click)
+  })
+}
+```
+
+Most important are `x` and `y` components that give the location of the event in data coordinates.
+
+
+```{r}
+ui <- fluidPage(
+  plotOutput("plot", click = clickOpts("click")),
+  tableOutput("data")
+)
+server <- function(input, output, session) {
+  output$plot <- renderPlot(
+    plot(mtcars$wt, mtcars$mpg)
+  )
+  
+  output$data <- renderTable({
+    nearPoints(mtcars, input$click, xvar = "wt", yvar = "mpg")
+  })
+}
+```
+
+`nearPoints(allRows = TRUE, addDist = TRUE)` to return all rows with distance; this allows you to rely on the distance calculations done by Shiny, but you can use the information in other ways.
+
+### Rectangles
+
+
+
+### Modifying data
+
+To make interactive plots that modify the data, you'll need to use `reactiveValues()`. We'll come back to that later in Chapter XYZ. 
+
+Here's one basic approach. Use `nearPoint()` to find which points are near the click. Then use `ifelse()` to toggle their values - that means clicking will both remove and re-add. 
+
+```{r, eval = FALSE}
+selected <- reactiveVal(rep(TRUE, nrow(mtcars)))
+
+observeEvent(input$click, {
+  clicked <- nearPoints(mtcars, input$click, allRows = TRUE)$selected_
+  selected(ifelse(clicked, !selected(), selected()))
+})
+```
+
+If you're plotting with ggplot2, you'll need to set the limits on the colour scale. Otherwise the colour scale will change after the first click because it gains a new level ("FALSE").
+
+```{r}
+ui <- fluidPage(
+  plotOutput("plot", click = clickOpts("click")),
+  tableOutput("data")
+)
+server <- function(input, output, session) {
+  selected <- reactiveVal(rep(TRUE, nrow(mtcars)))
+  
+  output$plot <- renderPlot({
+    mtcars$sel <- selected()
+    ggplot(mtcars, aes(wt, mpg)) + 
+      geom_point(aes(colour = sel)) +
+      scale_colour_discrete(limits = c("TRUE", "FALSE"))
+  })
+  
+  observeEvent(input$click, {
+    clicked <- nearPoints(mtcars, input$click, allRows = TRUE)$selected_
+    selected(ifelse(clicked, !selected(), selected()))
+  })
+}
+```
 
 ### Dynamic height and width
 
@@ -69,29 +158,36 @@ BASIC EXAMPLE
 Best to keep it as simple as possible - should be a list of vectors. 
 
 * Input parameters.
-* Dataset reactive. Avoid using large datasets as a cache key.
+* Dataset reactive. Avoid using very large datasets as a cache key - it
+  will take some time
 * Timestamp. `proc.time()[[3]] %/% 3600`
 
 Also includes id, and plot size. Also implicitly depends on the current user.
 
 ### Sizing policy
 
-Normally plots are rendered to the exact size needed. But that's won't cache will if you have dynamically sized plots. You may want to consider setting the plots to a fixed size; that'll give you the best cache performance.
+Normally plots are rendered to the exact size needed. But that's not very useful for caching: if everyone has a slightly different sized plot, then the cache will never be used. `renderCachePlot()` resolves this problem by only caching plots with a fixed sizes and then resizing as needed. 
 
-But `renderCachePlot()` also has a tool work around this. By default it generates a range of plot sizes and resizes with the closest size. You can control with the `sizingPolicy` argument. See the docs for more details.
+It uses an exponential rounding strategy determined by the `sizingPolicy` argument. It's unlikely that you'll need to tweak this, but if you do, see the `sizeGrowthRatio()` for details.
+
+Another option worth considering is setting the plots to a fixed size by setting the `width` argument to `plotOutput` to a fixed unit like `"400px"` (the default `height` is already fixed). That will give you the best cache performance because every plot will have the same size.
 
 ### Scoping
 
-The default size of 10 MB can hold plenty of plots – a cached plot object is typically between 50 and 250 kB.
+By default, the plot cache is stored in memory, and shared across all users of the app. If needed, you can override these defaults with:
 
-* Per app; the default (`cache = "app"`)
+* `cache = "session"`: the cache lifetime will tied to a single user. It
+  will be created when the session starts (i.e. when someone first visits
+  you app), and deleted when the session ends. 
+  
+* `cache = diskCache(...)`: shares across multiple users, multiple     
+  processes, and app-restarts. Beware that restarting the app will no 
+  longer clear the cache, so if you change the plotting code, you'll also
+  need to manually reset the cache by deleting the directory. 
 
-* Per user. (`cache = "user"`)
+It's also possible to store in a database, or right your own backend. See <https://shiny.rstudio.com/articles/plot-caching.html#can-i-write-my-own-caching-backend> for more details.
 
-Stored in memory. Can store on disk if you want to share across multiple processes. See docs for details. Beware that restarting the app will no longer clear the cache, so if you change the plotting code, you'll also need to manually reset the cache by deleting the directory. 
-
-Can also store in a database, or you can provide your own backend
-<https://shiny.rstudio.com/articles/plot-caching.html#can-i-write-my-own-caching-backend>.
+The default memory cache size of 10 MB can hold plenty of plots – a cached plot object is typically between 50 and 250 kB. You can override with `shinyOptions(cache = memoryCache(size = 20e6))`.
 
 ## Images
 
@@ -132,3 +228,10 @@ In most cases, you're better off figuring out how to use `renderPlot()` because 
 
 * You can detect the size of the plot in the browserwith `session$clientData$output_myImage_width` and `session$clientData$output_myImage_height`. (This works for all outputs, but isn't usually needed. ) Also `session$clientData$pixelratio`.
 
+
+
+## Exercises
+
+1. Make a plot with click, dblclick, hover, and brush output handlers
+   and nicely display the current selection in the sidebar. Plot the 
+   plot in the main panel.
