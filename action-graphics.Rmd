@@ -4,39 +4,26 @@
 source("common.R")
 ```
 
+We talked briefly about `renderPlot()` in Chapter \@ref(basic-ui); it's a powerful tool for displaying graphics in your app. This chapter will show you how to use it to its full extent, including how to make your plots interactive. You'll also learn two important related functions: `renderCachedPlot()`, which speeds up your app by caching frequently used plots, and `renderImage()`, which allows you to serve images created in other ways.
+
+In this chapter, we'll show a few base graphics, but will focus on ggplot2.
+
 ```{r setup}
 library(shiny)
 library(ggplot2)
 ```
 
-We talked briefly about `renderPlot()` in Chapter \@ref(basic-ui); it's a powerful tool for displaying graphics in your app. This chapter will show you how to use it to its full extent, including how to make your plots interactive. You'll also learn two important related functions: `renderCachedPlot()`, which speeds up your app by caching frequently used plots, and `renderImage()`, which allows you to serve images created in other ways.
-
 ## Interactivity
 
-One of the neatest things about `plotOutput()` is that it can also be used as an input. It has four arguments (`click`, `dblClick`, `hover`, and `brush`) that allow you to set up input components that correspond to four common mouse events. These are used with `clickOpts()`, `dblclickOpts()`, `hoverOpts()` and `brushOpts()`. Designed to work with both base graphics and ggplot2.
+One of the neatest things about `plotOutput()` is that it can also be used as an input, allowing you to create interactive graphics. This is a very powerful tool, and has a wide range of applications. Here I'll show the basics, and give you a few pointers about how you might extent for your own purposes.
 
-These events can be divided into two types:
+There are four mouse events that you can respond to on a plot: `click`, `dblClick` (double click), `hover` (fired when the mouse stays in the same place for a little while), and `brush`. To turn these events into Shiny inputs, you supply a string to the corresponding argument, which then creates an input with that name. For example, imagine you wanted to create a plot that responded to click events. You'd set `plotOutput("plot", click = "plot_click")`. 
 
-* Point events, `click`, `dblClick` and `hover` which have `x` and `y`
-  events
-  
-* Rectangular event, `brush` has `xmin`, `xmax`, `ymin`, and `ymax`.
-
-
-
-
-
-
-Helpers `nearPoints()` and `brushedPoints()`.
-
-You can learn more at <https://shiny.rstudio.com/articles/plot-interaction.html>.  If you're looking for more general interactivity, you might also want to consider the plotly package, as documented in the book [_Interactive web-based data visualization with R, plotly, and shiny_](https://plotly-r.com), by Carson Sievert.
-
-### Points
-
+Here's a simple example that displays the location of the mouse click (note that the location is in data coordinates):
 
 ```{r}
 ui <- basicPage(
-  plotOutput("plot", click = clickOpts("click")),
+  plotOutput("plot", click = "plot_click"),
   verbatimTextOutput("info")
 )
 
@@ -46,13 +33,36 @@ server <- function(input, output) {
   })
 
   output$info <- renderPrint({
-    str(input$click)
+    req(input$plot_click)
+    x <- round(input$plot_click$x, 2)
+    y <- round(input$plot_click$y, 2)
+    paste0("[", x, ", ", y, "]")
   })
 }
 ```
 
-Most important are `x` and `y` components that give the location of the event in data coordinates.
+(Note the use of `req()`; that makes sure the app doesn't do anything before the first click.)
 
+The following sections describe the events in more details. We'll start with the "point" events, `click`, `dblClick` and `hover`, whose primary data is the `x` and  `y` location of the event (in various units). Then we'll discuss the `hover` event, which gives a rectangle defined by its four sides (`xmin`, `xmax`, `ymin`, and `ymax`). I'll give a brief example of using these events to maintain a logical selection vector; we'll come back to the underlying ideas later in Chapter XYZ.
+
+If you're looking for more general interactivity, you might also want to consider the plotly package, as documented in the book [_Interactive web-based data visualization with R, plotly, and shiny_](https://plotly-r.com), by Carson Sievert.
+
+### Points
+
+The point events return a relatively rich data structure. The most components of the output `x` and `y` components that give the location of the event in data coordinates. But there are also:
+
+* `coord_img` which give the raw pixel coordinates on the image.
+* `coord_css` which uses `img_css_ratio` to compute the scaled css pixel
+  coordinates on the image
+* `mapping` is used for ggplot2 plots
+* `domain` which gives the location of the data boundaries of the plot 
+  (i.e. inside the axes) in data coordinates. `range` gives them in 
+  terms of pixel coordinates on the image.
+* `log` which tells you if either of the `x` or `y` axes are logged.
+
+(If you want to learn more about these values, I think the best bet is to create an app that displays them so you can explore interactively.)
+
+However, you'll only need to use the input directly in relatively rare situations because Shiny provides the `nearPoints()` helper, which finds data points near the event. You're best off using these helpers because they take care of a bunch of fiddly details. Here's a simple example of `nearPoints()` in action, showing a table of data about the points near the event: 
 
 ```{r}
 ui <- fluidPage(
@@ -70,9 +80,54 @@ server <- function(input, output, session) {
 }
 ```
 
-`nearPoints(allRows = TRUE, addDist = TRUE)` to return all rows with distance; this allows you to rely on the distance calculations done by Shiny, but you can use the information in other ways.
+Here `nearPoints()` takes four arguments: the data frame the underlies the plot, the input event, and the names of the `x` and `y` variables on the plot. If you use ggplot2 instead, you don't need to provide these arguments because they can be automatically imputed from the plot data structure. For that reason, I'll use ggplot2 throughout the rest of the chapter. Here's the previous Shiny app reimplemented with ggplot2:
 
-### Rectangles
+```{r}
+ui <- fluidPage(
+  plotOutput("plot", click = "plot_click"),
+  tableOutput("data")
+)
+server <- function(input, output, session) {
+  output$plot <- renderPlot(
+    ggplot(mtcars, aes(wt, mpg)) + geom_point()
+  )
+  
+  output$data <- renderTable({
+    nearPoints(mtcars, input$plot_)
+  })
+}
+```
+
+
+Another way to use `nearPoints()` is to compute the distance between each point and the event. `nearPoints(allRows = TRUE, addDist = TRUE)` to return all rows with distance; this allows you to rely on the distance calculations done by Shiny, but you can use the information in other ways. For example, the following plot 
+
+```{r}
+df <- data.frame(x = rnorm(100), y = rnorm(100))
+
+ui <- fluidPage(
+  plotOutput("plot", click = "plot_click")
+)
+server <- function(input, output, session) {
+  dist <- reactiveVal(rep(1, 100))
+  observeEvent(input$plot_click,
+    dist(nearPoints(df, input$plot_click, allRows = TRUE, addDist = TRUE)$dist_)  
+  )
+  
+  output$plot <- renderPlot({
+    df$dist <- dist()
+    ggplot(df, aes(x, y, size = dist)) + 
+      geom_point() + 
+      scale_size_area(limits = c(0, 1000), max_size = 10, guide = NULL)
+  })
+}
+```
+
+Same principle applies to `hover` and `dblClick`, it's only the user event that changes. You can get additional control over the events by supplying `clickOpts()`, `dblclickOpts()`, or `hoverOpts()` instead of a string giving the input id. These are rarely needed, so I won't discuss them hear; see the documentation for details.
+
+### Brushing
+
+Another way of selecting points on a plot is to use a **brush**, a rectangular selection on the plot. Once you've mastered click and `nearPoints()`, using the brush is just a matter of using the `hover` event and the `brushedPoints()` helper.
+
 
 
 
@@ -114,6 +169,15 @@ server <- function(input, output, session) {
   })
 }
 ```
+
+### Data flow
+
+1.  Javascript captures mouse event
+1.  Shiny send javascript mouse event back to R, invalidating the input.
+1.  All downstream reactives are recomputed. `plotOutput()` generates a new
+    PNG and sends it to the browser.
+
+For local app, the bottleneck tends to be the time taken to draw the plot. But for hosted apps, you also have to take into account the time needed to transmit the event from the browser to the R, and then the rendered plot back from R to the browser. This means this interactivity is never going to be highly fluid (needs <30 ms response time). 
 
 ### Dynamic height and width
 
@@ -230,8 +294,24 @@ In most cases, you're better off figuring out how to use `renderPlot()` because 
 
 
 
+
+
 ## Exercises
+
+1. Make a plot with click handle that shows all the data returned in the input.
 
 1. Make a plot with click, dblclick, hover, and brush output handlers
    and nicely display the current selection in the sidebar. Plot the 
    plot in the main panel.
+
+1. Compute the limits of the distance scale using the size of the plot.
+
+```{r}
+output_size <- function(id) {
+  reactive(c(
+    session$clientData[[paste0("output_", id, "_width")]],
+    session$clientData[[paste0("output_", id, "_height")]]
+  ))
+}
+```
+  
