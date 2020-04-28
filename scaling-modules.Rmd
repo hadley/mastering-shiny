@@ -129,7 +129,7 @@ histogramApp <- function() {
   server <- function(input, output, session) {
     histogramServer("hist1")
   }
-  shinyApp(ui)  
+  shinyApp(ui, server)  
 }
 ```
 
