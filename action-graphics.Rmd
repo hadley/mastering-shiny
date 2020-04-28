@@ -98,8 +98,41 @@ server <- function(input, output, session) {
 }
 ```
 
+Another way to use `nearPoints()` is to compute the distance between each point and the event. `nearPoints(allRows = TRUE, addDist = TRUE)` to return all rows with distance; this allows you to rely on the distance calculations done by Shiny, but you can use the information in other ways. 
 
-Another way to use `nearPoints()` is to compute the distance between each point and the event. `nearPoints(allRows = TRUE, addDist = TRUE)` to return all rows with distance; this allows you to rely on the distance calculations done by Shiny, but you can use the information in other ways. For example, the following plot 
+
+Same principle applies to `hover` and `dblClick`, it's only the user event that changes. You can get additional control over the events by supplying `clickOpts()`, `dblclickOpts()`, or `hoverOpts()` instead of a string giving the input id. These are rarely needed, so I won't discuss them hear; see the documentation for details.
+
+### Brushing
+
+Another way of selecting points on a plot is to use a **brush**, a rectangular selection on the plot. Once you've mastered click and `nearPoints()`, using the brush is just a matter of using the `hover` event and the `brushedPoints()` helper.
+
+### Modifying data
+
+So far we've displayed the results of the interaction in another output. But the true elegance of interactivty comes when you display the changes in the plot you are interacting with. Unfortuantely to achieve this, you'll need to use `reactiveValue()`, This creates a reactive object that behave just like an input, but you can modify in code (rather than relying on the user to modify in the browser). We're going to cover `reactiveValue()` in detail in Chapter XYZ, but I wanted to show it here because it's such a powerful technique. You might not understand everything with your first read through, but you'll hopefully see some sense of the potential and get a couple of techniques that you can copy and paste.
+
+`reactiveValue()` works similarly to `reactive()`. It has one major difference: you can also update its value by supplying an argument when you call it. The following code shows the basic idea, but unfortunately it work work in the console because it must be run in an interactive environment. Working with `reactiveValues()` also requires you to improve your debugging skills.
+
+```{r, eval = FALSE}
+val <- reactiveVal(10)
+val()
+#> [1] 10
+val(20)
+val()
+#> [1] 20
+```
+
+`reactiveValeu()` will almost always be paired with `observeEvent()`; you'll use this to update the reactive value when (e.g.) a mouse event occurs. For example, imagine that you want to visualise the distance between a click and the points on  the plot. First we create a reactive value that initialises the distance. Then, whenever the plot is clicked, we update this value using `nearPoints()`:
+
+```{r, eval = FALSE}
+dist <- reactiveVal(rep(1, nrow(df)))
+
+observeEvent(input$plot_click,
+  dist(nearPoints(df, input$plot_click, allRows = TRUE, addDist = TRUE)$dist_)  
+)
+```
+
+Putting this all together, we get: 
 
 ```{r}
 df <- data.frame(x = rnorm(100), y = rnorm(100))
@@ -122,20 +155,9 @@ server <- function(input, output, session) {
 }
 ```
 
-Same principle applies to `hover` and `dblClick`, it's only the user event that changes. You can get additional control over the events by supplying `clickOpts()`, `dblclickOpts()`, or `hoverOpts()` instead of a string giving the input id. These are rarely needed, so I won't discuss them hear; see the documentation for details.
+(Note the arguments to `scale_size_area()`: I've set the limits so that .  This is one of the biggest challenges in interactive graphics. Keeping plots comparable over time.)
 
-### Brushing
-
-Another way of selecting points on a plot is to use a **brush**, a rectangular selection on the plot. Once you've mastered click and `nearPoints()`, using the brush is just a matter of using the `hover` event and the `brushedPoints()` helper.
-
-
-
-
-### Modifying data
-
-To make interactive plots that modify the data, you'll need to use `reactiveValues()`. We'll come back to that later in Chapter XYZ. 
-
-Here's one basic approach. Use `nearPoint()` to find which points are near the click. Then use `ifelse()` to toggle their values - that means clicking will both remove and re-add. 
+Here's a more complicated idea. I'm going to allow the user to click points to add or remove them from a model fit. I use `nearPoint()` to find which points are near the click, then `ifelse()` to toggle their values: if they were previously excluded they'll be included; if they were previously included, they'll be excluded.
 
 ```{r, eval = FALSE}
 selected <- reactiveVal(rep(TRUE, nrow(mtcars)))
@@ -169,6 +191,8 @@ server <- function(input, output, session) {
   })
 }
 ```
+
+Note that in both cases I add the reactive data to the data frame before plotting. I think this is good practice in ggplot2.
 
 ### Data flow
 
