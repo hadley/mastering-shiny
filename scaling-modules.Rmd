@@ -64,7 +64,7 @@ server <- function(input, output, session) {
   data <- reactive(mtcars[[input$var]])
   output$hist <- renderPlot({
     hist(data(), breaks = input$bins, main = input$var)
-  })
+  }, res = 96)
 }
 ```
 
@@ -110,7 +110,7 @@ histogramServer <- function(id) {
     data <- reactive(mtcars[[input$var]])
     output$hist <- renderPlot({
       hist(data(), breaks = input$bins, main = input$var)
-    })
+    }, res = 96)
   })
 }
 ```
@@ -396,7 +396,7 @@ histogramServer <- function(id, x, title = reactive("Histogram")) {
       req(is.numeric(x()))
       main <- paste0(title(), " [", input$bins, "]")
       hist(x(), breaks = input$bins, main = main)
-    })
+    }, res = 96)
   })
 }
 ```
@@ -625,7 +625,7 @@ histogramServer <- function(id, df) {
     data <- reactive(df[[input$var]])
     output$hist <- renderPlot({
       hist(data(), breaks = input$bins, main = input$var)
-    })
+    }, res = 96)
   })
 }
 ```
@@ -719,15 +719,15 @@ In Shiny, UI and server are inherently disconnected; Shiny doesn't know which UI
       output$plot_carni <- renderPlot({
         ggplot(data = carni(), aes_string(x = input$x, y = input$y)) +
           geom_point()
-      })
+      }, res = 96)
       output$plot_omni <- renderPlot({
         ggplot(data = omni(), aes_string(x = input$x, y = input$y)) +
           geom_point()
-      })
+      }, res = 96)
       output$plot_herbi <- renderPlot({
         ggplot(data = herbi(), aes_string(x = input$x, y = input$y)) +
           geom_point()
-      })
+      }, res = 96)
     
     }
     

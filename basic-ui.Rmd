@@ -336,14 +336,14 @@ ui <- fluidPage(
   plotOutput("plot", width = "400px")
 )
 server <- function(input, output, session) {
-  output$plot <- renderPlot(plot(1:5))
+  output$plot <- renderPlot(plot(1:5), res = 96)
 }
 ```
 ```{r, echo = FALSE, out.width = NULL}
 app_screenshot(testApp(ui, server), "basic-ui/output-plot")
 ```
 
-By default, `plotOutput()` will take up the full width of its container (more on that shortly), and will be 400 pixels high. You can override these defaults with the `height` and `width` arguments.
+By default, `plotOutput()` will take up the full width of its container (more on that shortly), and will be 400 pixels high. You can override these defaults with the `height` and `width` arguments. We recommend always setting `res = 96` as that will make your Shiny plots match what you see in RStudio as closely as possible.
 
 Plots are special because they are outputs that can also act as inputs. `plotOutput()` has a number of arguments like `click`, `dblclick`, and `hover`. If you pass these a string, like `click = "plot_click"`, they'll create a reactive input (`input$plot_click`) that you can use to handle user interaction on the plot. We'll come back to interactive plots in Shiny in Chapter XYZ.
 
@@ -472,7 +472,7 @@ server <- function(input, output, session) {
   output$hist <- renderPlot({
     means <- replicate(1e4, mean(runif(input$m)))
     hist(means, breaks = 20)
-  })
+  }, res = 96)
 }
 ```
 ```{r, echo = FALSE, out.width = "100%"}

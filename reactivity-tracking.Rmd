@@ -13,7 +13,7 @@ The most striking aspect of reactive programming in Shiny is that a reactive exp
 ```{r eval=FALSE}
 output$plot <- renderPlot({
   plot(head(cars, input$rows))
-})
+}, res = 96)
 ```
 
 When people are first exposed to Shiny code like this, the most common question is, "How does Shiny know that `output$plot` reads `input$rows`?" And the most common guess is that Shiny parses the body of the `renderPlot()` code block, looking for symbols that seem to be relevant for reactivity, the same way a human being would. If that strikes you as a fragile approach, I agree. Even a change as simple as giving `input` a new name would break things:
@@ -22,7 +22,7 @@ When people are first exposed to Shiny code like this, the most common question 
 output$plot <- renderPlot({
   x <- input
   plot(head(cars, x$rows))
-})
+}, res = 96)
 ```
 
 So, no, that's not the way Shiny works. In computer science, that approach is called __static analysis__, because it looks at the code without running it. Instead, Shiny is using __dynamic instrumentation__, where as the code is run it collects additional information about what's going on.
@@ -42,7 +42,7 @@ prev_ctx <- shiny:::currentContext
 shiny:::currentContext <- ctx
 
 # Actually run user code here
-renderPlot({ ... })
+renderPlot({ ... }, res = 96)
 
 # Restore the prev context
 shiny:::currentContext <- prev_ctx

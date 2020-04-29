@@ -30,7 +30,7 @@ ui <- basicPage(
 server <- function(input, output) {
   output$plot <- renderPlot({
     plot(mtcars$wt, mtcars$mpg)
-  })
+  }, res = 96)
 
   output$info <- renderPrint({
     req(input$plot_click)
@@ -70,9 +70,9 @@ ui <- fluidPage(
   tableOutput("data")
 )
 server <- function(input, output, session) {
-  output$plot <- renderPlot(
+  output$plot <- renderPlot({
     plot(mtcars$wt, mtcars$mpg)
-  )
+  }, res = 96)
   
   output$data <- renderTable({
     nearPoints(mtcars, input$click, xvar = "wt", yvar = "mpg")
@@ -183,7 +183,7 @@ server <- function(input, output, session) {
     ggplot(mtcars, aes(wt, mpg)) + 
       geom_point(aes(colour = sel)) +
       scale_colour_discrete(limits = c("TRUE", "FALSE"))
-  })
+  }, res = 96)
   
   observeEvent(input$click, {
     clicked <- nearPoints(mtcars, input$click, allRows = TRUE)$selected_
@@ -220,6 +220,7 @@ server <- function(input, output, session) {
   output$plot <- renderPlot(
     width = function() input$width,
     height = function() input$height,
+    res = 96,
     {
       plot(rnorm(input$n), rnorm(input$n))
     }

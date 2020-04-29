@@ -491,7 +491,7 @@ server <- function(input, output, session) {
     data.frame(x = runif(50), y = runif(50))
   })
   
-  output$plot <- renderPlot(plot(data()))
+  output$plot <- renderPlot(plot(data()), res = 96)
 }
 ```
 

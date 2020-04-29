@@ -153,7 +153,7 @@ server <- function(input, output, session) {
   output$plot <- renderPlot({
     ggplot(iris, aes(.data[[input$x]], .data[[input$y]])) +
       geom_point(position = ggforce::position_auto())
-  })
+  }, res = 96)
 }
 ```
 
@@ -178,7 +178,7 @@ server <- function(input, output, session) {
   output$plot <- renderPlot({
     ggplot(iris, aes(.data[[input$x]], .data[[input$y]])) +
       plot_geom()
-  })
+  }, res = 96)
 }
 ```
 

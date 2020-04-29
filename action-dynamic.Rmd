@@ -440,7 +440,7 @@ server <- function(input, output, session) {
       exponential = rexp(input$n, input$rate)
     )
   })
-  output$hist <- renderPlot(hist(sample()))
+  output$hist <- renderPlot(hist(sample()), res = 96)
 }
 ```
 
@@ -663,7 +663,7 @@ server <- function(input, output, session) {
       space = 0, 
       axes = FALSE
     )
-  })
+  }, res = 96)
 }
 ```
 

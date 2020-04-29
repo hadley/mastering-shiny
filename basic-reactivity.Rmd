@@ -402,7 +402,7 @@ server <- function(input, output, session) {
     x2 <- rnorm(input$n2, input$mean2, input$sd2)
     
     histogram(x1, x2, binwidth = input$binwidth, xlim = input$range)
-  })
+  }, res = 96)
 
   output$ttest <- renderText({
     x1 <- rnorm(input$n1, input$mean1, input$sd1)
@@ -468,7 +468,7 @@ server <- function(input, output, session) {
 
   output$hist <- renderPlot({
     histogram(x1(), x2(), binwidth = input$binwidth, xlim = input$range)
-  })
+  }, res = 96)
 
   output$ttest <- renderText({
     t_test(x1(), x2())
@@ -505,7 +505,7 @@ server <- function(input, output, session) {
 
   output$hist <- renderPlot({
     histogram(x1, x2, binwidth = input$binwidth, xlim = input$range)
-  })
+  }, res = 96)
 
   output$ttest <- renderText({
     t_test(x1, x2)
@@ -524,7 +524,7 @@ server <- function(input, output, session) {
 
   output$hist <- renderPlot({
     histogram(x1(), x2(), binwidth = input$binwidth, xlim = input$range)
-  })
+  }, res = 96)
 
   output$ttest <- renderText({
     t_test(x1(), x2())
@@ -565,7 +565,7 @@ server <- function(input, output, session) {
   x2 <- reactive(rpois(input$n, input$lambda2))
   output$hist <- renderPlot({
     histogram(x1(), x2(), binwidth = 1, xlim = c(0, 40))
-  })
+  }, res = 96)
 }
 ```
 
@@ -605,7 +605,7 @@ server <- function(input, output, session) {
   
   output$hist <- renderPlot({
     histogram(x1(), x2(), binwidth = 1, xlim = c(0, 40))
-  })
+  }, res = 96)
 }
 ```
 ```{r sim-timer, echo = FALSE, out.width = NULL, fig.cap="`reactiveTimer(500)` introduces a new reactive input that automatically invalidates every half a second"}
@@ -648,7 +648,7 @@ server <- function(input, output, session) {
   })
   output$hist <- renderPlot({
     histogram(x1(), x2(), binwidth = 1, xlim = c(0, 40))
-  })
+  }, res = 96)
 }
 ```
 
@@ -678,7 +678,7 @@ server <- function(input, output, session) {
 
   output$hist <- renderPlot({
     histogram(x1(), x2(), binwidth = 1, xlim = c(0, 40))
-  })
+  }, res = 96)
 }
 ```
 

@@ -238,7 +238,7 @@ knitr::include_graphics("images/basic-app/cheatsheet.png", dpi = 300)
     tableOutput("mortgage")
     renderPlot("histogram", {
       hist(rnorm(1000))
-    })
+    }, res = 96)
     ```
 
 1.  Suppose your friend wants to design an app that allows the user to set a 
@@ -345,6 +345,6 @@ knitr::include_graphics("images/basic-app/cheatsheet.png", dpi = 300)
       })
       output$plot <- renderPlot({
         plot(dataset)
-      })
+      }, res = 96)
     }
     ```

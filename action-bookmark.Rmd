@@ -35,7 +35,7 @@ server <- function(input, output, session) {
   
   output$fig <- renderPlot({
     plot(x(), y(), axes = FALSE, xlab = "", ylab = "", type = "l", lwd = 2)
-  })
+  }, res = 96)
 }
 ```
 
@@ -110,7 +110,7 @@ server <- function(input, output, session) {
 
   output$fig <- renderPlot({
     plot(x(), y(), axes = FALSE, xlab = "", ylab = "", type = "l", lwd = 2)
-  })
+  }, res = 96)
   
   observe({
     reactiveValuesToList(input)

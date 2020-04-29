@@ -65,16 +65,14 @@ server <- function(input, output, session) {
       summary() %>%
         ggplot(aes(age, n, colour = sex)) +
         geom_line() +
-        labs(y = "Estimated number of injuries") +
-        theme_grey(15)
+        labs(y = "Estimated number of injuries")
     } else {
       summary() %>%
         ggplot(aes(age, rate, colour = sex)) +
         geom_line(na.rm = TRUE) +
-        labs(y = "Injuries per 10,000 people") +
-        theme_grey(15)
+        labs(y = "Injuries per 10,000 people")
     }
-  })
+  }, res = 96)
   #>>
 
   #<< narrative-server

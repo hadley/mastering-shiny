@@ -56,9 +56,8 @@ server <- function(input, output, session) {
     summary() %>%
       ggplot(aes(age, n, colour = sex)) +
       geom_line() +
-      labs(y = "Estimated number of injuries") +
-      theme_grey(15)
-  })
+      labs(y = "Estimated number of injuries")
+  }, res = 96)
 }
 
 shinyApp(ui, server)
