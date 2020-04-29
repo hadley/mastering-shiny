@@ -47,22 +47,9 @@ The following sections describe the events in more details. We'll start with the
 
 If you're looking for more general interactivity, you might also want to consider the plotly package, as documented in the book [_Interactive web-based data visualization with R, plotly, and shiny_](https://plotly-r.com), by Carson Sievert.
 
-### Points
+### Clicking
 
-The point events return a relatively rich data structure. The most components of the output `x` and `y` components that give the location of the event in data coordinates. But there are also:
-
-* `coord_img` which give the raw pixel coordinates on the image.
-* `coord_css` which uses `img_css_ratio` to compute the scaled css pixel
-  coordinates on the image
-* `mapping` is used for ggplot2 plots
-* `domain` which gives the location of the data boundaries of the plot 
-  (i.e. inside the axes) in data coordinates. `range` gives them in 
-  terms of pixel coordinates on the image.
-* `log` which tells you if either of the `x` or `y` axes are logged.
-
-(If you want to learn more about these values, I think the best bet is to create an app that displays them so you can explore interactively.)
-
-However, you'll only need to use the input directly in relatively rare situations because Shiny provides the `nearPoints()` helper, which finds data points near the event. You're best off using these helpers because they take care of a bunch of fiddly details. Here's a simple example of `nearPoints()` in action, showing a table of data about the points near the event: 
+The point events return a relatively rich data structure. The most components of the output `x` and `y` components that give the location of the event in data coordinates. But I'm not going to talk about the input, since you'll only need to use it directly in relatively rare situations. Instead, you'll use the `nearPoints()` helper, which finds data points near the event. You're best off using these helpers because they take care of a bunch of fiddly details. Here's a simple example of `nearPoints()` in action, showing a table of data about the points near the event: 
 
 ```{r}
 ui <- fluidPage(
@@ -88,24 +75,45 @@ ui <- fluidPage(
   tableOutput("data")
 )
 server <- function(input, output, session) {
-  output$plot <- renderPlot(
+  output$plot <- renderPlot({
     ggplot(mtcars, aes(wt, mpg)) + geom_point()
-  )
+  }, res = 96)
   
   output$data <- renderTable({
-    nearPoints(mtcars, input$plot_)
+    nearPoints(mtcars, input$plot_click)
   })
 }
 ```
 
-Another way to use `nearPoints()` is to compute the distance between each point and the event. `nearPoints(allRows = TRUE, addDist = TRUE)` to return all rows with distance; this allows you to rely on the distance calculations done by Shiny, but you can use the information in other ways. 
+Another way to use `nearPoints()` is to compute the distance between each point and the event. Use `allRows = TRUE` to return all rows and `addDist = TRUE` to add an addition `dist_` column that gives the pixel distance between the event and each row.
 
+### Other point events
 
-Same principle applies to `hover` and `dblClick`, it's only the user event that changes. You can get additional control over the events by supplying `clickOpts()`, `dblclickOpts()`, or `hoverOpts()` instead of a string giving the input id. These are rarely needed, so I won't discuss them hear; see the documentation for details.
+As well as `click`, you can perform the same operations with `hover` and `dblClick`. You just change the name of the argument (and of course you can implement multiple events for one plot, if you want).
+
+Get additional control over the events by supplying `clickOpts()`, `dblclickOpts()`, or `hoverOpts()` instead of a string giving the input id. These are rarely needed, so I won't discuss them hear; see the documentation for details.
 
 ### Brushing
 
 Another way of selecting points on a plot is to use a **brush**, a rectangular selection on the plot. Once you've mastered click and `nearPoints()`, using the brush is just a matter of using the `hover` event and the `brushedPoints()` helper.
+
+```{r}
+ui <- fluidPage(
+  plotOutput("plot", brush = "plot_brush"),
+  tableOutput("data")
+)
+server <- function(input, output, session) {
+  output$plot <- renderPlot({
+    ggplot(mtcars, aes(wt, mpg)) + geom_point()
+  }, res = 96)
+  
+  output$data <- renderTable({
+    brushedPoints(mtcars, input$plot_brush)
+  })
+}
+```
+
+If you want to change the colour of the brush, you'll need to use `brushOpts()`. You can also set the `direction` if you want to brush only the `x` or `y` axes. This is useful for (e.g) brushing time series.
 
 ### Modifying data
 
