@@ -38,7 +38,7 @@ The previous chapter covered the basics of the front end, the `ui` object that c
 
 To achieve this independence, Shiny invokes your `server()` function each time a new session[^session] starts. Just like any other R function, when the server function is called it creates a new local environment that is independent of every other invocation of the function. This allows each session to have unique state, as well as isolating the variables created _inside_ the function. This is why almost all of the reactive programming you'll do in Shiny will be inside the server function[^exceptions]. 
 
-[^session]: Each connection to a Shiny app starts a new session whether its connections from different people, or with multiple tabs from the same person.
+[^session]: Each connection to a Shiny app starts a new session whether it's connections from different people, or with multiple tabs from the same person.
 
 [^exceptions]: The primary exception is where there's some work that can be shared across multiple users. For example, all users might be looking at the same large csv file, so you might as well load it once and share it between users. We'll come back to that idea in Chapter XYZ.
 
