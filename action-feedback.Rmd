@@ -40,7 +40,7 @@ ui <- fluidPage(
 
 Then call one of the feedback functions in your server function. There are four variants: `feedback()`, `feedbackWarning()`, `feedbackDanger()`, and `feedbackSuccess()`. They all have three key arguments:
 
-* `inputId`, the id of the input where the feedback should be place.
+* `inputId`, the id of the input where the feedback should be placed.
 * `show`, a logical determining whether or not to show the feedback.
 * `text`, the text to display.
 
@@ -89,7 +89,7 @@ This need tends to crop up mainly with three controls:
 * In `textInput()`, you've used `value = ""`, and you don't want to do 
   anything until the user types something.
   
-* In `inputSelect()`, you've provide an empty choice, `""`, and you don't
+* In `selectInput()`, you've provide an empty choice, `""`, and you don't
   want to do anything until the user makes a selection.
   
 * In `fileInput()`, which has an empty result before the user has uploaded 
