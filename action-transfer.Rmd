@@ -188,7 +188,7 @@ Note the use of `validate()` to only allow the user to download datasets that ar
 
 ### Downloading reports
 
-As well downloading data, you may want the users of your app to download a report, that summarises the result of interactive exploration in the Shiny app. This is quite a lot of extra work, because you also need to display the same information in a different format, but it is very useful for high-stakes apps.
+As well as downloading data, you may want the users of your app to download a report that summarises the result of interactive exploration in the Shiny app. This is quite a lot of extra work, because you also need to display the same information in a different format, but it is very useful for high-stakes apps.
 
 One powerful way to generate such a report is with a parameterised RMarkdown document, <https://bookdown.org/yihui/rmarkdown/parameterized-reports.html>. A parameterised RMarkdown file has a `params` field in the YAML metadata:
 
