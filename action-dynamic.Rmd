@@ -335,7 +335,7 @@ There's no way around this problem because you have one idea (the temperature) w
 
 The next step up in complexity is to selectively show and hide parts of the UI. You'll learn a number of sophisticated approaches later, once you've learned a little JS and CSS, but there's a useful technique that you can use now: concealing optional UI in a tabset. This is a clever hack that allows you to show and hide UI as needed, without having to re-generate it from scratch (as you'll learn in the next section).
 
-Currently[^tab-future] you need a smidgen of CSS to make this technique work: `tags$style("#switcher { display:none; }")`. If you adapt this for your own code make sure to repace `#switcher` with `#` followed the `id` of your the `tabsetPanel()`.
+Currently[^tab-future] you need a smidgen of CSS to make this technique work: `tags$style("#switcher { display:none; }")`. If you adapt this for your own code make sure to repace `#switcher` with `#` followed the `id` of your `tabsetPanel()`.
 
 [^tab-future]: Hopefully, it will be built into `tabsetPanel()` in the future; follow <https://github.com/rstudio/shiny/issues/2680> for details.
 
@@ -416,7 +416,7 @@ ui <- fluidPage(
         choices = c("normal", "uniform", "exponential")
       ),
       numericInput("n", "Number of samples", value = 100),
-      parameter_tabs,
+      parameter_tabs
     ),
     mainPanel(
       plotOutput("hist")
@@ -594,7 +594,7 @@ There are three key ideas in the server function:
   giving the name of each of the colour inputs I'm about to generate. 
 
 * I create the text boxes by using `map()` to create one `textInput()` for 
-  input in `col_names()`. `output$col <- renderUI()` inserts these textboxes
+  each input in `col_names()`. `output$col <- renderUI()` inserts these text boxes
   in the UI placeholder that I created earlier.
   
 * To generate the output, I need to use use a new trick. So far we've always
@@ -602,7 +602,7 @@ There are three key ideas in the server function:
   have the input names in a character vector, like `var <- "col1"`. 
   `$` no longer works in this scenario, so we need to swich to `[[`, i.e.
   `input[[var]]`. I use `map_chr()` to collect all values into a character
-  vector, and display that in `output$pallete`.
+  vector, and display that in `output$palette`.
 
 ```{r}
 server <- function(input, output, session) {
