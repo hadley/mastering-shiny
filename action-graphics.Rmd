@@ -15,9 +15,9 @@ library(ggplot2)
 
 ## Interactivity
 
-One of the neatest things about `plotOutput()` is that it can also be used as an input, allowing you to create interactive graphics. This is a very powerful tool, and has a wide range of applications. Here I'll show the basics, and give you a few pointers about how you might extent for your own purposes.
+One of the coolest things about `plotOutput()` is that it can also be used as an input, allowing you to create interactive graphics. This is a very powerful tool, and has a wide range of applications. Here I'll show the basics, and give you a few pointers about how you might extend for your own purposes.
 
-There are four mouse events that you can respond to on a plot: `click`, `dblClick` (double click), `hover` (fired when the mouse stays in the same place for a little while), and `brush`. To turn these events into Shiny inputs, you supply a string to the corresponding argument, which then creates an input with that name. For example, imagine you wanted to create a plot that responded to click events. You'd set `plotOutput("plot", click = "plot_click")`. 
+There are four mouse events that you can respond to on a plot: `click`, `dblClick` (double click), `hover` (fired when the mouse stays in the same place for a little while), and `brush`. To turn these events into Shiny inputs, you supply a string to the corresponding argument, which then creates an input with that name. For example, imagine you wanted to create a plot that responded to click events. You'd set `plotOutput("plot", click = "plot_click")`.
 
 Here's a simple example that displays the location of the mouse click (note that the location is in data coordinates):
 
@@ -43,13 +43,13 @@ server <- function(input, output) {
 
 (Note the use of `req()`; that makes sure the app doesn't do anything before the first click.)
 
-The following sections describe the events in more details. We'll start with the "point" events, `click`, `dblClick` and `hover`, whose primary data is the `x` and  `y` location of the event (in various units). Then we'll discuss the `hover` event, which gives a rectangle defined by its four sides (`xmin`, `xmax`, `ymin`, and `ymax`). I'll give a brief example of using these events to maintain a logical selection vector; we'll come back to the underlying ideas later in Chapter XYZ.
+The following sections describe the events in more details. We'll start with the "point" events, `click`, `dblClick` and `hover`, whose primary data is the `x` and `y` location of the event (in various units). Then we'll discuss the `hover` event, which gives a rectangle defined by its four sides (`xmin`, `xmax`, `ymin`, and `ymax`). I'll give a brief example of using these events to maintain a logical selection vector; we'll come back to the underlying ideas later in Chapter XYZ.
 
-If you're looking for more general interactivity, you might also want to consider the plotly package, as documented in the book [_Interactive web-based data visualization with R, plotly, and shiny_](https://plotly-r.com), by Carson Sievert.
+If you're looking for more general interactivity, you might also want to consider the plotly package, as documented in the book *[Interactive web-based data visualization with R, plotly, and shiny](https://plotly-r.com)*, by Carson Sievert.
 
 ### Clicking
 
-The point events return a relatively rich data structure. The most components of the output `x` and `y` components that give the location of the event in data coordinates. But I'm not going to talk about the input, since you'll only need to use it directly in relatively rare situations. Instead, you'll use the `nearPoints()` helper, which finds data points near the event. You're best off using these helpers because they take care of a bunch of fiddly details. Here's a simple example of `nearPoints()` in action, showing a table of data about the points near the event: 
+The point events return a relatively rich data structure. The most important components of the output `x` and `y` components that give the location of the event in data coordinates. But I'm not going to talk about the input, since you'll only need to use it directly in relatively rare situations. Instead, you'll use the `nearPoints()` helper, which finds data points near the event, taking care of a bunch of fiddly details along the way. Here's a simple example of `nearPoints()` in action, showing a table of data about the points near the event:
 
 ```{r}
 ui <- fluidPage(
@@ -67,7 +67,9 @@ server <- function(input, output, session) {
 }
 ```
 
-Here `nearPoints()` takes four arguments: the data frame the underlies the plot, the input event, and the names of the `x` and `y` variables on the plot. If you use ggplot2 instead, you don't need to provide these arguments because they can be automatically imputed from the plot data structure. For that reason, I'll use ggplot2 throughout the rest of the chapter. Here's the previous Shiny app reimplemented with ggplot2:
+Here we give `nearPoints()` four arguments: the data frame the underlies the plot, the input event, and the names of the plotted `x` and `y` variables. If you use ggplot2, you only need to provide the first two arguments since `x_arg` and `y_arg` can be automatically imputed from the plot data structure. For that reason, I'll use ggplot2 throughout the rest of the chapter.
+
+Here's the previous Shiny app reimplemented with ggplot2:
 
 ```{r}
 ui <- fluidPage(
@@ -85,17 +87,20 @@ server <- function(input, output, session) {
 }
 ```
 
-Another way to use `nearPoints()` is to compute the distance between each point and the event. Use `allRows = TRUE` to return all rows and `addDist = TRUE` to add an addition `dist_` column that gives the pixel distance between the event and each row.
+Another way to use `nearPoints()` is with `allRows = TRUE` and `addDist = TRUE`; that returns the original data frame with two new columns:
+
+-   `dist_` gives the distance between the row and the event (in pixels).
+-   `selected_` says whether or not it should be selected (i.e. the logical vector that's returned.
 
 ### Other point events
 
-As well as `click`, you can perform the same operations with `hover` and `dblClick`. You just change the name of the argument (and of course you can implement multiple events for one plot, if you want).
+As well as `click`, you can perform the same operations with `hover` and `dblClick`; just change the name of the argument. You can of course use multiple event types on one plot. Just make sure to explain to the user what they can do: one downside of mouse events is that they're not immediately obvious[^1].
 
-Get additional control over the events by supplying `clickOpts()`, `dblclickOpts()`, or `hoverOpts()` instead of a string giving the input id. These are rarely needed, so I won't discuss them hear; see the documentation for details.
+If needed, you can get additional control over the events by supplying `clickOpts()`, `dblclickOpts()`, or `hoverOpts()` instead of a string giving the input id. These are rarely needed, so I won't discuss them here; see the documentation for details.
 
 ### Brushing
 
-Another way of selecting points on a plot is to use a **brush**, a rectangular selection on the plot. Once you've mastered click and `nearPoints()`, using the brush is just a matter of using the `hover` event and the `brushedPoints()` helper.
+Another way of selecting points on a plot is to use a **brush**, a rectangular selection defined by four edges. Once you've mastered click and `nearPoints()`, using the brush is straighforward: you use the `hover` event and the `brushedPoints()` helper. Here's another simple example that just shows which points have been selected by the brush:
 
 ```{r}
 ui <- fluidPage(
@@ -117,9 +122,9 @@ If you want to change the colour of the brush, you'll need to use `brushOpts()`.
 
 ### Modifying data
 
-So far we've displayed the results of the interaction in another output. But the true elegance of interactivty comes when you display the changes in the plot you are interacting with. Unfortuantely to achieve this, you'll need to use `reactiveValue()`, This creates a reactive object that behave just like an input, but you can modify in code (rather than relying on the user to modify in the browser). We're going to cover `reactiveValue()` in detail in Chapter XYZ, but I wanted to show it here because it's such a powerful technique. You might not understand everything with your first read through, but you'll hopefully see some sense of the potential and get a couple of techniques that you can copy and paste.
+So far we've displayed the results of the interaction in another output. But the true elegance of interactivity comes when you display the changes in the same plot you're interacting with. Unfortunately this requires an advanced reactivity technique that you have yet learned about: `reactiveVal()`. We'll come back to `reactiveVal()` in Chapter XYZ, but I wanted to show it here because it's such a useful technique. You'll probably need to re-read this section after you've read that chapter, but hopefully even without all the theory you'll get a sense of the potential applications.
 
-`reactiveValue()` works similarly to `reactive()`. It has one major difference: you can also update its value by supplying an argument when you call it. The following code shows the basic idea, but unfortunately it work work in the console because it must be run in an interactive environment. Working with `reactiveValues()` also requires you to improve your debugging skills.
+`reactiveValue()` is similarly to `reactive()` except that you can modify it by supplying an argument when you call it. The following code shows the basic idea:
 
 ```{r, eval = FALSE}
 val <- reactiveVal(10)
@@ -130,17 +135,9 @@ val()
 #> [1] 20
 ```
 
-`reactiveValeu()` will almost always be paired with `observeEvent()`; you'll use this to update the reactive value when (e.g.) a mouse event occurs. For example, imagine that you want to visualise the distance between a click and the points on  the plot. First we create a reactive value that initialises the distance. Then, whenever the plot is clicked, we update this value using `nearPoints()`:
+One of the challenges of learning `reactiveVal()` is that doesn't work in the console because it must be run in an reactive environment. This is one of the challenges we'll come back to later in the book.
 
-```{r, eval = FALSE}
-dist <- reactiveVal(rep(1, nrow(df)))
-
-observeEvent(input$plot_click,
-  dist(nearPoints(df, input$plot_click, allRows = TRUE, addDist = TRUE)$dist_)  
-)
-```
-
-Putting this all together, we get: 
+But lets see how we might use it. For example, imagine that you want to visualise the distance between a click and the points on the plot. First we create a reactive value that initialises the distance to a constant (that'll be used before we click anything). Then we use `observeEvent()` to update the reactive value when the mouse is clicked. All up, this looks something like:
 
 ```{r}
 df <- data.frame(x = rnorm(100), y = rnorm(100))
@@ -149,7 +146,7 @@ ui <- fluidPage(
   plotOutput("plot", click = "plot_click")
 )
 server <- function(input, output, session) {
-  dist <- reactiveVal(rep(1, 100))
+  dist <- reactiveVal(rep(1, nrow(df)))
   observeEvent(input$plot_click,
     dist(nearPoints(df, input$plot_click, allRows = TRUE, addDist = TRUE)$dist_)  
   )
@@ -163,20 +160,12 @@ server <- function(input, output, session) {
 }
 ```
 
-(Note the arguments to `scale_size_area()`: I've set the limits so that .  This is one of the biggest challenges in interactive graphics. Keeping plots comparable over time.)
+There are two important ggplot2 techniques to note here:
+
+-   I add the distances to the data frame before plotting it. It's good practice to put everything that you're visualising in a single data frame.
+-   I set the `limits` to `scale_size_area()` to ensure that sizes are comparable over time. I just did a little interactive experimentation to find the range, but in an exercise you'll work out the exact details.
 
 Here's a more complicated idea. I'm going to allow the user to click points to add or remove them from a model fit. I use `nearPoint()` to find which points are near the click, then `ifelse()` to toggle their values: if they were previously excluded they'll be included; if they were previously included, they'll be excluded.
-
-```{r, eval = FALSE}
-selected <- reactiveVal(rep(TRUE, nrow(mtcars)))
-
-observeEvent(input$click, {
-  clicked <- nearPoints(mtcars, input$click, allRows = TRUE)$selected_
-  selected(ifelse(clicked, !selected(), selected()))
-})
-```
-
-If you're plotting with ggplot2, you'll need to set the limits on the colour scale. Otherwise the colour scale will change after the first click because it gains a new level ("FALSE").
 
 ```{r}
 ui <- fluidPage(
@@ -200,22 +189,26 @@ server <- function(input, output, session) {
 }
 ```
 
-Note that in both cases I add the reactive data to the data frame before plotting. I think this is good practice in ggplot2.
+Again, I set the limits of the scale to ensure that the legend (and colours) don't change after the first click.
 
 ### Data flow
 
-1.  Javascript captures mouse event
-1.  Shiny send javascript mouse event back to R, invalidating the input.
-1.  All downstream reactives are recomputed. `plotOutput()` generates a new
-    PNG and sends it to the browser.
+It's important to understand the basic data flow in interactive plots in order to understand their limitations.
 
-For local app, the bottleneck tends to be the time taken to draw the plot. But for hosted apps, you also have to take into account the time needed to transmit the event from the browser to the R, and then the rendered plot back from R to the browser. This means this interactivity is never going to be highly fluid (needs <30 ms response time). 
+1.  Javascript captures mouse event.
+2.  Shiny sends the javascript mouse event back to R, invalidating the input.
+3.  Downstream reactive consumers are recomputed.
+4.  `plotOutput()` generates a new PNG and sends it to the browser.
+
+For local apps, the bottleneck tends to be the time taken to draw the plot. Depending on how complex the plot is, this may take a signficant fraction of a second. But for hosted apps, you also have to take into account the time needed to transmit the event from the browser to the R, and then the rendered plot back from R to the browser.
+
+In general, this means that it's not possible to create Shiny apps where action and response is percieved as instanteous (i.e. the plot updates simultaneously with your action). If you need this level of speed, you'll need to perform more computation in javascript.
 
 ### Dynamic height and width
 
-One other useful trick. `height` and `width` can be zero-argument functions that return the size in pixels. These are evaluated in a reactive environment so that you can make the size of your plot dynamic.
+Before we move on to plot caching, there's one other handy trick I wanted to mention: you can make the size of a plot reactive, so it changes size based on the user's interaction with other controls. To do this, you supply zero-argument functions that return the size in pixels to `height` and `width`. These are evaluated in a reactive environment so that you can make the size of your plot dynamic.
 
-Here's the basic idea:
+The following app illustrates the basic idea. It provides two slides that directly control the size of the plot.
 
 ```{r}
 ui <- fluidPage(
@@ -236,13 +229,13 @@ server <- function(input, output, session) {
 }
 ```
 
-Note that the plot is re-drawn, but the code is not rerun (i.e. the random values say the same). This is the same behaviour as when you resize a plot with a dynamic height/width (e.g. 100%).
+Note that the plot is re-drawn, but the code is not rerun (i.e. the random values say the same). This is the same behaviour as when you resize a Shiny app that contains a plot with a dynamic height/width (e.g. the default width of 100%).
 
-In real cases, you'd use more complicated expressions in the `width` and `height` functions. For example, if you're using a faceted plot in ggplot2, you might use it to increase the size of the plot to keep the individual facet sizes roughly the same (unfortunately there's no easy way to keep them exactly the same because it's currently v. difficult to find out the size of the fixed elements around the borders of the plot.)
+In real cases, you'd use more complicated expressions in the `width` and `height` functions. For example, if you're using a faceted plot in ggplot2, you might use it to increase the size of the plot to keep the individual facet sizes roughly the same (unfortunately there's no easy way to keep them exactly the same because it's currently not possible to find out the size of the fixed elements around the borders of the plot.)
 
 ## `renderCachedPlot()`
 
-Really useful if a plot is seen by multiple users, 
+Really useful if a plot is seen by multiple users,
 
 <https://shiny.rstudio.com/articles/plot-caching.html>
 
@@ -252,18 +245,17 @@ BASIC EXAMPLE
 
 ### Cache key
 
-Best to keep it as simple as possible - should be a list of vectors. 
+Best to keep it as simple as possible - should be a list of vectors.
 
-* Input parameters.
-* Dataset reactive. Avoid using very large datasets as a cache key - it
-  will take some time
-* Timestamp. `proc.time()[[3]] %/% 3600`
+-   Input parameters.
+-   Dataset reactive. Avoid using very large datasets as a cache key - it will take some time
+-   Timestamp. `proc.time()[[3]] %/% 3600`
 
 Also includes id, and plot size. Also implicitly depends on the current user.
 
 ### Sizing policy
 
-Normally plots are rendered to the exact size needed. But that's not very useful for caching: if everyone has a slightly different sized plot, then the cache will never be used. `renderCachePlot()` resolves this problem by only caching plots with a fixed sizes and then resizing as needed. 
+Normally plots are rendered to the exact size needed. But that's not very useful for caching: if everyone has a slightly different sized plot, then the cache will never be used. `renderCachePlot()` resolves this problem by only caching plots with a fixed sizes and then resizing as needed.
 
 It uses an exponential rounding strategy determined by the `sizingPolicy` argument. It's unlikely that you'll need to tweak this, but if you do, see the `sizeGrowthRatio()` for details.
 
@@ -273,18 +265,14 @@ Another option worth considering is setting the plots to a fixed size by setting
 
 By default, the plot cache is stored in memory, and shared across all users of the app. If needed, you can override these defaults with:
 
-* `cache = "session"`: the cache lifetime will tied to a single user. It
-  will be created when the session starts (i.e. when someone first visits
-  you app), and deleted when the session ends. 
-  
-* `cache = diskCache(...)`: shares across multiple users, multiple     
-  processes, and app-restarts. Beware that restarting the app will no 
-  longer clear the cache, so if you change the plotting code, you'll also
-  need to manually reset the cache by deleting the directory. 
+-   `cache = "session"`: the cache lifetime will tied to a single user. It will be created when the session starts (i.e. when someone first visits you app), and deleted when the session ends.
+
+-   `cache = diskCache(...)`: shares across multiple users, multiple\
+    processes, and app-restarts. Beware that restarting the app will no longer clear the cache, so if you change the plotting code, you'll also need to manually reset the cache by deleting the directory.
 
 It's also possible to store in a database, or right your own backend. See <https://shiny.rstudio.com/articles/plot-caching.html#can-i-write-my-own-caching-backend> for more details.
 
-The default memory cache size of 10 MB can hold plenty of plots – a cached plot object is typically between 50 and 250 kB. You can override with `shinyOptions(cache = memoryCache(size = 20e6))`.
+The default memory cache size of 10 MB can hold plenty of plots -- a cached plot object is typically between 50 and 250 kB. You can override with `shinyOptions(cache = memoryCache(size = 20e6))`.
 
 ## Images
 
@@ -294,16 +282,13 @@ If you need to display images that you already have saved on disk. These might c
 
 Unlike `renderPlot()`, `renderImage()` must return a list:
 
-* `src`: (local) path to the image file. 
+-   `src`: (local) path to the image file.
 
-* `contentType` entry specifying the MIME type of the image. If one is not 
-  provided, will try to detect the type from the file extension. You should
-  only need to set this if you're generating images without file extensions,
-  which generally you won't do.
+-   `contentType` entry specifying the MIME type of the image. If one is not provided, will try to detect the type from the file extension. You should only need to set this if you're generating images without file extensions, which generally you won't do.
 
-* Other components like `width`, `height`
+-   Other components like `width`, `height`
 
-* `class`, `alt` will be added as attributes to the `<img>` tag.
+-   `class`, `alt` will be added as attributes to the `<img>` tag.
 
 ### Static images
 
@@ -321,23 +306,17 @@ Then use `img()` + `renderUI()` to generate img tags.
 
 In most cases, you're better off figuring out how to use `renderPlot()` because it takes care of so many details for you, it's easily cached, and the vast majority of R packages that generate images already provided some way to .
 
-* Note the `deleteFile` argument. Set it to `TRUE` if you're rendering the image live, and it should be deleted after its been sent to the user. `outfile <- tempfile(fileext = '.png')`
+-   Note the `deleteFile` argument. Set it to `TRUE` if you're rendering the image live, and it should be deleted after its been sent to the user. `outfile <- tempfile(fileext = '.png')`
 
-* You can detect the size of the plot in the browserwith `session$clientData$output_myImage_width` and `session$clientData$output_myImage_height`. (This works for all outputs, but isn't usually needed. ) Also `session$clientData$pixelratio`.
-
-
-
-
+-   You can detect the size of the plot in the browserwith `session$clientData$output_myImage_width` and `session$clientData$output_myImage_height`. (This works for all outputs, but isn't usually needed. ) Also `session$clientData$pixelratio`.
 
 ## Exercises
 
-1. Make a plot with click handle that shows all the data returned in the input.
+1.  Make a plot with click handle that shows all the data returned in the input.
 
-1. Make a plot with click, dblclick, hover, and brush output handlers
-   and nicely display the current selection in the sidebar. Plot the 
-   plot in the main panel.
+2.  Make a plot with click, dblclick, hover, and brush output handlers and nicely display the current selection in the sidebar. Plot the plot in the main panel.
 
-1. Compute the limits of the distance scale using the size of the plot.
+3.  Compute the limits of the distance scale using the size of the plot.
 
 ```{r}
 output_size <- function(id) {
@@ -347,4 +326,5 @@ output_size <- function(id) {
   ))
 }
 ```
-  
+
+[^1]: As a general rule, adding explanatory text suggests that your interface is too complex, so is best avoided, where possible. This is the key idea behind "affordances", the idea that an object should suggest naturally how to interact with it as introduced by Don Norman in the *"Design of Everyday Things"*.
