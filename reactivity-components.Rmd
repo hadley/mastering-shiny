@@ -1,4 +1,4 @@
-# Reactive components
+# Reactive components {#reactivity-components}
 
 ```{r setup, include=FALSE}
 source("common.R")

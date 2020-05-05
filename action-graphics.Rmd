@@ -122,22 +122,35 @@ If you want to change the colour of the brush, you'll need to use `brushOpts()`.
 
 ### Modifying data
 
-So far we've displayed the results of the interaction in another output. But the true elegance of interactivity comes when you display the changes in the same plot you're interacting with. Unfortunately this requires an advanced reactivity technique that you have yet learned about: `reactiveVal()`. We'll come back to `reactiveVal()` in Chapter XYZ, but I wanted to show it here because it's such a useful technique. You'll probably need to re-read this section after you've read that chapter, but hopefully even without all the theory you'll get a sense of the potential applications.
+So far we've displayed the results of the interaction in another output. But the true elegance of interactivity comes when you display the changes in the same plot you're interacting with. Unfortunately this requires an advanced reactivity technique that you have yet learned about: `reactiveVal()`. We'll come back to `reactiveVal()` in Chapter \@ref(reactivity-components), but I wanted to show it here because it's such a useful technique. You'll probably need to re-read this section after you've read that chapter, but hopefully even without all the theory you'll get a sense of the potential applications.
 
-`reactiveValue()` is similarly to `reactive()` except that you can modify it by supplying an argument when you call it. The following code shows the basic idea:
+As you might guess from the name, `reactiveVal()` is rather similar to `reactive()`. You create a reactive value by calling `reactiveVal()` with its initial value, and retrieve that value in the same way as a reactive:
 
 ```{r, eval = FALSE}
 val <- reactiveVal(10)
 val()
 #> [1] 10
+```
+
+However, it has a big difference: you can also update it, and all reactive consumers that refer to it will recompute. It uses a special syntax for updating --- you call it like a function (like retrieving the value) but supply an argument that is the new value:
+
+```{r, eval = FALSE}
 val(20)
 val()
 #> [1] 20
 ```
 
-One of the challenges of learning `reactiveVal()` is that doesn't work in the console because it must be run in an reactive environment. This is one of the challenges we'll come back to later in the book.
+So updating a reactive value based on its current value looks something like this:
 
-But lets see how we might use it. For example, imagine that you want to visualise the distance between a click and the points on the plot. First we create a reactive value that initialises the distance to a constant (that'll be used before we click anything). Then we use `observeEvent()` to update the reactive value when the mouse is clicked. All up, this looks something like:
+```{r, eval = FALSE}
+val(val() + 1)
+val()
+#> [1] 21
+```
+
+Unfortunately if you actually try to run this code in the console you'll get an error because be run in an reactive environment. That makes it challenging to understand and debug, because you'll need to add a `browser()` call to your Shiny app to get into a state where you can explore what's happening. This is one of the challenges we'll come back to later in Chapter \@ref(reactivity-components).
+
+But for now, lets put the challenges of learning `reactiveVal()` aside, and show you why you might bother. Imagine that you want to visualise the distance between a click and the points on the plot. In the app below, we start by creating a reactive value to store those distances, initialising it with a constant that will be used before we click anything. Then we use `observeEvent()` to update the reactive value when the mouse is clicked, and a ggplot that visualises the distance with point size. All up, this looks something like:
 
 ```{r}
 df <- data.frame(x = rnorm(100), y = rnorm(100))
@@ -163,29 +176,30 @@ server <- function(input, output, session) {
 There are two important ggplot2 techniques to note here:
 
 -   I add the distances to the data frame before plotting it. It's good practice to put everything that you're visualising in a single data frame.
--   I set the `limits` to `scale_size_area()` to ensure that sizes are comparable over time. I just did a little interactive experimentation to find the range, but in an exercise you'll work out the exact details.
+-   I set the `limits` to `scale_size_area()` to ensure that sizes are comparable over time. Here, I did a little interactive experimentation to determine right the range, but you can work out the exact details if needed (see exercises below).
 
-Here's a more complicated idea. I'm going to allow the user to click points to add or remove them from a model fit. I use `nearPoint()` to find which points are near the click, then `ifelse()` to toggle their values: if they were previously excluded they'll be included; if they were previously included, they'll be excluded.
+Here's a more complicated idea. I want to use a brush to select (and deselect) points on a plot. I just display them using colours on the plot, but you could imagine many other applications. To make this work, I initialise the `reactiveVal()` to a vector of `FALSE`s, then use `brushedPoints()` and `ifelse()` toggle their values: if they were previously excluded they'll be included; if they were previously included, they'll be excluded.
 
 ```{r}
 ui <- fluidPage(
-  plotOutput("plot", click = clickOpts("click")),
+  plotOutput("plot", brush = "plot_brush"),
   tableOutput("data")
 )
 server <- function(input, output, session) {
   selected <- reactiveVal(rep(TRUE, nrow(mtcars)))
-  
+
+  observeEvent(input$plot_brush, {
+    brushed <- brushedPoints(mtcars, input$plot_brush, allRows = TRUE)$selected_
+    selected(ifelse(brushed, !selected(), selected()))
+  })
+
   output$plot <- renderPlot({
     mtcars$sel <- selected()
     ggplot(mtcars, aes(wt, mpg)) + 
       geom_point(aes(colour = sel)) +
       scale_colour_discrete(limits = c("TRUE", "FALSE"))
   }, res = 96)
-  
-  observeEvent(input$click, {
-    clicked <- nearPoints(mtcars, input$click, allRows = TRUE)$selected_
-    selected(ifelse(clicked, !selected(), selected()))
-  })
+ 
 }
 ```
 
@@ -193,7 +207,7 @@ Again, I set the limits of the scale to ensure that the legend (and colours) don
 
 ### Data flow
 
-It's important to understand the basic data flow in interactive plots in order to understand their limitations.
+Before we move on, it's important to understand the basic data flow in interactive plots in order to understand their limitations. The basic flow is something like this:
 
 1.  Javascript captures mouse event.
 2.  Shiny sends the javascript mouse event back to R, invalidating the input.
@@ -204,11 +218,11 @@ For local apps, the bottleneck tends to be the time taken to draw the plot. Depe
 
 In general, this means that it's not possible to create Shiny apps where action and response is percieved as instanteous (i.e. the plot updates simultaneously with your action). If you need this level of speed, you'll need to perform more computation in javascript.
 
-### Dynamic height and width
+## Dynamic height and width
 
-Before we move on to plot caching, there's one other handy trick I wanted to mention: you can make the size of a plot reactive, so it changes size based on the user's interaction with other controls. To do this, you supply zero-argument functions that return the size in pixels to `height` and `width`. These are evaluated in a reactive environment so that you can make the size of your plot dynamic.
+The rest of this chapter is less exciting than interactive graphics, but important to cover somewhere. First, you can make the size of a plot reactive, so it changes size based on the user's interaction with your app. To do this, you supply functions to the `width` and `height` argument. These functions should have no argument and return the desired size in pixels.They are evaluated in a reactive environment so that you can make the size of your plot dynamic.
 
-The following app illustrates the basic idea. It provides two slides that directly control the size of the plot.
+The following app illustrates the basic idea. It provides two sliders that directly control the size of the plot:
 
 ```{r}
 ui <- fluidPage(
@@ -229,21 +243,39 @@ server <- function(input, output, session) {
 }
 ```
 
-Note that the plot is re-drawn, but the code is not rerun (i.e. the random values say the same). This is the same behaviour as when you resize a Shiny app that contains a plot with a dynamic height/width (e.g. the default width of 100%).
+Note that when you resize the plot, the data stays the same. This is the same behaviour as when you resize a Shiny app that contains a plot with a dynamic height/width (e.g. the default width of 100%).
 
 In real cases, you'd use more complicated expressions in the `width` and `height` functions. For example, if you're using a faceted plot in ggplot2, you might use it to increase the size of the plot to keep the individual facet sizes roughly the same (unfortunately there's no easy way to keep them exactly the same because it's currently not possible to find out the size of the fixed elements around the borders of the plot.)
 
-## `renderCachedPlot()`
+## Cached plots
 
-Really useful if a plot is seen by multiple users,
+If you have an app with complicated plots that take a while to draw, and the same plots are seen by many people, you can get some major performance advantages by used plot caching. This is most a matter of changing `renderPlot()` to `renderCachedPlot()`, but there are a few other issues that you need to consider. Here we'll focus on the big picture; full the full details you can refer to the [Shiny website](https://shiny.rstudio.com/articles/plot-caching.html).
 
-<https://shiny.rstudio.com/articles/plot-caching.html>
+```{r}
+ui <- fluidPage(
+  selectInput("x", "X", choices = names(diamonds), selected = "carat"),
+  selectInput("y", "Y", choices = names(diamonds), selected = "price"),
+  plotOutput("diamonds")
+)
 
-Mostly a matter of changing `renderPlot()` to `renderCachedPlot()`. But you also need to supply a `cacheKeyExpr`. This is some code that returns an object that basically represents the "state" of the plot; whenever that value changes, the plot will be recomputed.
+server <- function(input, output, session) {
+  output$diamonds <- renderCachedPlot({
+    ggplot(diamonds, aes(.data[[input$x]], .data[[input$y]])) + 
+      geom_point()
+  },
+  cacheKeyExpr = list(input$x, input$y))
+}
+```
 
-BASIC EXAMPLE
+You can use the plot cache with what you now know. But there are three topics that will Three important topics we need to cover:
+
+-   The cache key, which determines when the plot needs to be recomputed.
+-   The sizing policy, which ensures that plot is shared even when the sizes are a little different.
+-   The scoping, which controls how frequently the cache is used.
 
 ### Cache key
+
+But you also need to supply a `cacheKeyExpr`. This is some code that returns an object that basically represents the "state" of the plot; whenever that value changes, the plot will be recomputed.
 
 Best to keep it as simple as possible - should be a list of vectors.
 
