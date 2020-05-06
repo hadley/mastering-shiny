@@ -249,7 +249,9 @@ In real cases, you'd use more complicated expressions in the `width` and `height
 
 ## Cached plots
 
-If you have an app with complicated plots that take a while to draw, and the same plots are seen by many people, you can get some major performance advantages by used plot caching. This is most a matter of changing `renderPlot()` to `renderCachedPlot()`, but there are a few other issues that you need to consider. Here we'll focus on the big picture; full the full details you can refer to the [Shiny website](https://shiny.rstudio.com/articles/plot-caching.html).
+If you have an app with complicated plots that take a while to draw, and the same plots are seen by many people, you can get some major performance advantages by used plot caching. This is most a matter of changing `renderPlot()` to `renderCachedPlot()`, but there are a few other issues that you need to consider.
+
+The following app uses `renderCachedPlot()` to speed up the rendering of a large scatterplot of the diamonds dataset. If you run it yourself, you'll notice the first time you show each plot, it takes a noticeable fraction of a second to render (because it has to draw \~50,000 points). But if you re-show that same plot, it appears instantly (because it retrieves the plot from the cache).
 
 ```{r}
 ui <- fluidPage(
@@ -267,31 +269,26 @@ server <- function(input, output, session) {
 }
 ```
 
-You can use the plot cache with what you now know. But there are three topics that will Three important topics we need to cover:
+You'll notice one important difference between `renderPlot()` and `renderCachedPlot()`: a cached plot also needs a `cacheKeyExpr`, an expression that uniquely identifys each plot. This is the most important argument to `renderCachedPlot()` and we'll discuss it in more detail below. We'll also cover two other important arguments:
 
--   The cache key, which determines when the plot needs to be recomputed.
 -   The sizing policy, which ensures that plot is shared even when the sizes are a little different.
 -   The scoping, which controls how frequently the cache is used.
 
+Here we'll focus on the big picture; full the full details you can refer to the [Shiny website](https://shiny.rstudio.com/articles/plot-caching.html).
+
 ### Cache key
 
-But you also need to supply a `cacheKeyExpr`. This is some code that returns an object that basically represents the "state" of the plot; whenever that value changes, the plot will be recomputed.
+The `cacheKeyExpr` is the most important argument to `renderCachedPlot()` because it determines when the cache can be used. It should return an object (typically a list of simple vectors) that determins the "state" of the plot; whenever that value is the same as a previous value, a cached plot will be used.
 
-Best to keep it as simple as possible - should be a list of vectors.
+Typically the cache key will be a list of input parameters or simple reactives. It is possible to use a dataset as a cache key, but you should avoid using very large datasets because it take some time to reduce and compare them across runs. If you want a plot to invalidate periodically, you can use something like`proc.time()[[3]] %/% 3600`. This is value will change once per hour (3600 s). You can adjust to any constant.
 
--   Input parameters.
--   Dataset reactive. Avoid using very large datasets as a cache key - it will take some time
--   Timestamp. `proc.time()[[3]] %/% 3600`
-
-Also includes id, and plot size. Also implicitly depends on the current user.
+The cache is also affected by the plot size, and the cache scope, as described below.
 
 ### Sizing policy
 
-Normally plots are rendered to the exact size needed. But that's not very useful for caching: if everyone has a slightly different sized plot, then the cache will never be used. `renderCachePlot()` resolves this problem by only caching plots with a fixed sizes and then resizing as needed.
+Normally plots are rendered to the exact size needed by the app. But doesn't work very well for caching, because even a pixel difference would require that the plot be re-rendering. Instead, `renderCachePlot()` caches plots with fixed sizes and then resizing as needed. Generally, you won't need to worry about this as the defaults use an exponential rounding strategy determined by the `sizingPolicy` argument. You can see more details in the `sizeGrowthRatio()` documentation.
 
-It uses an exponential rounding strategy determined by the `sizingPolicy` argument. It's unlikely that you'll need to tweak this, but if you do, see the `sizeGrowthRatio()` for details.
-
-Another option worth considering is setting the plots to a fixed size by setting the `width` argument to `plotOutput` to a fixed unit like `"400px"` (the default `height` is already fixed). That will give you the best cache performance because every plot will have the same size.
+You may also want to consider setting cached plots to a fixed size in `plotOutput()`. The default value for `height` is already fixed at `"400px"`, but `width` argument is `"100%"`. If you set `width = "400px"` every plot will be exactly the same size, and you'll get the best cache performance.
 
 ### Scoping
 
@@ -302,15 +299,11 @@ By default, the plot cache is stored in memory, and shared across all users of t
 -   `cache = diskCache(...)`: shares across multiple users, multiple\
     processes, and app-restarts. Beware that restarting the app will no longer clear the cache, so if you change the plotting code, you'll also need to manually reset the cache by deleting the directory.
 
-It's also possible to store in a database, or right your own backend. See <https://shiny.rstudio.com/articles/plot-caching.html#can-i-write-my-own-caching-backend> for more details.
-
-The default memory cache size of 10 MB can hold plenty of plots -- a cached plot object is typically between 50 and 250 kB. You can override with `shinyOptions(cache = memoryCache(size = 20e6))`.
+It's also possible to store in a database, or right your own backend. See <https://shiny.rstudio.com/https://shiny.rstudio.com/articles/plot-caching.html> for more details.
 
 ## Images
 
 If you need to display images that you already have saved on disk. These might come from an external source (maybe a directory of photographs), or perhaps you've generated them with another package (e.g. a 3d scene with`rgl::rgl.snapshot()`).
-
-<https://shiny.rstudio.com/articles/images.html>
 
 Unlike `renderPlot()`, `renderImage()` must return a list:
 
@@ -321,6 +314,8 @@ Unlike `renderPlot()`, `renderImage()` must return a list:
 -   Other components like `width`, `height`
 
 -   `class`, `alt` will be added as attributes to the `<img>` tag.
+
+<https://shiny.rstudio.com/articles/images.html>
 
 ### Static images
 
