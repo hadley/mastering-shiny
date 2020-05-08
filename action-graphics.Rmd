@@ -4,9 +4,9 @@
 source("common.R")
 ```
 
-We talked briefly about `renderPlot()` in Chapter \@ref(basic-ui); it's a powerful tool for displaying graphics in your app. This chapter will show you how to use it to its full extent, including how to make your plots interactive. You'll also learn two important related functions: `renderCachedPlot()`, which speeds up your app by caching frequently used plots, and `renderImage()`, which allows you to serve images created in other ways.
+We talked briefly about `renderPlot()` in Chapter \@ref(basic-ui); it's a powerful tool for displaying graphics in your app. This chapter will show you how to use it to its full extent to create interactive plots, plots that respond to mouse events. You'll also learn about two important related functions: `renderCachedPlot()`, which speeds up your app by caching frequently used plots, and `renderImage()`, which allows you to display existing images.
 
-In this chapter, we'll show a few base graphics, but will focus on ggplot2.
+In this chapter, we'll need ggplot2 as well as Shiny, since that's what I'll use for the majority of the graphics.
 
 ```{r setup}
 library(shiny)
@@ -15,11 +15,13 @@ library(ggplot2)
 
 ## Interactivity
 
-One of the coolest things about `plotOutput()` is that it can also be used as an input, allowing you to create interactive graphics. This is a very powerful tool, and has a wide range of applications. Here I'll show the basics, and give you a few pointers about how you might extend for your own purposes.
+One of the coolest things about `plotOutput()` is that as well as being an output that displays plots, it can also be an input that responds to pointer events. That allows you to create interactive graphics where the user interacts directly with the data on the plot. Interactive graphics are powerful tool, with a wide range of applications. I don't have space to show you all the possibilities, so here I'll focus on the basics, then point you towards resources to learn more.
 
-There are four mouse events that you can respond to on a plot: `click`, `dblClick` (double click), `hover` (fired when the mouse stays in the same place for a little while), and `brush`. To turn these events into Shiny inputs, you supply a string to the corresponding argument, which then creates an input with that name. For example, imagine you wanted to create a plot that responded to click events. You'd set `plotOutput("plot", click = "plot_click")`.
+### Basics
 
-Here's a simple example that displays the location of the mouse click (note that the location is in data coordinates):
+A plot can respond to four different mouse[^1] events: `click`, `dblClick` (double click), `hover` (when the mouse stays in the same place for a little while), and `brush` (a rectangular selection tool). To turn these events into Shiny inputs, you supply a string to the corresponding `plotOutut()` argument, e.g. `plotOutput("plot", click = "plot_click")`. This creates an `input$plot_click` that you can use to handle mouse clicks on the plot.
+
+Here's a very simple example of handling a mouse click. We register the `plot_click` input, and then use that to update an output with the coordinates of the mouse click:
 
 ```{r}
 ui <- basicPage(
@@ -36,20 +38,20 @@ server <- function(input, output) {
     req(input$plot_click)
     x <- round(input$plot_click$x, 2)
     y <- round(input$plot_click$y, 2)
-    paste0("[", x, ", ", y, "]")
+    cat("[", x, ", ", y, "]", sep = "")
   })
 }
 ```
 
-(Note the use of `req()`; that makes sure the app doesn't do anything before the first click.)
+(Note the use of `req()`, to make sure the app doesn't do anything before the first click, and that the coordinates are in terms of the underlying `wt` and `mpg` variables.)
 
-The following sections describe the events in more details. We'll start with the "point" events, `click`, `dblClick` and `hover`, whose primary data is the `x` and `y` location of the event (in various units). Then we'll discuss the `hover` event, which gives a rectangle defined by its four sides (`xmin`, `xmax`, `ymin`, and `ymax`). I'll give a brief example of using these events to maintain a logical selection vector; we'll come back to the underlying ideas later in Chapter XYZ.
-
-If you're looking for more general interactivity, you might also want to consider the plotly package, as documented in the book *[Interactive web-based data visualization with R, plotly, and shiny](https://plotly-r.com)*, by Carson Sievert.
+The following sections describe the events in more details. We'll start with the click events, then briefly discuss the closely related `dblClick` and `hover`. Then you'll learn about the `brush` event, which provides a rectanglur "brush" defined by its four sides (`xmin`, `xmax`, `ymin`, and `ymax`). I'll then give a couple of examples of updating the plot with the results of the action, and then discuss some of the limitations of interactive graphics in Shiny.
 
 ### Clicking
 
-The point events return a relatively rich data structure. The most important components of the output `x` and `y` components that give the location of the event in data coordinates. But I'm not going to talk about the input, since you'll only need to use it directly in relatively rare situations. Instead, you'll use the `nearPoints()` helper, which finds data points near the event, taking care of a bunch of fiddly details along the way. Here's a simple example of `nearPoints()` in action, showing a table of data about the points near the event:
+The point events return a relatively rich list containing a lot of information. The most important components are `x` and `y`, which give the location of the event in data coordinates. But I'm not going to talk about this data structure, since you'll only need in relatively rare situations (If you do want the details, use [this app](https://gallery.shinyapps.io/095-plot-interaction-advanced/) in the Shiny gallery). Instead, you'll use the `nearPoints()` helper, which finds data points near the event, taking care of a bunch of fiddly details.
+
+Here's a simple example of `nearPoints()` in action, showing a table of data about the points near the event:
 
 ```{r}
 ui <- fluidPage(
@@ -67,9 +69,7 @@ server <- function(input, output, session) {
 }
 ```
 
-Here we give `nearPoints()` four arguments: the data frame the underlies the plot, the input event, and the names of the plotted `x` and `y` variables. If you use ggplot2, you only need to provide the first two arguments since `x_arg` and `y_arg` can be automatically imputed from the plot data structure. For that reason, I'll use ggplot2 throughout the rest of the chapter.
-
-Here's the previous Shiny app reimplemented with ggplot2:
+Here we give `nearPoints()` four arguments: the data frame that underlies the plot, the input event, and the names of the variables on the axes. If you use ggplot2, you only need to provide the first two arguments since `xvar` and `yvar` can be automatically imputed from the plot data structure. For that reason, I'll use ggplot2 throughout the rest of the chapter. Here's that previous example reimplemented with ggplot2:
 
 ```{r}
 ui <- fluidPage(
@@ -87,20 +87,24 @@ server <- function(input, output, session) {
 }
 ```
 
-Another way to use `nearPoints()` is with `allRows = TRUE` and `addDist = TRUE`; that returns the original data frame with two new columns:
+Another way to use `nearPoints()` is with `allRows = TRUE` and `addDist = TRUE`. That will return the original data frame with two new columns:
 
 -   `dist_` gives the distance between the row and the event (in pixels).
 -   `selected_` says whether or not it should be selected (i.e. the logical vector that's returned.
 
+We'll see an example of that a little later.
+
 ### Other point events
 
-As well as `click`, you can perform the same operations with `hover` and `dblClick`; just change the name of the argument. You can of course use multiple event types on one plot. Just make sure to explain to the user what they can do: one downside of mouse events is that they're not immediately obvious[^1].
+The same approach works equally well with `click`, `dblClick`, and `hover`: just change the name of the argument. If needed, you can get additional control over the events by supplying `clickOpts()`, `dblclickOpts()`, or `hoverOpts()` instead of a string giving the input id. These are rarely needed, so I won't discuss them here; see the documentation for details.
 
-If needed, you can get additional control over the events by supplying `clickOpts()`, `dblclickOpts()`, or `hoverOpts()` instead of a string giving the input id. These are rarely needed, so I won't discuss them here; see the documentation for details.
+You can use multiple interactions types on one plot. Just make sure to explain to the user what they can do: one downside of using mouse events to interact with an app is that they're not immediately discoverable[^2].
 
 ### Brushing
 
-Another way of selecting points on a plot is to use a **brush**, a rectangular selection defined by four edges. Once you've mastered click and `nearPoints()`, using the brush is straighforward: you use the `hover` event and the `brushedPoints()` helper. Here's another simple example that just shows which points have been selected by the brush:
+Another way of selecting points on a plot is to use a **brush**, a rectangular selection defined by four edges. In Shiny, using a brush is straighforward once you've mastered `click` and `nearPoints()`: you just switch to `hover` argument and the `brushedPoints()` helper.
+
+Here's another simple example that shows which points have been selected by the brush:
 
 ```{r}
 ui <- fluidPage(
@@ -118,11 +122,11 @@ server <- function(input, output, session) {
 }
 ```
 
-If you want to change the colour of the brush, you'll need to use `brushOpts()`. You can also set the `direction` if you want to brush only the `x` or `y` axes. This is useful for (e.g) brushing time series.
+Use `brushOpts()` to control the colour (`fill` and `stroke`), or restrict brushing to a single dimension with `direction = "x"` or `"y"` (useful, e.g., for brushing time series).
 
-### Modifying data
+### Modifying the plot
 
-So far we've displayed the results of the interaction in another output. But the true elegance of interactivity comes when you display the changes in the same plot you're interacting with. Unfortunately this requires an advanced reactivity technique that you have yet learned about: `reactiveVal()`. We'll come back to `reactiveVal()` in Chapter \@ref(reactivity-components), but I wanted to show it here because it's such a useful technique. You'll probably need to re-read this section after you've read that chapter, but hopefully even without all the theory you'll get a sense of the potential applications.
+So far we've displayed the results of the interaction in another output. But the true beauty of interactivity comes when you display the changes in the same plot you're interacting with. Unfortunately this requires an advanced reactivity technique that you have yet learned about: `reactiveVal()`. We'll come back to `reactiveVal()` in Chapter \@ref(reactivity-components), but I wanted to show it here because it's such a useful technique. You'll probably need to re-read this section after you've read that chapter, but hopefully even without all the theory you'll get a sense of the potential applications.
 
 As you might guess from the name, `reactiveVal()` is rather similar to `reactive()`. You create a reactive value by calling `reactiveVal()` with its initial value, and retrieve that value in the same way as a reactive:
 
@@ -132,7 +136,7 @@ val()
 #> [1] 10
 ```
 
-However, it has a big difference: you can also update it, and all reactive consumers that refer to it will recompute. It uses a special syntax for updating --- you call it like a function (like retrieving the value) but supply an argument that is the new value:
+The big difference is that you can also **update** reactive values, and all reactive consumers that refer to it will recompute. A reactive value uses a special syntax for updating --- you call it like a function with the first argument being the new value:
 
 ```{r, eval = FALSE}
 val(20)
@@ -140,7 +144,7 @@ val()
 #> [1] 20
 ```
 
-So updating a reactive value based on its current value looks something like this:
+That means updating a reactive value using its current value looks something like this:
 
 ```{r, eval = FALSE}
 val(val() + 1)
@@ -148,9 +152,9 @@ val()
 #> [1] 21
 ```
 
-Unfortunately if you actually try to run this code in the console you'll get an error because be run in an reactive environment. That makes it challenging to understand and debug, because you'll need to add a `browser()` call to your Shiny app to get into a state where you can explore what's happening. This is one of the challenges we'll come back to later in Chapter \@ref(reactivity-components).
+Unfortunately if you actually try to run this code in the console you'll get an error because it has to be run in an reactive environment. That makes experimentation and debugging more challenging because you'll need to `browser()` or similar to pause execution within the call to `shinyApp()`. This is one of the challenges we'll come back to later in Chapter \@ref(reactivity-components).
 
-But for now, lets put the challenges of learning `reactiveVal()` aside, and show you why you might bother. Imagine that you want to visualise the distance between a click and the points on the plot. In the app below, we start by creating a reactive value to store those distances, initialising it with a constant that will be used before we click anything. Then we use `observeEvent()` to update the reactive value when the mouse is clicked, and a ggplot that visualises the distance with point size. All up, this looks something like:
+For now, lets put the challenges of learning `reactiveVal()` aside, and show you why you might bother. Imagine that you want to visualise the distance between a click and the points on the plot. In the app below, we start by creating a reactive value to store those distances, initialising it with a constant that will be used before we click anything. Then we use `observeEvent()` to update the reactive value when the mouse is clicked, and a ggplot that visualises the distance with point size. All up, this looks something like:
 
 ```{r}
 df <- data.frame(x = rnorm(100), y = rnorm(100))
@@ -175,10 +179,10 @@ server <- function(input, output, session) {
 
 There are two important ggplot2 techniques to note here:
 
--   I add the distances to the data frame before plotting it. It's good practice to put everything that you're visualising in a single data frame.
--   I set the `limits` to `scale_size_area()` to ensure that sizes are comparable over time. Here, I did a little interactive experimentation to determine right the range, but you can work out the exact details if needed (see exercises below).
+-   I add the distances to the data frame before plotting. I think it's good practice to put related variables together in a data frame before visualising it.
+-   I set the `limits` to `scale_size_area()` to ensure that sizes are comparable across clicks. To find the correct range I did a little interactive experimentation, but you can work out the exact details if needed (see the exercises at the end of the chapter).
 
-Here's a more complicated idea. I want to use a brush to select (and deselect) points on a plot. I just display them using colours on the plot, but you could imagine many other applications. To make this work, I initialise the `reactiveVal()` to a vector of `FALSE`s, then use `brushedPoints()` and `ifelse()` toggle their values: if they were previously excluded they'll be included; if they were previously included, they'll be excluded.
+Here's a more complicated idea. I want to use a brush to select (and deselect) points on a plot. Here I display the selection using different colours, but you could imagine many other applications. To make this work, I initialise the `reactiveVal()` to a vector of `FALSE`s, then use `brushedPoints()` and `ifelse()` toggle their values: if they were previously excluded they'll be included; if they were previously included, they'll be excluded.
 
 ```{r}
 ui <- fluidPage(
@@ -205,18 +209,18 @@ server <- function(input, output, session) {
 
 Again, I set the limits of the scale to ensure that the legend (and colours) don't change after the first click.
 
-### Data flow
+### Interactivity limitations
 
 Before we move on, it's important to understand the basic data flow in interactive plots in order to understand their limitations. The basic flow is something like this:
 
-1.  Javascript captures mouse event.
+1.  Javascript captures the mouse event.
 2.  Shiny sends the javascript mouse event back to R, invalidating the input.
 3.  Downstream reactive consumers are recomputed.
 4.  `plotOutput()` generates a new PNG and sends it to the browser.
 
 For local apps, the bottleneck tends to be the time taken to draw the plot. Depending on how complex the plot is, this may take a signficant fraction of a second. But for hosted apps, you also have to take into account the time needed to transmit the event from the browser to the R, and then the rendered plot back from R to the browser.
 
-In general, this means that it's not possible to create Shiny apps where action and response is percieved as instanteous (i.e. the plot updates simultaneously with your action). If you need this level of speed, you'll need to perform more computation in javascript.
+In general, this means that it's not possible to create Shiny apps where action and response is percieved as instanteous (i.e. the plot appears to update simultaneously with your action upon it). If you need that level of speed, you'll have to perform more computation in javascript. One way to do this is to use an R package that wraps a JS graphics library. Right now, as I write this book, I think you'll get the best experience with the plotly package, as documented in the book *[Interactive web-based data visualization with R, plotly, and shiny](https://plotly-r.com)*, by Carson Sievert.
 
 ## Dynamic height and width
 
@@ -313,7 +317,7 @@ puppies <- tibble::tribble(
   ~breed, ~ id, ~author, 
   "corgi", "eoqnr8ikwFE","alvannee",
   "labrador", "KCdYn0xu2fU", "shaneguymon",
-  "???", "TzjMd7i5WQI", "_redo_"
+  "spaniel", "TzjMd7i5WQI", "_redo_"
 )
 
 ui <- fluidPage(
@@ -369,4 +373,6 @@ output_size <- function(id) {
 }
 ```
 
-[^1]: As a general rule, adding explanatory text suggests that your interface is too complex, so is best avoided, where possible. This is the key idea behind "affordances", the idea that an object should suggest naturally how to interact with it as introduced by Don Norman in the *"Design of Everyday Things"*.
+[^1]: Shiny didn't support touch events when I wrote this chapter, but it might by the time you read this.
+
+[^2]: As a general rule, adding explanatory text suggests that your interface is too complex, so is best avoided, where possible. This is the key idea behind "affordances", the idea that an object should suggest naturally how to interact with it as introduced by Don Norman in the *"Design of Everyday Things"*.
