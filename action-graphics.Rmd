@@ -186,7 +186,7 @@ Here's a more complicated idea. I want to use a brush to select (and deselect) p
 
 ```{r}
 ui <- fluidPage(
-  plotOutput("plot", brush = "plot_brush"),
+  plotOutput("plot", brush = brushOpts("plot_brush", resetOnNew = TRUE)),
   tableOutput("data")
 )
 server <- function(input, output, session) {
