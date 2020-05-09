@@ -41,6 +41,7 @@ jobs:
       - name: Install packages
         run: |
           R -e 'install.packages("remotes")'
+          R -e 'install.packages("ps", type = "binary")'
           R -e 'remotes::install_deps(dependencies = TRUE)'
 
       - name: Install PhantomJS
