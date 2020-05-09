@@ -16,6 +16,8 @@ jobs:
 
       - name: Setup R
         uses: r-lib/actions/setup-r@master
+        with:
+          r-version: '4.0'
 
       - name: Install pandoc and pandoc citeproc
         run: |
@@ -26,8 +28,8 @@ jobs:
         uses: actions/cache@v1
         with:
           path: ${{ env.R_LIBS_USER }}
-          key: r-${{ hashFiles('DESCRIPTION') }}
-          restore-keys: r-
+          key: r-4-${{ hashFiles('DESCRIPTION') }}
+          restore-keys: r-4-
 
       - name: Cache bookdown results
         uses: actions/cache@v1
