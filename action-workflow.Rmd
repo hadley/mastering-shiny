@@ -71,17 +71,17 @@ By default, when you run the app, it will appear in a pop-out window. There are 
 knitr::include_graphics("screenshots/action-workflow/run-app.png", dpi = 300)
 ```
 
--   Running in the viewer pane is useful for smaller apps because you can see it at the same time as you run your app code.
+-   **Run in Viewer Pane** opens the app in the viewer pane (usually located on the right hand side of the IDE). It's useful for smaller apps because you can see it at the same time as you run your app code.
 
--   Run in an external browser is useful for larger apps, or if you want to check your app looks the exactly the way you expect in the context that most user will see it.
+-   **Run External** opens the app in your usual web browser. It's useful for larger apps and when you want to see what your app looks like in the context that most users will experience it.
 
 ## Debugging
 
-When you start writing apps, it is almost guaranteed that something will go wrong. The cause of most bugs is a mismatch between your mental model of Shiny, and what Shiny actually does. As you read this book, your mental model will improve, so that you make fewer mistakes, and when you do make one, it's easier to spot the problem. However, it takes years of experience in any language before you can reliably solve complex problems with code that works the first time. This means you need to build a robust workflow for identifying and fixing mistakes.
+When you start writing apps, it is almost guaranteed that something will go wrong. The cause of most bugs is a mismatch between your mental model of Shiny, and what Shiny actually does. As you read this book, your mental model will improve so that you make fewer mistakes, and when you do make one, it's easier to spot the problem. However, it takes years of experience in any language before you can reliably write code that works the first time. This means you need to develop a robust workflow for identifying and fixing mistakes. Here we'll focus on the challenges specific to Shiny apps; if you're new to debugging in R, start with Jenny Bryan's rstudio::conf(2020) keynote "[Object of type 'closure' is not subsettable](https://resources.rstudio.com/rstudio-conf-2020/object-of-type-closure-is-not-subsettable-jenny-bryan)".
 
 There are three main cases of problems which we'll discuss below:
 
--   You get an unexpected error. This is the easiest case, because you'll get a traceback which allows you to figure out exactly where the error is coming from. Once you've identified the problem, you'll need to systematically test your assumption until you find a difference between your expectations and what is actually happening. The interactive debugger is a powerful tool for this process.
+-   You get an unexpected error. This is the easiest case, because you'll get a traceback which allows you to figure out exactly where the error occurred. Once you've identified the problem, you'll need to systematically test your assumptions until you find a difference between your expectations and reality. The interactive debugger is a powerful assistant for this process.
 
 -   You don't get any errors, but a value is incorrect. Here, you're generally best off transforming this into the first problem by using `stop()` to throw an error when the incorrect value occurs.
 
@@ -89,11 +89,11 @@ There are three main cases of problems which we'll discuss below:
 
 It's frustrating when these situations arise, but you can turn them into opportunities to practice your debugging skills.
 
-We'll come back to another important technique, making a minimal reproducible example, in the next section. Creating a minimal example is crucial if you get stuck and need to get help from someone else. But creating a minimal example is also a profoundly important skill when debugging your own code. Typically you have a lot of code that works just fine, and a very small amount of code that's causing problems. If you can narrow in on the problematic code by removing the code that works, you'll be able to iterate on a solution much more quickly. This is a technique that I use all the time.
+We'll come back to another important technique, making a minimal reproducible example, in the next section. Creating a minimal example is crucial if you get stuck and need to get help from someone else. But creating a minimal example is also a profoundly important skill when debugging your own code. Typically you have a lot of code that works just fine, and a very small amount of code that's causing problems. If you can narrow in on the problematic code by removing the code that works, you'll be able to iterate on a solution much more quickly. This is a technique that I every day.
 
-### Reading trace backs
+### Reading tracebacks
 
-Every error is accompanied by a trace back, or call stack, which literally traces back through the stack of calls that lead to the error. For example, take this simple sequence of calls: `f()` calls `g()` calls `h()` which calls the multiplication operator:
+Every error is accompanied by a traceback, or call stack, which literally traces back through the sequence of calls that lead to the error. For example, take this simple sequence of calls: `f()` calls `g()` calls `h()` which calls the multiplication operator:
 
 ```{r}
 f <- function(x) g(x)
@@ -113,7 +113,9 @@ The call stack is the sequence of calls that lead to the problem:
     2: g(x)
     3: h(x)
 
-You might be familiar with `traceback()` from R already. This is a function that you can run interactively to see the sequence of calls that lead to an error, *after* the error has occured. You can't use this function in Shiny because you can't interactively run code while an app is running, instead Shiny will automatically print the call stack out for you. For example, take this simple app that uses the `f()` function I defined above:
+You might already be familiar with `traceback()`. You can run this function interactively to see the sequence of calls that lead to an error, *after* the error has occured. Unfortunately, you can't use this function in Shiny because you can't interactively run code while an app is running. Instead, Shiny will automatically print the traceback for you.
+
+For example, take this simple app that uses the `f()` function I defined above:
 
 ```{r, eval = FALSE}
 library(shiny)
@@ -131,7 +133,7 @@ server <- function(input, output, session) {
 shinyApp(ui, server)
 ```
 
-If you run this code, you'll see an error message in the app, and a call stack in the console:
+If you run this app, you'll see an error message in the app, and a traceback in the console:
 
     Warning: Error in *: non-numeric argument to binary operator
       173: g [~/.active-rstudio-document#4]
@@ -147,7 +149,7 @@ If you run this code, you'll see an error message in the app, and a call stack i
         3: print.shiny.appobj
         1: source
 
-Shiny adds some additional calls to the call stack. To understand what's going on, first flip it upside down, so you can see the sequence of calls in the order they appear:
+To understand what's going on, I think it's easier to first flip it upside down, so you can see the sequence of calls in the order they appear:
 
     Warning: Error in *: non-numeric argument to binary operator
         1: source
@@ -159,13 +161,13 @@ Shiny adds some additional calls to the call stack. To understand what's going o
       115: <reactive:plotObj>
       129: drawPlot
       169: func
-      171: renderPlot [~/.active-rstudio-document#13]
-      172: f [~/.active-rstudio-document#3]
-      173: g [~/.active-rstudio-document#4]
+      171: renderPlot [sample.R#13]
+      172: f [sample.R#3]
+      173: g [sample.R#4]
 
 There are three basic parts to the call stack:
 
--   The first few calls start the app.
+-   The first few calls start the app:
 
         1: source
         3: print.shiny.appobj
@@ -173,7 +175,7 @@ There are three basic parts to the call stack:
 
     Here the file is `source()`d, then `print.shiny.appobj()` calls `runApp()` to start the app. In general, you can ignore anything before the first `runApp()`; this is just the setup code to get the app running.
 
--   Next, you'll see some internal shiny code in charge of calling the reactive expression.
+-   Next, you'll see some internal shiny code in charge of calling the reactive expression:
 
          85: output$plot
          86: origRenderFunc
@@ -182,17 +184,17 @@ There are three basic parts to the call stack:
         129: drawPlot
         169: func
 
-    Here, spotting `output$plot` is really important - that tells which of your reactives is causing the error. The next few functions are internal, and you can ignore them.
+    Here, spotting `output$plot` is really important --- that tells which of your reactives (`plot`) is causing the error. The next few functions are internal, and you can ignore them.
 
--   Finally, at the very bottom, you'll see the code that you have written.
+-   Finally, at the very bottom, you'll see the code that you have written:
 
-        171: renderPlot [~/.active-rstudio-document#13]
-        172: f [~/.active-rstudio-document#3]
-        173: g [~/.active-rstudio-document#4]
+        171: renderPlot [sample.R#13]
+        172: f [sample.R#3]
+        173: g [sample.R#4]
 
     This is the code called inside of `renderPlot()`. You can tell you should pay attention here because of the file path and line number; this lets you know that it's your code.
 
-If you get an error in your app but don't see a traceback then make sure that you're running the app using `Cmd/Ctrl` + `Shift` + `Enter` (or if not in RStudio, calling `runApp()`), and that you've saved the file that you're running it from. Other ways of running the app don't always capture the information necessary to make a call stack.
+If you get an error in your app but don't see a traceback then make sure that you're running the app using `Cmd/Ctrl` + `Shift` + `Enter` (or if not in RStudio, calling `runApp()`), and that you've saved the file that you're running it from. Other ways of running the app don't always capture the information necessary to make a traceback.
 
 ### The interactive debugger
 
@@ -209,7 +211,7 @@ Once you've located the source of the error and want to figure out what's causin
 -   Add an RStudio breakpoint by clicking to the left of the line number. You can remove the breakpoint by clicking on the red circle.
 
     ```{r, echo = FALSE, out.width = NULL}
-    knitr::include_graphics("images/action-workflow/breakpoint.png")
+    knitr::include_graphics("screenshots/action-workflow/breakpoint.png", dpi = 300)
     ```
 
     The advantage of breakpoints is that they're not code, so you never have to worry about accidentally checking them into your version control system.
@@ -223,14 +225,97 @@ If you're using RStudio, the toolbar in Figure \@ref(fig:debug-toolbar) will app
 -   Stop, `Q`: stops debugging, terminates the function, and returns to the global workspace. Use this once you've figured out where the problem is, and you're ready to fix it and reload the code.
 
 ```{r debug-toolbar, echo = FALSE, out.width = "50%", fig.cap = "RStudio debugging toolbar"}
-knitr::include_graphics("images/action-workflow/debug-toolbar.png")
+knitr::include_graphics("screenshots/action-workflow/debug-toolbar.png")
 ```
 
 As well as stepping through the code line-by-line using these tools, you'll also run a *bunch* of interactive code to understand why you're seeing the error you see. Debugging is the process of systematically comparing your expectations to reality until you find the mismatch.
 
 ### Case study
 
-`sales` dataset: `filter(sales, TERRITORY %in% input$territory)`. Insert browser in `reactive()`, look at value of `input$territory` and discover it's `"NA"`, not `NA`.
+To demonstrate the basic approach, I'll show you a little problem I encountered when writing Section \@ref(hierarchical-select). The initial goal is pretty simple: I have a dataset of sales, and I want to filter it by territory. Here's what the data looks like:
+
+```{r}
+sales <- vroom::vroom("sales-dashboard/sales_data_sample.csv")
+sales <- sales[c("TERRITORY", "ORDERDATE", "ORDERNUMBER", "PRODUCTCODE", "QUANTITYORDERED", "PRICEEACH")]
+sales
+```
+
+I thought this seemed like a simple enough problem that I could just write the app, so I quickly wrote the following very simple app. It's an eight line app, I thought, what could possibly go wrong!
+
+```{r}
+ui <- fluidPage(
+  selectInput("territory", "territory", choices = unique(sales$TERRITORY)),
+  tableOutput("selected")
+)
+server <- function(input, output, session) {
+  selected <- reactive(sales[sales$TERRITORY == input$territory, ])
+  output$selected <- renderTable(head(selected(), 10))
+}
+```
+
+Well, when I opened the app up I got a _lot_ of missing values, no matter what territory I selected. So I quickly re-ran the code in R:
+
+```{r}
+head(sales[sales$TERRITORY == "EMEA", ])
+```
+Ooops! I'd forgotten that `territory` contained a bunch of missing values and `NA == NA` returns `NA`. One way to fix this problem is to switch from `==` to `%in%` because`NA %in% NA` is returns `TRUE`. (There are a few other ways you could've fixed this problem. `subset()` automatically removes `NA`s, as does `dplyr::filter()`. You could also wrap it in `which()`, which returns a integer vector giving the location of `TRUE` values and as a side-effect drops any `NA`s.)
+
+```{r}
+head(sales[sales$TERRITORY %in% "EMEA", ])
+```
+
+This fixed most of the problems, but now when I selected `NA` in the dropdown, I didn't get any output. This was strange because it worked on the console:
+
+```{r}
+head(sales[sales$TERRITORY %in% NA, ])
+```
+So I needed to perform an experiment to figure out why the code run in Shiny was different to the code I was running in the console. It seems like that the most likely place to for there to be a problem was on in the reactive that does the subsetting. So I added a `browser()` statement there. That also required adding `{}`. 
+
+```{r}
+server <- function(input, output, session) {
+  selected <- reactive({
+    browser()
+    sales[sales$TERRITORY %in% input$territory, ]
+  })
+  output$selected <- renderTable(head(selected(), 10))
+}
+```
+
+Now when my app ran, I was immediately dumped into an interactive console.  Luckily the selected value was `NA` by default so I could immediately dive in. Otherwise, I would've needed to press `c` to coninue running the app, select the value in the dropdown that was causing me problems and go back to the interactive debugger.
+
+I first ran `sales[sales$TERRITORY %in% input$territory, ]` to confirm that I could see the same problem in the console that I was seeing in the app. If I didn't see the problem, I must be debugging in the wrong place, and I'd have to come up with a new hypothesis. This is an important part of debugging: you need to carefully check everything that you think you know.
+
+But it wasn't selecting any rows, so I could proceed to the next step. I first check that `sales` looked like what I expected.the app was is simple that it seems unlikely for `sales` to be corrupted, but obviously something was wrong with my expectations so best to double. The dataset looked ok, so it must be something to do with the input.
+
+So I then looked at `input$territory`:
+
+```{r, eval = FALSE}
+input$territory
+#> [1] "NA"
+```
+
+I stared at this for a while because it looked ok too. Then it occurred to me! I was expecting it to be `NA`, but it's actually `"NA"`!  That gave the tools needed to fix the problem. 
+
+Now I could recrate the problem outside of the Shiny app:
+
+```{r}
+sales[sales$TERRITORY %in% "NA", ]
+```
+Then I figured out a simple fix and applied to my server, and re-ran the app:
+
+```{r}
+server <- function(input, output, session) {
+  selected <- reactive({
+    territory <- if (input$territory == "NA") NA else input$territory
+    sales[sales$TERRITORY %in% input$territory, ]
+  })
+  output$selected <- renderTable(head(selected(), 10))
+}
+```
+
+The problem went away so I was done!
+
+It also felt to me like Shiny should be taking care of this situation, so I also filed a bug report: <https://github.com/rstudio/shiny/issues/2884>.
 
 ### Converting incorrect values into errors
 
