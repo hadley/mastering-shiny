@@ -55,7 +55,7 @@ You might think it's not worthwhile to learn these shortcuts because you'll only
 
 ### Seeing your changes
 
-You'll _create_ a few apps a day, but you'll _run_ apps hundreds of times, so mastering the development workflow is particularly important. The first way to reduce your iteration speed is to avoid clicking on the "Run App" button, and instead learn the keyboard shortcut `Cmd/Ctrl` + `Shift` + `Enter`. This gives you the following development workflow:
+You'll _create_ a few apps a day, but you'll _run_ apps hundreds of times, so mastering the development workflow is particularly important. The first way to increase your iteration speed is to avoid clicking on the "Run App" button, and instead learn the keyboard shortcut `Cmd/Ctrl` + `Shift` + `Enter`. This gives you the following development workflow:
 
 1. Write some code.
 1. Launch the app with `Cmd/Ctrl` + `Shift` + `Enter`.
@@ -63,7 +63,7 @@ You'll _create_ a few apps a day, but you'll _run_ apps hundreds of times, so ma
 1. Close the app.
 1. Go to 1.
 
-Another way to reduce your iteration speed still further is to turn autoreload on (`options(shiny.autoreload = TRUE)`) and then run the app in a background job, as described in <https://github.com/sol-eng/background-jobs/tree/master/shiny-job>. With this workflow as soon as you save a file, your app will relaunch: no need to close and restart. This leads to an even faster workflow:
+Another way to increase your iteration speed still further is to turn autoreload on (`options(shiny.autoreload = TRUE)`) and then run the app in a background job, as described in <https://github.com/sol-eng/background-jobs/tree/master/shiny-job>. With this workflow as soon as you save a file, your app will relaunch: no need to close and restart. This leads to an even faster workflow:
 
 1. Write some code and press `Cmd/Ctrl` + `S` to save to the file.
 1. Interactively experiment.
