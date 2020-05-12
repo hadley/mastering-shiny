@@ -239,7 +239,7 @@ To demonstrate the basic debugging approach, I'll show you a little problem I en
 The initial goal is pretty simple: I have a dataset of sales, and I want to filter it by territory. Here's what the data looks like:
 
 ```{r}
-sales <- vroom::vroom("sales-dashboard/sales_data_sample.csv")
+sales <- readr::read_csv("sales-dashboard/sales_data_sample.csv")
 sales <- sales[c("TERRITORY", "ORDERDATE", "ORDERNUMBER", "PRODUCTCODE", "QUANTITYORDERED", "PRICEEACH")]
 sales
 ```
