@@ -23,6 +23,9 @@ options(digits = 3)
 knitr::opts_chunk$set(width = 81)
 options(width = 81)
 
+# Suppress crayon since it's falsely on in GHA
+options(crayon.enabled = FALSE)
+
 # Controls the size of automated shiny screenshots via app_screenshot().
 # I don't understand why these values need to be different, they've been
 # determined empirically.
