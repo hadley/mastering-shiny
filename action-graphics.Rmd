@@ -358,7 +358,7 @@ shinyApp(ui, server)
 
 -   The `width` and `height` of the image, if known.
 
--   Any other arguments, like`class` or `alt` will be added as attributes to the `<img>` tag in the html.
+-   Any other arguments, like `class` or `alt` will be added as attributes to the `<img>` tag in the html.
 
 You can learn more about `renderImage()`, and see other ways that you might use it at <https://shiny.rstudio.com/articles/images.html>.
 
