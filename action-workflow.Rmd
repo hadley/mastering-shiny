@@ -232,7 +232,11 @@ As well as stepping through the code line-by-line using these tools, you'll also
 
 ### Case study
 
-To demonstrate the basic approach, I'll show you a little problem I encountered when writing Section \@ref(hierarchical-select). The initial goal is pretty simple: I have a dataset of sales, and I want to filter it by territory. Here's what the data looks like:
+> Once you eliminate the impossible, whatever remains, no matter how improbable, must be the truth --- Sherlock Holmes
+
+To demonstrate the basic debugging approach, I'll show you a little problem I encountered when writing Section \@ref(hierarchical-select). We'll start with the basic context, show you a problem I resolved without interactive debugging tools, and then a problem where I really needed to an interactive environment within the app.
+
+The initial goal is pretty simple: I have a dataset of sales, and I want to filter it by territory. Here's what the data looks like:
 
 ```{r}
 sales <- vroom::vroom("sales-dashboard/sales_data_sample.csv")
@@ -240,7 +244,13 @@ sales <- sales[c("TERRITORY", "ORDERDATE", "ORDERNUMBER", "PRODUCTCODE", "QUANTI
 sales
 ```
 
-I thought this seemed like a simple enough problem that I could just write the app, so I quickly wrote the following very simple app. It's an eight line app, I thought, what could possibly go wrong!
+There are four territories:
+
+```{r}
+unique(sales$TERRITORY)
+```
+
+When I first started on this problem, I thought it seemed so simple that I just wrote the app without doing any small experiments on the console.
 
 ```{r}
 ui <- fluidPage(
@@ -253,69 +263,88 @@ server <- function(input, output, session) {
 }
 ```
 
-Well, when I opened the app up I got a _lot_ of missing values, no matter what territory I selected. So I quickly re-ran the code in R:
+I thought, *it's an eight line app, what could possibly go wrong*. Well, when I opened the app up I saw a *lot* of missing values, no matter what territory I selected. So stopped the app, and quickly verified that subsetting worked the way I thought it did:
 
 ```{r}
 head(sales[sales$TERRITORY == "EMEA", ])
 ```
-Ooops! I'd forgotten that `territory` contained a bunch of missing values and `NA == NA` returns `NA`. One way to fix this problem is to switch from `==` to `%in%` because`NA %in% NA` is returns `TRUE`. (There are a few other ways you could've fixed this problem. `subset()` automatically removes `NA`s, as does `dplyr::filter()`. You could also wrap it in `which()`, which returns a integer vector giving the location of `TRUE` values and as a side-effect drops any `NA`s.)
+
+Ooops! I'd forgotten that `territory` contained a bunch of missing values and `NA == NA` returns `NA`. There are a few ways to fix this problem:
+
+-   Use `subset()` or `dplyr::filter()` which automatically drop rows where the condition evaluates to `NA`, e.g. `subset(sales, TERRITORY == "EMEA")`.
+-   Explicitly select out missing values, `sales[!is.na(sales$TERRITORY), sales$TERRITORY == "EMEA", ]`.
+-   Use `which()` to convert the logical vector to an integer vector of `TRUE` locations, which drops `NA`s as side-effect.
+-   Use `%in%` instead `==` because`NA %in% NA` returns `TRUE`, i.e. `sales[sales$TERRITORY %in% "EMEA", ]`.
+
+I decided to use the first form because I think it's the most explicit, and has the pleasant side-effect off reducing the duplication in my code. I then double-checked that this had the result I expected:
 
 ```{r}
-head(sales[sales$TERRITORY %in% "EMEA", ])
+head(subset(sales, TERRITORY == "EMEA"))
 ```
 
-This fixed most of the problems, but now when I selected `NA` in the dropdown, I didn't get any output. This was strange because it worked on the console:
+This fixed most of the problems, but I **still** had a problem when I selected `NA`. There were still no rows appearing. So again, I checked on the console:
 
 ```{r}
-head(sales[sales$TERRITORY %in% NA, ])
+head(subset(sales, TERRITORY == NA))
 ```
-So I needed to perform an experiment to figure out why the code run in Shiny was different to the code I was running in the console. It seems like that the most likely place to for there to be a problem was on in the reactive that does the subsetting. So I added a `browser()` statement there. That also required adding `{}`. 
+
+And then I remembered that of course this won't work, because of the `NA` problem I already thought about --- I hadn't forgot that the `NA` might also appear on the right-hand side. Fortunately, one of the techniques that I'd already brainstormed came to the rescue:
+
+```{r}
+head(subset(sales, TERRITORY %in% NA))
+```
+
+So I updated the app and tried again. It still didn't work! At this point, I figured I'd done everything I could on the console, and I needed to perform an experiment to figure out why the code inside of Shiny was behaving differently to my expectations. I though the most likely source of the problem would be in the `selected` reactive, so I added a `browser()` statement there. (This made it a two-line reactive, so I also needed to add `{}`.)
 
 ```{r}
 server <- function(input, output, session) {
   selected <- reactive({
     browser()
-    sales[sales$TERRITORY %in% input$territory, ]
+    subset(sales, TERRITORY %in% input$territory)
   })
   output$selected <- renderTable(head(selected(), 10))
 }
 ```
 
-Now when my app ran, I was immediately dumped into an interactive console.  Luckily the selected value was `NA` by default so I could immediately dive in. Otherwise, I would've needed to press `c` to coninue running the app, select the value in the dropdown that was causing me problems and go back to the interactive debugger.
+Now when my app ran, I was immediately dumped into an interactive console. Luckily the default value in the select input was `NA` so I could immediately dive in to the problem. If that isn't the case, you can use `c` to continue execution, and then interact with the app.
 
-I first ran `sales[sales$TERRITORY %in% input$territory, ]` to confirm that I could see the same problem in the console that I was seeing in the app. If I didn't see the problem, I must be debugging in the wrong place, and I'd have to come up with a new hypothesis. This is an important part of debugging: you need to carefully check everything that you think you know.
+I first ran `subset(sales, TERRITORY %in% input$territory)` to confirm that the reactive wasn't selecting any rows. This lets me check that I'm debugging in the right place. Indeed, it returned an empty data frame, so I could proceed to the next step.
 
-But it wasn't selecting any rows, so I could proceed to the next step. I first check that `sales` looked like what I expected.the app was is simple that it seems unlikely for `sales` to be corrupted, but obviously something was wrong with my expectations so best to double. The dataset looked ok, so it must be something to do with the input.
-
-So I then looked at `input$territory`:
+I next checked that `sales` dataset looked as expected. I didn't really expect it to be corrupted, since nothing in the app touches it, but best to be certain before continuing. `sales` looked ok, so it must be something to do with the selection condition. So I then looked at `input$territory`:
 
 ```{r, eval = FALSE}
 input$territory
 #> [1] "NA"
 ```
 
-I stared at this for a while because it looked ok too. Then it occurred to me! I was expecting it to be `NA`, but it's actually `"NA"`!  That gave the tools needed to fix the problem. 
-
-Now I could recrate the problem outside of the Shiny app:
+I stared at this for a while, because it also looked ok. Then it occurred to me! I was expecting it to be `NA`, but it's actually `"NA"`! Now I could recrate the problem outside of the Shiny app:
 
 ```{r}
-sales[sales$TERRITORY %in% "NA", ]
+subset(sales, TERRITORY %in% "NA")
 ```
+
 Then I figured out a simple fix and applied to my server, and re-ran the app:
 
 ```{r}
 server <- function(input, output, session) {
   selected <- reactive({
     territory <- if (input$territory == "NA") NA else input$territory
-    sales[sales$TERRITORY %in% input$territory, ]
+    subset(sales, TERRITORY %in% territory)
   })
   output$selected <- renderTable(head(selected(), 10))
 }
 ```
 
-The problem went away so I was done!
+Huzzah! The problem was fixed! But this felt pretty surprising to me --- Shiny had silently converted an `NA` to an `"NA"`, so I also filed a bug report: <https://github.com/rstudio/shiny/issues/2884>.
 
-It also felt to me like Shiny should be taking care of this situation, so I also filed a bug report: <https://github.com/rstudio/shiny/issues/2884>.
+Several weeks later, I was looking at this example again was thinking about the different territoires. We have Europe, Middle-East, and Africa (EMEA) and Asia-Pacific (APAC). Where was North America? Then it dawned on me: the source data probably used the abbreviation NA, and R was reading it in as a missing value. So the real fix should happen during the data loading:
+
+```{r}
+sales <- vroom::vroom("sales-dashboard/sales_data_sample.csv", na = "")
+unique(sales$TERRITORY)
+```
+
+I think this is a pretty common pattern when it comes to debugging: you often need to peel back multiple layers of the onion before you fully understand the source of the issue.
 
 ### Converting incorrect values into errors
 
@@ -571,4 +600,4 @@ To simplify this reprex, I had to do a bunch of experimenting and reading up on 
 
 [^3]: Regardless of how you normally load packages, I strongly recommend using multiple `library()` calls. This eliminates a source of potential confusion for people who might not be familiar with the tool that you're using.
 
-[^4]: For example, I had no idea that `is.POSIXt()` was part of the lubridate package!
+[^4]: For example, I had no idea that `is.POSIXt()` was part of the lubridate package! 
