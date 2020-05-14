@@ -2,6 +2,7 @@
 
 ```{r, include = FALSE}
 source("common.R")
+options(tibble.print_min = 4, tibble.print_max = 4)
 ```
 
 If you're going to be writing a lot of Shiny apps (and since you're reading this book I hope you will be!), it's worth investing some time in your basic workflow. Improving workflow is a good place to invest time because it tends to pay great dividends in the long run. It doesn't just increase the proportion of your time spent writing R code, but because you see the results more quickly, it makes the process of writing Shiny apps more enjoyable, and helps your skills improve more quickly.
@@ -242,7 +243,7 @@ To demonstrate the basic debugging approach, I'll show you a little problem I en
 
 The initial goal is pretty simple: I have a dataset of sales, and I want to filter it by territory. Here's what the data looks like:
 
-```{r}
+```{r, message = FALSE}
 sales <- readr::read_csv("sales-dashboard/sales_data_sample.csv")
 sales <- sales[c("TERRITORY", "ORDERDATE", "ORDERNUMBER", "PRODUCTCODE", "QUANTITYORDERED", "PRICEEACH")]
 sales
@@ -270,7 +271,7 @@ server <- function(input, output, session) {
 I thought, *it's an eight line app, what could possibly go wrong*. Well, when I opened the app up I saw a *lot* of missing values, no matter what territory I selected. So stopped the app, and quickly verified that subsetting worked the way I thought it did:
 
 ```{r}
-head(sales[sales$TERRITORY == "EMEA", ])
+sales[sales$TERRITORY == "EMEA", ]
 ```
 
 Ooops! I'd forgotten that `territory` contained a bunch of missing values and `NA == NA` returns `NA`. There are a few ways to fix this problem:
@@ -283,19 +284,19 @@ Ooops! I'd forgotten that `territory` contained a bunch of missing values and `N
 I decided to use the first form because I think it's the most explicit, and has the pleasant side-effect off reducing the duplication in my code. I then double-checked that this had the result I expected:
 
 ```{r}
-head(subset(sales, TERRITORY == "EMEA"))
+subset(sales, TERRITORY == "EMEA")
 ```
 
 This fixed most of the problems, but I **still** had a problem when I selected `NA`. There were still no rows appearing. So again, I checked on the console:
 
 ```{r}
-head(subset(sales, TERRITORY == NA))
+subset(sales, TERRITORY == NA)
 ```
 
 And then I remembered that of course this won't work, because of the `NA` problem I already thought about --- I hadn't forgot that the `NA` might also appear on the right-hand side. Fortunately, one of the techniques that I'd already brainstormed came to the rescue:
 
 ```{r}
-head(subset(sales, TERRITORY %in% NA))
+subset(sales, TERRITORY %in% NA)
 ```
 
 So I updated the app and tried again. It still didn't work! At this point, I figured I'd done everything I could on the console, and I needed to perform an experiment to figure out why the code inside of Shiny was behaving differently to my expectations. I though the most likely source of the problem would be in the `selected` reactive, so I added a `browser()` statement there. (This made it a two-line reactive, so I also needed to add `{}`.)
@@ -343,8 +344,8 @@ Huzzah! The problem was fixed! But this felt pretty surprising to me --- Shiny h
 
 Several weeks later, I was looking at this example again was thinking about the different territoires. We have Europe, Middle-East, and Africa (EMEA) and Asia-Pacific (APAC). Where was North America? Then it dawned on me: the source data probably used the abbreviation NA, and R was reading it in as a missing value. So the real fix should happen during the data loading:
 
-```{r}
-sales <- vroom::vroom("sales-dashboard/sales_data_sample.csv", na = "")
+```{r, message = FALSE}
+sales <- readr::read_csv("sales-dashboard/sales_data_sample.csv", na = "")
 unique(sales$TERRITORY)
 ```
 
