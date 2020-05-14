@@ -41,6 +41,10 @@ You'll likely quickly get sick of typing that code in, so RStudio provides a cou
     knitr::include_graphics("screenshots/action-workflow/new-project.png", dpi = 300)
     ```
 
+[^1]: Snippets are text macros that you can use to insert common code fragments. See <https://support.rstudio.com/hc/en-us/articles/204463668-Code-Snippets> for more details.
+
+[^2]: A project is a self-contained directory that is isolated from the other projects that you're working on. If you use RStudio, but don't currently use projects, I highly recommend reading about the [project oriented lifestyle](https://whattheyforgot.org/project-oriented-workflow.html).
+
 You might think it's not worthwhile to learn these shortcuts because you'll only create an app or two a day, but creating simple apps is a great way to check that you have the basic concepts down before you start on a bigger project, and they're a great tool for debugging.
 
 ### Seeing your changes
@@ -427,6 +431,8 @@ Clearly illustrating the problem is the first step to getting help, and because 
 
 The first step in making a reprex is to create a single self-contained file that contains everything needed to run your code. You should check it by starting a fresh R session and then running the code. Make sure you haven't forgotten to load any packages[^3] that make your app work.
 
+[^3]: Regardless of how you normally load packages, I strongly recommend using multiple `library()` calls. This eliminates a source of potential confusion for people who might not be familiar with the tool that you're using.
+
 Typically, the most challenging part of making your app work on someone elses computer is eliminating the use of data that's only stored on your computer. There are three useful patterns:
 
 -   Often the data you're using is not directly related to the problem, and you can instead use a built-in data set like `mtcars` or `iris`.
@@ -610,16 +616,10 @@ This is fairly typical of creating a reprex: often, when you simplify the proble
 
 To simplify this reprex, I had to do a bunch of experimenting and reading up on functions that I wasn't very familiar with[^4]. This is typically much easier if it's your own code, because you already understand what all the parts do. Still, you'll often need to do a bunch of experimentation to figure out where exactly the problem is coming from. That can be frustrating and feel time consuming, but it has a number of benefits:
 
+[^4]: For example, I had no idea that `is.POSIXt()` was part of the lubridate package!
+
 -   It enables you to create a description of the problem that is accessible to anyone who knows Shiny, not anyone who knows Shiny **and** the particular domain that you're working in.
 
 -   You will build up a better mental model of how your code works, which means that you're less likely to make the same or similar mistakes in the future.
 
 -   Over time, you'll get faster and faster at creating reprexes, and this will become one of your go to techniques when debugging.
-
-[^1]: Snippets are text macros that you can use to insert common code fragments. See <https://support.rstudio.com/hc/en-us/articles/204463668-Code-Snippets> for more details.
-
-[^2]: A project is a self-contained directory that is isolated from the other projects that you're working on. If you use RStudio, but don't currently use projects, I highly recommend reading about the [project oriented lifestyle](https://whattheyforgot.org/project-oriented-workflow.html).
-
-[^3]: Regardless of how you normally load packages, I strongly recommend using multiple `library()` calls. This eliminates a source of potential confusion for people who might not be familiar with the tool that you're using.
-
-[^4]: For example, I had no idea that `is.POSIXt()` was part of the lubridate package! 
