@@ -45,7 +45,7 @@ server <- function(input, output) {
 
 (Note the use of `req()`, to make sure the app doesn't do anything before the first click, and that the coordinates are in terms of the underlying `wt` and `mpg` variables.)
 
-The following sections describe the events in more details. We'll start with the click events, then briefly discuss the closely related `dblClick` and `hover`. Then you'll learn about the `brush` event, which provides a rectanglur "brush" defined by its four sides (`xmin`, `xmax`, `ymin`, and `ymax`). I'll then give a couple of examples of updating the plot with the results of the action, and then discuss some of the limitations of interactive graphics in Shiny.
+The following sections describe the events in more details. We'll start with the click events, then briefly discuss the closely related `dblClick` and `hover`. Then you'll learn about the `brush` event, which provides a rectangular "brush" defined by its four sides (`xmin`, `xmax`, `ymin`, and `ymax`). I'll then give a couple of examples of updating the plot with the results of the action, and then discuss some of the limitations of interactive graphics in Shiny.
 
 ### Clicking
 
@@ -102,7 +102,7 @@ You can use multiple interactions types on one plot. Just make sure to explain t
 
 ### Brushing
 
-Another way of selecting points on a plot is to use a **brush**, a rectangular selection defined by four edges. In Shiny, using a brush is straighforward once you've mastered `click` and `nearPoints()`: you just switch to `hover` argument and the `brushedPoints()` helper.
+Another way of selecting points on a plot is to use a **brush**, a rectangular selection defined by four edges. In Shiny, using a brush is straightforward once you've mastered `click` and `nearPoints()`: you just switch to `hover` argument and the `brushedPoints()` helper.
 
 Here's another simple example that shows which points have been selected by the brush:
 
@@ -154,7 +154,7 @@ val()
 
 Unfortunately if you actually try to run this code in the console you'll get an error because it has to be run in an reactive environment. That makes experimentation and debugging more challenging because you'll need to `browser()` or similar to pause execution within the call to `shinyApp()`. This is one of the challenges we'll come back to later in Chapter \@ref(reactivity-components).
 
-For now, lets put the challenges of learning `reactiveVal()` aside, and show you why you might bother. Imagine that you want to visualise the distance between a click and the points on the plot. In the app below, we start by creating a reactive value to store those distances, initialising it with a constant that will be used before we click anything. Then we use `observeEvent()` to update the reactive value when the mouse is clicked, and a ggplot that visualises the distance with point size. All up, this looks something like:
+For now, let's put the challenges of learning `reactiveVal()` aside, and show you why you might bother. Imagine that you want to visualise the distance between a click and the points on the plot. In the app below, we start by creating a reactive value to store those distances, initialising it with a constant that will be used before we click anything. Then we use `observeEvent()` to update the reactive value when the mouse is clicked, and a ggplot that visualises the distance with point size. All up, this looks something like:
 
 ```{r}
 df <- data.frame(x = rnorm(100), y = rnorm(100))
@@ -286,21 +286,21 @@ Here we'll focus on the big picture; full the full details you can refer to the 
 
 ### Cache key
 
-The `cacheKeyExpr` is the most important argument to `renderCachedPlot()` because it determines when the cache can be used. It should return an object, usually a list of simple vectors, that determins the "state" of the plot.
+The `cacheKeyExpr` is the most important argument to `renderCachedPlot()` because it determines when the cache can be used. It should return an object, usually a list of simple vectors, that determines the "state" of the plot.
 
-How does the cache key work? Before plotting anything, `renderCachedPlot()` computes the `cacheKeyExpr` and looks to see if the value appears in the cache. If it does, the cached plot is retrieved and send to the user. If it doesn't, the plot is generated, saved to the cache, and then shown to the user.
+How does the cache key work? Before plotting anything, `renderCachedPlot()` computes the `cacheKeyExpr` and looks to see if the value appears in the cache. If it does, the cached plot is retrieved and sent to the user. If it doesn't, the plot is generated, saved to the cache, and then shown to the user.
 
 Some general advice:
 
 -   The best cache keys tend to be small lists made up of reactive inputs or reactives.
 -   You can use a small dataset as a cache key, but you should avoid using large datasets because it can be time consuming to look them up in the cache.
--   If you want a plot to invalidate periodically, you can use something like`proc.time()[[3]] %/% 3600`. This value will change once per hour (3600 s); make it update more or less frequently by changing the denominator.
+-   If you want a plot to invalidate periodically, you can use something like `proc.time()[[3]] %/% 3600`. This value will change once per hour (3600 s); make it update more or less frequently by changing the denominator.
 
 The cache is also affected by the plot size, and the cache scope, as described below.
 
 ### Sizing policy
 
-Plots are normally rendered with a variety of sizes, because the default plot occupies 100% of the container width (so each time you resize the app, the plot is redrawn). But that flexibility doesn't work very well for caching, because even a single pixel difference in the size would mean that the plot couldn't be retrieved from the cache. To avoid this problem, `renderCachePlot()` caches plots with fixed sizes, controlled by an exponential rounding strategy. The defaults are carefully chosen to "just work" in most cases, but if needed you can control with the `sizingPolicy` argument. See more details in the `?sizeGrowthRatio`.
+Plots are normally rendered with a variety of sizes, because the default plot occupies 100% of the container width (so each time you resize the app, the plot is redrawn). But that flexibility doesn't work very well for caching, because even a single pixel difference in the size would mean that the plot couldn't be retrieved from the cache. To avoid this problem, `renderCachePlot()` caches plots with fixed sizes, controlled by an exponential rounding strategy. The defaults are carefully chosen to "just work" in most cases, but if needed you can control with the `sizingPolicy` argument. See more details in the `?sizeGrowthRatio` help page.
 
 You may also want to consider setting cached plots to a fixed size with `plotOutput()`. The default value for `height` is already fixed at `"400px"`, but `width` defaults to `"100%"`. If you set `width = "400px"` every plot will be exactly the same size, and you'll get the best cache performance.
 
@@ -308,7 +308,7 @@ You may also want to consider setting cached plots to a fixed size with `plotOut
 
 By default, the plot cache is stored in memory, and shared across all users of the app. If needed, you can override these defaults with:
 
--   `cache = "session"`: the cache lifetime will tied to a single user. It will be created when the session starts (i.e. when someone first visits your app), and deleted when the session ends.
+-   `cache = "session"`: the cache lifetime will be tied to a single user. It will be created when the session starts (i.e. when someone first visits your app), and deleted when the session ends.
 
 -   `cache = diskCache(...)`: shares across multiple users, multiple processes, and app restarts. Beware that restarting the app will no longer clear the cache, so if you change the plotting code, you'll also need to manually reset the cache by deleting the directory.
 
