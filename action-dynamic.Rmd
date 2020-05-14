@@ -24,7 +24,7 @@ library(shiny)
 
 ## Updating inputs
 
-We'll begin with a simple technique that allows you to modify an input after it has been created. Every input control, e.g. `textInput()`, is paired with an __update function__, e.g. `updateTextInput()`, that allows you to modify the control after it has been created. The update funtions look a little different to other Shiny functions: they all take the current `session` as the first argument, and the name of the input (as a string) as the second. The remaining arguments match the arguments to the input constructor.
+We'll begin with a simple technique that allows you to modify an input after it has been created. Every input control, e.g. `textInput()`, is paired with an __update function__, e.g. `updateTextInput()`, that allows you to modify the control after it has been created. The update functions look a little different to other Shiny functions: they all take the current `session` as the first argument, and the name of the input (as a string) as the second. The remaining arguments match the arguments to the input constructor.
 
 Take the example in the code below, with the results shown in Figure \@ref(fig:update-basics). The app has two inputs that control the range (the `min` and `max`) of another input, a slider. The key idea is to use `observeEvent()`[^observe] to trigger `updateSliderInput()` whenever the `min` or `max` inputs change.
 
@@ -128,7 +128,7 @@ There are many ways to use update functions in this way; be on the look out for 
 A more complicated, but particularly useful, application of the update functions is to allow interactive drill down across multiple categories. I'll illustrate their usage with some imaginary data for a sales dashboard that comes from <https://www.kaggle.com/kyanyoga/sample-sales-data>.
 
 ```{r}
-sales <- vroom::vroom("sales-dashboard/sales_data_sample.csv", col_types = list())
+sales <- vroom::vroom("sales-dashboard/sales_data_sample.csv", col_types = list(), na = "")
 sales
 ```
 
