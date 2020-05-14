@@ -83,7 +83,7 @@ There are three main cases of problems which we'll discuss below:
 
 -   You get an unexpected error. This is the easiest case, because you'll get a traceback which allows you to figure out exactly where the error occurred. Once you've identified the problem, you'll need to systematically test your assumptions until you find a difference between your expectations and reality. The interactive debugger is a powerful assistant for this process.
 
--   You don't get any errors, but a value is incorrect. Here, you're generally best off transforming this into the first problem by using `stop()` to throw an error when the incorrect value occurs.
+-   You don't get any errors, but some value is incorrect. Here, you'll need to use the interactive debugger, along with your investigative skills to track down the root cause.
 
 -   All the values are correct, but they're not updated when you expect. This is the most challenging problem because it's unique to Shiny, so you can't take advantage of your existing R debugging skills.
 
@@ -346,31 +346,53 @@ unique(sales$TERRITORY)
 
 I think this is a pretty common pattern when it comes to debugging: you often need to peel back multiple layers of the onion before you fully understand the source of the issue.
 
-### Converting incorrect values into errors
-
-If you have a problem that's not an error, I recommend that you convert it into an error so that you can more easily locate the problem. You can do this by writing your own code that calls `stop()`.
-
 ### Debugging reactivity
 
-Use `message()` to emit messages to the console that allow you to see exactly when code is run. You can put messages in any reactive expression or output, just make sure they're not the last line (otherwise they'll become the value used by the reactive expression or output).
+The hardest type of problem to debug is when your reactives fire in an unexpected order. At this point in the book, we have relatively few tools to recommend to help you debug this issue. In the next section, you'll learn how to create a minimal reprex which is crucial for this type of problem, and later in the book, you'll learn more about the underlying theory, and about tools like the reactive log, <https://github.com/rstudio/reactlog>. But for now, we'll focus on a classic technique that's useful here: "print" debugging.
 
-If you're outputting multiple values, you might find the [glue](http://glue.tidyverse.org/) package useful; it makes it very easy to create informative text strings.
+The basic idea of print debugging is to call `print()` whenever you need to understand when a part of your code is evaluated, and to show the values of important variables. We call this "print" debugging (because in most languages you'd use a print function), but In R it makes more sense to use `message()` :
 
-If the problem is that reactive events aren't triggering as expected, you may find the reactive log, <https://github.com/rstudio/reactlog>, useful. We'll come back to this later (once you've got a more solid understanding of the flow of reactivity), but here's the basic usage:
+-   `print()` is designed for displaying vectors of data so it puts quotes around strings and starts the first line with `[1]`.
+-   `message()` sends its result to "standard error", rather than "standard output". These are technical terms describing output streams, which you don't normally notice because they're both displayed in the same way when running interactively. But if your app is hosted elsewhere, then output sent to "standard error" will be recorded in the logs.
 
-```{r, eval = FALSE}
-library(shiny)
-library(reactlog)
-options(shiny.reactlog = TRUE)
+I also recommend coupling `message()` with `glue::glue()`, which makes it easy to interleave text and values in a message. If you haven't seen [glue](http://glue.tidyverse.org/ "⌘+Click to follow link") before, the basic idea is that anything wrapped inside `{}` will be evaluated and inserted into the output:
 
-runApp(ui, server)
-
-# Press Cmd / Ctrl + F3 to launch the react log while you app is running
-# Or quit the app and run:
-reactlogShow()
+```{r}
+library(glue)
+name <- "Hadley"
+message(glue("Hello {name}"))
 ```
 
-## Getting help {#reprex}
+A final useful tool is `str()`, which prints the detailed structure of any object. This is particularly useful if you need to double check you have the type of object that you expect.
+
+Here's an a toy app that shows off some of the basic ideas. Note how I use `message()` inside a `reactive()`: I have to perform the computation, send the message, and then return the previously computed value.
+
+```{r}
+ui <- fluidPage(
+  sliderInput("x", "x", value = 1, min = 0, max = 10),
+  sliderInput("y", "y", value = 2, min = 0, max = 10),
+  sliderInput("z", "z", value = 3, min = 0, max = 10),
+  textOutput("total")
+)
+server <- function(input, output, session) {
+  observeEvent(input$x, {
+    message(glue("Updating y from {input$y} to {input$x * 2}"))
+    updateSliderInput(session, "y", value = input$x * 2)
+  })
+  
+  total <- reactive({
+    total <- input$x + input$y + input$z
+    message(glue("New total is {total}"))
+    total
+  })
+  
+  output$total <- renderText({
+    total()
+  })
+}
+```
+
+## Getting help
 
 If after trying these techniques, you're still stuck, it's probably time to ask someone else. A great place to get help is the Shiny community site, <https://community.rstudio.com/c/shiny>. This site is read by many Shiny users, as well as the developers of the Shiny package itself. It's also a great place to visit if you want to improve your Shiny skills by helping others.
 
