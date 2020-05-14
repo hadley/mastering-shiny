@@ -326,7 +326,7 @@ input$territory
 #> [1] "NA"
 ```
 
-I stared at this for a while, because it also looked ok. Then it occurred to me! I was expecting it to be `NA`, but it's actually `"NA"`! Now I could recrate the problem outside of the Shiny app:
+I stared at this for a while, because it also looked ok. Then it occurred to me! I was expecting it to be `NA`, but it's actually `"NA"`! Now I could recreate the problem outside of the Shiny app:
 
 ```{r}
 subset(sales, TERRITORY %in% "NA")
