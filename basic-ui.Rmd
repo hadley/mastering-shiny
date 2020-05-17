@@ -41,7 +41,7 @@ When creating an input, I recommend supplying the `inputId` and `label` argument
 sliderInput("min", "Limit (minimum)", value = 50, min = 0, max = 100)
 ```
 
-The following sections describe the inputs built in to Shiny, loosely grouped according to the type of control they create. The goal is to give you a rapid overview of your options, not to exhaustively describe all the arguments. I'll show the most important parameters for each control below, but you'll need to read the documentation to get the full details.
+The following sections describe the inputs built into Shiny, loosely grouped according to the type of control they create. The goal is to give you a rapid overview of your options, not to exhaustively describe all the arguments. I'll show the most important parameters for each control below, but you'll need to read the documentation to get the full details.
 
 ### Free text
 
