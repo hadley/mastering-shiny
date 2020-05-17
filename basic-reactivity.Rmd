@@ -36,7 +36,7 @@ shinyApp(ui, server)
 
 The previous chapter covered the basics of the front end, the `ui` object that contains the HTML presented to every user of your app. The `ui` is simple because every user gets the same HTML. The `server` is more complicated because every user needs to get an independent version of the app; when user A moves a slider, user B shouldn't see their outputs change.
 
-To achieve this independence, Shiny invokes your `server()` function each time a new session[^session] starts. Just like any other R function, when the server function is called it creates a new local environment that is independent of every other invocation of the function. This allows each session to have unique state, as well as isolating the variables created _inside_ the function. This is why almost all of the reactive programming you'll do in Shiny will be inside the server function[^exceptions]. 
+To achieve this independence, Shiny invokes your `server()` function each time a new session[^session] starts. Just like any other R function, when the server function is called it creates a new local environment that is independent of every other invocation of the function. This allows each session to have a unique state, as well as isolating the variables created _inside_ the function. This is why almost all of the reactive programming you'll do in Shiny will be inside the server function[^exceptions]. 
 
 [^session]: Each connection to a Shiny app starts a new session whether it's connections from different people, or with multiple tabs from the same person.
 
@@ -476,7 +476,7 @@ server <- function(input, output, session) {
 }
 ```
 
-This transformation yields the substantially simpler graph shown in Figure  \@ref(fig:ttest-react2). This simpler graph makes it easier to understand the app because you can understand connected components in isolation; the values of the distribution parameters only affect the output via `x1` and `x2`. This rewrite also makes the app much more efficient since it does much less computation. Now when you change the `binwidth` or `range`, only the plot changes, not the underlying data.
+This transformation yields the substantially simpler graph shown in Figure  \@ref(fig:ttest-react2). This simpler graph makes it easier to understand the app because you can understand connected components in isolation; the values of the distribution parameters only affect the output via `x1` and `x2`. This rewrite also makes the app much more efficient since it does much less computation. Now, when you change the `binwidth` or `range`, only the plot changes, not the underlying data.
 
 ```{r ttest-react2, echo = FALSE, out.width = NULL, fig.cap="Using reactive expressions considerably simplifies the graph, making it much easier to understand"}
 knitr::include_graphics("diagrams/basic-reactivity/case-study-2.png", dpi = 300 / 0.75)
