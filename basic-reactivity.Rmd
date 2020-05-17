@@ -571,7 +571,7 @@ server <- function(input, output, session) {
 
 This generates the app shown in Figure \@ref(fig:sim) and reactive graph shown in Figure \@ref(fig:sim-react).
 
-```{r sim, echo = FALSE, out.width = "100%", fig.cap = "A simpler app that displays a histogram of random numbers drawn from two Poisson distributions." }
+```{r sim, echo = FALSE, out.width = "100%", fig.cap = "A simpler app that displays a histogram of random numbers drawn from two Poisson distributions" }
 app <- testApp(ui, server, deps = "ggplot2", histogram = histogram)
 app$setWindowSize(width = 800, height = 400)
 Sys.sleep(0.5)
@@ -652,14 +652,14 @@ server <- function(input, output, session) {
 }
 ```
 
-```{r sim-button, echo = FALSE, out.width = NULL, fig.cap = "App with action button."}
+```{r sim-button, echo = FALSE, out.width = NULL, fig.cap = "App with action button"}
 app <- testApp(ui, server, deps = "ggplot2", histogram = histogram)
 app$setWindowSize(width = 800, height = 400)
 Sys.sleep(0.5)
 app_screenshot(app, "basic-reactivity/action-button", width = NULL)
 ```
 
-```{r sim-button1-react, echo = FALSE, out.width = NULL, fig.cap="This reactive graph doesn't accomplish our goal; we've added a dependency instead of replacing the existing dependencies."}
+```{r sim-button1-react, echo = FALSE, out.width = NULL, fig.cap="This reactive graph doesn't accomplish our goal; we've added a dependency instead of replacing the existing dependencies"}
 knitr::include_graphics("diagrams/basic-reactivity/timing-button.png", dpi = 300)
 ```
 
@@ -684,7 +684,7 @@ server <- function(input, output, session) {
 
 Figure \@ref(fig:sim-button2-react) shows the new reactive graph. Note that, as desired, `x1` and `x2` no longer have a reactive dependency on `lambda1`, `lambda2`, and `n`: changing their values will not trigger computation. I left the arrows in very pale grey just to remind you that `x1` and `x2` continue to use the values, but no longer take a reactive dependency on them.
 
-```{r sim-button2-react, echo = FALSE, out.width = NULL, fig.cap="`eventReactive()` makes it possible to separate the dependencies (black arrows) from the values used to compute the result (pale gray arrows)."}
+```{r sim-button2-react, echo = FALSE, out.width = NULL, fig.cap="`eventReactive()` makes it possible to separate the dependencies (black arrows) from the values used to compute the result (pale gray arrows)"}
 knitr::include_graphics("diagrams/basic-reactivity/timing-button-2.png", dpi = 300)
 ```
 

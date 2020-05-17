@@ -46,7 +46,7 @@ Figure \@ref(fig:modules-after) shows the how the app looks now, after a rewrite
   and both blue components. This significantly reduces the total amount of code
   in the app.
 
-```{r modules-after, echo = FALSE, out.width = NULL, fig.cap="After converting the app to use modules, it's much easier to see the big picture components of the app, and see what is re-used in multiple places (the blue and yellow components)."}
+```{r modules-after, echo = FALSE, out.width = NULL, fig.cap="After converting the app to use modules, it's much easier to see the big picture components of the app, and see what is re-used in multiple places (the blue and yellow components)"}
 knitr::include_graphics("diagrams/scaling-modules/after.png", dpi = 300)
 ```
 

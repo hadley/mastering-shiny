@@ -221,7 +221,7 @@ A screenshot of the resulting app is shown in Figure \@ref(fig:rate-vs-count). Y
 app <- testAppFromFile("neiss/rate-vs-count.R")
 app_screenshot(app, "basic-case-study/rate-vs-count", width = 800, height = 600)
 ```
-```{r rate-vs-count, out.width = NULL, echo = FALSE, out.width = "100%", fig.cap = "In this iteration, we give the user the ability to switch between displaying the count or the population standardised rate on the y-axis."}
+```{r rate-vs-count, out.width = NULL, echo = FALSE, out.width = "100%", fig.cap = "In this iteration, we give the user the ability to switch between displaying the count or the population standardised rate on the y-axis"}
 knitr::include_graphics("screenshots/basic-case-study/rate-vs-count.png", dpi = screenshot_dpi())
 ```
 

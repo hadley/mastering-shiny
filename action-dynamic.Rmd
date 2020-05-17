@@ -44,7 +44,7 @@ server <- function(input, output, session) {
 }
 ```
 
-```{r update-basics, fig.cap = demo$caption("The app on load (left), after increasing max (middle), and then decreasing min (right)."), out.width = "33%", fig.show = "hold", fig.align = "default", echo = FALSE, message = FALSE, cache = FALSE}
+```{r update-basics, fig.cap = demo$caption("The app on load (left), after increasing max (middle), and then decreasing min (right)"), out.width = "33%", fig.show = "hold", fig.align = "default", echo = FALSE, message = FALSE, cache = FALSE}
 demo <- demo_inline("update-basics", ui, server)
 demo$resize(350)
 s1 <- demo$screenshot("onload")
@@ -81,7 +81,7 @@ server <- function(input, output, session) {
 }
 ```
 
-```{r update-reset, fig.cap = demo$caption("The app on load (left), after dragging some sliders (middle), then clicking reset (right)."), out.width = "33%", fig.show = "hold", fig.align = "default", echo = FALSE, message = FALSE, cache = FALSE}
+```{r update-reset, fig.cap = demo$caption("The app on load (left), after dragging some sliders (middle), then clicking reset (right)"), out.width = "33%", fig.show = "hold", fig.align = "default", echo = FALSE, message = FALSE, cache = FALSE}
 demo <- demo_inline("update-reset", ui, server)
 demo$resize(350)
 s1 <- demo$screenshot("onload")
@@ -109,7 +109,7 @@ server <- function(input, output, session) {
 }
 ```
 
-```{r update-button, fig.cap = demo$caption("The app on load (left), after setting simulations to 1 (middle), then settting simulations to 10 (right)."), out.width = "33%", fig.show = "hold", fig.align = "default", echo = FALSE, message = FALSE, cache = FALSE}
+```{r update-button, fig.cap = demo$caption("The app on load (left), after setting simulations to 1 (middle), then settting simulations to 10 (right)"), out.width = "33%", fig.show = "hold", fig.align = "default", echo = FALSE, message = FALSE, cache = FALSE}
 demo <- demo_inline("update-button", ui, server)
 demo$resize(350)
 s1 <- demo$screenshot("onload")
@@ -364,7 +364,7 @@ server <- function(input, output, session) {
 }
 ```
 
-```{r dynamic-panels, fig.cap = demo$caption("Selecting panel1 (left), then panel2 (middle), then panel3 (right)."), out.width = "33%", fig.show = "hold", fig.align = "default", echo = FALSE, message = FALSE, cache = FALSE}
+```{r dynamic-panels, fig.cap = demo$caption("Selecting panel1 (left), then panel2 (middle), then panel3 (right)"), out.width = "33%", fig.show = "hold", fig.align = "default", echo = FALSE, message = FALSE, cache = FALSE}
 demo <- demo_inline("dynamic-panels", ui, server)
 demo$resize(300, 220)
 s1 <- demo$screenshot()
@@ -444,7 +444,7 @@ server <- function(input, output, session) {
 }
 ```
 
-```{r dynamic-conditional, fig.cap = demo$caption("Results for normal (left), uniform (middle), and exponential (right) distributions."), out.width = "33%", fig.show = "hold", fig.align = "default", echo = FALSE, message = FALSE, cache = FALSE}
+```{r dynamic-conditional, fig.cap = demo$caption("Results for normal (left), uniform (middle), and exponential (right) distributions"), out.width = "33%", fig.show = "hold", fig.align = "default", echo = FALSE, message = FALSE, cache = FALSE}
 demo <- demo_inline("dynamic-conditional", ui, server)
 demo$resize(400)
 demo$sleep(1)
@@ -536,7 +536,7 @@ server <- function(input, output, session) {
 }
 ```
 
-```{r render-simple, fig.cap = demo$caption("App after setting value to 5 (left), then changing type to numeric (middle), then label to 'my label'."), out.width = "33%", fig.show = "hold", fig.align = "default", echo = FALSE, message = FALSE, cache = FALSE}
+```{r render-simple, fig.cap = demo$caption("App after setting value to 5 (left), then changing type to numeric (middle), then label to 'my label'"), out.width = "33%", fig.show = "hold", fig.align = "default", echo = FALSE, message = FALSE, cache = FALSE}
 demo <- demo_inline("render-simple", ui, server)
 demo$resize(400)
 s1 <- demo$screenshot("onload")
@@ -620,7 +620,7 @@ server <- function(input, output, session) {
 
 You can see the results in Figure \@ref(fig:render-palette).
 
-```{r render-palette, fig.cap = demo$caption("App on load (left), after setting n to 3 (middle), then entering some colours (right)."), out.width = "33%", fig.show = "hold", fig.align = "default", echo = FALSE, message = FALSE, cache = FALSE}
+```{r render-palette, fig.cap = demo$caption("App on load (left), after setting n to 3 (middle), then entering some colours (right)"), out.width = "33%", fig.show = "hold", fig.align = "default", echo = FALSE, message = FALSE, cache = FALSE}
 demo <- demo_inline("render-palette", ui, server, packages = "purrr")
 demo$resize(400)
 s1 <- demo$screenshot("onload")
@@ -667,7 +667,7 @@ server <- function(input, output, session) {
 }
 ```
 
-```{r render-palette-full, fig.cap = demo$caption("Filling out the colours of the rainbow (left), then reducing the number of colours to 3 (right); note that the existing colours are preserved."), out.width = "50%", fig.show = "hold", fig.align = "default", echo = FALSE, message = FALSE, cache = FALSE}
+```{r render-palette-full, fig.cap = demo$caption("Filling out the colours of the rainbow (left), then reducing the number of colours to 3 (right); note that the existing colours are preserved"), out.width = "50%", fig.show = "hold", fig.align = "default", echo = FALSE, message = FALSE, cache = FALSE}
 demo <- demo_inline("render-palette-full", ui, server, packages = "purrr")
 demo$resize(800)
 demo$set_values(
@@ -822,7 +822,7 @@ server <- function(input, output, session) {
 }
 ```
 
-```{r filtering-final, fig.cap = demo$caption("A dynamic user interface automatically generated from the fields of the selected dataset."), out.width = "100%", fig.show = "hold", fig.align = "default", echo = FALSE, message = FALSE, cache = FALSE}
+```{r filtering-final, fig.cap = demo$caption("A dynamic user interface automatically generated from the fields of the selected dataset"), out.width = "100%", fig.show = "hold", fig.align = "default", echo = FALSE, message = FALSE, cache = FALSE}
 demo <- demo_inline("filtering-final", ui, server, 
   packages = "purrr", 
   data = list(dfs = dfs, make_ui = make_ui, filter_var = filter_var)
