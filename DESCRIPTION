@@ -9,10 +9,11 @@ Imports:
     shinycssloaders,
     shinyFeedback,
     shinythemes,
+    thematic (>= 0.0.1),
     tidyverse,
     vroom,
     waiter,
-    zeallot
+    zeallot,
 Suggests:
     bookdown,
     desc,
@@ -21,7 +22,8 @@ Suggests:
     shinytest,
     webshot (>= 0.5.0.9000)
 Encoding: UTF-8
-Remotes:
+Remotes: 
     JohnCoene/waiter,
     merlinoa/shinyFeedback
-    rstudio/shiny
+    rstudio/shiny,
+    rstudio/thematic
