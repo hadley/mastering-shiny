@@ -93,7 +93,7 @@ This need tends to crop up mainly with three controls:
   want to do anything until the user makes a selection.
   
 * In `fileInput()`, which has an empty result before the user has uploaded 
-  anything. We'll come back to this in Section \@ref(#upload).
+  anything. We'll come back to this in Section \@ref(uploading-data).
 
 We need some way to "pause" reactives so that nothing happens until some condition is true. That's the job of `req()` which checks for required values before allowing a reactive producer to continue.
 
