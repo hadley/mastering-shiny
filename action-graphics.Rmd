@@ -21,6 +21,8 @@ One of the coolest things about `plotOutput()` is that as well as being an outpu
 
 A plot can respond to four different mouse[^1] events: `click`, `dblClick` (double click), `hover` (when the mouse stays in the same place for a little while), and `brush` (a rectangular selection tool). To turn these events into Shiny inputs, you supply a string to the corresponding `plotOutut()` argument, e.g. `plotOutput("plot", click = "plot_click")`. This creates an `input$plot_click` that you can use to handle mouse clicks on the plot.
 
+[^1]: Shiny didn't support touch events when I wrote this chapter, but it might by the time you read this.
+
 Here's a very simple example of handling a mouse click. We register the `plot_click` input, and then use that to update an output with the coordinates of the mouse click:
 
 ```{r}
@@ -99,6 +101,8 @@ We'll see an example of that a little later.
 The same approach works equally well with `click`, `dblClick`, and `hover`: just change the name of the argument. If needed, you can get additional control over the events by supplying `clickOpts()`, `dblclickOpts()`, or `hoverOpts()` instead of a string giving the input id. These are rarely needed, so I won't discuss them here; see the documentation for details.
 
 You can use multiple interactions types on one plot. Just make sure to explain to the user what they can do: one downside of using mouse events to interact with an app is that they're not immediately discoverable[^2].
+
+[^2]: As a general rule, adding explanatory text suggests that your interface is too complex, so is best avoided, where possible. This is the key idea behind "affordances", the idea that an object should suggest naturally how to interact with it as introduced by Don Norman in the *"Design of Everyday Things"*.
 
 ### Brushing
 
@@ -253,6 +257,8 @@ Note that when you resize the plot, the data stays the same. This is the same be
 
 In real apps, you'll use more complicated expressions in the `width` and `height` functions. For example, if you're using a faceted plot in ggplot2, you might use it to increase the size of the plot to keep the individual facet sizes roughly the same[^3].
 
+[^3]: Unfortunately there's no easy way to keep them exactly the same because it's currently not possible to find out the size of the fixed elements around the borders of the plot.
+
 ## Cached plots
 
 If you have an app with complicated plots that take a while to draw, you can get some major performance improvement with plot caching. This is mostly a matter of changing `renderPlot()` to `renderCachedPlot()` then thinking carefully about the "cache key" which determines when the cache is used.
@@ -378,9 +384,3 @@ output_size <- function(id) {
   ))
 }
 ```
-
-[^1]: Shiny didn't support touch events when I wrote this chapter, but it might by the time you read this.
-
-[^2]: As a general rule, adding explanatory text suggests that your interface is too complex, so is best avoided, where possible. This is the key idea behind "affordances", the idea that an object should suggest naturally how to interact with it as introduced by Don Norman in the *"Design of Everyday Things"*.
-
-[^3]: Unfortunately there's no easy way to keep them exactly the same because it's currently not possible to find out the size of the fixed elements around the borders of the plot.
