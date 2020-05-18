@@ -328,7 +328,7 @@ knitr::include_graphics("images/basic-app/cheatsheet.png", dpi = 300)
 
     ```{r}
     library(ggplot2)
-    datasets <- data(package = "ggplot2")$results[, "Item"]
+    datasets <- data(package = "ggplot2")$results[c(2, 4, 10), "Item"]
 
     ui <- fluidPage(
       selectInput("dataset", "Dataset", choices = datasets),
