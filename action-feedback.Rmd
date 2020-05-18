@@ -176,7 +176,7 @@ But the server function needs to get a little more complex. We're going to use `
   we display an error message, and then use `req()` to pause computation.
   Note the use of `cancelOutput = TRUE`: normally "pausing" a reactive will
   reset all downstream outputs; using `cancelOutput = TRUE` leaves them
-  displaying the last good value. This is import for `inputText()` which 
+  displaying the last good value. This is important for `inputText()` which 
   may trigger an update while you're in the middle of typing a name.
 
 ```{r}

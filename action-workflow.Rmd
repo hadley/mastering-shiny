@@ -50,7 +50,7 @@ You might think it's not worthwhile to learn these shortcuts because you'll only
 
 ### Seeing your changes
 
-You'll *create* a few apps a day, but you'll *run* apps hundreds of times, so mastering the development workflow is particularly important. The first way to reduce your iteration speed is to avoid clicking on the "Run App" button, and instead learn the keyboard shortcut `Cmd/Ctrl` + `Shift` + `Enter`. This gives you the following development workflow:
+You'll *create* a few apps a day, but you'll *run* apps hundreds of times, so mastering the development workflow is particularly important. The first way to reduce your iteration time is to avoid clicking on the "Run App" button, and instead learn the keyboard shortcut `Cmd/Ctrl` + `Shift` + `Enter`. This gives you the following development workflow:
 
 1.  Write some code.
 2.  Launch the app with `Cmd/Ctrl` + `Shift` + `Enter`.
@@ -58,7 +58,7 @@ You'll *create* a few apps a day, but you'll *run* apps hundreds of times, so ma
 4.  Close the app.
 5.  Go to 1.
 
-Another way to reduce your iteration speed still further is to turn autoreload on (`options(shiny.autoreload = TRUE)`) and then run the app in a background job, as described in <https://github.com/sol-eng/background-jobs/tree/master/shiny-job>. With this workflow as soon as you save a file, your app will relaunch: no need to close and restart. This leads to an even faster workflow:
+Another way to increase your iteration speed still further is to turn autoreload on (`options(shiny.autoreload = TRUE)`) and then run the app in a background job, as described in <https://github.com/sol-eng/background-jobs/tree/master/shiny-job>. With this workflow as soon as you save a file, your app will relaunch: no need to close and restart. This leads to an even faster workflow:
 
 1.  Write some code and press `Cmd/Ctrl` + `S` to save the file.
 2.  Interactively experiment.
@@ -406,7 +406,7 @@ server <- function(input, output, session) {
 
 ## Getting help
 
-If after trying these techniques, you're still stuck, it's probably time to ask someone else. A great place to get help is the Shiny community site, <https://community.rstudio.com/c/shiny>. This site is read by many Shiny users, as well as the developers of the Shiny package itself. It's also a great place to visit if you want to improve your Shiny skills by helping others.
+If you're still stuck after trying these techniques, it's probably time to ask someone else. A great place to get help is the [Shiny community site](https://community.rstudio.com/c/shiny). This site is read by many Shiny users, as well as the developers of the Shiny package itself. It's also a great place to visit if you want to improve your Shiny skills by helping others.
 
 To get the most useful help as quickly as possible, you need to create a reprex, or **repr**oducible **ex**ample. The goal of a reprex is to provide the smallest possible snippet of R code that illustrates the problem and can easily be run on another computer. It's common courtesy (and in your own best interest) to create a reprex: if you want someone to help you, you should make it as easy as possible for them!
 
