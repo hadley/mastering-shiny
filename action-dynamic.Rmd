@@ -335,13 +335,10 @@ There's no way around this problem because you have one idea (the temperature) w
 
 The next step up in complexity is to selectively show and hide parts of the UI. You'll learn a number of sophisticated approaches later, once you've learned a little JS and CSS, but there's a useful technique that you can use now: concealing optional UI in a tabset. This is a clever hack that allows you to show and hide UI as needed, without having to re-generate it from scratch (as you'll learn in the next section).
 
-Currently[^tab-future] you need a smidgen of CSS to make this technique work: `tags$style("#switcher { display:none; }")`. If you adapt this for your own code make sure to repace `#switcher` with `#` followed the `id` of your the `tabsetPanel()`.
-
-[^tab-future]: Hopefully, it will be built into `tabsetPanel()` in the future; follow <https://github.com/rstudio/shiny/issues/2680> for details.
+(You'll need shiny Shiny 1.5.0 for this to work.)
 
 ```{r}
 ui <- fluidPage(
-  tags$style("#switcher { display:none; }"),
   sidebarLayout(
     sidebarPanel(
       selectInput("controller", "Show", choices = paste0("panel", 1:3))
@@ -349,6 +346,7 @@ ui <- fluidPage(
     mainPanel(
       tabsetPanel(
         id = "switcher",
+        type = "hidden",
         tabPanel("panel1", "Panel 1 content"),
         tabPanel("panel2", "Panel 2 content"),
         tabPanel("panel3", "Panel 3 content")
@@ -388,20 +386,19 @@ This is a simple idea, but when combined with a little creativity, it gives you 
 Imagine that you want an app that allows the user to simulate from the normal, uniform, and exponential distributions. Each distribution has different parameters, so we'll need some way to show different controls for different distributions. Here, I'll put the unique user interface for each distribution in its own `tabPanel()`, and then arrange the three tabs into a `tabsetPanel()`.
 
 ```{r}
-parameter_tabs <- tagList(
-  tags$style("#params { display:none; }"),
-  tabsetPanel(id = "params",
-    tabPanel("normal",
-      numericInput("mean", "mean", value = 1),
-      numericInput("sd", "standard deviation", min = 0, value = 1)
-    ),
-    tabPanel("uniform", 
-      numericInput("min", "min", value = 0),
-      numericInput("max", "max", value = 1)
-    ),
-    tabPanel("exponential",
-      numericInput("rate", "rate", value = 1, min = 0),
-    )
+parameter_tabs <- tabsetPanel(
+  id = "params",
+  type = "hidden",
+  tabPanel("normal",
+    numericInput("mean", "mean", value = 1),
+    numericInput("sd", "standard deviation", min = 0, value = 1)
+  ),
+  tabPanel("uniform", 
+    numericInput("min", "min", value = 0),
+    numericInput("max", "max", value = 1)
+  ),
+  tabPanel("exponential",
+    numericInput("rate", "rate", value = 1, min = 0),
   )
 )
 ```
@@ -465,8 +462,9 @@ You can also use this idea to a "wizard", a type of interface that makes it easi
 
 ```{r}
 ui <- fluidPage(
-  tags$style("#wizard { display:none; }"),
-  tabsetPanel(id = "wizard",
+  tabsetPanel(
+    id = "wizard",
+    type = "hidden",
     tabPanel("page1", 
       "Welcome!",
       actionButton("page12", "next")
