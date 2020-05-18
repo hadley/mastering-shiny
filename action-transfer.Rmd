@@ -10,7 +10,7 @@ Transferring files to and from the user is a common feature of apps. It's most c
 library(shiny)
 ```
 
-## Upload
+## Upload {#upload}
 
 We'll start by discussing file uploads, showing you the basic UI and server components, and then showing how they fit together in a simple app.
 
