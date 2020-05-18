@@ -324,9 +324,9 @@ There's no way around this problem because you have one idea (the temperature) w
     )
     ```
 
-1.  Extend the previous app so that you can also choose to select no continent,
-    and hence see all countries. You'll need to add `""` to the list of
-    choices, and then handle that specially when filtering.
+1.  Extend the previous app so that you can also choose to select all 
+    continents, and hence see all countries. You'll need to add `"(All)"` to 
+    the list of choices, and then handle that specially when filtering.
 
 1.  What is at the heart of the problem described at 
     <https://community.rstudio.com/t/29307>?
