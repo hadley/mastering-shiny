@@ -24,6 +24,6 @@ Suggests:
 Encoding: UTF-8
 Remotes: 
     JohnCoene/waiter,
-    merlinoa/shinyFeedback
+    merlinoa/shinyFeedback,
     rstudio/shiny,
     rstudio/thematic
