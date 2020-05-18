@@ -296,8 +296,8 @@ There's no way around this problem because you have one idea (the temperature) w
     
 1.  Complete the user interface below with a server function that updates
     `input$county` choices based on `input$state`. For an added challenge,
-    also change the label from "County" to "Parrish" for Louisana and 
-    "Borrough" for "Alaska".
+    also change the label from "County" to "Parish" for Louisiana and 
+    "Borough" for "Alaska".
 
     ```{r, messages = FALSE}
     library(openintro)
