@@ -496,6 +496,26 @@ server <- function(input, output, session) {
 ```
 
 The waiter package provides a large variety of spinners to choose from; see your options at `?waiter::spinners` and then choose one with (e.g.) `Waiter$new(html = spin_ripple())`. 
+An even simpler alternative is to use the [shinycssloaders](https://github.com/daattali/shinycssloaders) package by Dean Attali. It uses JS to listen to Shiny events, so it doesn't even need any code on the server side. Instead, you just use `shinycssloaders::withSpinner()` to wrap outputs that you want to automatically get a spinner when they have been invalidated.
+
+```{r}
+library(shinycssloaders)
+
+ui <- fluidPage(
+  actionButton("go", "go"),
+  withSpinner(plotOutput("plot")),
+)
+server <- function(input, output, session) {
+  data <- reactive({
+    req(input$go)
+    Sys.sleep(3)
+    data.frame(x = runif(50), y = runif(50))
+  })
+  
+  output$plot <- renderPlot(plot(data()), res = 96)
+}
+```
+
 
 ## Confirming and undoing
 

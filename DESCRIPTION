@@ -6,6 +6,7 @@ Imports:
     ggforce,
     openintro,
     shiny,
+    shinycssloaders,
     shinyFeedback,
     shinythemes,
     tidyverse,
