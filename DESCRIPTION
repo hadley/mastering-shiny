@@ -23,7 +23,5 @@ Suggests:
     webshot (>= 0.5.0.9000)
 Encoding: UTF-8
 Remotes: 
-    JohnCoene/waiter,
-    merlinoa/shinyFeedback,
     rstudio/shiny,
     rstudio/thematic
