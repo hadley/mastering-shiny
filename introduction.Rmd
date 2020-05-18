@@ -47,6 +47,10 @@ People use Shiny to:
 * Create interactive demos for teaching statistics and data science concepts 
   that allow learners to tweak inputs and observe the downstream effects of 
   these changes in an analysis.
+  
+* Leverage automation processes by making them usable by users with no programming skills.  
+
+* Create prototype of web application, as the development in R is often much faster but difficult to scale.
 
 In short, Shiny gives you the ability to pass on some of your R superpowers to anyone who can use a web browser. 
 
