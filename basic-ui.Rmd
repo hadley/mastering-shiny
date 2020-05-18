@@ -457,7 +457,7 @@ The following example shows how to use this layout to create a very simple app t
 
 ```{r}
 ui <- fluidPage(
-  headerPanel("Central limit theorem"),
+  titlePanel("Central limit theorem"),
   sidebarLayout(
     sidebarPanel(
       numericInput("m", "Number of samples:", 2, min = 1, max = 100)
