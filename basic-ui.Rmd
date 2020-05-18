@@ -514,7 +514,7 @@ Note that the first argument to `column()` is the width, and the width of each r
 
 ### Themes
 
-In Chapter XYZ, we'll cover the full details of customising the visual appearance of your Shiny app. Creating a complete theme from scratch is a lot of work (but often worth it!), but you can get some easy wins by using the shinythemes package. The following code shows four options:
+In Chapter XYZ, we'll cover the full details of customising the visual appearance of your Shiny app. Creating a complete theme from scratch is a lot of work (but often worth it!), but you can get some easy wins by using the [shinythemes](https://rstudio.github.io/shinythemes/) package. The following code shows four options:
 
 ```{r, results = FALSE}
 theme_demo <- function(theme) {
@@ -546,7 +546,7 @@ ui_screenshot(theme_demo("sandstone"), "basic-ui/theme-sandstone")
 ui_screenshot(theme_demo("united"), "basic-ui/theme-united")
 ```
 
-As you can see, theming your app is quite straightforward: you just need to use the `theme` argument to `fluidPage()`. To find out what themes are available, and what they look like, take a look at the Shiny theme selector app at <https://shiny.rstudio.com/gallery/shiny-theme-selector.html>.
+As you can see, theming your app is quite straightforward: you just need to use the `theme` argument to `fluidPage()`. To find out what themes are available, and what they look like, take a look at the Shiny theme selector app at <https://shiny.rstudio.com/gallery/shiny-theme-selector.html>. You might also want to take a look at the [fresh](https://dreamrs.github.io/fresh/) package, which provides even more themes.
 
 ### Exercises
 
