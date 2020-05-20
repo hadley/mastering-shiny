@@ -437,7 +437,7 @@ Clearly illustrating the problem is the first step to getting help, and because 
 
 ### Making a reprex
 
-The first step in making a reprex is to create a single self-contained file that contains everything needed to run your code. You should check it by starting a fresh R session and then running the code. Make sure you haven't forgotten to load any packages[^4] that make your app work.
+The first step in making a reprex is to create a single self-contained file that contains everything needed to run your code. You should check it works by starting a fresh R session and then running the code. Make sure you haven't forgotten to load any packages[^4] that make your app work.
 
 [^4]: Regardless of how you normally load packages, I strongly recommend using multiple `library()` calls. This eliminates a source of potential confusion for people who might not be familiar with the tool that you're using.
 
@@ -471,33 +471,35 @@ If reading data from disk seems to be an irreducible part of the problem, a stra
 
 ### Making a minimal reprex
 
-Creating a reproducible example is a great first step because it means that someone else can see exactly what the problem is. However, often the problematic code will be buried amongst code that works just fine. You can make the life of a helper much easier if you trim out some of this code.
+Creating a reproducible example is a great first step because it allows someone else to precisely recreate your problem. However, often the problematic code will often be buried amongst code that works just fine, so you can make the life of a helper much easier by trimming out the code that's ok.
 
-Creating the smallest possible reprex is particularly important for Shiny apps, which can be quite large and complicated. Rather than forcing the person trying to help you to understand all the details of your app, you are more likely to get higher quality help faster if you can extract out the exact piece of the app that you're struggling with. As an added benefit, this process will often lead you to discover what the problem is, so you don't have to wait for help from someone else!
+Creating the smallest possible reprex is particularly important for Shiny apps, which are often complicated. You will get faster, higher quality help, if you can extract out the exact piece of the app that you're struggling with, rather than forcing a potential helper to understand your entire app. As an added benefit, this process will often lead you to discover what the problem is, so you don't have to wait for help from someone else!
 
-Reducing a bunch of code to the essential problem is a skill, and you probably won't be very good at it at first. That's ok! Even the smallest reduction in code complexity helps the person helping you, and over time your complexity reduction skills will approve.
+Reducing a bunch of code to the essential problem is a skill, and you probably won't be very good at it at first. That's ok! Even the smallest reduction in code complexity helps the person helping you, and over time your reprex shrinking skills will improve.
 
-If you don't know what part of your code is triggering the problem, a good way to find it is to remove sections of code from your application, piece by piece, until the problem goes away. If removing a particular piece of code makes the problem stop, it's likely that that code is related to the problem. Alternatively, sometimes it's simpler to start with a fresh, empty, app and progressively build it up until you find the problem again.
+If you don't know what part of your code is triggering the problem, a good way to find it is to remove sections of code from your application, piece by piece, until the problem goes away. If removing a particular piece of code makes the problem stop, it's likely that that code is related to the problem. Alternatively, sometimes it's simpler to start with a fresh, empty, app and progressively build it up until you find the problem once more.
 
 Once you've simplified your app to demonstrate the problem, it's worthwhile to take a final pass through and check:
 
 -   Is every input and output in `UI` related to the problem?
 
--   Does your app have a complex layout that you can simplify to help focus on the problem at hand?
+-   Does your app have a complex layout that you can simplify to help focus on the problem at hand? Have you removed all UI customisation that makes your app look good, but isn't related to the problem?
 
--   Have you created reactives in `server()` that aren't pertinent to the problem?
+-   Are there any reactives in `server()` that you can now remove?
 
 -   If you've tried multiple ways to solve the problem, have you removed all the vestiges of the attempts that didn't work?
 
 -   Is every package that you load needed to illustrate the problem? Can you eliminate packages by replacing functions with dummy code?
 
+This can be a lot of work, but the pay off is big: often you'll discover the solution while you make the reprex, and if not, it's much much easier to get help.
+
 ### Case study
 
-To illustrate the process of making a top-notch reprex I'm going to use an example from [Scott Novogoratz](https://community.rstudio.com/u/sanovogo) posted on [RStudio community](https://community.rstudio.com/t/37982). The initial code was very close to being a reprex, but wasn't quite reproducible because it forgot to load a pair of packages. As a starting point:
+To illustrate the process of making a top-notch reprex I'm going to use an example from [Scott Novogoratz](https://community.rstudio.com/u/sanovogo) posted on [RStudio community](https://community.rstudio.com/t/37982). The initial code was very close to being a reprex, but wasn't quite reproducible because it forgot to load a pair of packages. As a starting point, I:
 
 -   Added missing `library(lubridate)` and `library(xts)`.
 -   Split apart `ui` and `server` into separate objects.
--   Reformatted with `styler::style_selection()`.
+-   Reformatted the code with `styler::style_selection()`.
 
 That yielded the following reprex:
 
@@ -582,7 +584,7 @@ server <- function(input, output, session) {
 }
 ```
 
-Next, I noticed that this example uses a relatively sophisticated Shiny technique where the UI is generated in the server function. But here `renderUI()` is not referring to any reactive inputs, so it should work the same way if moved out of the server function and into the UI.
+Next, I noticed that this example uses a relatively sophisticated Shiny technique where the UI is generated in the server function. But here `renderUI()` doesn't use any reactive inputs, so it should work the same way if moved out of the server function and into the UI.
 
 This yielded a particularly nice result, because now the error occurs much earlier, before we even start the app:
 
@@ -620,7 +622,7 @@ ui <- fluidPage(
 )
 ```
 
-This is fairly typical of creating a reprex: often, when you simplify the problem to the absolute key components the problem becomes obvious. Creating a good reprex is an incredibly powerful debugging technique.
+This is fairly typical outcome from creating a reprex: once you've simplified the problem to its key components, the solution becomes obvious. Creating a good reprex is an incredibly powerful debugging technique.
 
 To simplify this reprex, I had to do a bunch of experimenting and reading up on functions that I wasn't very familiar with[^5]. This is typically much easier if it's your own code, because you already understand what all the parts do. Still, you'll often need to do a bunch of experimentation to figure out where exactly the problem is coming from. That can be frustrating and feel time consuming, but it has a number of benefits:
 
@@ -631,3 +633,5 @@ To simplify this reprex, I had to do a bunch of experimenting and reading up on 
 -   You will build up a better mental model of how your code works, which means that you're less likely to make the same or similar mistakes in the future.
 
 -   Over time, you'll get faster and faster at creating reprexes, and this will become one of your go to techniques when debugging.
+
+When I try and someone with their app on [RStudio community](https://community.rstudio.com/tag/shiny), creating a reprex is always the first thing I do. This isn't some make work exericse I use to fob off people I don't want to help: it's exactly where I start!
