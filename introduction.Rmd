@@ -101,7 +101,7 @@ The book is divided into five parts:
 
 ## What won't you learn?
 
-The focus of this book is making effective Shiny apps and understanding the underlying theory of reactivity. I'll do my best to show case best practices for data science, R programming, and software engineering, but you'll need other references to master these important skillsets. If you enjoy my writing in this book, you might enjoy my other books on these topics: [R for data science](http://r4ds.had.co.nz/), [Advanced R](http://adv-r.hadley.nz/), and [R packages](http://r-pkgs.org/).
+The focus of this book is making effective Shiny apps and understanding the underlying theory of reactivity. I'll do my best to showcase best practices for data science, R programming, and software engineering, but you'll need other references to master these important skillsets. If you enjoy my writing in this book, you might enjoy my other books on these topics: [R for data science](http://r4ds.had.co.nz/), [Advanced R](http://adv-r.hadley.nz/), and [R packages](http://r-pkgs.org/).
 
 ## Prerequisites {#prerequisites}
 
