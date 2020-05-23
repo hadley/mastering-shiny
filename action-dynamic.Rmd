@@ -5,18 +5,15 @@ source("common.R")
 source("demo.R")
 ```
 
-So far, we've seen a clean separation between the user interface and the server function: the user interface is defined statically when the app is launched so it can't respond to anything that happens in the app. In this chapter, you'll learn how to create __dynamic__ user interfaces, changing the UI using code run in the server function. 
+So far, we've seen a clean separation between the user interface and the server function: the user interface is defined statically when the app is launched so it can't respond to anything that happens in the app. In this chapter, you'll learn how to create **dynamic** user interfaces, changing the UI using code run in the server function.
 
 There are three key techniques for creating dynamic user interfaces:
 
-* Using the `update` family of functions to modify parameters of input
-  controls.
+-   Using the `update` family of functions to modify parameters of input controls.
 
-* Using `tabsetPanel()` to conditionally show and hide parts of the user 
-  interface.
+-   Using `tabsetPanel()` to conditionally show and hide parts of the user interface.
 
-* Using `uiOutput()` and `renderUI()` to generate selected parts of the user 
-  interface with code. 
+-   Using `uiOutput()` and `renderUI()` to generate selected parts of the user interface with code.
 
 These three tools give you considerable power to respond to the user by modifying inputs and outputs. I'll demonstrate some of the more useful ways in which you can apply them, but ultimately, you are only constrained by your creativity. That said, these tools can make your app substantially more difficult to reason about, so deploy them sparingly, and always strive for the simplest technique that solves your problem.
 
@@ -26,9 +23,11 @@ library(shiny)
 
 ## Updating inputs
 
-We'll begin with a simple technique that allows you to modify an input after it has been created. Every input control, e.g. `textInput()`, is paired with an __update function__, e.g. `updateTextInput()`, that allows you to modify the control after it has been created. The update functions look a little different to other Shiny functions: they all take the current `session` as the first argument, and the name of the input (as a string) as the second. The remaining arguments match the arguments to the input constructor.
+We'll begin with a simple technique that allows you to modify an input after it has been created. Every input control, e.g. `textInput()`, is paired with an **update function**, e.g. `updateTextInput()`, that allows you to modify the control after it has been created. The update functions look a little different to other Shiny functions: they all take the current `session` as the first argument, and the name of the input (as a string) as the second. The remaining arguments match the arguments to the input constructor.
 
-Take the example in the code below, with the results shown in Figure \@ref(fig:update-basics). The app has two inputs that control the range (the `min` and `max`) of another input, a slider. The key idea is to use `observeEvent()`[^observe] to trigger `updateSliderInput()` whenever the `min` or `max` inputs change.
+Take the example in the code below, with the results shown in Figure \@ref(fig:update-basics). The app has two inputs that control the range (the `min` and `max`) of another input, a slider. The key idea is to use `observeEvent()`[^1] to trigger `updateSliderInput()` whenever the `min` or `max` inputs change.
+
+[^1]: Note that I've used `observeEvent()` here, although `observe()` would also work and would be more concise. I generally prefer `observeEvent()` because its arguments cleanly separate the event you're listening for from the action you want to take in response.
 
 ```{r}
 ui <- fluidPage(
@@ -57,8 +56,6 @@ s3 <- demo$screenshot("min-decrease")
 knitr::include_graphics(c(s1, s2, s3))
 demo$deploy()
 ```
-
-[^observe]: Note that I've used `observeEvent()` here, although `observe()` would also work and would be more concise. I generally prefer `observeEvent()` because its arguments cleanly separate the event you're listening for from the action you want to take in response.
 
 To help you get the hang of the update functions, I'll show a couple more simple examples. Then we'll dive into a more complicated case study using hierarchical select boxes, and I'll finish off by discussing circular references and the related problem of multiple sources of truth.
 
@@ -136,15 +133,15 @@ sales
 
 For our purposes, I'm going to focus on a natural hierarchy in the data:
 
-* Each territory contains customers.
-* Each customer has multiple orders.
-* Each order contains rows.
+-   Each territory contains customers.
+-   Each customer has multiple orders.
+-   Each order contains rows.
 
 I want to create a user interface where you can:
 
-* Select a territory to see all customers.
-* Select a customer to see all orders.
-* Select an order to see the underlying rows.
+-   Select a territory to see all customers.
+-   Select a customer to see all orders.
+-   Select an order to see the underlying rows.
 
 The essence of the UI is simple: I'll create three select boxes and one output table. The choices for the `customername` and `ordernumber` select boxes will be dynamically generated, so I set `choices = NULL`.
 
@@ -159,19 +156,15 @@ ui <- fluidPage(
 
 In the server function, I work top-down:
 
-1.  I create a reactive, `territory()`, that contains the rows from `sales` 
-    that match the selected territory.
+1.  I create a reactive, `territory()`, that contains the rows from `sales` that match the selected territory.
 
-1.  Whenever `territory()` changes, I update the list of `choices` in 
-    the `input$customername` select box.
-    
-1.  I create another reactive, `customer()`, that contains the rows from 
-    `territory()` that match the selected customer.
-    
-1.  Whenever `customer()` changes, I update the list of `choices` in the
-    the `input$ordernumber` select box.
+2.  Whenever `territory()` changes, I update the list of `choices` in the `input$customername` select box.
 
-1.  I display the selected orders in `output$data`.
+3.  I create another reactive, `customer()`, that contains the rows from `territory()` that match the selected customer.
+
+4.  Whenever `customer()` changes, I update the list of `choices` in the the `input$ordernumber` select box.
+
+5.  I display the selected orders in `output$data`.
 
 ```{r}
 server <- function(input, output, session) {
@@ -220,9 +213,9 @@ Try out this simple example at `r demo$link()`, or see a more fully fleshed out 
 
 ### Circular references
 
-There's an important issue we need to discuss if you want to use update functions to change the `value`[^other-params] of inputs. From Shiny's perspectve, using an update function to modify `value` is no different to the user modifying the value by clicking or typing. That means an update function can trigger reactive updates in exactly the same way that a human can. This means that you are now stepping outside of the bounds of pure reactive programming, and you need to start worrying about circular references and infinite loops. 
+There's an important issue we need to discuss if you want to use update functions to change the `value`[^2] of inputs. From Shiny's perspectve, using an update function to modify `value` is no different to the user modifying the value by clicking or typing. That means an update function can trigger reactive updates in exactly the same way that a human can. This means that you are now stepping outside of the bounds of pure reactive programming, and you need to start worrying about circular references and infinite loops.
 
-[^other-params]: This is generally only a concern when you are changing the `value`, but be some other parameters can change the value indirectly. For example, if you modify the `choices` for `selectInput()`, or `min` and `max` for `sliderInput()`, the current `value` will be modified if it's no longer in the allowed set of values.
+[^2]: This is generally only a concern when you are changing the `value`, but be some other parameters can change the value indirectly. For example, if you modify the `choices` for `selectInput()`, or `min` and `max` for `sliderInput()`, the current `value` will be modified if it's no longer in the allowed set of values.
 
 For example, take the following simple app. It contains a single input control and a observer that increments its value by one. Every time `updateNumericInput()` runs, it changes `input$n`, causing `updateNumericInput()` to run again, so the app gets stuck in an infinite loop constantly increasing the value of `input$n`.
 
@@ -275,50 +268,44 @@ demo$screenshot("f-118")
 demo$deploy()
 ```
 
-If you play around with this app, `r demo$link()`, you'll notice that it _mostly_ works, but you might notice that it'll sometimes trigger multiple changes. For example:
+If you play around with this app, `r demo$link()`, you'll notice that it *mostly* works, but you might notice that it'll sometimes trigger multiple changes. For example:
 
-* Set 120 F, then click the down arrow.
-* F changes to 119, and C is updated to 48.
-* 48 C converts to 118 F, so F changes again to 118.
-* Fortunately 118 F is still 48 C, so the updates stop there.
+-   Set 120 F, then click the down arrow.
+-   F changes to 119, and C is updated to 48.
+-   48 C converts to 118 F, so F changes again to 118.
+-   Fortunately 118 F is still 48 C, so the updates stop there.
 
 There's no way around this problem because you have one idea (the temperature) with two expressions in the app (Celsius and Fahrenheit). Here we are lucky that cycle quickly converges to a value that satisfies both constraints. In general, you are better off avoiding these situations, unless you are willing to very carefully analysis the convergence properties of the underlying dynamic system that you have created.
 
 ### Exercises
 
-1.  Complete the user interface below with a server function that updates
-    `input$date` so that you can only select dates in `input$year`.
-    
+1.  Complete the user interface below with a server function that updates `input$date` so that you can only select dates in `input$year`.
+
     ```{r}
     ui <- fluidPage(
       numericInput("year", "year", value = 2020),
       dateInput("date", "date")
     )
     ```
-    
-1.  Complete the user interface below with a server function that updates
-    `input$county` choices based on `input$state`. For an added challenge,
-    also change the label from "County" to "Parish" for Louisiana and 
-    "Borough" for "Alaska".
+
+2.  Complete the user interface below with a server function that updates `input$county` choices based on `input$state`. For an added challenge, also change the label from "County" to "Parish" for Louisiana and "Borough" for "Alaska".
 
     ```{r, messages = FALSE}
     library(openintro)
     states <- unique(county$state)
-    
+
     ui <- fluidPage(
       selectInput("state", "State", choices = states),
       selectInput("county", "County", choices = NULL)
     )
     ```
 
-1.  Complete the user interface below with a server function that updates
-    `input$country` choices based on the `input$continent`. Use 
-    `output$data` to display all matching rows.
+3.  Complete the user interface below with a server function that updates `input$country` choices based on the `input$continent`. Use `output$data` to display all matching rows.
 
     ```{r}
     library(gapminder)
     continents <- unique(gapminder$continent)
-    
+
     ui <- fluidPage(
       selectInput("continent", "Continent", choices = continents), 
       selectInput("country", "Country", choices = NULL),
@@ -326,12 +313,9 @@ There's no way around this problem because you have one idea (the temperature) w
     )
     ```
 
-1.  Extend the previous app so that you can also choose to select all 
-    continents, and hence see all countries. You'll need to add `"(All)"` to 
-    the list of choices, and then handle that specially when filtering.
+4.  Extend the previous app so that you can also choose to select all continents, and hence see all countries. You'll need to add `"(All)"` to the list of choices, and then handle that specially when filtering.
 
-1.  What is at the heart of the problem described at 
-    <https://community.rstudio.com/t/29307>?
+5.  What is at the heart of the problem described at <https://community.rstudio.com/t/29307>?
 
 ## Dynamic visibility
 
@@ -378,8 +362,8 @@ knitr::include_graphics(c(s1, s2, s3))
 
 There are two main ideas here:
 
-* Use tabset panel with hidden tabs.
-* Use `updateTabsetPanel()` to switch tabs from the server.
+-   Use tabset panel with hidden tabs.
+-   Use `updateTabsetPanel()` to switch tabs from the server.
 
 This is a simple idea, but when combined with a little creativity, it gives you a considerable amount of power. The following two sections illustrate a couple of small examples of how you might use it in practice.
 
@@ -497,12 +481,11 @@ server <- function(input, output, session) {
 
 ### Exercises
 
-
 ## Dialog boxes {#dynamic-dialog}
 
 The simplest way to create UI with code is to add a dialog box. A dialog box is "modal" because it creates a new "mode" of interaction; you can't interact with the main application until you have dealt with the dialog.
 
-`modalDialog()` works much like `fluidPage()`: 
+`modalDialog()` works much like `fluidPage()`:
 
 ## Creating UI with code {#programming-ui}
 
@@ -510,12 +493,9 @@ Sometimes none of the techniques described above gives you the level of dynamism
 
 This technique has two components:
 
-* You use `uiOutput()` to insert a placeholder in your user interface.
-  This code is run when your app launches and it leaves a "hole" that your 
-  server code can later fill in.
-  
-* You use `renderUI()` to fill in the placeholder with UI generated in the 
-  server function.
+-   You use `uiOutput()` to insert a placeholder in your user interface. This code is run when your app launches and it leaves a "hole" that your server code can later fill in.
+
+-   You use `renderUI()` to fill in the placeholder with UI generated in the server function.
 
 Here's a simple example to illustrate the basic idea. It dynamically creates a different type of input control depending on an input. The resulting app is shown in Figure \@ref(fig:render-simple).
 
@@ -574,7 +554,7 @@ Dynamic UI is most useful when you are generating an arbitrary number or type of
 library(purrr)
 ```
 
-If you're not familiar with the basic `map()` and `reduce()` of functional programming, you might want to take a brief detour to read <https://adv-r.hadley.nz/functionals.html> before continuing. 
+If you're not familiar with the basic `map()` and `reduce()` of functional programming, you might want to take a brief detour to read <https://adv-r.hadley.nz/functionals.html> before continuing.
 
 ### Multiple controls
 
@@ -590,19 +570,11 @@ ui <- fluidPage(
 
 There are three key ideas in the server function:
 
-* I create a reactive, `col_names()`, that generates a character vector 
-  giving the name of each of the colour inputs I'm about to generate. 
+-   I create a reactive, `col_names()`, that generates a character vector giving the name of each of the colour inputs I'm about to generate.
 
-* I create the text boxes by using `map()` to create one `textInput()` for 
-  input in `col_names()`. `output$col <- renderUI()` inserts these textboxes
-  in the UI placeholder that I created earlier.
-  
-* To generate the output, I need to use use a new trick. So far we've always
-  accessed the components of `input` with `$`, e.g. `input$col1`. But here we
-  have the input names in a character vector, like `var <- "col1"`. 
-  `$` no longer works in this scenario, so we need to swich to `[[`, i.e.
-  `input[[var]]`. I use `map_chr()` to collect all values into a character
-  vector, and display that in `output$pallete`.
+-   I create the text boxes by using `map()` to create one `textInput()` for input in `col_names()`. `output$col <- renderUI()` inserts these textboxes in the UI placeholder that I created earlier.
+
+-   To generate the output, I need to use use a new trick. So far we've always accessed the components of `input` with `$`, e.g. `input$col1`. But here we have the input names in a character vector, like `var <- "col1"`. `$` no longer works in this scenario, so we need to swich to `[[`, i.e. `input[[var]]`. I use `map_chr()` to collect all values into a character vector, and display that in `output$pallete`.
 
 ```{r}
 server <- function(input, output, session) {
@@ -688,7 +660,7 @@ demo$deploy()
 
 To finish off the chapter, I'm going to create an app that lets you dynamically filter any data frame. Each numeric input will get a range slider and each factor input will get a multi-select. i.e. if a data frame has 3 continuous variables and 2 factors, I'll generate an app with 3 sliders and 2 select boxes.
 
-I'll start with a function that creates the UI for a single variable. It'll return a range slider for numeric inputs, a multi-select for factor inputs, and `NULL` (nothing) for all other types. 
+I'll start with a function that creates the UI for a single variable. It'll return a range slider for numeric inputs, a multi-select for factor inputs, and `NULL` (nothing) for all other types.
 
 ```{r}
 make_ui <- function(x, var) {
@@ -754,11 +726,9 @@ demo$screenshot()
 
 You might notice that I got sick of copying and pasting so that app only works with three columns. I can make it work with all the columns by using a little functional programming:
 
-* In `ui` use `map()` to generate one control for each variable. 
+-   In `ui` use `map()` to generate one control for each variable.
 
-* In `server()`, I use `map()` to generate the selection vector for each 
-  variable. Then I use `reduce()` to take the logical vector for each variable
-  and combine into a single logical vector by `&`-ing each vector together.
+-   In `server()`, I use `map()` to generate the selection vector for each variable. Then I use `reduce()` to take the logical vector for each variable and combine into a single logical vector by `&`-ing each vector together.
 
 ```{r}
 ui <- fluidPage(
@@ -852,19 +822,12 @@ demo$deploy()
       })
     }
     ```
-    
-    How could you instead implement it using dynamic visibility? If you
-    implement dynamic visiblity, how could you keep the values in sync when
-    you change the controls?
 
-1.  Add support for date and date-time columns `make_ui()` and `filter_var()`.
-    
-1.  (Advanced) If you know the [S3 OOP](http://adv-r.hadley.nz/S3.html) system,
-    consider how you could replace the `if` blocks in `make_ui()` and
-    `filter_var()` with generic functions.
+    How could you instead implement it using dynamic visibility? If you implement dynamic visiblity, how could you keep the values in sync when you change the controls?
 
-1.  (Hard) Make a wizard that allows the user to upload their own dataset.  
-    The first page should handle the upload. The second should handle reading
-    it, providing one drop down for each variable that lets the user select
-    the column type. The third page should provide some way to get a summary
-    of the dataset.
+2.  Add support for date and date-time columns `make_ui()` and `filter_var()`.
+
+3.  (Advanced) If you know the [S3 OOP](http://adv-r.hadley.nz/S3.html) system, consider how you could replace the `if` blocks in `make_ui()` and `filter_var()` with generic functions.
+
+4.  (Hard) Make a wizard that allows the user to upload their own dataset.\
+    The first page should handle the upload. The second should handle reading it, providing one drop down for each variable that lets the user select the column type. The third page should provide some way to get a summary of the dataset.
