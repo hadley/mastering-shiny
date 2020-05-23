@@ -4,7 +4,7 @@
 source("common.R")
 ```
 
-If you are using Shiny with the tidyverse, you will almost certainly encounter the challenge of programming with tidy evaluation. Tidy evaluation is a tool that the tidyverse uses to faciliate fluid interactive data exploration, but it comes with a cost: it's hard to refer to variables indirectly, and hence harder to program with.
+If you are using Shiny with the tidyverse, you will almost certainly encounter the challenge of programming with tidy evaluation. Tidy evaluation is a tool that the tidyverse uses to facilitate fluid interactive data exploration, but it comes with a cost: it's hard to refer to variables indirectly, and hence harder to program with.
 
 This chapter will show you how to use Shiny with the two most common forms of tidy evaluation:
 
@@ -78,7 +78,7 @@ diamonds[diamonds$x == 0 | diamonds$y == 0, ]
 
 The blurring of data-variables and env-variables makes data analysis easier at the cost of making indirection harder. In Shiny[^embracing], indirection happens when you have the name of a data-variable stored in an env-variable, and is the key in using data-masking with Shiny apps. 
 
-[^embracing]: There's another form of indirection that happens when you're write functions which is solved using `{{ x }}`, called embracing. You can learn more about that in  [_Programming with dplyr_](http://dplyr.tidyverse.org/dev/articles/programming.html).
+[^embracing]: There's another form of indirection that happens when you're writing functions which is solved using `{{ x }}`, called embracing. You can learn more about that in  [_Programming with dplyr_](http://dplyr.tidyverse.org/dev/articles/programming.html).
 
 To make the problem concrete, take the following code which uses data-masking to refer to a data-variable (`carat`) and env-variable (`min_carat`) in the same way[^fun-scoping]:
 
@@ -139,7 +139,7 @@ Now that you've seen the basics, we'll develop a couple of more realistic, but s
 
 ### Example: ggplot2
 
-Lets take a look at a more complicated example where we allow the user to create a plot by selecting the variables to appear on the `x` and `y` axes:
+Let's take a look at a more complicated example where we allow the user to create a plot by selecting the variables to appear on the `x` and `y` axes:
 
 ```{r}
 # NB: needs ggplot >= 3.3.0 to get nice labels
@@ -323,7 +323,7 @@ Tidy-selection provides a concise way of selecting columns by position, name, or
 
 ### Indirection
 
-To refer to variables indirectly use `any_of()` or `all_of()`[^one-of]: both expect an character vector env-variable containing data-variable names. The only difference is what happens if you supply a variable named that doesn't exist in the input: `all_of()` will throw an error, while `any_of()` will silently ignore it.
+To refer to variables indirectly use `any_of()` or `all_of()`[^one-of]: both expect a character vector env-variable containing data-variable names. The only difference is what happens if you supply a variable name that doesn't exist in the input: `all_of()` will throw an error, while `any_of()` will silently ignore it.
 
 [^one-of]: In older versions of tidyselect and dplyr, you'll need to use `one_of()`. It has the same semantics as `any_of()`, but a less informative name.
 
@@ -345,7 +345,7 @@ server <- function(input, output, session) {
 
 ### Tidy-selection and data-masking
 
-Working with multiple variables is trivial when you're working with a function that uses tidy-selection: you can just pass a character vector of variable names in to `any_of()` or `all_of()`. Wouldn't it be nice if we could do that in data-masking functions too? That's the idea of the `across()` function, which was implemented in dplyr 1.0.0. It allows you to access tidy-selection inside of the data-masking functions. 
+Working with multiple variables is trivial when you're working with a function that uses tidy-selection: you can just pass a character vector of variable names into `any_of()` or `all_of()`. Wouldn't it be nice if we could do that in data-masking functions too? That's the idea of the `across()` function, which was implemented in dplyr 1.0.0. It allows you to access tidy-selection inside of the data-masking functions. 
 
 `across()` is typically used with either one or two arguments. The first argument selects variables, and is useful in functions like `group_by()` or `distinct()`. For example, the following app allows you to select any number of variables and count their unique values.
 
@@ -409,6 +409,6 @@ server <- function(input, output, session) {
 
 Before we go, it's worth a brief comment about `paste()` + `parse()` + `eval()`. If you have no idea what this combination is, you can skip this section, but if you have used it, I'd like to pass on a small note of caution.
 
-It's a tempting approach because it requires learning very few new ideas. But it has some major downsides: because you are pasting strings together, it's very easy to accidentally create invalid code, or code that can be abused to do something that you didn't want. This isn't super important if its a Shiny app that only you use, but it isn't a good habit to get into --- otherwise it's very easy to accidentally create a security hole in an app that you share more widely.
+It's a tempting approach because it requires learning very few new ideas. But it has some major downsides: because you are pasting strings together, it's very easy to accidentally create invalid code, or code that can be abused to do something that you didn't want. This isn't super important if it's a Shiny app that only you use, but it isn't a good habit to get into --- otherwise it's very easy to accidentally create a security hole in an app that you share more widely.
 
 (You shouldn't feel bad if this is the only way you can figure out to solve a problem, but when you have a bit more mental space, I'd recommend spending some time figuring out how to do it without string manipulation. This will help you to become a better R programmer.)
