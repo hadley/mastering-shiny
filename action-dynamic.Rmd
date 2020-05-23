@@ -5,10 +5,12 @@ source("common.R")
 source("demo.R")
 ```
 
-So far, we've seen a clean separation between the user interface and the server function. The user interface is defined statically, when the app is launched. That means it can't respond to anything that happens in the app. In this chapter, you'll learn how to create __dynamic__ user interfaces, using code run in the server function. 
+So far, we've seen a clean separation between the user interface and the server function: the user interface is defined statically when the app is launched so it can't respond to anything that happens in the app. In this chapter, you'll learn how to create __dynamic__ user interfaces, changing the UI using code run in the server function. 
+
 There are three key techniques for creating dynamic user interfaces:
 
-* Using the `update` functions to modify the parameters of input controls.
+* Using the `update` family of functions to modify parameters of input
+  controls.
 
 * Using `tabsetPanel()` to conditionally show and hide parts of the user 
   interface.
