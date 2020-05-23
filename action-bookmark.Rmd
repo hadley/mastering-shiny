@@ -88,7 +88,7 @@ The first part of the URL is to the app itself: `127.0.0.1` is the IP address th
 
 Instead of providing an explicit button, another option is to automatically update the url in the browser. This allows your users to use the user bookmark command in their browser, or copy and paste the URL from the location bar.
 
-Automatically updating the URL requires a little boilerplate in the the server function:
+Automatically updating the URL requires a little boilerplate in the server function:
 
 ```{r, eval = FALSE}
 # Automatically bookmark every time an input changes
@@ -127,7 +127,7 @@ You could of course now remove the bookmark button if you want.
 
 ### Storing state
 
-So far we've used `enableBookmarking = "url"` which stores the state directly in the URL. This a good place to start because it's very simple and works everywhere you might deploy your Shiny app. As you can imagine, however, the URL is going to get very long if you have a large number of inputs, and it's obvious not going to be able to capture an uploaded file.
+So far we've used `enableBookmarking = "url"` which stores the state directly in the URL. This a good place to start because it's very simple and works everywhere you might deploy your Shiny app. As you can imagine, however, the URL is going to get very long if you have a large number of inputs, and it's obviously not going to be able to capture an uploaded file.
 
 For these cases, you might instead want to use `enableBookmarking = "server"`, which saves the state to an `.rds` file on the server. This always generates a short, opaque, URL but requires additional storage on the server. If you try it out locally with:
 
