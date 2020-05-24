@@ -24,4 +24,5 @@ Suggests:
 Encoding: UTF-8
 Remotes: 
     rstudio/shiny,
-    rstudio/thematic
+    rstudio/thematic,
+    rstudio/htmltools
