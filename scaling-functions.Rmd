@@ -45,7 +45,7 @@ Before we go on to talk about exactly how you might use functions in your app, I
   
 If you're using Shiny 1.5.0, running the app will automatically load all files in the `R/` directory, so there's nothing else to do!
 
-If you've made an R package before, you might notice that Shiny uses the same convention for storing files containing functions. And indeed, if you're making a complicated app, particularly in conjunction with others, there are substantial advantages to making a full fledged package. If you want to do this, I recommend the reading the ["Buidling Big Shiny Apps"](https://thinkr-open.github.io/building-shiny-apps-workflow/) book and using the accompanying [golem](https://thinkr-open.github.io/golem/) package. We'll touch on packages again when we talk more about testing because packages provide useful infrastructure for testing.
+If you've made an R package before, you might notice that Shiny uses the same convention for storing files containing functions. And indeed, if you're making a complicated app, particularly in conjunction with others, there are substantial advantages to making a full fledged package. If you want to do this, I recommend the reading the ["Engineering Shiny"](https://engineering-shiny.org) book and using the accompanying [golem](https://thinkr-open.github.io/golem/) package. We'll touch on packages again when we talk more about testing because packages provide useful infrastructure for testing.
 
 ## UI functions
 
