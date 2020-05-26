@@ -213,7 +213,7 @@ server <- function(input, output, server) {
 
 <!-- TODO: add demo. 1) default 2) x = -1 3) trans = "log" -->
 
-## Notifications
+## Notifications {#notifications}
 
 If there isn't a problem and just want to let the user know what's happening, then you want a **notification**. In Shiny, notifications are created with `showNotification()`, and stack in the bottom right of the page. There are three basic ways to use `showNotification()`:
 

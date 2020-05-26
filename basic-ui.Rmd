@@ -193,7 +193,7 @@ ui_screenshot(ui, "basic-ui/upload")
 
 `fileInput()` requires special handling on the server side, and is discussed in detail in Chapter \@ref(action-transfer).
 
-### Action buttons
+### Action buttons {#action-buttons}
 
 Let the user perform an action with `actionButton()` or `actionLink()`. These are most naturally paired with `observeEvent()` or `eventReactive()` in the server function; I haven't discussed these functions yet, but we'll come back to them in the next chapter. 
 
@@ -205,6 +205,23 @@ ui <- fluidPage(
 ```
 ```{r, echo = FALSE, out.width = NULL}
 ui_screenshot(ui, "basic-ui/action")
+```
+
+You can customise the appearance using the `class` argument by using one of `"btn-primary"`, `"btn-success"`, `"btn-info"`, `"btn-warning"`, or `"btn-danger"`. You can also change the size with `"btn-lg"`, `"btn-sm"`, `"btn-xs"`. Finally, you can make buttons span the entire width of the element they are embedded within using `"btn-block"`. See the detail of the underlying CSS classes at <http://bootstrapdocs.com/v3.3.6/docs/css/#buttons>. 
+
+```{r}
+ui <- fluidPage(
+  fluidRow(
+    actionButton("click", "Click me!", class = "btn-danger"),
+    actionButton("drink", "Drink me!", class = "btn-lg btn-success")
+  ),
+  fluidRow(
+    actionButton("eat", "Eat me!", class = "btn-block")
+  )
+)
+```
+```{r, echo = FALSE, out.width = NULL}
+ui_screenshot(ui, "basic-ui/action-css")
 ```
 
 ### Exercises
