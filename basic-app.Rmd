@@ -83,7 +83,7 @@ Before you close the app, go back to RStudio and look at the R console. You'll n
 
 This tells you the URL where your app can be found: 127.0.0.1 is a standard address that means "this computer" and 3827 is a randomly assigned port number. You can enter that URL into any compatible[^ie] web browser to open another copy of your app.
 
-[^ie]: Shiny strives to support all modern browsers, and you can see the set currently supported at https://www.rstudio.com/about/platform-support/. Note that Internet Explorer versions prior to IE11 are not compatible when running Shiny directly from your R session.,  However, Shiny apps deployed on Shiny Server or ShinyApps.io can work with IE10 (earlier versions of IE are no longer supported).
+[^ie]: Shiny strives to support all modern browsers, and you can see the set currently supported at https://www.rstudio.com/about/platform-support/. Note that Internet Explorer versions prior to IE11 are not compatible when running Shiny directly from your R session.  However, Shiny apps deployed on Shiny Server or ShinyApps.io can work with IE10 (earlier versions of IE are no longer supported).
 
 Also notice that R is busy: the R prompt isn't visible, and the console toolbar displays a stop sign icon. While a Shiny app is running, it "blocks" the R console. This means that you can't run new commands at the R console until the Shiny app stops.
 
@@ -172,7 +172,7 @@ Each `render*` function is designed to work with a particular type of output tha
 
 Run the app again and play around, watching what happens to the output when you change an input. Figure \@ref(fig:basic-server) shows what you'll see when you open the app.
 
-```{r basic-server, echo = FALSE, out.width = NULL, fig.cap = "Now that we've provided a server function that connects and inputs, we have a fully functional app"}
+```{r basic-server, echo = FALSE, out.width = NULL, fig.cap = "Now that we've provided a server function that connects outputs and inputs, we have a fully functional app"}
 app <- testApp(ui, server)
 app_screenshot(app, "basic-app/server")
 ```
@@ -189,7 +189,7 @@ dataset <- get(input$dataset, "package:datasets")
 
 In every kind of programming, it's poor practice to have duplicated code; it can be computationally wasteful, and more importantly, it increases the difficulty of maintaining or debugging the code. It's not that important here, but I wanted to illustrate the basic idea in a very simple context.
 
-In traditional R scripting, we use two techniques to deal with duplicated code: either we capture the value using a variable, or capture the computation with a function. Unfortunately neither of these approaches work here, for reasons you'll learn about in Section \@ref(motivation), and we need new mechanism: **reactive expressions**. 
+In traditional R scripting, we use two techniques to deal with duplicated code: either we capture the value using a variable, or capture the computation with a function. Unfortunately neither of these approaches work here, for reasons you'll learn about in Section \@ref(motivation), and we need a new mechanism: **reactive expressions**. 
 
 You create a reactive expression by wrapping a block of code in `reactive({...})` and assigning it to a variable, and you use a reactive expression by calling it like a function. But while it looks like you're calling a function, a reactive expression has an important difference: it only runs the first time it is called and then it caches its result until it needs to be updated. 
 
@@ -328,7 +328,7 @@ knitr::include_graphics("images/basic-app/cheatsheet.png", dpi = 300)
 
     ```{r}
     library(ggplot2)
-    datasets <- data(package = "ggplot2")$results[, "Item"]
+    datasets <- data(package = "ggplot2")$results[c(2, 4, 10), "Item"]
 
     ui <- fluidPage(
       selectInput("dataset", "Dataset", choices = datasets),

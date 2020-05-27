@@ -8,11 +8,11 @@ Without discipline, as your app gets bigger, it will get harder and harder to un
 
 Shiny allows you to have one giant `app.R` file, containing a massive `ui` specification and large `server` function. But it's hard to understand anything that runs over a single screen of code. So to continue to grow your app, you need to start to break it up into independent pieces.
 
-This chapter will help you to take the first step in that journey, by showing you how to tactically use functions to pull out pieces into unrelated concerns. This tends to have slightly different flavours for UI and server components:
+This chapter will help you to take the first step in that journey by showing you how to tactically use functions to pull out pieces into unrelated concerns. This tends to have slightly different flavours for UI and server components:
 
 * In the UI, you have components that are repeated in multiple places with
-  minor variations. Pulling out repeated code into a function reduce duplication
-  (making it easier to update many control from one place), and can be
+  minor variations. Pulling out repeated code into a function reduces duplication
+  (making it easier to update many controls from one place), and can be
   combined with functional programming techniques to generate many controls
   at once.
   
@@ -20,13 +20,13 @@ This chapter will help you to take the first step in that journey, by showing yo
   in the midst of the app. Pulling out a reactive into a separate function,
   even if that function is only called in one place, makes it substantially
   easier to debug, because you can experiment with important computational
-  part of your app independent of reactivity.
+  parts of your app independent of reactivity.
 
-I assume that you're already familiar with the basics of functions[^if-not]. The of this chapter goal is to activate your existing skills, showing you some specific cases where using functions can substantially improve the clarity of your app. We'll focus on functions that extract out code that you've already written. 
+I assume that you're already familiar with the basics of functions[^if-not]. The goal of this chapter is to activate your existing skills, showing you some specific cases where using functions can substantially improve the clarity of your app. We'll focus on functions that extract out code that you've already written. 
 
 [^if-not]: If you're not, and you'd like to learn the basics, you might try reading the [Functions chapter](https://r4ds.had.co.nz/functions.html) of _R for Data Science_.
 
-Once you've mastered the ideas in this chapter, the next step is to learn how to writing code that requires coordination across the front end and back end. This requires **modules**, which you'll learn about in Chapter \@ref(scaling-modules).
+Once you've mastered the ideas in this chapter, the next step is to learn how to write code that requires coordination across the front end and back end. This requires **modules**, which you'll learn about in Chapter \@ref(scaling-modules).
 
 ```{r setup}
 library(shiny)
@@ -45,11 +45,11 @@ Before we go on to talk about exactly how you might use functions in your app, I
   
 If you're using Shiny 1.5.0, running the app will automatically load all files in the `R/` directory, so there's nothing else to do!
 
-If you've made an R package before, you might notice that Shiny uses the same convention for storing files containing functions. And indeed, if you're making a complicated app, particularly in conjunction with others, there are substantial advantages to making a full fledged package. If you want to do this, I recommend the reading the ["Buidling Big Shiny Apps"](https://thinkr-open.github.io/building-shiny-apps-workflow/) book and using the accompanying [golem](https://thinkr-open.github.io/golem/) package. We'll touch on packages again when we talk more about testing because packages provide useful infrastructure for testing.
+If you've made an R package before, you might notice that Shiny uses the same convention for storing files containing functions. And indeed, if you're making a complicated app, particularly in conjunction with others, there are substantial advantages to making a full fledged package. If you want to do this, I recommend the reading the ["Engineering Shiny"](https://engineering-shiny.org) book and using the accompanying [golem](https://thinkr-open.github.io/golem/) package. We'll touch on packages again when we talk more about testing because packages provide useful infrastructure for testing.
 
 ## UI functions
 
-Functions are a powerful tool to reduce duplication in your UI code. Let's start with a concrete example of some duplicated code. Imagine that you're creating a bunch of sliders that each need to each from 0 to 1, starting at 0.5, with a 0.1 step. You _could_ do a bunch of copy and paste to generate all the sliders:
+Functions are a powerful tool to reduce duplication in your UI code. Let's start with a concrete example of some duplicated code. Imagine that you're creating a bunch of sliders that each need to range from 0 to 1, starting at 0.5, with a 0.1 step. You _could_ do a bunch of copy and paste to generate all the sliders:
 
 ```{r}
 ui <- fluidRow(
@@ -104,7 +104,7 @@ There are two big ideas here:
 * When you pass a list to an html container, it automatically unpacks
   so that elements of the list because the children of the container.
 
-If you're like to learn more about `map()` (or its base equivalent, `lapply()`), you might enjoy the [Functionals chapter](https://adv-r.hadley.nz/functionals.html) of _Advanced R_.
+If you would like to learn more about `map()` (or its base equivalent, `lapply()`), you might enjoy the [Functionals chapter](https://adv-r.hadley.nz/functionals.html) of _Advanced R_.
 
 It's possible to generalise this further if the controls have more than one varying input. First, we create an inline data frame that defines the parameters of each control, using `tibble::tribble()`. Explicitly describing UI structure as data is a useful pattern.
 
@@ -140,9 +140,9 @@ See Section \@ref(programming-ui) for more examples of using these techniques to
 
 Whenever you use the same variant of an input control in multiple places, make a function. For example,
 
-*   If you're using a customised `dateInput()` for your country, pull out into 
+*   If you're using a customised `dateInput()` for your country, pull it out into 
     one place so that you can use consistent arguments. For example, imagine 
-    you wanted a date control for Americans to use to select week days:
+    you wanted a date control for Americans to use to select weekdays:
   
     ```{r}
     usWeekDateInput <- function(inputId, ...) {
@@ -181,9 +181,9 @@ Whenever you use the same variant of an input control in multiple places, make a
 
 ## Server functions
 
-Whenever you have a long reactive (say >10 lines) you should consider pulling it out into a separate function. One of the most common mistakes I see people making is having a very large server function. Then when something goes wrong, you have use advanced debugging skills, because the failure occurs in the middle of your shiny app (and you have to do a bunch of interacting with the UI to trigger it). It's better to pull out complex pieces into their own functions so you can debug them with your usual skills.
+Whenever you have a long reactive (say >10 lines) you should consider pulling it out into a separate function. One of the most common mistakes I see people making is having a very large server function. Then when something goes wrong, you have to use advanced debugging skills because the failure occurs in the middle of your shiny app (and you have to do a bunch of interacting with the UI to trigger it). It's better to pull out complex pieces into their own functions so you can debug them with your usual skills.
 
-A big downside of complex `reactive()`s is that there's no easy way to see exactly what inputs it takes; i.e. what other app state affects the output of the reactive? That's because reactives live in the global environment of your app. 
+A big downside of complex `reactive()`s is that there's no easy way to see exactly what inputs it takes; i.e. what other app states affect the output of the reactive? That's because reactives live in the global environment of your app. 
 
 The key benefits of a function in the UI tend to be around reducing duplication. The key benefits of functions in a server tend to be around isolation and testing. When looking at a reactive expression or output, there's no way to easily tell exactly what values it depends on, except by carefully reading the code block. The function definition is a nice signpost that tells you  exactly what to inspect.  
 
@@ -210,7 +210,7 @@ server <- function(input, output, session) {
 }
 ```
 
-If this was a real app, I'd seriously considering extracting out a function specifically for reading uploading files into its own function:
+If this was a real app, I'd seriously consider extracting out a function specifically for reading uploaded files:
 
 ```{r}
 load_file <- function(name, path) {
@@ -225,9 +225,9 @@ load_file <- function(name, path) {
 
 (Should it take `name` and `path` arguments or a single list?)
 
-When extracting out such helpers, where possible avoiding taking reactives as input or returning outputs. Instead, pass them in through the arguments, and assume the caller will turn into a reactive. This isn't a hard and fast rule; sometime it will make sense for your functions to input or output reactives. But generally, I think it's better to keep the reactive and non-reactive parts of your app as separate a possible. In this case, I'm still using `validate()`; that works because outside of Shiny `validate()` works similar to `stop()`. But I keep the `req()` in the server, because it shouldn't the be responsibility of the file parsing code to know when it's run.
+When extracting out such helpers, avoid taking reactives as input or returning outputs. Instead, pass them in through the arguments, and assume the caller will turn into a reactive. This isn't a hard and fast rule; sometimes it will make sense for your functions to input or output reactives. But generally, I think it's better to keep the reactive and non-reactive parts of your app as separate a possible. In this case, I'm still using `validate()`; that works because outside of Shiny `validate()` works similarly to `stop()`. But I keep the `req()` in the server, because it shouldn't be the responsibility of the file parsing code to know when it's run.
 
-Since this is now an independent function, it could live in its own file (`R/load_file.R`, say), keeping the `server()` svelte. This helps keep the server function focussed on the big picture
+Since this is now an independent function, it could live in its own file (`R/load_file.R`, say), keeping the `server()` svelte. This helps keep the server function focused on the big picture
 of reactivity, rather than the smaller details underlying each component.
 
 ```{r}

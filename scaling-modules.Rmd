@@ -605,6 +605,10 @@ server <- function(input, output, session) {
 * Figure out some hack to disable prev button on first page.
 * Note that don't need to worry about namespacing UI supplied by module user.
 
+### Modal dialog {#dialog-module}
+
+
+
 ## Single object modules
 
 When some people (like me!) encounter modules for the first time, they immediately attempt to combine the module server and module UI into a single module object. If that didn't occur to you, feel free to skip this last part of the chapter, because it explains why the single object approach is appealing, but only works for the simplest of cases.

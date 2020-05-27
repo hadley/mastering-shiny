@@ -5,30 +5,23 @@ source("common.R")
 source("demo.R")
 ```
 
-You can often make your app more usable by giving the user more insight in to what is happening. This might take the form of better messages when inputs are invalid, or progress updates for operations that take a long time. Some feedback occurs naturally through outputs, which you already know how to use, but you'll often need something else. The goal of this chapter is to show you what your other options are.
+You can often make your app more usable by giving the user more insight in to what is happening. This might take the form of better messages when inputs don't make sense, or progress bars for operations that take a long time. Some feedback occurs naturally through outputs, which you already know how to use, but you'll often need something else. The goal of this chapter is to show you some of your other options.
 
-We'll start with techniques for __validation__, informing the user when an input (or combination of inputs) is in an invalid state. We'll then continue on to __notification__, sending general messages to the user, and __progress bars__, which give the details for time consuming operations made up of many small steps. We'll finish up by discussing dangerous actions, and how you give your users peace of mind with __confirmation__ dialogs or the ability to __undo__ an action.
+We'll start with techniques for **validation**, informing the user when an input (or combination of inputs) is in an invalid state. We'll then continue on to **notification**, sending general messages to the user, and **progress bars**, which give details for time consuming operations made up of many small steps. We'll finish up by discussing dangerous actions, and how you give your users peace of mind with **confirmation** dialogs or the ability to **undo** an action.
 
-In this chapter, as well as shiny, we'll also use [shinyFeedback](https://github.com/merlinoa/shinyFeedback) by Andy Merlino, and [waiter](http://waiter.john-coene.com/), by John Coene.
+In this chapter we'll use [shinyFeedback](https://github.com/merlinoa/shinyFeedback), by Andy Merlino, and [waiter](http://waiter.john-coene.com/), by John Coene.
 
 ```{r setup}
 library(shiny)
 ```
 
-We currently require the development versions of those packages:
-
-```{r, eval = FALSE}
-remotes::install_github("JohnCoene/waiter")
-remotes::install_github("merlinoa/shinyFeedback")
-```
-
 ## Validation {#validate}
 
-The first and most important feedback you can give to the user is that they've given you bad input. This analogous to writing good functions in R: user-friendly functions give clear error message describing what the expected input is and how you have violated those expectations. Thinking through how the user might missuse your app allows you to provivde informative messages in the UI, rather than allowing errors to trickle through into the R code and generate uninformative errors.
+The first and most important feedback you can give to the user is that they've given you bad input. This analogous to writing good functions in R: user-friendly functions give clear error message describing what the expected input is and how you have violated those expectations. Thinking through how the user might misuse your app allows you to provivde informative messages in the UI, rather than allowing errors to trickle through into the R code and generate uninformative errors.
 
 ### Validating input
 
-If you want to give additional feedback to the user, a great way to do so is with the [shinyFeedback](https://github.com/merlinoa/shinyFeedback) package. There are two steps to use it. First, you add `useShinyFeedback()` to the ui:
+A great way to give additional feedback to the user is via the [shinyFeedback](https://github.com/merlinoa/shinyFeedback) package. Using it is a two step process. First, you add `useShinyFeedback()` to the `ui`. This sets up the needed HTML and javascript for attractive error message display:
 
 ```{r}
 ui <- fluidPage(
@@ -40,9 +33,9 @@ ui <- fluidPage(
 
 Then call one of the feedback functions in your server function. There are four variants: `feedback()`, `feedbackWarning()`, `feedbackDanger()`, and `feedbackSuccess()`. They all have three key arguments:
 
-* `inputId`, the id of the input where the feedback should be place.
-* `show`, a logical determining whether or not to show the feedback.
-* `text`, the text to display.
+-   `inputId`, the id of the input where the feedback should be placed.
+-   `show`, a logical determining whether or not to show the feedback.
+-   `text`, the text to display.
 
 We could use that function to display a warning message for odd numbers:
 
@@ -59,9 +52,11 @@ server <- function(input, output, session) {
 }
 ```
 
+<!-- TODO: add demo -->
+
 These feedback functions also have `color` and `icon` arguments that you can use to further customise the appearance. See the documentation for more details.
 
-Notice, however, that while the error message is displayed, the output is still updated. Typically you don't want that because invalid inputs are likely to cause uninformative R errors which you don't want to show to the user. To fix that problem, you need a new tool: `req()`, shorted for "required". It looks like this:
+Notice that the error message is displayed, but the output is still updated. Typically you don't want that because invalid inputs are likely to cause uninformative R errors that you don't want to show to the user. To stop inputs from triggering reactive changes, you need a new tool: `req()`, short for "required". It looks like this:
 
 ```{r}
 server <- function(input, output, session) {
@@ -76,26 +71,19 @@ server <- function(input, output, session) {
 }
 ```
 
-When the input to `req()` is not true[^truthy], it sends a special signal to tell Shiny that the reactive does not have all the inputs that it requires, so it is "paused". That means any reactive consumers that follow it in the reactive graph will not be updated. We'll take a brief digression to talk about `req()` before we come back to using it in concert with validate.
-
-[^truthy]: More precisely, `req()` proceeds only if its inputs are __truthy__, i.e. any value apart from `FALSE`, `NULL` , `""`, or a handful of other special cases described in `?isTruthy`.
+When the input to `req()` is not true, it sends a special signal to tell Shiny that the reactive does not have all the inputs that it requires, so it should be "paused". We'll take a brief digression to talk about this before we come back to using it in concert with validate.
 
 ### Pausing execution with `req()`
 
-It's easiest to understand `req()` by starting outside of validation. You may have noticed that when you start an app, the complete reactive graph is computed even before the user does anything. This usually works well, because you have carefully chosen meaningful default `value`s for your inputs. Sometimes, however, you want to wait until the user actually does something.
+It's easiest to understand `req()` by starting outside of validation. You may have noticed that when you start an app, the complete reactive graph is computed even before the user does anything. This works well when you can choose meaningful default `value`s for your inputs. But that's not always possible, and sometimes you want to wait until the user actually does something. This tends to crop up with three controls:
 
-This need tends to crop up mainly with three controls:
+-   In `textInput()`, you've used `value = ""` and you don't want to do anything until the user types something.
 
-* In `textInput()`, you've used `value = ""`, and you don't want to do 
-  anything until the user types something.
-  
-* In `inputSelect()`, you've provide an empty choice, `""`, and you don't
-  want to do anything until the user makes a selection.
-  
-* In `fileInput()`, which has an empty result before the user has uploaded 
-  anything. We'll come back to this in Section \@ref(#upload).
+-   In `selectInput()`, you've provide an empty choice, `""`, and you don't want to do anything until the user makes a selection.
 
-We need some way to "pause" reactives so that nothing happens until some condition is true. That's the job of `req()` which checks for required values before allowing a reactive producer to continue.
+-   In `fileInput()`, which has an empty result before the user has uploaded anything. We'll come back to this in Section \@ref(upload).
+
+We need some way to "pause" reactives so that nothing happens until some condition is true. That's the job of `req()`, which checks for required values before allowing a reactive producer to continue.
 
 For example, consider the following app which will generate a greeting in English or Maori. If you run this app, you'll see an error, as in Figure \@ref(fig:require-simple), because there's no entry in the `greetings` vector that corresponds to the default choice of `""`.
 
@@ -117,7 +105,7 @@ server <- function(input, output, session) {
 }
 ```
 
-```{r require-simple, echo = FALSE, message = FALSE, cache = FALSE, fig.cap = "The app displays an uninformation error when it is loaded because language hasn't been selected yet", out.width = "50%", fig.show = "hold"}
+```{r require-simple, echo = FALSE, message = FALSE, cache = FALSE, fig.cap = "The app displays an uninformative error when it is loaded because a language hasn't been selected yet", out.width = "50%", fig.show = "hold"}
 demo <- demo_inline("require-simple", ui, server)
 demo$resize(400)
 demo$screenshot()
@@ -149,11 +137,13 @@ s3 <- demo$screenshot("name")
 knitr::include_graphics(c(s1, s2, s3))
 ```
 
-`req()` works by signalling a special __condition__[^condition]. This special condition causes all downstream reactives and outputs to stop executing. Technically, it leaves any downstream reactive consumers in an invalidated state. We'll come back to this terminology in Chapter \@ref{reactive-components}.
+`req()` works by signalling a special **condition**[^1]. This special condition causes all downstream reactives and outputs to stop executing. Technically, it leaves any downstream reactive consumers in an invalidated state. We'll come back to this terminology in Chapter \@ref(reactive-components).
 
-[^condition]: Condition refers jointly to errors, warnings, and messages. If you're interested, you can learn more of the details of R's condition system in <https://adv-r.hadley.nz/conditions.html>.
+[^1]: "Condition" is a technical term that includes errors, warnings, and messages. If you're interested, you can learn more of the details of R's condition system in <https://adv-r.hadley.nz/conditions.html>.
 
-`req()` is designed so that `req(input$x)` will only proceed if the user has supplied a value, regardless of the type of the input control. You can also use `req()` with your own logical statement if needed. For example, `req(input$a > 0)` will permit computation to proceed when `a` is greater than 0; this is typically the form you'll use when performing validation, as we'll see next.
+`req()` is designed so that `req(input$x)` will only proceed if the user has supplied a value, regardless of the type of the input control[^2]. You can also use `req()` with your own logical statement if needed. For example, `req(input$a > 0)` will permit computation to proceed when `a` is greater than 0; this is typically the form you'll use when performing validation, as we'll see next.
+
+[^2]: More precisely, `req()` proceeds only if its inputs are **truthy**, i.e. any value apart from `FALSE`, `NULL` , `""`, or a handful of other special cases described in `?isTruthy`.
 
 ### `req()` and validation
 
@@ -167,17 +157,11 @@ ui <- fluidPage(
 )
 ```
 
-But the server function needs to get a little more complex. We're going to use `req()` in two ways: 
+But the server function needs to get a little more complex. We're going to use `req()` in two ways:
 
-* We only want to proceed with computation if the user has entered a
-  value so we do `req(input$dataset)`.
-  
-* Then we check to see if the supplied name actually exists. If it doesn't,
-  we display an error message, and then use `req()` to pause computation.
-  Note the use of `cancelOutput = TRUE`: normally "pausing" a reactive will
-  reset all downstream outputs; using `cancelOutput = TRUE` leaves them
-  displaying the last good value. This is import for `inputText()` which 
-  may trigger an update while you're in the middle of typing a name.
+-   We only want to proceed with computation if the user has entered a value so we do `req(input$dataset)`.
+
+-   Then we check to see if the supplied name actually exists. If it doesn't, we display an error message, and then use `req()` to pause computation. Note the use of `cancelOutput = TRUE`: normally "pausing" a reactive will reset all downstream outputs; using `cancelOutput = TRUE` leaves them displaying the last good value. This is important for `inputText()` which may trigger an update while you're in the middle of typing a name.
 
 ```{r}
 server <- function(input, output, session) {
@@ -197,9 +181,11 @@ server <- function(input, output, session) {
 }
 ```
 
+<!-- TODO: add demo -->
+
 ### Validate output
 
-shinyFeedback is great when the problem is related to a single input. But sometimes the invalid state is a result of a combination of inputs. In this case it doesn't really make sense to put the error next to an input (which one would you put it beside?) and instead it makes more sense to put it in the output. 
+shinyFeedback is great when the problem is related to a single input. But sometimes the invalid state is a result of a combination of inputs. In this case it doesn't really make sense to put the error next to an input (which one would you put it beside?) and instead it makes more sense to put it in the output.
 
 You can do so with a tool built into shiny: `validate()`. When called inside a reactive or an output, `validate(message)` stops execution of the rest of the code and instead displays `message` in any downstream outputs. The following code shows a simple example where we don't want to log or square-root negative values.
 
@@ -225,19 +211,19 @@ server <- function(input, output, server) {
 }
 ```
 
-## Notifications
+<!-- TODO: add demo. 1) default 2) x = -1 3) trans = "log" -->
 
-If there isn't a problem and just want to let the user know what's happening, then you want a __notification__. In Shiny, notifications are created with `showNotification()`, and stack in the bottom right of the page. There are three basic ways to use `showNotification()`:
+## Notifications {#notifications}
 
-* To show a transient notification, that automatically disappears after a fixed
-  amount of time.
-  
-* To show a notification when a process starts, and remove it when the process 
-  ends.
+If there isn't a problem and just want to let the user know what's happening, then you want a **notification**. In Shiny, notifications are created with `showNotification()`, and stack in the bottom right of the page. There are three basic ways to use `showNotification()`:
 
-* To update a single notification with progressive updates.
+-   To show a transient notification that automatically disappears after a fixed amount of time.
 
-These three techniques are discussed in turn below.
+-   To show a notification when a process starts and remove it when the process ends.
+
+-   To update a single notification with progressive updates.
+
+These three techniques are discussed below.
 
 ### Transient notification
 
@@ -276,23 +262,19 @@ server <- function(input, output, session) {
 }
 ```
 
+<!-- TODO: add demo -->
+
 ### Removing on completion
 
-Transient actions disappear after a fixed amount of time, but it's often useful to tie the presence of a notification to a long-running task. In this case, you want to show the notification when the task starts, and remove the notification when the task completes. To do this, you'll need to:
+It's often useful to tie the presence of a notification to a long-running task. In this case, you want to show the notification when the task starts, and remove the notification when the task completes. To do this, you'll need to:
 
-* Set `duration = NULL` and `closeButton = FALSE` so that the notification 
-  stays visible until the task is complete.
-  
-* Store `id` returned by `showNotification()`, and then pass this value to 
-  `removeNotification()` to remove it when done. The most reliable way to 
-  do so is to use `on.exit()`, which ensures that the notification is removed 
-  regardless of how the task completes (either successfully or with an error).
-  You can learn more about `on.exit()` at
-  <https://adv-r.hadley.nz/functions.html#on-exit>.
+-   Set `duration = NULL` and `closeButton = FALSE` so that the notification stays visible until the task is complete.
 
-The following example puts the pieces together to show how you might keep the user up to date when reading in a large csv file[^csv]:
+-   Store the `id` returned by `showNotification()`, and then pass this value to `removeNotification()`. The most reliable way to do so is to use `on.exit()`, which ensures that the notification is removed regardless of how the task completes (either successfully or with an error). You can learn more about `on.exit()` in [Advanced R](https://adv-r.hadley.nz/functions.html#on-exit){.uri}.
 
-[^csv]: If reading csv files is a bottleneck in your application should consider using `data.table::fread()` and `vroom::vroom()` instead; they can be orders of magnitude faster than `read.csv()`.
+The following example puts the pieces together to show how you might keep the user up to date when reading in a large csv file[^3]:
+
+[^3]: If reading csv files is a bottleneck in your application should consider using `data.table::fread()` and `vroom::vroom()` instead; they can be orders of magnitude faster than `read.csv()`.
 
 ```{r}
 server <- function(input, output, session) {
@@ -305,7 +287,7 @@ server <- function(input, output, session) {
 }
 ```
 
-Generally, these sort of notifications will live in a reactive, because that ensures that the long-running task is only re-run when absolutely needed.
+Generally, these sort of notifications will live in a reactive, because that ensures that the long-running comptutation is only re-run when needed.
 
 ### Progressive updates
 
@@ -401,7 +383,7 @@ Here I'm using `Sys.sleep()` to simulate a long running operation; in your code 
 
 ### Waiter
 
-The built-in progress bar is great for the basics, but if you want something that provides more visual options, you might try the waiter package: [waiter](https://waiter.john-coene.com/). Adapating the above code to work with Waiter is straightforward. In the UI, we add `use_waitress()`:
+The built-in progress bar is great for the basics, but if you want something that provides more visual options, you might try the [waiter](https://waiter.john-coene.com/ "⌘+Click to follow link") package. Adapating the above code to work with Waiter is straightforward. In the UI, we add `use_waitress()`:
 
 ```{r}
 ui <- fluidPage(
@@ -435,22 +417,21 @@ server <- function(input, output, session) {
 
 The default display is a thin progress bar at the top of the page, but there are a number of ways to customise the output:
 
-*   You can override the default `theme` to use one of:
+-   You can override the default `theme` to use one of:
 
-    * `overlay`: an opaque progress bar that hides the whole page
-    * `overlay-opacity`: a translucent progress bar that covers the whole page
-    * `overlay-percent`: an opaque progress bar that also displays a numeric percentage.
+    -   `overlay`: an opaque progress bar that hides the whole page
+    -   `overlay-opacity`: a translucent progress bar that covers the whole page
+    -   `overlay-percent`: an opaque progress bar that also displays a numeric percentage.
 
-*   And instead of showing a progress bar for the entire page, can overlay it 
-    on an existing input or output by setting the `id` parameter, e.g.:
-  
+-   Instead of showing a progress bar for the entire page, you can overlay it on an existing input or output by setting the `selector` parameter, e.g.:
+
     ```{r, eval = FALSE}
     waitress <- Waitress$new(selector = "#steps", theme = "overlay")
     ```
 
 ### Spinners
 
-Sometimes you don't know exactly how long an operation will take, and you just want to display an animated spinner that reassures the user that something is happening. You can also use the waiter package for this task; just switch from using a `Waitress` to using a `Waiter`: 
+Sometimes you don't know exactly how long an operation will take, and you just want to display an animated spinner that reassures the user that something is happening. You can also use the waiter package for this task; just switch from using a `Waitress` to using a `Waiter`:
 
 ```{r}
 ui <- fluidPage(
@@ -473,7 +454,7 @@ server <- function(input, output, session) {
 }
 ```
 
-Like Waitress, you can also use Waiters for specific outputs. These waiters can automatically remove the spinner when the output updates, so the code is even simpler:
+Like `Waitress`, you can also use `Waiter`s for specific outputs. These waiters can automatically remove the spinner when the output updates, so the code is even simpler:
 
 ```{r}
 ui <- fluidPage(
@@ -495,13 +476,31 @@ server <- function(input, output, session) {
 }
 ```
 
-The waiter package provides a large variety of spinners to choose from; see your options at `?waiter::spinners` and then choose one with (e.g.) `Waiter$new(html = spin_ripple())`. 
+The waiter package provides a large variety of spinners to choose from; see your options at `?waiter::spinners` and then choose one with (e.g.) `Waiter$new(html = spin_ripple())`. An even simpler alternative is to use the [shinycssloaders](https://github.com/daattali/shinycssloaders) package by Dean Attali. It uses JS to listen to Shiny events, so it doesn't even need any code on the server side. Instead, you just use `shinycssloaders::withSpinner()` to wrap outputs that you want to automatically get a spinner when they have been invalidated.
+
+```{r}
+library(shinycssloaders)
+
+ui <- fluidPage(
+  actionButton("go", "go"),
+  withSpinner(plotOutput("plot")),
+)
+server <- function(input, output, session) {
+  data <- reactive({
+    req(input$go)
+    Sys.sleep(3)
+    data.frame(x = runif(50), y = runif(50))
+  })
+  
+  output$plot <- renderPlot(plot(data()), res = 96)
+}
+```
 
 ## Confirming and undoing
 
-Sometimes an action is potentially dangerous, and you either want to make sure that the user _really_ wants to do it, or you want to give them the ability to back out before it's too late. The three techniques in this section lay out your basic options and give you some tips for how you might implement them in your app.
+Sometimes an action is potentially dangerous, and you either want to make sure that the user *really* wants to do it, or you want to give them the ability to back out before it's too late. The three techniques in this section lay out your basic options and give you some tips for how you might implement them in your app.
 
-### Explicit confirmation
+### Explicit confirmation {#feedback-modal}
 
 The simplest approach to protecting the user from accidentally performing a dangerous action is to require an explicit confirmation. The easiest way is to use a dialog box which forces the user to pick from one of a small set of actions. In Shiny, you create a dialog box with `modalDialog()`. This is called a "modal" dialog because it creates a new "mode" of interaction; you can't interact with the main application until you have dealt with the dialog.
 
@@ -520,16 +519,12 @@ modal_confirm <- modalDialog(
 
 There are a few small, but important, details to consider when creating a dialog box:
 
-* What should you call the buttons? It's best to be descriptive, so avoid
-  yes/no or continue/cancel in favour of recaptiulating the key verb.
+-   What should you call the buttons? It's best to be descriptive, so avoid yes/no or continue/cancel in favour of recaptiulating the key verb.
 
-* How should you order the buttons? Do you put cancel first (like the Mac), 
-  or continue first (like Windows)? Your best option is to mirror the platform
-  that you think most people will be using. 
+-   How should you order the buttons? Do you put cancel first (like the Mac), or continue first (like Windows)? Your best option is to mirror the platform that you think most people will be using.
 
-* Can you make the dangerous option more obvious? Here I've used 
-  `class = "btn btn-danger"` to style the button prominently.
-  
+-   Can you make the dangerous option more obvious? Here I've used `class = "btn btn-danger"` to style the button prominently.
+
 Jakob Nielsen has more good advice at <http://www.useit.com/alertbox/ok-cancel.html>.
 
 Let's use this dialog in a real (if very simple) app. Our UI exposes a single button to "delete all the files":
@@ -540,14 +535,11 @@ ui <- fluidPage(
 )
 ```
 
-There are two new ideas in the `server()`: 
+There are two new ideas in the `server()`:
 
-* We use `showModal()` and `removeModal()` to show and hide the dialog.
+-   We use `showModal()` and `removeModal()` to show and hide the dialog.
 
-* We observe events generated by the UI from `modal_confirm`. These objects
-  aren't created statically in the `ui`, but are instead dynamically added
-  in the `server()` by `showModal()`. You'll see that technique in much 
-  more detail in Chapter \@ref(action-dynamic).
+-   We observe events generated by the UI from `modal_confirm`. These objects aren't created statically in the `ui`, but are instead dynamically added in the `server()` by `showModal()`. You'll see that idea in much more detail in Chapter \@ref(action-dynamic).
 
 ```{r}
 server <- function(input, output, session) {
@@ -565,11 +557,11 @@ server <- function(input, output, session) {
 }
 ```
 
-We'll come back to more sophisticated uses of modal dialog boxes in Section \@ref(dynamic-dialog).
+<!-- TODO: add demo  -->
 
 ### Undoing an action
 
-Explicit confirmation is most useful for destructive actions that are only performed infrequently. You should avoid it if you want to reduce the errors made by frequent actions. For example, this technique would not work for twitter - if there was a dialog box that said "Are you sure you want to tweet this?" you would soon learn to automatically click yes, and still feel the same feeling of regret of noticing a typo 10s after tweeting.
+Explicit confirmation is most useful for destructive actions that are only performed infrequently. You should avoid it if you want to reduce the errors made by frequent actions. For example, this technique would not work for twitter --- if there was a dialog box that said "Are you sure you want to tweet this?" you would soon learn to automatically click yes, and still feel the same feeling of regret when you notice a typo 10s after tweeting.
 
 In this situation a better approach is to wait few seconds before actually performing the action, giving the user a chance to notice any problems and undo them. This isn't really an undo (since you're not actually doing anything), but it's an evocative word that users will understand.
 
@@ -631,8 +623,12 @@ server <- function(input, output, session) {
 }
 ```
 
+<!-- TODO: add demo -->
+
 ### Trash
 
 For actions that you might regret days later, a more sophisticated pattern is to implement something like the trash or recycling bin on your computer. When you delete a file, it isn't permanently deleted but instead is moved to a holding cell, which requires a separate action to empty. This is like the "undo" option on steroids; you have a lot of time to regret your action. It's also a bit like the confirmation; you have to do two separate actions to make deletion permanent.
 
 The primary downside of this technique is that it is substantially more complicated to implement (you have to have a separate "holding cell" that stores the information need to undo the action), and requires regular intervention from the user to avoid accumulating. For that reason, I think it's beyond the scope of all but the most complicated Shiny apps, so I'm not going to show an implementation here.
+
+## Exercises

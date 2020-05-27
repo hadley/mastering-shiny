@@ -3,7 +3,7 @@ library(shiny)
 
 # https://www.kaggle.com/kyanyoga/sample-sales-data
 # License: CC-0
-sales <- vroom::vroom("sales_data_sample.csv")
+sales <- vroom::vroom("sales_data_sample.csv", na = "")
 
 library(shiny)
 ui <- fluidPage(
@@ -23,11 +23,7 @@ ui <- fluidPage(
 server <- function(input, output, session) {
   territory <- reactive({
     req(input$territory)
-    if (input$territory == "NA") {
-      filter(sales, is.na(TERRITORY))
-    } else {
-      filter(sales, TERRITORY == input$territory)
-    }
+    filter(sales, TERRITORY == input$territory)
   })
   customer <- reactive({
     req(input$customername)

@@ -41,7 +41,7 @@ When creating an input, I recommend supplying the `inputId` and `label` argument
 sliderInput("min", "Limit (minimum)", value = 50, min = 0, max = 100)
 ```
 
-The following sections describe the inputs built in to Shiny, loosely grouped according to the type of control they create. The goal is to give you a rapid overview of your options, not to exhaustively describe all the arguments. I'll show the most important parameters for each control below, but you'll need to read the documentation to get the full details.
+The following sections describe the inputs built into Shiny, loosely grouped according to the type of control they create. The goal is to give you a rapid overview of your options, not to exhaustively describe all the arguments. I'll show the most important parameters for each control below, but you'll need to read the documentation to get the full details.
 
 ### Free text
 
@@ -193,7 +193,7 @@ ui_screenshot(ui, "basic-ui/upload")
 
 `fileInput()` requires special handling on the server side, and is discussed in detail in Chapter \@ref(action-transfer).
 
-### Action buttons
+### Action buttons {#action-buttons}
 
 Let the user perform an action with `actionButton()` or `actionLink()`. These are most naturally paired with `observeEvent()` or `eventReactive()` in the server function; I haven't discussed these functions yet, but we'll come back to them in the next chapter. 
 
@@ -205,6 +205,23 @@ ui <- fluidPage(
 ```
 ```{r, echo = FALSE, out.width = NULL}
 ui_screenshot(ui, "basic-ui/action")
+```
+
+You can customise the appearance using the `class` argument by using one of `"btn-primary"`, `"btn-success"`, `"btn-info"`, `"btn-warning"`, or `"btn-danger"`. You can also change the size with `"btn-lg"`, `"btn-sm"`, `"btn-xs"`. Finally, you can make buttons span the entire width of the element they are embedded within using `"btn-block"`. See the detail of the underlying CSS classes at <http://bootstrapdocs.com/v3.3.6/docs/css/#buttons>. 
+
+```{r}
+ui <- fluidPage(
+  fluidRow(
+    actionButton("click", "Click me!", class = "btn-danger"),
+    actionButton("drink", "Drink me!", class = "btn-lg btn-success")
+  ),
+  fluidRow(
+    actionButton("eat", "Eat me!", class = "btn-block")
+  )
+)
+```
+```{r, echo = FALSE, out.width = NULL}
+ui_screenshot(ui, "basic-ui/action-css")
 ```
 
 ### Exercises
@@ -457,7 +474,7 @@ The following example shows how to use this layout to create a very simple app t
 
 ```{r}
 ui <- fluidPage(
-  headerPanel("Central limit theorem"),
+  titlePanel("Central limit theorem"),
   sidebarLayout(
     sidebarPanel(
       numericInput("m", "Number of samples:", 2, min = 1, max = 100)
@@ -514,7 +531,7 @@ Note that the first argument to `column()` is the width, and the width of each r
 
 ### Themes
 
-In Chapter XYZ, we'll cover the full details of customising the visual appearance of your Shiny app. Creating a complete theme from scratch is a lot of work (but often worth it!), but you can get some easy wins by using the shinythemes package. The following code shows four options:
+In Chapter XYZ, we'll cover the full details of customising the visual appearance of your Shiny app. Creating a complete theme from scratch is a lot of work (but often worth it!), but you can get some easy wins by using the [shinythemes](https://rstudio.github.io/shinythemes/) package. The following code shows four options:
 
 ```{r, results = FALSE}
 theme_demo <- function(theme) {
@@ -546,7 +563,7 @@ ui_screenshot(theme_demo("sandstone"), "basic-ui/theme-sandstone")
 ui_screenshot(theme_demo("united"), "basic-ui/theme-united")
 ```
 
-As you can see, theming your app is quite straightforward: you just need to use the `theme` argument to `fluidPage()`. To find out what themes are available, and what they look like, take a look at the Shiny theme selector app at <https://shiny.rstudio.com/gallery/shiny-theme-selector.html>.
+As you can see, theming your app is quite straightforward: you just need to use the `theme` argument to `fluidPage()`. To find out what themes are available, and what they look like, take a look at the Shiny theme selector app at <https://shiny.rstudio.com/gallery/shiny-theme-selector.html>. You might also want to take a look at the [fresh](https://dreamrs.github.io/fresh/) package, which provides even more themes.
 
 ### Exercises
 
