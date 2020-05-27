@@ -4,7 +4,7 @@
 source("common.R")
 ```
 
-By default, Shiny apps have one major drawback compared to most apps you'll see on the internet: the app URL does not capture the current state of the app. This means that you can't bookmark the current state and return to it in the future, and there's no way to share your current location with someone else in an email or text. While unfortunately Shiny can't do this by default, fortunately it's a behaviour that you can opt-in to with a little extra work. This chapter will show you how.
+By default, Shiny apps have one major drawback compared to most web sites: you can't bookmark the app to return to the same place the future or share your work someone else with a link an email. That's because, by default, Shiny does not expose the current state of the app in its URL. Fortunately, however, you can change this behaviour with a little extra work and this chapter will show you how.
 
 ```{r setup}
 library(shiny)
@@ -39,17 +39,15 @@ server <- function(input, output, session) {
 }
 ```
 
+<!-- TODO: add demo -->
+
 There are three things we need to do to make this app bookmarkable:
 
-1.  Add `bookmarkButton()` to the UI. This generates a button that the 
-    user clicks to generate the bookmarkable url.
+1.  Add a `bookmarkButton()` to the UI. This generates a button that the user clicks to generate the bookmarkable URL.
 
-1.  Turn `ui` into a function. This is needed because bookmarks have to replay 
-    the bookmarked values: effectively, Shiny modifies the default `value` for 
-    each input control. This means there's no longer a single static UI but 
-    multiple possible UIs that depend on parameters in the URL.
-    
-1.  Add `enableBookmarking = "url"` to the `shinyApp()` call.
+2.  Turn `ui` into a function. You need to do this because bookmarked apps have to replay the bookmarked values: effectively, Shiny modifies the default `value` for each input control. This means there's no longer a single static UI but multiple possible UIs that depend on parameters in the URL; i.e. it has to be a function.
+
+3.  Add `enableBookmarking = "url"` to the `shinyApp()` call.
 
 Making those changes gives us:
 
@@ -78,15 +76,30 @@ shinyApp(ui, server, enableBookmarking = "url")
 
 If you play around with the app and bookmark a few interesting states, you'll see that the generated URLs look something like this:
 
-* `http://127.0.0.1:4087/?_inputs_&damping=1&delta=1&length=100&omega=1`
-* `http://127.0.0.1:4087/?_inputs_&damping=0.966&delta=1.25&length=100&omega=-0.54`
-* `http://127.0.0.1:4087/?_inputs_&damping=0.997&delta=1.37&length=500&omega=-0.9`
+-   `http://127.0.0.1:4087/?_inputs_&damping=1&delta=1&length=100&omega=1`
+-   `http://127.0.0.1:4087/?_inputs_&damping=0.966&delta=1.25&length=100&omega=-0.54`
+-   `http://127.0.0.1:4087/?_inputs_&damping=0.997&delta=1.37&length=500&omega=-0.9`
 
-The first part of the URL is to the app itself: `127.0.0.1` is the IP address that always points to your own computer, then `4087` is a randomly assigned "port". After that you'll see that the values of the parameters are literally encoded in the parameters of the URL.
+To understand what's happening, let's take the first URL and tease it apart into pieces:
 
-### Updating the url
+-   `http://` is the "protocol" used to communicate with the app. This will always be `http` or `https`.
 
-Instead of providing an explicit button, another option is to automatically update the url in the browser. This allows your users to use the user bookmark command in their browser, or copy and paste the URL from the location bar.
+-   `127.0.0.1` is the IP address of the server; `127.0.0.1` is a special address that always points to your own computer.
+
+-   `4087` is a randomly assigned "port". Normally different apps get different IP addresses, but that doesn't work when you're
+
+-   Everything after `?` is a parameter. Each parameter is separated by `&`, and if you break it apart you can see the values of each input in the app:
+
+    -   `damping=1`
+    -   `delta=1`
+    -   `length=100`
+    -   `omega=1`
+
+So "generating a bookmark" means recording the current values of the inputs in the parameters of URL.
+
+### Updating the URL
+
+Instead of providing an explicit button, another option is to automatically update the URL in the browser. This allows your users to use the user bookmark command in their browser, or copy and paste the URL from the location bar.
 
 Automatically updating the URL requires a little boilerplate in the the server function:
 
@@ -119,13 +132,14 @@ server <- function(input, output, session) {
   onBookmarked(updateQueryString)
 }
 ```
+
 ```{r, eval = FALSE}
 shinyApp(ui, server, enableBookmarking = "url")
 ```
 
-You could of course now remove the bookmark button if you want.
+You could now remove the bookmark button if you wanted.
 
-### Storing state
+### Storing richer state
 
 So far we've used `enableBookmarking = "url"` which stores the state directly in the URL. This a good place to start because it's very simple and works everywhere you might deploy your Shiny app. As you can imagine, however, the URL is going to get very long if you have a large number of inputs, and it's obvious not going to be able to capture an uploaded file.
 
@@ -135,42 +149,33 @@ For these cases, you might instead want to use `enableBookmarking = "server"`, w
 shinyApp(ui, server, enableBookmarking = "server")
 ```
 
-You'll see that the bookmark button generates urls like:
+You'll see that the bookmark button generates URLs like:
 
-* `http://127.0.0.1:4087/?_state_id_=0d645f1b28f05c97`
-* `http://127.0.0.1:4087/?_state_id_=87b56383d8a1062c`
-* `http://127.0.0.1:4087/?_state_id_=c8b0291ba622b69c`
+-   `http://127.0.0.1:4087/?_state_id_=0d645f1b28f05c97`
+-   `http://127.0.0.1:4087/?_state_id_=87b56383d8a1062c`
+-   `http://127.0.0.1:4087/?_state_id_=c8b0291ba622b69c`
 
 Which are paired with matching directories in your working directory:
 
-* `shiny_bookmarks/0d645f1b28f05c97`
-* `shiny_bookmarks/87b56383d8a1062c`
-* `shiny_bookmarks/c8b0291ba622b69c`
+-   `shiny_bookmarks/0d645f1b28f05c97`
+-   `shiny_bookmarks/87b56383d8a1062c`
+-   `shiny_bookmarks/c8b0291ba622b69c`
 
 The main drawbacks with server bookmarking is that it requires files to be saved on the server, and it's not obvious how long these need to hang around for. If you're bookmarking complex state and you never delete these files, your app is going to take up more and more disk space over time. If you do delete the files, some old bookmarks are going to stop working.
 
 ## Bookmarking challenges
 
-Automated bookmarking relies on the reactive graph. It seeds the inputs with the saved values then replays all reactive expressions and outputs, which will yield the same app that you see, as long as your app's reactive graph is straightforward. This section briefly covers some of the cases which are a little trickier:
+Automated bookmarking relies on the reactive graph. It seeds the inputs with the saved values then replays all reactive expressions and outputs, which will yield the same app that you see, as long as your app's reactive graph is straightforward. This section briefly covers some of the cases which need a little extra care:
 
-* If your app uses random numbers, even if all the inputs are the same, the 
-  random numbers might be different. If it's really important to always 
-  generate the same numbers, you'll need to think about how to make your
-  random process reproducible. The easiest way to do this is use `repeatable()`;
-  see the documentation for more details.
+-   If your app uses random numbers, the results might be different even if all the inputs are the same. If it's really important to always generate the same numbers, you'll need to think about how to make your random process reproducible. The easiest way to do this is use `repeatable()`; see the documentation for more details.
 
-* If you have tabs and want to bookmark and restore the active tab,
-  make sure to supply an `id` in your call to `tabsetPanel()`.
+-   If you have tabs and want to bookmark and restore the active tab, make sure to supply an `id` in your call to `tabsetPanel()`.
 
-* If there are inputs that should not be bookmarked, e.g. they contain 
-  private information that shouldn't be shared, include a called to 
-  `setBookmarkExclude()` somewhere in your server function. For example,
-  `setBookmarkExclude(c("secret1", "secret2"))` will ensure that the
-  `secret1` and `secret2` inputs are not bookmarked.
+-   If there are inputs that should not be bookmarked, e.g. they contain private information that shouldn't be shared, include a called to `setBookmarkExclude()` somewhere in your server function. For example, `setBookmarkExclude(c("secret1", "secret2"))` will ensure that the `secret1` and `secret2` inputs are not bookmarked.
 
-* If you are manually managing reactive state in your own `reactiveValues()`
-  object (as we'll discuss in Chapter XYZ), you'll need to use the 
-  `onBookmark()` and `onRestore()` callbacks to manually save and load your 
-  additional state. See 
-  <https://shiny.rstudio.com/articles/advanced-bookmarking.html> for more 
-  details.
+-   If you are manually managing reactive state in your own `reactiveValues()` object (as we'll discuss in Chapter XYZ), you'll need to use the `onBookmark()` and `onRestore()` callbacks to manually save and load your additional state. See *[Advanced Bookmarking](https://shiny.rstudio.com/articles/advanced-bookmarking.html)* for more details.
+
+## Exercises
+
+1.  Generate app for visualising the results of [noise::ambient\_simplex()](https://ambient.data-imaginist.com/reference/noise_simplex.html). Your app should allow the user to control the frequency, fractal, lacunarity, and gain, and be bookmarkable. How can you ensure the image looks exactly the same when reloaded from the bookmark? (Think about what the `seed` argument implies).
+2.  Make a simple app that lets you upload a csv file and then bookmark it. Upload a few files and then look in `shiny_bookmarks`. How do the files correspond to the bookmarkds? (Hint: you can use `readRDS()` to look inside the cache files that Shiny is generating).
