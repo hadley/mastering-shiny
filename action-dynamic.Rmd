@@ -416,7 +416,7 @@ ui <- fluidPage(
         choices = c("normal", "uniform", "exponential")
       ),
       numericInput("n", "Number of samples", value = 100),
-      parameter_tabs
+      parameter_tabs,
     ),
     mainPanel(
       plotOutput("hist")
