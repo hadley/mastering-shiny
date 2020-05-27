@@ -416,7 +416,7 @@ ui <- fluidPage(
         choices = c("normal", "uniform", "exponential")
       ),
       numericInput("n", "Number of samples", value = 100),
-      parameter_tabs,
+      parameter_tabs
     ),
     mainPanel(
       plotOutput("hist")
@@ -654,7 +654,7 @@ server <- function(input, output, session) {
   })
   
   output$plot <- renderPlot({
-    cols <- map_chr(col_names(), ~ input[[.x]] %||% "")
+    cols <- map_chr(col_names(), ~ input[[.x]])
     cols[cols == ""] <- NA
     
     barplot(
@@ -683,8 +683,6 @@ s2 <- demo$screenshot("change-n")
 knitr::include_graphics(c(s1, s2))
 demo$deploy()
 ```
-
-This code uses rlang's infix `%||%` operator, which returns the user-supplied default value on the operator's right-hand side (e.g., the empty string `""` in the above code) when the left-hand side (e.g., `input[[.x]]` in the above code) is `NULL`.
 
 ### Dynamic filtering
 
