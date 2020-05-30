@@ -8,30 +8,24 @@ If you are using Shiny with the tidyverse, you will almost certainly encounter t
 
 This chapter will show you how to use Shiny with the two most common forms of tidy evaluation:
 
-*   **Data-masking** allows you to refer to variables within a data frame
-    without repeating the name of the data frame. For example, this code can 
-    use the `x`, `z`, `carat`, and `price` variables from the `diamonds` 
-    dataset because `filter()` and `aes()` use data-masking.
-    
+-   **Data-masking** allows you to refer to variables within a data frame without repeating the name of the data frame. For example, this code can use the `x`, `z`, `carat`, and `price` variables from the `diamonds` dataset because `filter()` and `aes()` use data-masking.
+
     ```{r, eval = FALSE}
     diamonds %>% filter(x == z)
-    
+
     ggplot(diamonds, aes(carat, price)) + geom_hex()
     ```
 
-*   **Tidy-selection** allows you to concisely select variables by their
-    position, name, or value. For example, the following code selects all 
-    variables from `iris` that start with "sepal", and all numeric variables
-    from `diamonds`[^dplyr-1.0.0]:
-    
+-   **Tidy-selection** allows you to concisely select variables by their position, name, or value. For example, the following code selects all variables from `iris` that start with "sepal", and all numeric variables from `diamonds`[^1]:
+
     ```{r, eval = FALSE}
     iris %>% select(starts_with("sepal"))
     diamonds %>% select(is.numeric)
     ```
 
-[^dplyr-1.0.0]: Selecting variables based on their type requires dplyr 1.0.0, which is currently in development.
+[^1]: Selecting variables based on their type requires dplyr 1.0.0, which is currently in development.
 
-In this chapter, you'll learn how to use data-masking and tidy-selection functions from ggplot2 and dplyr with your Shiny app. To learn more about using tidy evaluation in a function or package, you'll need to turn to other resources like [_Using ggplot2 in packages_](http://ggplot2.tidyverse.org/dev/articles/ggplot2-in-packages.html) or [_Programming with dplyr_](http://dplyr.tidyverse.org/dev/articles/programming.html).
+In this chapter, you'll learn how to use data-masking and tidy-selection functions from ggplot2 and dplyr with your Shiny app. To learn more about using tidy evaluation in a function or package, you'll need to turn to other resources like *[Using ggplot2 in packages](http://ggplot2.tidyverse.org/dev/articles/ggplot2-in-packages.html)* or *[Programming with dplyr](http://dplyr.tidyverse.org/dev/articles/programming.html)*.
 
 ```{r setup}
 library(shiny)
@@ -44,12 +38,9 @@ library(ggplot2)
 
 Data-masking allows you to use variables in the "current" data frame without any extra syntax. It's used in many dplyr functions like `arrange()`, `filter()`, `group_by()`, `mutate()`, and `summarise()`, and in ggplot2's `aes()`. Data-masking works by blurring the lines between two meanings of "variable":
 
-* Environment variables (env-variables for short) are "programming" variables.
-  They are usually created with `<-`.
+-   Environment variables (env-variables for short) are "programming" variables. They are usually created with `<-`.
 
-* Data frame variables (data-variables for short) are "statistical" variables 
-  that live inside a data frame. They usually come from data loaded by functions 
-  like `read.csv()`, or are created by manipulating other variables.
+-   Data frame variables (data-variables for short) are "statistical" variables that live inside a data frame. They usually come from data loaded by functions like `read.csv()`, or are created by manipulating other variables.
 
 To make these terms more concrete, take this piece of code:
 
@@ -66,28 +57,28 @@ Data-masking is useful because it lets you use data-variables without any additi
 filter(diamonds, x == 0 | y == 0)
 ```
 
-In most (but not all[^subset]) base R functions you need to refer to a data-variable with `$`, leading to code that repeats the name of the data frame many times:
+In most (but not all[^2]) base R functions you need to refer to a data-variable with `$`, leading to code that repeats the name of the data frame many times:
+
+[^2]: `dplyr::filter()` is inspired by `base::subset()`. `subset()` uses data-masking, but not through tidy evaluation, so unfortunately the techniques discussed in this chapter don't apply to it.
 
 ```{r}
 diamonds[diamonds$x == 0 | diamonds$y == 0, ]
 ```
 
-[^subset]: `dplyr::filter()` is inspired by `base::subset()`. `subset()` uses data-masking, but not through tidy evaluation, so unfortunately the techniques discussed in this chapter don't apply to it.
-
 ### Indirection
 
-The blurring of data-variables and env-variables makes data analysis easier at the cost of making indirection harder. In Shiny[^embracing], indirection happens when you have the name of a data-variable stored in an env-variable, and is the key in using data-masking with Shiny apps. 
+The blurring of data-variables and env-variables makes data analysis easier at the cost of making indirection harder. In Shiny[^3], indirection happens when you have the name of a data-variable stored in an env-variable, and is the key in using data-masking with Shiny apps.
 
-[^embracing]: There's another form of indirection that happens when you're write functions which is solved using `{{ x }}`, called embracing. You can learn more about that in  [_Programming with dplyr_](http://dplyr.tidyverse.org/dev/articles/programming.html).
+[^3]: There's another form of indirection that happens when you're write functions which is solved using `{{ x }}`, called embracing. You can learn more about that in *[Programming with dplyr](http://dplyr.tidyverse.org/dev/articles/programming.html)*.
 
-To make the problem concrete, take the following code which uses data-masking to refer to a data-variable (`carat`) and env-variable (`min_carat`) in the same way[^fun-scoping]:
+To make the problem concrete, take the following code which uses data-masking to refer to a data-variable (`carat`) and env-variable (`min_carat`) in the same way[^4]:
+
+[^4]: Note that an expression like `carat > min_carat` has to look for three things: `carat`, `min_carat`, and `>`. That's because R uses the same rules to look for functions and objects. If `filter()` didn't also look in the environment, it wouldn't be able to find any functions.
 
 ```{r}
 min_carat <- 1
 diamonds %>% filter(carat > min_carat)
 ```
-
-[^fun-scoping]: Note that an expression like `carat > min_carat` has to look for three things: `carat`, `min_carat`, and `>`. That's because R uses the same rules to look for functions and objects. If `filter()` didn't also look in the environment, it wouldn't be able to find any functions.
 
 Imagine we want to extend this code so that it works for any variable and any value. That is straightforward with base R because you can switch from `$` to `[[`:
 
@@ -97,13 +88,13 @@ min <- 1
 diamonds[diamonds[[var]] > min, ]
 ```
 
-Data-masking solves the indirection problem in a similar way, by introducing an object, `.data` that you can subset using either `$` or `[[`. To get started we can rewrite our previous `filter()` call to use `.data` to make it clear that `carat` is a data-variable[^env]:
+Data-masking solves the indirection problem in a similar way, by introducing an object, `.data` that you can subset using either `$` or `[[`. To get started we can rewrite our previous `filter()` call to use `.data` to make it clear that `carat` is a data-variable[^5]:
+
+[^5]: `.data` is paired with `.env`, which is usually not needed, but we'll come back to it later in Section \@ref(user-data).
 
 ```{r, results = FALSE}
 diamonds %>% filter(.data$carat > min)
 ```
-
-[^env]: `.data` is paired with `.env`, which is usually not needed, but we'll come back to it later in Section \@ref(user-data).
 
 This form isn't particularly useful (unless you're writing a package, in which case it eliminates a pesky `R CMD check` `NOTE`), but because we have some object to index into, we can switch from `$` to `[[`:
 
@@ -288,13 +279,13 @@ We get an error message because `filter()` is attempting to evaluate `df$input$m
 df$input$min
 ```
 
-This problem is due to the ambiguity of data-variables and env-variables, and because data-masking prefers to use a data-variable if both are available. We can resolve the problem by using `.env`[^inception] to tell `filter()` only look for `min` in the env-variables:
+This problem is due to the ambiguity of data-variables and env-variables, and because data-masking prefers to use a data-variable if both are available. We can resolve the problem by using `.env`[^6] to tell `filter()` only look for `min` in the env-variables:
+
+[^6]: You might wonder if the same problem applies to variables called `.data` and `.env`. In the unlikely event of having columns with those names you'll need to refer to them with explicitly `.data$.data` and `.data$.env`.
 
 ```{r}
 df %>% filter(.data[[input$var]] > .env$input$min)
 ```
-
-[^inception]: You might wonder if the same problem applies to variables called `.data` and `.env`. In the unlikely event of having columns with those names you'll need to refer to them with explicitly `.data$.data` and `.data$.env`.
 
 Note that you only need to worry about this problem when working with user supplied data; when working with your own data, you can ensure the names of your data-variables don't clash with the names of your env-variables.
 
@@ -308,24 +299,23 @@ df[df[[input$var]] > input$min, ]
 
 That's a totally legitimate position, as long as you're aware of the work that `filter()` does for you so you can generate the equivalent base R code. In this case:
 
-* You'll need `drop = FALSE` if `df` contains a single column (otherwise 
-  you'll get a vector instead of a data frame).
-  
-* You'll need to use `which()` or similar to drop any missing values.
+-   You'll need `drop = FALSE` if `df` contains a single column (otherwise you'll get a vector instead of a data frame).
 
-* You can't do group-wise filtering (e.g. `filter(df, n() == 1)`).
+-   You'll need to use `which()` or similar to drop any missing values.
+
+-   You can't do group-wise filtering (e.g. `filter(df, n() == 1)`).
 
 In general, if you're using dplyr for very simple cases, you might find it easier to use base R functions that don't use data-masking. However, in my opinion, one of the advantages of the tidyverse is the careful thought that has been applied to edge cases so that functions work more consistently. I don't want to oversell this, but at the same time, it's easy to forget the quirks of specific base R functions, and write code that works 95% of the time, but fails in unusual ways the other 5% of the time.
 
 ## Tidy-selection
 
-Tidy-selection provides a concise way of selecting columns by position, name, or type. It's used in `dplyr::select()` and `dplyr::across()`, and in many functions from tidyr, like `pivot_longer()`, `pivot_wider()`, `separate()`, `extract()`, and `unite()`. 
+Tidy-selection provides a concise way of selecting columns by position, name, or type. It's used in `dplyr::select()` and `dplyr::across()`, and in many functions from tidyr, like `pivot_longer()`, `pivot_wider()`, `separate()`, `extract()`, and `unite()`.
 
 ### Indirection
 
-To refer to variables indirectly use `any_of()` or `all_of()`[^one-of]: both expect an character vector env-variable containing data-variable names. The only difference is what happens if you supply a variable named that doesn't exist in the input: `all_of()` will throw an error, while `any_of()` will silently ignore it.
+To refer to variables indirectly use `any_of()` or `all_of()`[^7]: both expect an character vector env-variable containing data-variable names. The only difference is what happens if you supply a variable named that doesn't exist in the input: `all_of()` will throw an error, while `any_of()` will silently ignore it.
 
-[^one-of]: In older versions of tidyselect and dplyr, you'll need to use `one_of()`. It has the same semantics as `any_of()`, but a less informative name.
+[^7]: In older versions of tidyselect and dplyr, you'll need to use `one_of()`. It has the same semantics as `any_of()`, but a less informative name.
 
 The following app lets the user select any number of variables using a multi-select input, along with `all_of()`:
 
@@ -345,7 +335,7 @@ server <- function(input, output, session) {
 
 ### Tidy-selection and data-masking
 
-Working with multiple variables is trivial when you're working with a function that uses tidy-selection: you can just pass a character vector of variable names in to `any_of()` or `all_of()`. Wouldn't it be nice if we could do that in data-masking functions too? That's the idea of the `across()` function, which was implemented in dplyr 1.0.0. It allows you to access tidy-selection inside of the data-masking functions. 
+Working with multiple variables is trivial when you're working with a function that uses tidy-selection: you can just pass a character vector of variable names in to `any_of()` or `all_of()`. Wouldn't it be nice if we could do that in data-masking functions too? That's the idea of the `across()` function, which was implemented in dplyr 1.0.0. It allows you to access tidy-selection inside of the data-masking functions.
 
 `across()` is typically used with either one or two arguments. The first argument selects variables, and is useful in functions like `group_by()` or `distinct()`. For example, the following app allows you to select any number of variables and count their unique values.
 
