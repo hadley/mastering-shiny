@@ -90,7 +90,7 @@ This yields the following function:
 
 ```{r}
 histogramUI <- function(id) {
-  list(
+  tagList(
     selectInput(NS(id, "var"), "Variable", names(mtcars)),
     numericInput(NS(id, "bins"), "bins", 10, min = 1),
     plotOutput(NS(id, "hist"))
@@ -341,7 +341,7 @@ Before we continue on to talk more about outputs from your server function, I wa
 
 ```{r}
 selectDataVarUI <- function(id) {
-  list(
+  tagList(
     datasetInput(NS(id, "data"), filter = is.data.frame),
     selectVarInput(NS(id, "var"))
   )
@@ -377,7 +377,7 @@ I'm also going to consider it as an output control because while it does use an 
 
 ```{r}
 histogramOutput <- function(id) {
-  list(
+  tagList(
     numericInput(NS(id, "bins"), "bins", 10, min = 1, step = 1),
     plotOutput(NS(id, "hist"))
   )
@@ -467,7 +467,7 @@ selectVarServer <- function(id, data, filter = is.numeric) {
       updateSelectInput(session, "var", choices = find_vars(data(), filter))
     })
     
-    list(
+    tagList(
       name = reactive(input$var),
       value = reactive(data()[[input$var]])
     )
@@ -617,7 +617,7 @@ To illustrate the problem, lets generalise the motivating example from the first
 
 ```{r}
 histogramUI <- function(id, df) {
-  list(
+  tagList(
     selectInput(NS(id, "var"), "Variable", names(df)),
     numericInput(NS(id, "bins"), "bins", 10, min = 1),
     plotOutput(NS(id, "hist"))

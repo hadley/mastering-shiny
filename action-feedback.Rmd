@@ -510,7 +510,7 @@ Imagine you have an Shiny app that deletes some files from a directory (or rows 
 modal_confirm <- modalDialog(
   "Are you sure you want to continue?",
   title = "Deleting files",
-  footer = list(
+  footer = tagList(
     actionButton("cancel", "Cancel"),
     actionButton("ok", "Delete", class = "btn btn-danger")
   )

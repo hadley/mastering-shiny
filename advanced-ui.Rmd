@@ -347,7 +347,7 @@ It is safe to use `HTML()` if your Shiny app will only ever be run locally for a
 
 #### Lists
 
-While each call to a tag function can have as many unnamed arguments as you want, you can also pack multiple children into a single argument by using a `list()`. The following two code snippets will generate identical results:
+While each call to a tag function can have as many unnamed arguments as you want, you can also pack multiple children into a single argument by using a `tagList()`. The following two code snippets will generate identical results:
 
 ```{r}
 tags$ul(
@@ -357,7 +357,7 @@ tags$ul(
 )
 
 tags$ul(
-  list(
+  tagList(
     tags$li("A"),
     tags$li("B"),
     tags$li("C")
@@ -365,7 +365,7 @@ tags$ul(
 )
 ```
 
-It can sometimes be handy to use a list when generating tag function calls programmatically. The snippet below uses `lapply` to simplify the previous example:
+In most case, you can use `list()` instead of `tagList()`; there's only a few places where the difference is important. One place where using a list directly is when generating HTML programmatically. For example, the snippet below uses `lapply` to simplify the previous example:
 
 ```{r}
 tags$ul(
@@ -402,7 +402,7 @@ div(
   strong("Tags!"),
   HTML("Verbatim <span>HTML!</span>"),
   NULL,
-  list(
+  tagList(
     "Lists!"
   )
 )
