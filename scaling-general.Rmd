@@ -2,7 +2,7 @@
 
 (Thanks to my colleague Jeff Allen for contributing the bulk of this chapter)
 
-When you start using Shiny, it'll take you a long time to make even small apps, because you have to learn the fundamentals. Over time, however, you'll become more comfortable with the basic interface of the package and the key ideas of reactivity, and you'll be able to create larger, more complex applications. As you start to write larger apps, you'll encounter a new set of challenges: keeping a complex and growing code-base organized, stable, and maintainable. These challenges include problems like:
+When you start using Shiny, it'll take you a long time to make even small apps, because you have to learn the fundamentals. Over time, however, you'll become more comfortable with the basic interface of the package and the key ideas of reactivity, and you'll be able to create larger, more complex applications. As you start to write larger apps, you'll encounter a new set of challenges: keeping a complex and growing code-base organized, stable, and maintainable. This will include problems like:
 
 * "I can't find the code I'm looking for in this huge file."
 
@@ -10,14 +10,14 @@ When you start using Shiny, it'll take you a long time to make even small apps, 
   to break it if I make any changes."
   
 * "Someone else started working with me on the application and we keep
-  interfering with each other."
+  standing on each others toes."
   
 * "The app works on my computer but doesn't work on my collaborator's 
   or in production."
 
-In this, the "best practices", part of the book, you'll learn some key concepts and tools from software engineering that will help you overcome these challenges. Below, I'll briefly introduce you to the big ideas, and then dive into the details in subsequent chapters. Unfortunately, I can't cover everything here, so for important ideas that need more exposition, I'll point you to other places where you can learn more.
+In this, the "best practices", part of the book, you'll learn some key concepts and tools from software engineering that will help you overcome these challenges. Below, I'll briefly introduce you to the big ideas, and then dive into the details in subsequent chapters. Of course you can't learn everything about software engineer in one part of one book, so I'll also point you to good places to learn more.
 
-Most people go through the same evolution with new techniques: "I don't understand them" to "I vaguely understand them but have to look up the syntax every time" to eventually "I understand them and can use them fluidly." It takes time and practice to get to the final stage
+Improving your software engineering skills is a lifelong journey. Expect to have frustrations as you start learning them, but understand that everyone experiences the same issues, and if you stick with you'll get past them. Most people go through the same evolution when learning a new techniques: "I don't understand it and have to look it up every time I use" to "I vaguely understand it but still read the documentation a lot" to eventually "I understand them and can use them fluidly". It takes time and practice to get to the final stage.
 
 ## Code organization
 
@@ -29,9 +29,10 @@ One of the most obvious ways to improve the quality of an application is to impr
 
 Being a good programmer means developing empathy for others who will need to interact with this code-base in the future (even if it's just future-you!). Like all forms of empathy, this takes practice and becomes easier only after you've done it many times. Over time, you'll start to notice that certain practices improve the readability of your code. There are no universal rules, but some general guidelines include:
 
-* Are the variable and function names clear and concise?
+* Are the variable and function names clear and concise? If not, what names
+  would better communicate the intent of the code?
 
-* Do I have comments where needed to explain complex bits of code?
+* Do I have comments where needed to explain complex bits of code? 
 
 * Does this whole function fit on my screen or could it be printed on a single
   piece of paper? If not, is there a way to break it up into smaller pieces?
@@ -45,24 +46,22 @@ Being a good programmer means developing empathy for others who will need to int
 There's no silver bullet to address all of these points---and many times they involve subjective judgement calls---but there are two particularly important tools:
 
 * **Functions**, the topic of Chapter \@ref(scaling-functions), allow you to 
-  reduce duplication in your UI code, and decrease the coupling of your server 
-  code.
+  reduce duplication in your UI code, make your server functions easier to 
+  understand and test, and allow you to more flexibly organise your app code.
 
 * **Shiny modules**, the topic of Chapter \@ref(scaling-modules), make it 
   possible to write isolated, re-usable code, that coordinates front-end and 
   back-end behaviour. Modules allow you to gracefully separate concerns so that 
   (e.g.) individual pages in your application can operate independently, or 
-  repeated components no longer need copy and paste.
-
-Additionally, both functions and modules allow you to spread your app code across multiple files, making it much easier to 
+  repeated components no longer need to be copied and pasted.
 
 ## Testing
 
-Developing a test plan for an application is critical to ensure its ongoing stability. Without a test plan, every change jeopardizes the application. When the application is small enough that you can hold it all in their head, you might feel that there's no need for an additional test plan. And indeed, for very simple apps, testing can seem like more trouble than its worth. However, as soon as you away from the application for long enough to forget some piece of it, or when another developer needs to contribute to the application, the lack of a test plan is likely to cause much pain.
+Developing a test plan for an application is critical to ensure its ongoing stability. Without a test plan, every change jeopardizes the application. When the application is small enough that you can hold it all in your head, you might feel that there's no need for an additional test plan. And sure, testing very simple apps can seem like more trouble than its worth. However, the lack of a plan is likely to cause pain as soon someone else starts contributing to your app, or when you've spend enough time away from it that you've forgotten how it all fits together.
 
-A testing plan could be entirely manual. A great place to start is a simple text file that gives a script you can follow to check that all is well. However, that script will have to grow as the application becomes more complex, and you'll either spend more and more of your time manually testing the application or you'll start skipping some of the script. 
+A testing plan could be entirely manual. A great place to start is a simple text file giving a script to follow to check that all is well. However, that script will have to grow as the application becomes more complex, and you'll either spend more and more of your time manually testing the application, or you'll start skipping some of the script. 
 
-The next step is to start to automate some of your testing. That's going to take more time to set up, but it will pay off over time because you'll run the tests more frequently. For that reason, various forms of automated testing have been developed for Shiny, as outlined in Chapter \@ref(scaling-testing). As that chapter will explain, you can develop:
+So the next step is to start to automate some of your testing. Automatiion takes time to set up, but it pays off over time because you can run the tests more frequently. For that reason, various forms of automated testing have been developed for Shiny, as outlined in Chapter \@ref(scaling-testing). As that chapter will explain, you can develop:
 
 * Unit tests that confirm the correct behaviour of an individual function.
 * Integration tests to confirm the interactions between reactives.
@@ -76,9 +75,9 @@ The beauty of writing an automated test is that once you've taken the time to wr
 
 If you've ever tried to reproduce some analysis in R written by someone else, or even tried to rerun some analysis or Shiny application you wrote some time ago, you may have run into trouble around dependencies. An app's dependencies are anything beyond the source code that it requires to run. These could include files on the hard drive, an external database or API, or other R packages that are used by the app. 
 
-For any analysis that you may want to reproduce in the future, consider using [renv](https://rstudio.github.io/renv/) which enables you to create reproducible environments for R. Using renv, you could capture the exact packages that your application requires and even the versions of those packages that were in use initially. That way when you go to restore this application in the future, you can restore the exact version of the R packages that were being used initially. renv also allows you to update your dependencies when you choose to, which means you have the ability to stay current but won't be surprised by package updates that break your application in the coming months and years.
+For any analysis that you may want to reproduce in the future, consider using [renv](https://rstudio.github.io/renv/) which enables you to create **r**eproducible R **env**ironments. Using renv, you can capture the exact package versions that your application use so that when you go to use this application on another, you can use exactly the same package versions. This is vital for app run in production, just not because it gets the versions right on the first run, but because it also isolates your app from version changes over time.
 
-Another tool for managing dependencies is the [config package](https://github.com/rstudio/config). The config package doesn't actually manage dependencies itself, but it does provide a convenient place for you to track and manage other dependencies that your application requires. For instance, you might specify the path to a CSV file that your application depends on, or the URL of an API that you require. Having these enumerated in the config file gives you a single place where you can track and manage these dependencies. Even better, it enables you to create different configurations for different environments. For example, if your application analyses a database with lots of data, you might choose to configure a few different environments:
+Another tool for managing dependencies is the [config package](https://github.com/rstudio/config). The config package doesn't actually manage dependencies itself, but it does provide a convenient place for you to track and manage dependencies other than R packages. For instance, you might specify the path to a CSV file that your application depends on, or the URL of an API that you require. Having these enumerated in the config file gives you a single place where you can track and manage these dependencies. Even better, it enables you to create different configurations for different environments. For example, if your application analyses a database with lots of data, you might choose to configure a few different environments:
 
 * In the production environment, you connect the app to the real "production"
   database.
@@ -91,17 +90,17 @@ Another tool for managing dependencies is the [config package](https://github.co
 * In development, you might configure the application to use a small CSV with a
   subset of data to allow for faster iterating.
 
-Lastly, be wary of making assumptions about the local file system. If your code has references to data at `C:\data\cars.csv` or `~/my-projects/genes.rds`, for example, you need to realize that these files won't likely exist at these paths when the app is run on another computer. Instead, either rely on a standard path relative to the app directory, or use the config package to make the external dependency explicit.
+Lastly, be wary of making assumptions about the local file system. If your code has references to data at `C:\data\cars.csv` or `~/my-projects/genes.rds`, for example, you need to realise that it's very unlikely that these files will exist on another computer. Instead, either use a path relative to the app directory (e.g. `data/cars.csv` or `genes.rds`), or use the config package to make the external path explicit and configurable.
 
 ## Source code management
 
-Anyone who's been programming for long has inevitably arrived at a state where they've changed their application in ways that broke things and they now want to roll back to a previous, working state. This can be an incredibly arduous task to do manually. Storing your code in a system that tracks versions of your files is a step in the right direction, as you can at least revert to a previous state. But the best case is to have a system that enables you to atomically commit changes to your code in a descriptive way and also to roll back to previous versions of the code. Having a source code management tool becomes especially imperative if multiple people intend to work on a code-base together.
+Anyone who's been programming for long has inevitably arrived at a state where they've accidentally broken their app and want to roll back to a previous working state. This is incredibly arduous is done manually. Fortunately, however, you can rely on a "version-control system" that makes it easy track atomic changes, roll back to previous work, and integrate the work of multiple contributors. 
 
-Git is one such tool that is popular in the R community. It definitely takes some studying to get proficinecy, but any experienced developer will confirm that the effort required is well worth it. [_Happy Git and GitHub for the useR_](https://happygitwithr.com/), by Jenny Bryan, is a great place to start if you're an R user who wants to become familiar with Git.
+The most popular version-control system in the R community is Git. Git is typically paired with GitHub, a website that makes it easy to share your git repos with others. It definitely takes work to become proficient with Git and GitHub, but any experienced developer will confirm that the effort is well worth it. If you're new to git, I'd highly recommend starting with [_Happy Git and GitHub for the useR_](https://happygitwithr.com/), by Jenny Bryan.
 
 ## Continuous integration/deployment (CI, CD)
 
-Once you have source code management and a robust set of automated tests in place, you might benefit from continuous integration (CI). CI is a way to perpetually validate that the changes you're making to your application haven't broken anything. You can use it retroactively (to notify you if a change you've already made broke your application) or proactively (to notify you if a change you're proposing would break before you bring in the change). 
+Once you are using a version control system and have a robust set of automated tests, you might benefit from continuous integration (CI). CI is a way to perpetually validate that the changes you're making to your application haven't broken anything. You can use it retroactively (to notify you if a change you just made broke your application) or proactively (to notify you if a _proposed_ change would break your app).
 
 There are a variety of services that can connect to a Git repo and automatically run tests when you push a new commit or propose changes. Depending on where your code is hosted, you can consider [GitHub actions](https://github.com/features/actions), [Travis CI](https://travis-ci.org/), [Azure Pipelines](https://azure.microsoft.com/en-us/services/devops/pipelines/), [AppVeyor](https://www.appveyor.com/), [Jenkins](https://jenkins.io/), or [GitLab CI/CD](https://about.gitlab.com/product/continuous-integration/), to name a few.
 
@@ -113,18 +112,31 @@ Figure \@ref(fig:ci) shows what this looks like when a CI system is connected to
 
 ## Code reviews
 
-Many software companies have found the benefits of having a programmer other than the author review code before it gets incorporated into a code-base. The process of "code review" has a number of benefits:
+Many software companies have found the benefits of having someone else review code before it's formally incorporated into a code base. This process of "code review" has a number of benefits:
 
 * Catches bugs before they get incorporated into the application making them
   much less expensive to fix.
 
-* Offers teaching opportunities -- programmers at all levels often learn
+* Offers teaching opportunities --- programmers at all levels often learn
   something new by reviewing others' code or by having their code reviewed.
 
 * Facilitates cross-pollination and knowledge sharing across a team to 
   eliminate having only one person who understands the app.
 
-* The resulting questions and conversation often improve the readability of
-  code.
+* The resulting conversation often improves the readability of the code.
 
-Typically, a code review involves someone other than the author, but you might benefit from the practice even if you're in an environment in which you don't have anyone else to review your code. Experienced developers will often agree that taking a moment to review their own code before merging it in to the application will often result in them catching something they'd initially overlooked. When you're ready to submit the code, take a few minutes to read through it as a novice Shiny user would. Are there parts of code someone else might find confusing? Are there areas that might need more automated testing to ensure that they're correct and will remain stable moving forward? You might also be able to find someone who isn't currently involved in the app you're writing who would be interested in trading code review services with you.
+Typically, a code review involves someone other than you, but you can still benefit even if it's only you. Most experienced developers will agree that taking a moment to review your own code often reveals some small flaw, particularly if you can let it sit for at least a few hours between writing and review.
+
+Here are few questions to hold in your head when reviewing code:
+
+* Do new functions have concise but evocative names?
+
+* Are there parts of the code you find confusing?
+
+* What areas are likely to change in the future, and would particularly 
+  benefit from automated testing?
+
+* Does the style of the code match the rest of the app? (Or even better,
+  your group's documented code style.)
+
+If you're embedded in an organisation with a strong engineering culture, setting  up code reviews for data science code should be relatively straightforward, and you'll have existing tools and experience to draw on. If you're in an organisation that has few other software engineers, you may need to do more convincing. 
