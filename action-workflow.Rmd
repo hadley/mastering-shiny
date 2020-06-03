@@ -634,4 +634,4 @@ To simplify this reprex, I had to do a bunch of experimenting and reading up on 
 
 -   Over time, you'll get faster and faster at creating reprexes, and this will become one of your go to techniques when debugging.
 
-When I try and someone with their app on [RStudio community](https://community.rstudio.com/tag/shiny), creating a reprex is always the first thing I do. This isn't some make work exericse I use to fob off people I don't want to help: it's exactly where I start!
+When I try to help someone with their app on [RStudio community](https://community.rstudio.com/tag/shiny), creating a reprex is always the first thing I do. This isn't some make work exericse I use to fob off people I don't want to help: it's exactly where I start!
