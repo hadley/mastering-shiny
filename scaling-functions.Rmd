@@ -4,11 +4,9 @@
 source("common.R")
 ```
 
-Without discipline, as your app gets bigger, it will get harder and harder to understand. In turn, this makes it harder to add new features, and harder to find a solution when something goes wrong (i.e. it's harder to debug). If you're not careful, over time your app will become less and less enjoyable to work on.
+As your app gets bigger, it will gets harder and harder to hold all the pieces in your head, making it harder and harder to understand. In turn, this makes it harder to add new features, and harder to find a solution when something goes wrong (i.e. it's harder to debug). If don't take deliberate steps, the development pace of your app will slow, and it will become will become less and less enjoyable to work on.
 
-Shiny allows you to have one giant `app.R` file, containing a massive `ui` specification and large `server` function. But it's hard to understand anything that runs over a single screen of code. So to continue to grow your app, you need to start to break it up into independent pieces.
-
-This chapter will help you to take the first step in that journey by showing you how to tactically use functions to pull out pieces into unrelated concerns. This tends to have slightly different flavours for UI and server components:
+In this chapter, you'll learn how writing functions can help reduce complexity by extract unrelated concerns in to individual functions. This tends to have slightly different flavours for UI and server components:
 
 * In the UI, you have components that are repeated in multiple places with
   minor variations. Pulling out repeated code into a function reduces duplication
@@ -25,6 +23,8 @@ This chapter will help you to take the first step in that journey by showing you
 I assume that you're already familiar with the basics of functions[^if-not]. The goal of this chapter is to activate your existing skills, showing you some specific cases where using functions can substantially improve the clarity of your app. We'll focus on functions that extract out code that you've already written. 
 
 [^if-not]: If you're not, and you'd like to learn the basics, you might try reading the [Functions chapter](https://r4ds.had.co.nz/functions.html) of _R for Data Science_.
+
+Functions have another important role in Shiny apps: they allow you to spread the logic in your app across multiple files. While you certainly can have one giant `app.R` file, containing a massive `ui` specification and large `server` function, it's much easier to manage when spread across multiple files. When done in the right way, this makes it easy to understand the big picture so you only have to dive into the details when necessary.
 
 Once you've mastered the ideas in this chapter, the next step is to learn how to write code that requires coordination across the front end and back end. This requires **modules**, which you'll learn about in Chapter \@ref(scaling-modules).
 
