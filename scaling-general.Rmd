@@ -140,3 +140,8 @@ Here are few questions to hold in your head when reviewing code:
   your group's documented code style.)
 
 If you're embedded in an organisation with a strong engineering culture, setting  up code reviews for data science code should be relatively straightforward, and you'll have existing tools and experience to draw on. If you're in an organisation that has few other software engineers, you may need to do more convincing. 
+
+Two resources I'd recommend:
+
+* <https://github.com/thoughtbot/guides/tree/master/code-review>
+* <https://google.github.io/eng-practices/review/>
