@@ -548,7 +548,7 @@ server <- function(input, output, session) {
 
   output$breaks <- brks
 }
-shinyApp(server, ui)
+shinyApp(ui, server)
 ```
 
 If you run this reprex, you'll see the same problem in the initial post: an error stating "Type mismatch for min, max, and value. Each must be Date, POSIXt, or number". This is a solid reprex: I can easily run it on my computer, and it immediately illustrates the problem. However, it's a bit long, so it's not clear what's causing the problem.
