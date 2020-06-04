@@ -106,7 +106,7 @@ You can use multiple interactions types on one plot. Just make sure to explain t
 
 ### Brushing
 
-Another way of selecting points on a plot is to use a **brush**, a rectangular selection defined by four edges. In Shiny, using a brush is straightforward once you've mastered `click` and `nearPoints()`: you just switch to `hover` argument and the `brushedPoints()` helper.
+Another way of selecting points on a plot is to use a **brush**, a rectangular selection defined by four edges. In Shiny, using a brush is straightforward once you've mastered `click` and `nearPoints()`: you just switch to `brush` argument and the `brushedPoints()` helper.
 
 Here's another simple example that shows which points have been selected by the brush:
 
