@@ -377,7 +377,7 @@ message(glue("Hello {name}"))
 
 A final useful tool is `str()`, which prints the detailed structure of any object. This is particularly useful if you need to double check you have the type of object that you expect.
 
-Here's an a toy app that shows off some of the basic ideas. Note how I use `message()` inside a `reactive()`: I have to perform the computation, send the message, and then return the previously computed value.
+Here's a toy app that shows off some of the basic ideas. Note how I use `message()` inside a `reactive()`: I have to perform the computation, send the message, and then return the previously computed value.
 
 ```{r}
 ui <- fluidPage(

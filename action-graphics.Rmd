@@ -106,7 +106,7 @@ You can use multiple interactions types on one plot. Just make sure to explain t
 
 ### Brushing
 
-Another way of selecting points on a plot is to use a **brush**, a rectangular selection defined by four edges. In Shiny, using a brush is straightforward once you've mastered `click` and `nearPoints()`: you just switch to `hover` argument and the `brushedPoints()` helper.
+Another way of selecting points on a plot is to use a **brush**, a rectangular selection defined by four edges. In Shiny, using a brush is straightforward once you've mastered `click` and `nearPoints()`: you just switch to `brush` argument and the `brushedPoints()` helper.
 
 Here's another simple example that shows which points have been selected by the brush:
 
@@ -222,7 +222,7 @@ Before we move on, it's important to understand the basic data flow in interacti
 3.  Downstream reactive consumers are recomputed.
 4.  `plotOutput()` generates a new PNG and sends it to the browser.
 
-For local apps, the bottleneck tends to be the time taken to draw the plot. Depending on how complex the plot is, this may take a signficant fraction of a second. But for hosted apps, you also have to take into account the time needed to transmit the event from the browser to the R, and then the rendered plot back from R to the browser.
+For local apps, the bottleneck tends to be the time taken to draw the plot. Depending on how complex the plot is, this may take a signficant fraction of a second. But for hosted apps, you also have to take into account the time needed to transmit the event from the browser to R, and then the rendered plot back from R to the browser.
 
 In general, this means that it's not possible to create Shiny apps where action and response is percieved as instanteous (i.e. the plot appears to update simultaneously with your action upon it). If you need that level of speed, you'll have to perform more computation in javascript. One way to do this is to use an R package that wraps a JS graphics library. Right now, as I write this book, I think you'll get the best experience with the plotly package, as documented in the book *[Interactive web-based data visualization with R, plotly, and shiny](https://plotly-r.com)*, by Carson Sievert.
 
