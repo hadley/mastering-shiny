@@ -57,7 +57,7 @@ Here's a simple example of `nearPoints()` in action, showing a table of data abo
 
 ```{r}
 ui <- fluidPage(
-  plotOutput("plot", click = clickOpts("click")),
+  plotOutput("plot", click = "click"),
   tableOutput("data")
 )
 server <- function(input, output, session) {
