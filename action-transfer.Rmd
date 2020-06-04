@@ -294,6 +294,9 @@ There are a couple of other tricks worth knowing about:
 
 You can see all these pieces put together in `rmarkdown-report/`.
 
+<!-- Want to download multiple reports? You'd need a loop + zip file.
+ e.g. https://community.rstudio.com/t/how-to-download-multiple-word-document-files-with-selectinput-with-each-selected-option-being-a-different-file/68671 -->
+
 ## Case study
 
 To finish up, we'll work through a small case study where we upload a file (with user supplied separator), preview it, perform some optional transformations using the [janitor package](http://sfirke.github.io/janitor), by Sam Firke, and then let the user download it as a `.tsv`. 
