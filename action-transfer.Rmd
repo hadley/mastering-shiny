@@ -28,7 +28,7 @@ Like most other UI components, there are only two required arguments: `id` and `
 
 ### Server
 
-Handling `fileInput()` on the server is a little more complicated than other inputs. Most inputs return simple vectors, but `fineInput()` returns a data frame with four columns:
+Handling `fileInput()` on the server is a little more complicated than other inputs. Most inputs return simple vectors, but `fileInput()` returns a data frame with four columns:
 
 * `name`: the original file name on the user's computer.
 
