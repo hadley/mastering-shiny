@@ -71,7 +71,7 @@ server <- function(input, output, session) {
 }
 ```
 
-When the input to `req()` is not true, it sends a special signal to tell Shiny that the reactive does not have all the inputs that it requires, so it should be "paused". We'll take a brief digression to talk about this before we come back to using it in concert with validate.
+When the input to `req()` is not true, it sends a special signal to tell Shiny that the reactive does not have all the inputs that it requires, so it should be "paused". We'll take a brief digression to talk about this before we come back to using it in concert with `validate()`.
 
 ### Pausing execution with `req()`
 
