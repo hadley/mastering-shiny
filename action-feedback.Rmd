@@ -215,7 +215,7 @@ server <- function(input, output, server) {
 
 ## Notifications {#notifications}
 
-If there isn't a problem and just want to let the user know what's happening, then you want a **notification**. In Shiny, notifications are created with `showNotification()`, and stack in the bottom right of the page. There are three basic ways to use `showNotification()`:
+If there isn't a problem and you just want to let the user know what's happening, then you want a **notification**. In Shiny, notifications are created with `showNotification()`, and stack in the bottom right of the page. There are three basic ways to use `showNotification()`:
 
 -   To show a transient notification that automatically disappears after a fixed amount of time.
 
