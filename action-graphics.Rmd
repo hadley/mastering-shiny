@@ -19,7 +19,7 @@ One of the coolest things about `plotOutput()` is that as well as being an outpu
 
 ### Basics
 
-A plot can respond to four different mouse[^1] events: `click`, `dblClick` (double click), `hover` (when the mouse stays in the same place for a little while), and `brush` (a rectangular selection tool). To turn these events into Shiny inputs, you supply a string to the corresponding `plotOutut()` argument, e.g. `plotOutput("plot", click = "plot_click")`. This creates an `input$plot_click` that you can use to handle mouse clicks on the plot.
+A plot can respond to four different mouse[^1] events: `click`, `dblClick` (double click), `hover` (when the mouse stays in the same place for a little while), and `brush` (a rectangular selection tool). To turn these events into Shiny inputs, you supply a string to the corresponding `plotOutput()` argument, e.g. `plotOutput("plot", click = "plot_click")`. This creates an `input$plot_click` that you can use to handle mouse clicks on the plot.
 
 [^1]: Shiny didn't support touch events when I wrote this chapter, but it might by the time you read this.
 
