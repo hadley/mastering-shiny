@@ -539,7 +539,7 @@ demo$deploy()
 
 If you run this code yourself, you'll notice that it takes a fraction of a second to appear after the app loads. That's because it's reactive: the app must load, trigger a reactive event, which calls the server function, yielding HTML to insert into the page. This is one of the downsides of `renderUI()`; relying on it too much can create a laggy UI. For good performance, strive to keep fixed as much of the user interface as possible, using the techniques described earlier in the chapter.
 
-There's one other problem with this approach: when you change controls, you lose the currently selected value. Maintaining existing state is one of the big challenges of creating UI with code. This is one reason that selectively showing and hiding UI is a better approach if works for you --- because you're not destroying and recreating the controls, you don't need to do anything to presrve the values. However, in many cases, we can fix the problem by setting the `value` of the new input to the current value of the existing control:
+There's one other problem with this approach: when you change controls, you lose the currently selected value. Maintaining existing state is one of the big challenges of creating UI with code. This is one reason that selectively showing and hiding UI is a better approach if works for you --- because you're not destroying and recreating the controls, you don't need to do anything to preserve the values. However, in many cases, we can fix the problem by setting the `value` of the new input to the current value of the existing control:
 
 ```{r}
 server <- function(input, output, session) {
