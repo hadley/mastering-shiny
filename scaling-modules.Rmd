@@ -119,7 +119,7 @@ Note that `moduleServer()` takes care of the namespacing for you: inside of `mod
 
 ### Updated app
 
-Now that we have the ui and server functions, it's good practice to write a function that uses them to generate an app which we can use for experimentation and testing. (You'll learn more about testing in Chapter XXXXX.). Like all Shiny controls, you need to use the same `id` in both UI and server, otherwise the two pieces will not be connected.
+Now that we have the ui and server functions, it's good practice to write a function that uses them to generate an app which we can use for experimentation and testing. (You'll learn more about testing in Chapter 16.). Like all Shiny controls, you need to use the same `id` in both UI and server, otherwise the two pieces will not be connected.
 
 ```{r}
 histogramApp <- function() {
