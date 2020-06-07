@@ -46,7 +46,7 @@ Handling `fileInput()` on the server is a little more complicated than other inp
   may be deleted. The data is always saved to a temporary directory and given 
   a temporary name.
 
-[^mime-type]: MIME type is short for "**m**ulti-purpose **i**nternet **m**ail **e**xtensions type". As you might guess from the name, it was original designed for email systems, but now it's used widely across many internet tools. A MIME type looks like `type/subtype`. Some common examples are `text/csv`, `text/html`, `image/png`, `application/pdf`, `application/vnd.ms-excel` (excel file).
+[^mime-type]: MIME type is short for "**m**ulti-purpose **i**nternet **m**ail **e**xtensions type". As you might guess from the name, it was originally designed for email systems, but now it's used widely across many internet tools. A MIME type looks like `type/subtype`. Some common examples are `text/csv`, `text/html`, `image/png`, `application/pdf`, `application/vnd.ms-excel` (excel file).
 
 I think the easiest way to get to understand this data structure is to make a simple app. Run the following code and upload a few files to get a sense of what data Shiny is providing.
 
