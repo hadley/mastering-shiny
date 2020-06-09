@@ -111,7 +111,7 @@ server <- function(input, output, session) {
 }
 ```
 
-```{r update-button, fig.cap = demo$caption("The app on load (left), after setting simulations to 1 (middle), then settting simulations to 10 (right)."), out.width = "33%", fig.show = "hold", fig.align = "default", echo = FALSE, message = FALSE, cache = FALSE}
+```{r update-button, fig.cap = demo$caption("The app on load (left), after setting simulations to 1 (middle), then setting simulations to 100 (right)."), out.width = "33%", fig.show = "hold", fig.align = "default", echo = FALSE, message = FALSE, cache = FALSE}
 demo <- demo_inline("update-button", ui, server)
 demo$resize(350)
 s1 <- demo$screenshot("onload")
