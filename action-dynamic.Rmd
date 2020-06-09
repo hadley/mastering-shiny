@@ -282,7 +282,7 @@ If you play around with this app, `r demo$link()`, you'll notice that it *mostly
 -   48 C converts to 118 F, so F changes again to 118.
 -   Fortunately 118 F is still 48 C, so the updates stop there.
 
-There's no way around this problem because you have one idea (the temperature) with two expressions in the app (Celsius and Fahrenheit). Here we are lucky that cycle quickly converges to a value that satisfies both constraints. In general, you are better off avoiding these situations, unless you are willing to very carefully analysis the convergence properties of the underlying dynamic system that you've created.
+There's no way around this problem because you have one idea (the temperature) with two expressions in the app (Celsius and Fahrenheit). Here we are lucky that cycle quickly converges to a value that satisfies both constraints. In general, you are better off avoiding these situations, unless you are willing to very carefully analyse the convergence properties of the underlying dynamic system that you've created.
 
 ### Exercises
 
