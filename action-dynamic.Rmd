@@ -525,7 +525,7 @@ server <- function(input, output, session) {
 }
 ```
 
-```{r render-simple, fig.cap = demo$caption("App after setting value to 5 (left), then changing type to numeric (middle), then label to 'my label'."), out.width = "33%", fig.show = "hold", fig.align = "default", echo = FALSE, message = FALSE, cache = FALSE}
+```{r render-simple, fig.cap = demo$caption("App on load (left), then changing type to numeric (middle), then label to 'my label'."), out.width = "33%", fig.show = "hold", fig.align = "default", echo = FALSE, message = FALSE, cache = FALSE}
 demo <- demo_inline("render-simple", ui, server)
 demo$resize(400)
 s1 <- demo$screenshot("onload")
