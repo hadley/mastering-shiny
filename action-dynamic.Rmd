@@ -673,7 +673,7 @@ knitr::include_graphics(c(s1, s2))
 demo$deploy()
 ```
 
-Note the `default_val()` function. I constructed this function because there are two potential "default" values of each colour input: before the input has been constructed `input$col1` is `NULL`, and then afterwards it's `""`. Shiny's `isTruthy()` function (also used by `req()`) abstracts over these differences.
+Note the `default_val()` function. I constructed this function because there are two potential "default" values of each colour input: before the input has been constructed `input$col1` is `NULL`, and then afterwards it's `""`. Shiny's `isTruthy()` function (also used by `req()`) abstracts over these differences. The `%||%` (default value for `NULL`) operator is documented [here](https://rlang.r-lib.org/reference/op-null-default.html).
 
 ### Dynamic filtering
 
