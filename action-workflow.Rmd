@@ -340,7 +340,7 @@ server <- function(input, output, session) {
     if (input$territory == "NA") {
       subset(sales, is.na(TERRITORY))
     } else {
-      subset(sales, TERRITORY == territory)
+      subset(sales, TERRITORY == input$territory)
     }
   })
   output$selected <- renderTable(head(selected(), 10))
