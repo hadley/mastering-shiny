@@ -281,7 +281,7 @@ Ooops! I'd forgotten that `territory` contained a bunch of missing values and `N
 -   Use `which()` to convert the logical vector to an integer vector of `TRUE` locations, which drops `NA`s as side-effect.
 -   Use `%in%` instead `==` because`NA %in% NA` returns `TRUE`, i.e. `sales[sales$TERRITORY %in% "EMEA", ]`.
 
-I decided to use the first form[^3] because I think it's the most explicit, and has the pleasant side-effect off reducing the duplication in my code. I then double-checked that this had the result I expected:
+I decided to use the first form[^3] because I think it's the most explicit, and has the pleasant side-effect of reducing the duplication in my code. I then double-checked that this had the result I expected:
 
 [^3]: I'm using `subset()` so that my app doesn't require any other packages. In a bigger app, I'd probably prefer `dplyr::filter()` just because I'm a little more familiar with its behaviour.
 
