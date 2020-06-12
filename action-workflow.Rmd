@@ -349,7 +349,7 @@ server <- function(input, output, session) {
 
 Hooray! The problem was fixed! But this felt pretty surprising to me --- Shiny had silently converted an `NA` to an `"NA"`, so I also filed a bug report: <https://github.com/rstudio/shiny/issues/2884>.
 
-Several weeks later, I looked at this example again, and started thinking thinking about the different territories. We have Europe, Middle-East, and Africa (EMEA) and Asia-Pacific (APAC). Where was North America? Then it dawned on me: the source data probably used the abbreviation NA, and R was reading it in as a missing value. So the real fix should happen during the data loading:
+Several weeks later, I looked at this example again, and started thinking about the different territories. We have Europe, Middle-East, and Africa (EMEA) and Asia-Pacific (APAC). Where was North America? Then it dawned on me: the source data probably used the abbreviation NA, and R was reading it in as a missing value. So the real fix should happen during the data loading:
 
 ```{r, message = FALSE}
 sales <- readr::read_csv("sales-dashboard/sales_data_sample.csv", na = "")
