@@ -17,7 +17,7 @@ library(shiny)
 
 ## Validation {#validate}
 
-The first and most important feedback you can give to the user is that they've given you bad input. This analogous to writing good functions in R: user-friendly functions give clear error message describing what the expected input is and how you have violated those expectations. Thinking through how the user might misuse your app allows you to provivde informative messages in the UI, rather than allowing errors to trickle through into the R code and generate uninformative errors.
+The first and most important feedback you can give to the user is that they've given you bad input. This analogous to writing good functions in R: user-friendly functions give clear error message describing what the expected input is and how you have violated those expectations. Thinking through how the user might misuse your app allows you to provide informative messages in the UI, rather than allowing errors to trickle through into the R code and generate uninformative errors.
 
 ### Validating input
 
@@ -71,7 +71,7 @@ server <- function(input, output, session) {
 }
 ```
 
-When the input to `req()` is not true, it sends a special signal to tell Shiny that the reactive does not have all the inputs that it requires, so it should be "paused". We'll take a brief digression to talk about this before we come back to using it in concert with validate.
+When the input to `req()` is not true, it sends a special signal to tell Shiny that the reactive does not have all the inputs that it requires, so it should be "paused". We'll take a brief digression to talk about this before we come back to using it in concert with `validate()`.
 
 ### Pausing execution with `req()`
 
@@ -215,7 +215,7 @@ server <- function(input, output, server) {
 
 ## Notifications {#notifications}
 
-If there isn't a problem and just want to let the user know what's happening, then you want a **notification**. In Shiny, notifications are created with `showNotification()`, and stack in the bottom right of the page. There are three basic ways to use `showNotification()`:
+If there isn't a problem and you just want to let the user know what's happening, then you want a **notification**. In Shiny, notifications are created with `showNotification()`, and stack in the bottom right of the page. There are three basic ways to use `showNotification()`:
 
 -   To show a transient notification that automatically disappears after a fixed amount of time.
 

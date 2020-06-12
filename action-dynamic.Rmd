@@ -111,7 +111,7 @@ server <- function(input, output, session) {
 }
 ```
 
-```{r update-button, fig.cap = demo$caption("The app on load (left), after setting simulations to 1 (middle), then settting simulations to 10 (right)."), out.width = "33%", fig.show = "hold", fig.align = "default", echo = FALSE, message = FALSE, cache = FALSE}
+```{r update-button, fig.cap = demo$caption("The app on load (left), after setting simulations to 1 (middle), then setting simulations to 100 (right)."), out.width = "33%", fig.show = "hold", fig.align = "default", echo = FALSE, message = FALSE, cache = FALSE}
 demo <- demo_inline("update-button", ui, server)
 demo$resize(350)
 s1 <- demo$screenshot("onload")
@@ -282,7 +282,7 @@ If you play around with this app, `r demo$link()`, you'll notice that it *mostly
 -   48 C converts to 118 F, so F changes again to 118.
 -   Fortunately 118 F is still 48 C, so the updates stop there.
 
-There's no way around this problem because you have one idea (the temperature) with two expressions in the app (Celsius and Fahrenheit). Here we are lucky that cycle quickly converges to a value that satisfies both constraints. In general, you are better off avoiding these situations, unless you are willing to very carefully analysis the convergence properties of the underlying dynamic system that you've created.
+There's no way around this problem because you have one idea (the temperature) with two expressions in the app (Celsius and Fahrenheit). Here we are lucky that cycle quickly converges to a value that satisfies both constraints. In general, you are better off avoiding these situations, unless you are willing to very carefully analyse the convergence properties of the underlying dynamic system that you've created.
 
 ### Exercises
 
@@ -525,7 +525,7 @@ server <- function(input, output, session) {
 }
 ```
 
-```{r render-simple, fig.cap = demo$caption("App after setting value to 5 (left), then changing type to numeric (middle), then label to 'my label'."), out.width = "33%", fig.show = "hold", fig.align = "default", echo = FALSE, message = FALSE, cache = FALSE}
+```{r render-simple, fig.cap = demo$caption("App on load (left), then changing type to numeric (middle), then label to 'my label'."), out.width = "33%", fig.show = "hold", fig.align = "default", echo = FALSE, message = FALSE, cache = FALSE}
 demo <- demo_inline("render-simple", ui, server)
 demo$resize(400)
 s1 <- demo$screenshot("onload")
@@ -673,7 +673,7 @@ knitr::include_graphics(c(s1, s2))
 demo$deploy()
 ```
 
-Note the `default_val()` function. I constructed this function because there are two potential "default" values of each colour input: before the input has been constructed `input$col1` is `NULL`, and then afterwards it's `""`. Shiny's `isTruthy()` function (also used by `req()`) abstracts over these differences.
+Note the `default_val()` function. I constructed this function because there are two potential "default" values of each colour input: before the input has been constructed `input$col1` is `NULL`, and then afterwards it's `""`. Shiny's `isTruthy()` function (also used by `req()`) abstracts over these differences. The `%||%` (default value for `NULL`) operator is documented [here](https://rlang.r-lib.org/reference/op-null-default.html).
 
 ### Dynamic filtering
 
