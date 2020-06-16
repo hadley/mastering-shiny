@@ -555,7 +555,7 @@ If you run this reprex, you'll see the same problem in the initial post: an erro
 
 To make this reprex simpler we can carefully work through each line of code and see if it's important. While doing this, I discovered:
 
--   Removing the the two lines starting with `print()` didn't affect the error. Those two lines used `lubridate::is.POSIXct()`, which was the only use of lubridate, so once I removed them, I no longer needed to load lubridate.
+-   Removing the the two lines starting with `print()` didn't affect the error. Those two lines used `lubridate::is.POSIXt()`, which was the only use of lubridate, so once I removed them, I no longer needed to load lubridate.
 
 -   `df` is a data frame that's converted to an xts data frame called `timeSeries`. But the only way `timeSeries` is used is via `time(timeSeries)` which returns a date-time. So I created a new variable `datetime` that contained some dummy date-time data. This still yielded the same error, so I removed `timeSeres` and `df`, and since that was the only place xts was used, I also removed `library(xts)`
 
