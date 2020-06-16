@@ -19,6 +19,8 @@ In this, the "best practices", part of the book, you'll learn some key concepts 
 
 Improving your software engineering skills is a lifelong journey. Expect to have frustrations as you start learning them, but understand that everyone experiences the same issues, and if you stick with you'll get past them. Most people go through the same evolution when learning a new techniques: "I don't understand it and have to look it up every time I use" to "I vaguely understand it but still read the documentation a lot" to eventually "I understand them and can use them fluidly". It takes time and practice to get to the final stage.
 
+I recommend setting aside some time each week where to practice your software development skills. During this time, try to avoid touching the behaviour or appearance of your app, but instead focus your efforts on making the app easier to understand and develop. This will make your app easier to change in the future, and as you improve your software development you first attempt at an app will also become higher quality.
+
 ## Code organization
 
 > Any fool can write code that a computer can understand. 
