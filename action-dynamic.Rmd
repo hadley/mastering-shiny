@@ -449,7 +449,7 @@ knitr::include_graphics(c(s1, s2, s3))
 # demo$deploy()
 ```
 
-### Wizard interface
+### Wizard interface {#dynamic-wizard}
 
 You can also use this idea to a "wizard", a type of interface that makes it easier to collect a bunch of information by spreading it across multiple pages. Here we embed action buttons within each "page", making it easy to go forward and back.
 

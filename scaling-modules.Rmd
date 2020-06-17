@@ -520,6 +520,91 @@ We also show a few tricks that you might find helpful in your own modules:
 
 To finish up the chapter, I present a few case studies that show a few more examples of using modules. Unfortunately I don't have the space to show every possible way you might use a module to help simplify your app, but hopefully these examples will give you a little flavour for what you can do, and suggest ways you might extend in the future.
 
+The last two examples focus on more complex ownership cases where some of the UI is generated at different time by different people. This situations are complex because you need to remember the details of how namespacing works.
+
+### Limited selection + other
+
+Another important use of modules is to give complex UI elements a simpler user interface. Here I'm going to create a useful control that Shiny doesn't provide by default: a small set of options displayed with radio buttons coupled with an "other" field. The inside of this module uses multiple input elements, but from the outside it works as single combined object. This makes it useful
+
+I'm going to parametrise the UI side with `label`, `choices`, and `selected` which get passed directly to `radioButtons()`. I also create a `textInput()` containing a placeholder, that defaults to "Other". To combine the text box and the radio button, I take advantage of the fact that `choiceValues` can be a list of HTML elements, including other input widgets.
+
+```{r}
+radioExtraUI <- function(id, label, choices, selected = NULL, placeholder = "Other") {
+  other <- textInput(NS(id, "other"), label = NULL, placeholder = placeholder)
+  
+  names <- if (is.null(names(choices))) choices else names(choices)
+  values <- unname(choices)
+  
+  radioButtons(NS(id, "primary"), 
+    label = label,
+    choiceValues = c(names, "other"),
+    choiceNames = c(as.list(values), list(other)),
+    selected = selected
+  )
+}
+```
+
+On the server, I want to automatically select the "other" radio button if you modify the placeholder value. You could also imagine using validation to ensure that some text is present if other is selected.
+
+```{r}
+radioExtraServer <- function(id) {
+  moduleServer(id, function(input, output, session) {
+    observeEvent(input$other, ignoreInit = TRUE, {
+      updateRadioButtons(session, "primary", selected = "other")
+    })
+    
+    reactive({
+      if (input$primary == "other") {
+        input$other
+      } else {
+        input$primary
+      }
+    })
+  })
+}
+```
+
+Then I wrap up both pieces in an app function so that I can test it. Here I use `…` to pass down any number of arguments into my `radioExtraUI()`.
+
+```{r}
+radioExtraApp <- function(...) {
+  ui <- fluidPage(
+    radioExtraUI("extra", NULL, ...),
+    textOutput("value")
+  )
+  server <- function(input, output, server) {
+    extra <- radioExtraServer("extra")
+    output$value <- renderText(paste0("Selected: ", extra()))
+  }
+  
+  shinyApp(ui, server)
+}
+# radioExtraApp(c("a", "b", "c"))
+```
+
+<!-- TODO: add demo -->
+
+You could continue to wrap up this module for still more specific purposes. For example, one variable that requires a little care is gender, because there are many different ways for people to express their gender.
+
+```{r}
+genderUI <- function(id, label = "Gender") {
+  radioExtraUI(id, "gender", 
+    label = label,
+    choices = c(
+      male = "Male",
+      female = "Female",
+      na = "Prefer not to say"
+    ), 
+    placeholder = "Self-described", 
+    selected = "na"
+  )
+}
+```
+
+Here it's important to provide the most common choices, male and female, an option to not provide that data, and then a write in option where people can use whatever term they're most comfortable with. It's considerate not to a use placeholder of "other" here.
+
+For a deeper dive on this issue, and a discussion of why many commonly used way of asking about gender can be hurtful to some people, I recommend reading "Designing forms for gender diversity and inclusion" by Sabrina Fonseca: <https://uxdesign.cc/d8194cf1f51>.
+
 ### Dynamic UI
 
 Using dynamic UI is relatively straightforward. The main challenge is figuring out whether you're in a UI context where id is explicit, or a server context where id is implicit. To demontrate this, I'm going to pull from a question in Shiny community: <https://community.rstudio.com/t/67898.> This example will also show you how you might wrap up a dialog box inside of a module.
@@ -617,92 +702,83 @@ server <- function(input, output, session) {
 # shinyApp(ui, server)
 ```
 
-### Limited selection + other
+### Wizard
 
-Another important use of modules is to give complex UI elements a simpler user interface. Here I'm going to create a useful control that Shiny doesn't provide by default: a small set of options displayed with radio buttons coupled with an "other" field.
+Section \@ref(dynamic-wizard).
 
-I'm going to parametrise the UI side with `label`, `choices`, and `selected` which get passed directly to `radioButtons()`. I also create a `textInput()` containing a placeholder, that defaults to "Other". To combine the text box and the radio button, I take advantage of the fact that `choiceValues` can be a list of any HTML elements, including other input widgets.
+Most compliated piece of this module is the UI. We want each page (except the last) to have a link to the next page, and a link to the previous page (except the first). Arbitrary number of pages, so take a list. Also provide an optional component that lets the user of the module control what happens when the wizard is "done".
 
 ```{r}
-radioExtraUI <- function(id, label, choices, selected = NULL, placeholder = "Other") {
-  other <- textInput(NS(id, "other"), label = NULL, placeholder = placeholder)
+wizardUI <- function(id, pages, doneButton = NULL) {
+  stopifnot(is.list(pages))
+  n <- length(pages)
+  wrapped <- vector("list", n)
   
-  names <- if (is.null(names(choices))) choices else names(choices)
-  values <- unname(choices)
+  changePage <- function(i, label) {
+    actionButton(NS(id, paste0("go_", i)), label)
+  }
   
-  radioButtons(NS(id, "primary"), 
-    label = label,
-    choiceValues = c(names, "other"),
-    choiceNames = c(as.list(values), list(other)),
-    selected = selected
-  )
+  # Wrap each page in a tabPanel with prev and next buttons
+  for (i in seq_len(n)) {
+    # First page only has next; last page only prev + done
+    button1 <- if (i > 1) changePage(i - 1, "prev")
+    button2 <- if (i < n) changePage(i + 1, "next") else doneButton
+    wrapped[[i]] <- tabPanel(
+      title = paste0("page_", i), 
+      fluidRow(
+        column(12, pages[[i]])
+      ), 
+      fluidRow(
+        column(6, button1),
+        column(6, button2)
+      )
+    )
+  }
+  wrapped$id <- NS(id, "wizard")
+  wrapped$type <- "hidden"
+  do.call("tabsetPanel", wrapped)
 }
 ```
 
-On the server, I want to automatically select the "other" radio button if you modify the placeholder value. You could also imagine adding a validation to ensure sure that if other is selected, some text is present.
+For loop doesn't work - complicated to explain exactly why. But to do with late binding of `i`. Related to how `observeEvent` works; come back to later in book?
 
 ```{r}
-radioExtraServer <- function(id) {
+wizardServer <- function(id, n) {
   moduleServer(id, function(input, output, session) {
-    observeEvent(input$other, ignoreInit = TRUE, {
-      updateRadioButtons(session, "primary", selected = "other")
-    })
-    
-    reactive({
-      if (input$primary == "other") {
-        input$other
-      } else {
-        input$primary
-      }
-    })
+    listen <- function(i) {
+      observeEvent(input[[paste0("go_", i)]], {
+        updateTabsetPanel(session, "wizard", selected = paste0("page_", i))
+      })  
+    }
+    lapply(seq_len(n), listen)
   })
 }
 ```
 
-And then I wrap up both pieces in an app function so that I can test it.
 
 ```{r}
-radioExtraApp <- function(...) {
-  ui <- fluidPage(
-    radioExtraUI("extra", NULL, ...),
-    textOutput("value")
-  )
-  server <- function(input, output, server) {
-    extra <- radioExtraServer("extra")
-    output$value <- renderText(paste0("Selected: ", extra()))
-  }
+wizardApp <- function(...) {
+  pages <- list(...)
   
+  ui <- fluidPage(
+    wizardUI("whiz", pages)
+  )
+  server <- function(input, output, session) {
+    wizardServer("whiz", length(pages))
+  }
   shinyApp(ui, server)
 }
-# radioExtraApp(c("a", "b", "c"))
+
+wizardApp(
+  "Page 1",
+  "Page 2",
+  "Page 3",
+  "Page 4"
+)
 ```
 
-<!-- TODO: add demo -->
+Let's use in a more realistic example where each page contains 
 
-You could continue to wrap up this module for still more specific purposes. For example, one variable that requires a little care is gender, because there are many different ways for people to express their gender. For a deeper dive on this issue, and a discussion of why many commonly used way of asking about gender can be hurtful to some people, I recommend reading "Designing forms for gender diversity and inclusion" by Sabrina Fonseca: <https://uxdesign.cc/d8194cf1f51>.
-
-```{r}
-genderUI <- function(id, label = "Gender") {
-  radioExtraUI(id, "gender", 
-    label = label,
-    choices = c(
-      male = "Male",
-      female = "Female",
-      na = "Prefer not to say"
-    ), 
-    placeholder = "Self-described", 
-    selected = "na"
-  )
-}
-```
-
-Here it's important to provide the most common choices, male and female, an option to not provide that data, and then a write in option where people can use whatever term they're most comfortable with. It's considerate not to use placeholder of "other" here.
-
-### Wizard
-
--   Buttons go in container not individual pages.
--   Figure out some hack to disable prev button on first page.
--   Note that don't need to worry about namespacing UI supplied by module user.
 
 ## Single object modules
 
@@ -878,3 +954,5 @@ In Shiny, UI and server are inherently disconnected; Shiny doesn't know which UI
       })
     }
     ```
+
+8.  In `radioExtraServer()`, return a list that contains both the value and whether or not it came from other.
