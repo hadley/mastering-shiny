@@ -702,59 +702,89 @@ server <- function(input, output, session) {
 # shinyApp(ui, server)
 ```
 
-### Wizard
+### Wizard {#module-wizard}
 
-Section \@ref(dynamic-wizard).
+Our last and most complex module creates a helper for making wizards, a style of UI where the user is stepped through page-by-page. You saw an example of how to create a wizard interface using `tabsetPanel()` in Section \@ref(dynamic-wizard), and here we'll automate the whole process.
 
-Most compliated piece of this module is the UI. We want each page (except the last) to have a link to the next page, and a link to the previous page (except the first). Arbitrary number of pages, so take a list. Also provide an optional component that lets the user of the module control what happens when the wizard is "done".
+Most complicated piece of this module is the UI, and the most complicated part of the UI are the buttons. We want each page to link to both the previous and the next page. We'll first create a pair of functions to create those buttons:
+
+```{r}
+nextPage <- function(id, i) {
+  actionButton(NS(id, paste0("go_", i, "_", i + 1)), "next")
+}
+prevPage <- function(id, i) {
+  actionButton(NS(id, paste0("go_", i, "_", i - 1)), "prev")
+}
+```
+
+Note the id of the button - we need to create unique identifiers so each button needs to include both the target and destination page. `"go_{from}_{to}"`
+
+Then we write a function that creates a page of the wizard. This will contain a title (not shown, but used to identify the page for switching), the contents of the page (supplied by the user), and the two buttons. Not every page will have both buttons so I mark them as optional by supplying a default value of `NULL`.
+
+```{r}
+wrapPage <- function(title, page, button_left = NULL, button_right = NULL) {
+  tabPanel(
+    title = title, 
+    fluidRow(
+      column(12, page)
+    ), 
+    fluidRow(
+      column(6, button_left),
+      column(6, button_right)
+    )
+  )
+}
+```
+
+Then we can put it all together. We take a list of pages and create the buttons for each page, then wrap up the user supplied page into a `tabPanel`, then combine all the panels into a `tabsetPanel`.
 
 ```{r}
 wizardUI <- function(id, pages, doneButton = NULL) {
   stopifnot(is.list(pages))
   n <- length(pages)
+  
   wrapped <- vector("list", n)
-  
-  changePage <- function(i, label) {
-    actionButton(NS(id, paste0("go_", i)), label)
-  }
-  
-  # Wrap each page in a tabPanel with prev and next buttons
-  for (i in seq_len(n)) {
+  for (i in seq_along(pages)) {
     # First page only has next; last page only prev + done
-    button1 <- if (i > 1) changePage(i - 1, "prev")
-    button2 <- if (i < n) changePage(i + 1, "next") else doneButton
-    wrapped[[i]] <- tabPanel(
-      title = paste0("page_", i), 
-      fluidRow(
-        column(12, pages[[i]])
-      ), 
-      fluidRow(
-        column(6, button1),
-        column(6, button2)
-      )
-    )
+    lhs <- if (i > 1) prevPage(id, i)
+    rhs <- if (i < n) nextPage(id, i) else doneButton
+    wrapped[[i]] <- wrapPage(paste0("page_", i), pages[[i]], lhs, rhs)
   }
+  
+  # Create tabsetPanel
+  # https://github.com/rstudio/shiny/issues/2927
   wrapped$id <- NS(id, "wizard")
   wrapped$type <- "hidden"
   do.call("tabsetPanel", wrapped)
 }
 ```
 
-For loop doesn't work - complicated to explain exactly why. But to do with late binding of `i`. Related to how `observeEvent` works; come back to later in book?
+There are two little tricks here:
+
+-   Firstly, the page navigation is a little trickier than I original described. The first page doesn't have a previous button, and the last page doesn't have a next button. Instead, for the last page, we allow the user to supply whatever control they like.
+
+-   `tabsetPanel()` doesn't allow us to pass in a list of tabs, so we need to do a little `do.call()` magic to make it work. Hopefully this will be simplified in a future version of Shiny.
+
+Now we've completed the UI side of the module, and we need to turn to the server. The only thing that the server needs to do is make the buttons work, i.e. we need to add an `observeEvent()` for every button to ensure that updates the tabset to the correct panel.
+
+This poses a bit of a new challenge because we don't know exactly how many buttons there are, so we need to generate the `observeEvent()` calls dynamically. We'll come back to this idea in Chapter XYZ, but for now, just remember what we did in Section \@ref(multiple-controls): switch from `input$` to `input[[]]`.
 
 ```{r}
 wizardServer <- function(id, n) {
   moduleServer(id, function(input, output, session) {
-    listen <- function(i) {
-      observeEvent(input[[paste0("go_", i)]], {
-        updateTabsetPanel(session, "wizard", selected = paste0("page_", i))
+    listen <- function(from, to) {
+      observeEvent(input[[paste0("go_", from, "_", to)]], {
+        updateTabsetPanel(session, "wizard", selected = paste0("page_", to))
       })  
     }
-    lapply(seq_len(n), listen)
+    ids <- seq_len(n)
+    lapply(ids[-1], function(i) listen(i, i - 1))
+    lapply(ids[-n], function(i) listen(i, i + 1))
   })
 }
 ```
 
+Now we can construct and app and simple example to make sure we've plumbed everything together correctly:
 
 ```{r}
 wizardApp <- function(...) {
@@ -768,7 +798,8 @@ wizardApp <- function(...) {
   }
   shinyApp(ui, server)
 }
-
+```
+```{r, eval = FALSE}
 wizardApp(
   "Page 1",
   "Page 2",
@@ -777,8 +808,42 @@ wizardApp(
 )
 ```
 
-Let's use in a more realistic example where each page contains 
+Now lets use it in a slightly more realistic app that has inputs and outputs:
 
+```{r}
+page1 <- tagList(
+  textInput("name", "What's your name?")
+)
+page2 <- tagList(
+  numericInput("age", "How old are you?", 20)
+)
+page3 <- tagList(
+  "Is this data correct?",
+  verbatimTextOutput("info")
+)
+
+ui <- fluidPage(
+  wizardUI(
+    id = "demographics", 
+    pages = list(page1, page2, page3), 
+    doneButton = actionButton("done", "Submit")
+  )
+)
+server <- function(input, output, session) {
+  wizardServer("demographics", 3)
+  observeEvent(input$done, showModal(
+    modalDialog("Thank you!", footer = NULL)
+  ))
+  
+  output$info <- renderText(paste0(
+    "Age: ", input$age, "\n",
+    "Name: ", input$name, "\n"
+  ))
+}
+shinyApp(ui, server)
+```
+
+Note that final app includes a mix of namespaced and raw ids. This allows us as the module author to not have to worry about id names that user users. 
 
 ## Single object modules
 

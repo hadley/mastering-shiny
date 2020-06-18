@@ -219,3 +219,39 @@ server <- function(input, output, session) {
 ```
 
 The other big advantage is that you can play with `load_file()` at the console, outside of your Shiny app. If you move towards formal testing of your app (see Chapter \@ref(scaling-testing)), this also makes that code easier to test.
+
+### Internal functions
+
+Most of the time you'll want to make the function completely independent of the server function so that you can put it in a separate file. However, if the function needs to use `input`, `output`, or `session` it may make sense for the function to live inside the server function:
+
+```{r}
+server <- function(input, output, session) {
+  switch_page <- function(i) {
+    updateTabsetPanel(session, "wizard", selected = paste0("page_", i))
+  }
+  
+  observeEvent(input$page_12, switch_page(2))
+  observeEvent(input$page_21, switch_page(1))
+  observeEvent(input$page_23, switch_page(3))
+  observeEvent(input$page_32, switch_page(2))
+}
+```
+
+This doesn't make testing or debugging any easier, but it does reduce duplicated code in.
+
+We could of course add `session` to the arguments of the function:
+
+```{r}
+switch_page <- function(session, i) {
+  updateTabsetPanel(session, "wizard", selected = paste0("page_", i))
+}
+
+server <- function(input, output, session) {
+  observeEvent(input$page_12, switch_page(session, 2))
+  observeEvent(input$page_21, switch_page(session, 1))
+  observeEvent(input$page_23, switch_page(session, 3))
+  observeEvent(input$page_32, switch_page(session, 2))
+}
+```
+
+But this feels weird as the function is still fundamentally coupled to this app because it only affects a control named "wizard" with a very specific set of tabs.

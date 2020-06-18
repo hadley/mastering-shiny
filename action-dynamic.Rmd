@@ -488,7 +488,7 @@ server <- function(input, output, session) {
 
 <!-- TODO: add demo -->
 
-(Note the use of the `switch_page()` function to reduce the amount of duplication in the server code. We'll come back to this idea in Chapter \@ref(scaling-functions).)
+Note the use of the `switch_page()` function to reduce the amount of duplication in the server code. We'll come back to this idea in Chapter \@ref(scaling-functions), and then create a module to automate wizard interfaces in Section \@ref(module-wizard).
 
 ### Exercises
 
@@ -565,7 +565,7 @@ library(purrr)
 
 If you're not familiar with the `map()` and `reduce()` of functional programming, you might want to take a brief detour to read *[Functional programming](https://adv-r.hadley.nz/functionals.html)* before continuing. We'll also come back to this idea in Chapter \@ref(module-functions).
 
-### Multiple controls
+### Multiple controls {#multiple-controls}
 
 An important use of `renderUI()` is when you need to create an arbitrary number of controls. For example, imagine you'd like the user to be able to supply their own palette of colours. They'll first specify how many colours they want, and then supply a value for each colour. The `ui` is pretty simple: we have a `numericInput()` that controls the number of inputs, a `uiOutput()` where the generated text boxes will go, and a `textOutput()` that demonstrates that we've plumbed everything together correctly.
 
