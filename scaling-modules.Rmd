@@ -928,80 +928,11 @@ In Shiny, UI and server are inherently disconnected; Shiny doesn't know which UI
 
 ## Exercises
 
-1.  The following app plots user selected variables from the `msleep` dataset for three different types of mammals (carnivores, omnivores, and herbivores), with one tab for each type of mammal. Remove the redundancy in the `selectInput()` definitions with the use of functions.
+1.  Example passing `input$foo` to reactive and it not working.
 
-    ```{r, eval = FALSE}
-    library(tidyverse)
+3.  Rewrite `selectVarServer()` so that both `data` and `filter` are reactive. Pair it with a app function that lets the user pick the dataset with the `dataset` module, a function with an `inputSelect()` that lets the user filter for numeric, character, or factor variables.
 
-    ui <- fluidPage(
-      selectInput(inputId = "x",
-                  label = "X-axis:",
-                  choices = c("sleep_total", "sleep_rem", "sleep_cycle", 
-                              "awake", "brainwt", "bodywt"),
-                  selected = "sleep_rem"),
-      selectInput(inputId = "y",
-                  label = "Y-axis:",
-                  choices = c("sleep_total", "sleep_rem", "sleep_cycle", 
-                              "awake", "brainwt", "bodywt"),
-                  selected = "sleep_total"),
-      tabsetPanel(id = "vore",
-                  tabPanel("Carnivore",
-                           plotOutput("plot_carni")),
-                  tabPanel("Omnivore",
-                           plotOutput("plot_omni")),
-                  tabPanel("Herbivore",
-                           plotOutput("plot_herbi")))
-    )
-
-    server <- function(input, output, session) {
-
-      # make subsets
-      carni <- reactive( filter(msleep, vore == "carni") )
-      omni  <- reactive( filter(msleep, vore == "omni")  )
-      herbi <- reactive( filter(msleep, vore == "herbi") )
-
-      # make plots
-      output$plot_carni <- renderPlot({
-        ggplot(data = carni(), aes_string(x = input$x, y = input$y)) +
-          geom_point()
-      }, res = 96)
-      output$plot_omni <- renderPlot({
-        ggplot(data = omni(), aes_string(x = input$x, y = input$y)) +
-          geom_point()
-      }, res = 96)
-      output$plot_herbi <- renderPlot({
-        ggplot(data = herbi(), aes_string(x = input$x, y = input$y)) +
-          geom_point()
-      }, res = 96)
-
-    }
-
-    shinyApp(ui = ui, server = server)
-    ```
-
-2.  Continue working with the same app from the previous exercise, and further remove redundancy in the code by modularizing how subsets and plots are created.
-
-3.  Suppose you have an app that is slow to launch when a user visits it. Can\
-    modularizing your app code help solve this problem? Explain your reasoning.
-
-4.  Example passing `input$foo` to reactive and it not working.
-
-5.  The following module input provides a text control that lets you type a date in ISO8601 format (yyyy-mm-dd). Complete the module by providing a server function that uses the "error" output to display a message if the entered value is not a valid date. You can use `strptime(x, "%Y-%m-%d")` to parse the string; it will return `NA` if the value isn't a valid date.
-
-    ```{r}
-    ymdDateInput <- function(id, label) {
-      label <- paste0(label, " (yyyy-mm-dd)")
-      
-      fluidRow(
-        textInput(NS(id, "date"), label),
-        textOutput(NS(id, "error"))
-      )
-    }
-    ```
-
-6.  Rewrite `selectVarServer()` so that both `data` and `filter` are reactive. Pair it with a app function that lets the user pick the dataset with the `dataset` module, a function with an `inputSelect()` that lets the user filter for numeric, character, or factor variables.
-
-7.  The following code defines output and server components of a module that takes a numeric input and produces a bulleted list of three summary statistics. Create an app function that allows you to experiment with it. The app function should take a data frame as input, and use `numericVarSelectInput()` to pick the variable to summarise.
+4.  The following code defines output and server components of a module that takes a numeric input and produces a bulleted list of three summary statistics. Create an app function that allows you to experiment with it. The app function should take a data frame as input, and use `numericVarSelectInput()` to pick the variable to summarise.
 
     ```{r}
     summaryOuput <- function(id) {
@@ -1026,6 +957,20 @@ In Shiny, UI and server are inherently disconnected; Shiny doesn't know which UI
     }
     ```
 
-8.  In `radioExtraServer()`, return a list that contains both the value and whether or not it came from other.
+2.  The following module input provides a text control that lets you type a date in ISO8601 format (yyyy-mm-dd). Complete the module by providing a server function that uses `output$error` to display a message if the entered value is not a valid date. The module should return a `Date` object for valid dates. (Hint: use `strptime(x, "%Y-%m-%d")` to parse the string; it will return `NA` if the value isn't a valid date.)
 
-9.  In `wizardServer()` verify that the namespacing has been set up correctly by using two or more wizards in a single add, and checking that you can navigate through each wizard independently.
+    ```{r}
+    ymdDateUI <- function(id, label) {
+      label <- paste0(label, " (yyyy-mm-dd)")
+      
+      fluidRow(
+        textInput(NS(id, "date"), label),
+        textOutput(NS(id, "error"))
+      )
+    }
+    ```
+
+5.  In `radioExtraServer()`, return a list that contains both the value and whether or not it came from other.
+
+6.  In `wizardServer()` verify that the namespacing has been set up correctly by using two or more wizards in a single add, and checking that you can navigate through each wizard independently.
+
