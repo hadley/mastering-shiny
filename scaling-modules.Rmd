@@ -704,9 +704,9 @@ server <- function(input, output, session) {
 
 ### Wizard {#module-wizard}
 
-Our last and most complex module creates a helper for making wizards, a style of UI where the user is stepped through page-by-page. You saw an example of how to create a wizard interface using `tabsetPanel()` in Section \@ref(dynamic-wizard), and here we'll automate the whole process.
+Our last and most complex module is helper for making wizards, a style of UI where you break a complex process down into a series of simple pages that the user works through one-by-one. I showed how to create a basic wizard in Section \@ref(dynamic-wizard). Now we'll automate the process, so that when creating a wizard you can focus on the content of each page, rather on how they are connected together to form a whole.
 
-Most complicated piece of this module is the UI, and the most complicated part of the UI are the buttons. We want each page to link to both the previous and the next page. We'll first create a pair of functions to create those buttons:
+To explain this module I'm going to start from the bottom and we'll work our way up. The main part of the wizard UI are the buttons. Each page has two buttons: one to take them to on to the next page, and one to return them to the previous. We'll start by creating helpers to build these buttons:
 
 ```{r}
 nextPage <- function(id, i) {
@@ -717,9 +717,11 @@ prevPage <- function(id, i) {
 }
 ```
 
-Note the id of the button - we need to create unique identifiers so each button needs to include both the target and destination page. `"go_{from}_{to}"`
+The only real complexity here is the `id`: since each input element needs to have a unique id, the id for each button needs to include both the current and the destination page.
 
-Then we write a function that creates a page of the wizard. This will contain a title (not shown, but used to identify the page for switching), the contents of the page (supplied by the user), and the two buttons. Not every page will have both buttons so I mark them as optional by supplying a default value of `NULL`.
+Next I write a function to generate a page of the wizard. This includes contain a "title" (not shown, but used to identify the page for switching), the contents of the page (supplied by the user), and the two buttons[^3].
+
+[^3]: Not every page will have both buttons (more on that shortly) so I mark them as optional by supplying a default value of `NULL`.
 
 ```{r}
 wrapPage <- function(title, page, button_left = NULL, button_right = NULL) {
@@ -736,7 +738,11 @@ wrapPage <- function(title, page, button_left = NULL, button_right = NULL) {
 }
 ```
 
-Then we can put it all together. We take a list of pages and create the buttons for each page, then wrap up the user supplied page into a `tabPanel`, then combine all the panels into a `tabsetPanel`.
+Then we can put it all together to generate the whole wizard. We loop over the list of pages provided by the user, create the buttons, then wrap up the user supplied page into a `tabPanel`, then combine all the panels into a `tabsetPanel`. Note that there are two special cases for buttons:
+
+-   The first page doesn't have a previous button. Here I use a trick that `if` returns `NULL` if the condition is `FALSE` and there no else block.
+
+-   The last page uses an input control supplied by the user. I think this is the simplest way to allow the user to control what happens when the wizard is done.
 
 ```{r}
 wizardUI <- function(id, pages, doneButton = NULL) {
@@ -759,30 +765,28 @@ wizardUI <- function(id, pages, doneButton = NULL) {
 }
 ```
 
-There are two little tricks here:
+The code to create the tabset panel requires a little explanation: unfortunately `tabsetPanel()` doesn't allow us to pass in a list of tabs. So instead we need to do a little `do.call()` magic to make it work. `do.call(function_name, list(arg1, arg2, …)` is equivalent to `function_name(arg1, arg2, …)`, so here we're creating a call like `tabstPanel(pages[[1]], pages[[2]], …, id = NS(id, "wizard"), type = "hidden")`. Hopefully this will be simplified in a future version of Shiny.
 
--   Firstly, the page navigation is a little trickier than I original described. The first page doesn't have a previous button, and the last page doesn't have a next button. Instead, for the last page, we allow the user to supply whatever control they like.
+Now that we've completed the module UI, we need to turn our attention to the module server. The essence of the server is straightforward: we just need to make buttons work, so that you can travel from page-to-page in either direction. To do that we need to setup a `observeEvent()` for each button that calls `updateTabsetPanel()`. This would be relativley simple if we knew exactly how many pages there were. But we don't, because the user of the module gets to control that.
 
--   `tabsetPanel()` doesn't allow us to pass in a list of tabs, so we need to do a little `do.call()` magic to make it work. Hopefully this will be simplified in a future version of Shiny.
-
-Now we've completed the UI side of the module, and we need to turn to the server. The only thing that the server needs to do is make the buttons work, i.e. we need to add an `observeEvent()` for every button to ensure that updates the tabset to the correct panel.
-
-This poses a bit of a new challenge because we don't know exactly how many buttons there are, so we need to generate the `observeEvent()` calls dynamically. We'll come back to this idea in Chapter XYZ, but for now, just remember what we did in Section \@ref(multiple-controls): switch from `input$` to `input[[]]`.
+So instead, we need to do a little functional programming to set up the `(n - 1) * 2` observers (two observers for each page except for the first and last, which only need one). The server function below starts by extracting out the basic code we need for one button in the `changePage()` function. It uses `input[[]]`, as in Section \@ref(multiple-controls), so we can refer to control dynamically. Then we use `lapply()` to loop over all the previous buttons (needed for every page except the first), and the all the next buttons (needed for every page except the last).
 
 ```{r}
 wizardServer <- function(id, n) {
   moduleServer(id, function(input, output, session) {
-    listen <- function(from, to) {
+    changePage <- function(from, to) {
       observeEvent(input[[paste0("go_", from, "_", to)]], {
         updateTabsetPanel(session, "wizard", selected = paste0("page_", to))
       })  
     }
     ids <- seq_len(n)
-    lapply(ids[-1], function(i) listen(i, i - 1))
-    lapply(ids[-n], function(i) listen(i, i + 1))
+    lapply(ids[-1], function(i) changePage(i, i - 1))
+    lapply(ids[-n], function(i) changePage(i, i + 1))
   })
 }
 ```
+
+Note that it's not possible to use a for loop instead of `map()`/`lapply()` here; we'll come back to why Chapter XYZ.
 
 Now we can construct and app and simple example to make sure we've plumbed everything together correctly:
 
@@ -799,16 +803,20 @@ wizardApp <- function(...) {
   shinyApp(ui, server)
 }
 ```
+
 ```{r, eval = FALSE}
 wizardApp(
   "Page 1",
   "Page 2",
-  "Page 3",
-  "Page 4"
+  "Page 3"
 )
 ```
 
-Now lets use it in a slightly more realistic app that has inputs and outputs:
+Unfortunately we need to repeat ourselves slightly when using the module: need to make sure that `n` argument to `wizardServer()` is consistent with the `pages` argument to `wizardUi()`. This is a principled limitation of the module system which we'll discuss in more detail in Section \@ref(module-objects).
+
+<!-- TODO: add demo -->
+
+Now lets use the wizard in a slightly more realistic app that has inputs and outputs. The main point to notice is that even though the pages are displayed by the module, their ids are controlled by the user of the module. The creator of the control gets control over namespacing; it doesn't matter who ends up assembling the control for final display on the webpage.
 
 ```{r}
 page1 <- tagList(
@@ -831,6 +839,7 @@ ui <- fluidPage(
 )
 server <- function(input, output, session) {
   wizardServer("demographics", 3)
+
   observeEvent(input$done, showModal(
     modalDialog("Thank you!", footer = NULL)
   ))
@@ -840,12 +849,9 @@ server <- function(input, output, session) {
     "Name: ", input$name, "\n"
   ))
 }
-shinyApp(ui, server)
 ```
 
-Note that final app includes a mix of namespaced and raw ids. This allows us as the module author to not have to worry about id names that user users. 
-
-## Single object modules
+## Single object modules {#module-objects}
 
 To conclude the chapter, I wanted to finish up with a brief discussion of a common reaction to modules. Feel free to skip this section if that wasn't your reaction.
 
@@ -1021,3 +1027,5 @@ In Shiny, UI and server are inherently disconnected; Shiny doesn't know which UI
     ```
 
 8.  In `radioExtraServer()`, return a list that contains both the value and whether or not it came from other.
+
+9.  In `wizardServer()` verify that the namespacing has been set up correctly by using two or more wizards in a single add, and checking that you can navigate through each wizard independently.
