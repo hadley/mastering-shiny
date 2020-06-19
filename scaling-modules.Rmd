@@ -605,106 +605,9 @@ Here it's important to provide the most common choices, male and female, an opti
 
 For a deeper dive on this issue, and a discussion of why many commonly used way of asking about gender can be hurtful to some people, I recommend reading "Designing forms for gender diversity and inclusion" by Sabrina Fonseca: <https://uxdesign.cc/d8194cf1f51>.
 
-### Dynamic UI
-
-Using dynamic UI is relatively straightforward. The main challenge is figuring out whether you're in a UI context where id is explicit, or a server context where id is implicit. To demontrate this, I'm going to pull from a question in Shiny community: <https://community.rstudio.com/t/67898.> This example will also show you how you might wrap up a dialog box inside of a module.
-
-First we create a module that
-
-```{r}
-settingsUi <- function(id) {
-  modalDialog(
-    uiOutput(NS(id, "controls")),
-    title = "Settings",
-    footer = modalButton("Dismiss"),
-    size = "l",
-    easyClose = FALSE,
-    fade = TRUE
-  )
-}
-settingsServer <- function(id, df) {
-  stopifnot(is.reactive(df))
-  
-  moduleServer(id, function(input, output, session) {
-    output$controls <- renderUI({
-      sliderInput(NS(id, "obs"), "Number of observations", min = 1, max = nrow(df()), value = 6)
-    })
-    reactive(input$obs %||% 6)
-  })
-}
-
-settingsApp <- function(df) {
-  ui <- fluidPage(
-    datasetInput("data", is.data.frame),
-    tableOutput("table"),
-    actionButton("adv", "Settings")
-  )
-  server <- function(input, output, session) {
-    df <- datasetServer("data")
-    
-    n <- settingsServer("settings", df)
-    output$table <- renderTable(head(df(), n()))
-      
-    observeEvent(input$show_settings, {
-      showModal(settingsUi("settings"))
-    })
-
-  }
-  shinyApp(ui, server)
-}
-```
-
-Comment on what happens when you wrap this in a server. Need to carefully think about whether you're in "UI" or in "server".
-
-```{r}
-simpleUi <- function(id) {
-  tabPanel(NS(id, "panel"),
-    tagList(
-      selectInput(NS(id, "d"), "Dataset:", c("iris", "mtcars", "iris3")),
-      verbatimTextOutput(NS(id, "df")),
-      actionButton(NS(id, "show_settings"), "Settings")
-    )
-  )
-}
-
-simpleServer <- function(id) {
-  moduleServer(id, function(input, output, session) {
-    df <- reactive({
-      switch(input$d,
-        "iris" = iris,
-        "mtcars" = mtcars,
-        "iris3" = iris3
-      )
-    })
-    output$df <- renderPrint(dim(df()))
-    
-    observeEvent(input$show_settings, {
-      showModal(settingsUi(NS(id, "settings")))
-    })
-    settingsServer("settings", df)
-  })
-}
-```
-
-```{r}
-# Basic Setup -------------------------------------------------------------
-ui <- shinyUI(
-  navbarPage(
-    "My application",
-    simpleUi("v1"),
-    simpleUi("v2")
-  )
-)
-server <- function(input, output, session) {
-  simpleServer("v1")
-  simpleServer("v2")
-}
-# shinyApp(ui, server)
-```
-
 ### Wizard {#module-wizard}
 
-Our last and most complex module is helper for making wizards, a style of UI where you break a complex process down into a series of simple pages that the user works through one-by-one. I showed how to create a basic wizard in Section \@ref(dynamic-wizard). Now we'll automate the process, so that when creating a wizard you can focus on the content of each page, rather on how they are connected together to form a whole.
+Next we'll tackle a pair of case studies that dive into some subtleties of namespacing. We'll start with a module that wraps up a wizard interface, a style of UI where you break a complex process down into a series of simple pages that the user works through one-by-one. I showed how to create a basic wizard in Section \@ref(dynamic-wizard). Now we'll automate the process, so that when creating a wizard you can focus on the content of each page, rather on how they are connected together to form a whole.
 
 To explain this module I'm going to start from the bottom and we'll work our way up. The main part of the wizard UI are the buttons. Each page has two buttons: one to take them to on to the next page, and one to return them to the previous. We'll start by creating helpers to build these buttons:
 
@@ -851,7 +754,64 @@ server <- function(input, output, session) {
 }
 ```
 
-## Single object modules {#module-objects}
+### Dynamic UI
+
+We'll finish up with a case study that uses dynamic UI (the topic of Chapter \@ref(action-dynamic)). This forces you to figure out whether you're in a UI context where the namespace `id` is used explicitly in a `NS()` call, or in a server context where namespace `id` handled automatically.
+
+This example is derived from a question in Shiny community: <https://community.rstudio.com/t/67898.> I've simplified it as much as possible for educational purposes, so you might want to read the original post for a more realistic example. The goal of this module is to provide an "advanced settings" dialog box that lets you control settings that aren't important enough to take up space in the main UI. We're going to make the dialog dynamic, so we can reuse the same code for different datasets.
+
+```{r}
+settingsDialog <- function(id) {
+  modalDialog(
+    uiOutput(NS(id, "controls")),
+    title = "Settings"
+  )
+}
+```
+
+Because we're using a dynamic user interface, most of the work is going to happen on the server side. To keep things simple, here we'll going to expose a single control, the number of rows to display. However, we'll design the server function to be a little more general, returning a list of values so it's easier to extend in the future.
+
+```{r}
+settingsServer <- function(id, df, nrow = 6) {
+  stopifnot(is.reactive(df))
+  
+  moduleServer(id, function(input, output, session) {
+    output$controls <- renderUI({
+      sliderInput(NS(id, "obs"), "Number of observations", min = 1, max = nrow(df()), value = nrow)
+    })
+    list(
+      nrow = reactive(input$obs %||% nrow)
+    )
+  })
+}
+```
+
+Note that we need to use `NS()` inside here, even though we're inside a server function. The automatic namespacing that `moduleServer()` performs only applies to `input`, `output`, and `session`; when generating user interface elements, we still need to call `NS()`.
+
+Now we wrap it up into an app we can play around with:
+
+```{r}
+settingsApp <- function(df) {
+  ui <- fluidPage(
+    datasetInput("data", is.data.frame),
+    tableOutput("table"),
+    actionButton("adv", "Settings")
+  )
+  server <- function(input, output, session) {
+    df <- datasetServer("data")
+    
+    observeEvent(input$show_settings, {
+      showModal(settingsDialog("settings"))
+    })
+    settings <- settingsServer("settings", df)
+    
+    output$table <- renderTable(head(df(), settings$nrow()))
+  }
+  shinyApp(ui, server)
+}
+```
+
+## Single object modules
 
 To conclude the chapter, I wanted to finish up with a brief discussion of a common reaction to modules. Feel free to skip this section if that wasn't your reaction.
 
@@ -930,9 +890,9 @@ In Shiny, UI and server are inherently disconnected; Shiny doesn't know which UI
 
 1.  Example passing `input$foo` to reactive and it not working.
 
-3.  Rewrite `selectVarServer()` so that both `data` and `filter` are reactive. Pair it with a app function that lets the user pick the dataset with the `dataset` module, a function with an `inputSelect()` that lets the user filter for numeric, character, or factor variables.
+2.  Rewrite `selectVarServer()` so that both `data` and `filter` are reactive. Pair it with a app function that lets the user pick the dataset with the `dataset` module, a function with an `inputSelect()` that lets the user filter for numeric, character, or factor variables.
 
-4.  The following code defines output and server components of a module that takes a numeric input and produces a bulleted list of three summary statistics. Create an app function that allows you to experiment with it. The app function should take a data frame as input, and use `numericVarSelectInput()` to pick the variable to summarise.
+3.  The following code defines output and server components of a module that takes a numeric input and produces a bulleted list of three summary statistics. Create an app function that allows you to experiment with it. The app function should take a data frame as input, and use `numericVarSelectInput()` to pick the variable to summarise.
 
     ```{r}
     summaryOuput <- function(id) {
@@ -957,7 +917,7 @@ In Shiny, UI and server are inherently disconnected; Shiny doesn't know which UI
     }
     ```
 
-2.  The following module input provides a text control that lets you type a date in ISO8601 format (yyyy-mm-dd). Complete the module by providing a server function that uses `output$error` to display a message if the entered value is not a valid date. The module should return a `Date` object for valid dates. (Hint: use `strptime(x, "%Y-%m-%d")` to parse the string; it will return `NA` if the value isn't a valid date.)
+4.  The following module input provides a text control that lets you type a date in ISO8601 format (yyyy-mm-dd). Complete the module by providing a server function that uses `output$error` to display a message if the entered value is not a valid date. The module should return a `Date` object for valid dates. (Hint: use `strptime(x, "%Y-%m-%d")` to parse the string; it will return `NA` if the value isn't a valid date.)
 
     ```{r}
     ymdDateUI <- function(id, label) {
@@ -973,4 +933,3 @@ In Shiny, UI and server are inherently disconnected; Shiny doesn't know which UI
 5.  In `radioExtraServer()`, return a list that contains both the value and whether or not it came from other.
 
 6.  In `wizardServer()` verify that the namespacing has been set up correctly by using two or more wizards in a single add, and checking that you can navigate through each wizard independently.
-
