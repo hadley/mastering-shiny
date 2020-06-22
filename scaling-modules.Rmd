@@ -756,60 +756,98 @@ server <- function(input, output, session) {
 
 ### Dynamic UI
 
-We'll finish up with a case study that uses dynamic UI (the topic of Chapter \@ref(action-dynamic)). This forces you to figure out whether you're in a UI context where the namespace `id` is used explicitly in a `NS()` call, or in a server context where namespace `id` handled automatically.
+We'll finish up with a case study that uses dynamic UI, taking part of the dynamic filtering code found in Section \@ref(dynamic-filter) and turning it into a module. The main challenge of dynamic UI within a module is that because you will generating UI code wiithin your server function, we need a more precise definition of when explicit namespacing is needed.
 
-This example is derived from a question in Shiny community: <https://community.rstudio.com/t/67898.> I've simplified it as much as possible for educational purposes, so you might want to read the original post for a more realistic example. The goal of this module is to provide an "advanced settings" dialog box that lets you control settings that aren't important enough to take up space in the main UI. We're going to make the dialog dynamic, so we can reuse the same code for different datasets.
+As usual, we'll start with the module UI. It's very simple here, because we're just generating a "hole" that the server functions will fill in dynamically.
 
 ```{r}
-settingsDialog <- function(id) {
-  modalDialog(
-    uiOutput(NS(id, "controls")),
-    title = "Settings"
-  )
+filterUi <- function(id) {
+  uiOutput(NS(id, "controls"))
 }
 ```
 
-Because we're using a dynamic user interface, most of the work is going to happen on the server side. To keep things simple, here we'll going to expose a single control, the number of rows to display. However, we'll design the server function to be a little more general, returning a list of values so it's easier to extend in the future.
+To create the module server, we'll first copy in the helper functions from Section \@ref(dynamic-filter): `make_ui()` makes a control for each column, and `filter_var()` helps generate the final logical vector. There's only one difference here: `make_ui()` gains an additional `id` argument so that we can namespace the controls to the module.
 
 ```{r}
-settingsServer <- function(id, df, nrow = 6) {
+library(purrr)
+
+make_ui <- function(x, id, var) {
+  if (is.numeric(x)) {
+    rng <- range(x, na.rm = TRUE)
+    sliderInput(id, var, min = rng[1], max = rng[2], value = rng)
+  } else if (is.factor(x)) {
+    levs <- levels(x)
+    selectInput(id, var, choices = levs, selected = levs, multiple = TRUE)
+  } else {
+    # Not supported
+    NULL
+  }
+}
+filter_var <- function(x, val) {
+  if (is.numeric(x)) {
+    !is.na(x) & x >= val[1] & x <= val[2]
+  } else if (is.factor(x)) {
+    x %in% val
+  } else {
+    # No control, so don't filter
+    TRUE
+  }
+}
+```
+
+Now we create the module server. There are two main parts:
+
+-   We generate the `controls` using `purrr::map()` and `make_ui()`. Note the explicit use of `NS()` here. That's needed because even though we're inside the module server, the automatic namespacing only applies to `input`, `output`, and `session`.
+
+-   We return the logical filtering vector as the module output.
+
+```{r}
+filterServer <- function(id, df) {
   stopifnot(is.reactive(df))
-  
+
   moduleServer(id, function(input, output, session) {
+    vars <- reactive(names(df()))
+    
     output$controls <- renderUI({
-      sliderInput(NS(id, "obs"), "Number of observations", min = 1, max = nrow(df()), value = nrow)
+      map(vars(), function(var) make_ui(df()[[var]], NS(id, var), var))
     })
-    list(
-      nrow = reactive(input$obs %||% nrow)
-    )
+    
+    reactive({
+      each_var <- map(vars(), function(var) filter_var(df()[[var]], input[[var]]))
+      reduce(each_var, `&`)
+    })
   })
 }
 ```
 
-Note that we need to use `NS()` inside here, even though we're inside a server function. The automatic namespacing that `moduleServer()` performs only applies to `input`, `output`, and `session`; when generating user interface elements, we still need to call `NS()`.
-
-Now we wrap it up into an app we can play around with:
+Now we can put it all together in a module app that allows you to select a buit-in dataset and then filter on any numeric or categorical variable.
 
 ```{r}
-settingsApp <- function(df) {
+filterApp <- function() {
   ui <- fluidPage(
-    datasetInput("data", is.data.frame),
-    tableOutput("table"),
-    actionButton("adv", "Settings")
+    sidebarLayout(
+      sidebarPanel(
+        datasetInput("data", is.data.frame),
+        textOutput("n"),
+        filterUi("filter"),
+      ),
+      mainPanel(
+        tableOutput("table")    
+      )
+    )
   )
   server <- function(input, output, session) {
     df <- datasetServer("data")
+    filter <- filterServer("filter", df)
     
-    observeEvent(input$show_settings, {
-      showModal(settingsDialog("settings"))
-    })
-    settings <- settingsServer("settings", df)
-    
-    output$table <- renderTable(head(df(), settings$nrow()))
+    output$table <- renderTable(df()[filter(), , drop = FALSE])
+    output$n <- renderText(paste0(sum(filter()), " rows"))
   }
   shinyApp(ui, server)
 }
 ```
+
+A big advantage of using a module here is that it wraps up a bunch of advanced Shiny programming techniques. You can use the filter module without having to understand the dynamic UI and functional programming techniques that make it work.
 
 ## Single object modules
 
