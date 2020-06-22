@@ -17,7 +17,7 @@ jobs:
       - name: Setup R
         uses: r-lib/actions/setup-r@master
         with:
-          r-version: '4.0'
+          r-version: 'release'
 
       - name: Install pandoc and pandoc citeproc
         run: |
