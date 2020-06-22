@@ -19,7 +19,7 @@ These three tools give you considerable power to respond to the user by modifyin
 
 ```{r setup}
 library(shiny)
-library(dplyr)
+library(dplyr, warn.conflicts = FALSE)
 ```
 
 ## Updating inputs
