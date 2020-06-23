@@ -1,2 +1,43 @@
 # Testing {#scaling-testing}
 
+* Unit testing (testthat)
+
+* Integration testing (shiny + testthat)
+
+* Functional testing (shinytest)
+
+## Unit testing
+
+Easiest to test code that is outside of the server functions.
+
+## Integration testing
+
+<https://shiny.rstudio.com/articles/integration-testing.html>
+
+As if your test code was running inside the server function.
+
+`testServer(myapp(), code)`
+
+`session$setInputs(x = 1)`. Access `input` and `output`, and reactives. 
+
+`session$returned()`
+`session$elapse(300)`
+`session$flushReact()`
+
+## Full on app simulation
+
+Off label use of the shinytest package. Useful if you also want to verify output.
+
+## Snapshot testing
+
+<https://blog.rstudio.com/2018/10/18/shinytest-automated-testing-for-shiny-apps/>
+
+Only use when the previous techniqes don't help. Fragile and requires user intervention. Snapshot or golden testing.
+
+https://rstudio.github.io/shinytest/articles/package.html#application-objects-created-by-functions-1
+
+Need dummy `app.R`. Call `shinytest::expect_pass()`
+`usethis::use_package("shinytest", "suggests")`.
+
+Need `skip_on_cran()` and only `compareImages()` locally.
+

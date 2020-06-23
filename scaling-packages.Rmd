@@ -1,0 +1,39 @@
+# Packages {#scaling-packaging}
+
+If you are creating a large/long-term Shiny app, I strongly recommend that you organise your app in the same way you'd organise an R package:
+
+-   You have a `DESCRIPTION` file that declares the dependencies of your code.
+
+-   You put all of your R code in `R/`
+
+-   You have a function that runs your app.
+
+Using the same basic structure as a package allows you to make use of existing tools that ease the development process. Tools like devtools and usethis.
+
+Here I'm going to show you the bare minimum you need to know to turn your app into a package. If you want to learn more, I highly recommend <http://engineering-shiny.org/>.
+
+## Converting an existing app
+
+-   If it doesn't exist already, create an `R` directory
+
+-   Move `app.R` into `R/` and where you currently have `shinyApp(ui, server)` change it to:
+
+    ```{r}
+    myApp <- function(...) {
+      shinyApp(ui, server, ...)
+    }
+    ```
+
+-   Call `usethis::use_description()` to create a description file.
+
+Next, there are a few things you'll need to do to your R code:
+
+-   Remove any calls to `library()` or `require()` and instead call `usethis::use_package("name")` to add the required package to the `DESCRIPTION`.
+
+-   Move data to ...
+
+## Workflow
+
+-   Re-load all code in the app with `cmd + shift + L` (`devtools::load_all()`)
+
+-   Re-run the app with `myApp()`

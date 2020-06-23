@@ -30,8 +30,10 @@ rmd_files:
     "scaling-general.Rmd",
     "scaling-functions.Rmd",
     "scaling-modules.Rmd",
+    "scaling-packages.Rmd",
     "scaling-testing.Rmd",
     "scaling-safety.Rmd",
+    "scaling-performance.Rmd",
 
     "reactivity-mastering.Rmd",
     "reactivity-motivation.Rmd",

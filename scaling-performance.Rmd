@@ -1,0 +1,11 @@
+# Performance {#performance}
+
+Joe's keynote. https://resources.rstudio.com/rstudio-conf-2018/scaling-shiny-sean-lopp
+
+Shiny can support thousands or tens of thousands of users, if developed correctly. Even if your app doesn't need to support so many people, the advice in this chapter will help you make your app faster.
+
+## profvis
+
+## Load testing 
+
+<https://rstudio.github.io/shinyloadtest/>
