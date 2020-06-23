@@ -575,7 +575,7 @@ This generates the app shown in Figure \@ref(fig:sim) and reactive graph shown i
 app <- testApp(ui, server, deps = "ggplot2", histogram = histogram)
 app$setWindowSize(width = 800, height = 400)
 Sys.sleep(0.5)
-app_screenshot(app, "basic-reactivity/simulation-2", width = NULL)
+app_screenshot(app, "basic-reactivity/simulation-2", width = NULL) # need to update the screenhot with an updated label
 ```
 
 ```{r sim-react, echo = FALSE, out.width = NULL, fig.cap="The reactive graph"}
