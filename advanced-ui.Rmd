@@ -365,7 +365,7 @@ tags$ul(
 )
 ```
 
-In most case, you can use `list()` instead of `tagList()`; there's only a few places where the difference is important. One place where using a list directly is when generating HTML programmatically. For example, the snippet below uses `lapply` to simplify the previous example:
+In most cases, you can use `list()` instead of `tagList()`; there's only a few places where the difference is important. One place where a list is used is when generating HTML programmatically in a loop. For example, the snippet below uses `lapply` to simplify the previous example:
 
 ```{r}
 tags$ul(
