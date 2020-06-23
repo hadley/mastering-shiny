@@ -25,4 +25,5 @@ Encoding: UTF-8
 Remotes: 
     rstudio/shiny,
     rstudio/thematic,
-    rstudio/htmltools
+    rstudio/htmltools,
+    rstudio/bookdown
