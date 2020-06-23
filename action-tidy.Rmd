@@ -311,7 +311,7 @@ Tidy-selection provides a concise way of selecting columns by position, name, or
 
 ### Indirection
 
-To refer to variables indirectly use `any_of()` or `all_of()`[^6]: both expect an character vector env-variable containing the names of data-variables. The only difference is what happens if you supply a variable named that doesn't exist in the input: `all_of()` will throw an error, while `any_of()` will silently ignore it.
+To refer to variables indirectly use `any_of()` or `all_of()`[^6]: both expect a character vector env-variable containing the names of data-variables. The only difference is what happens if you supply a variable named that doesn't exist in the input: `all_of()` will throw an error, while `any_of()` will silently ignore it.
 
 [^6]: In older versions of tidyselect and dplyr, you'll need to use `one_of()`. It has the same semantics as `any_of()`, but a less informative name.
 
