@@ -86,7 +86,7 @@ To understand what's happening, let's take the first URL and tease it apart into
 
 -   `127.0.0.1` is the IP address of the server; `127.0.0.1` is a special address that always points to your own computer.
 
--   `4087` is a randomly assigned "port". Normally different apps get different IP addresses, but that doesn't work when you're
+-   `4087` is a randomly assigned "port". Normally, different apps get different IP addresses, but that's not possible when you're hosting multiple apps on your own computer.
 
 -   Everything after `?` is a parameter. Each parameter is separated by `&`, and if you break it apart you can see the values of each input in the app:
 
