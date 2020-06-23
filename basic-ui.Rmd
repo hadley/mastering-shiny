@@ -301,22 +301,19 @@ server <- function(input, output, session) {
 }
 ```
 
-Note that there are two render functions that can be used with either of the text output functions:
+Note that there are two render functions that can be used with either of the text outputs:
 
-* `renderText()` which displays text _returned_ by the code.
-* `renderPrint()` which displays text _printed_ by the code.
+* `renderText()` combines the into a single string.
+* `renderPrint()` _prints_ the result.
 
-To help understand the difference, examine the following function. It prints `a` and `b`, and returns `"c"`. A function can print multiple things, but can only return a single value.
+We can see the difference by taking advantage of a hidden feature of the render functions:
 
 ```{r}
-print_and_return <- function() {
-  print("a")
-  print("b")
-  "c"
-}
-x <- print_and_return()
-x 
+renderText("foo")()
+renderPrint("foo")()
 ```
+
+This is equivalent to the difference between `cat()` and `print()` in base R. 
 
 ### Tables
 
