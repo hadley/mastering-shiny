@@ -456,7 +456,7 @@ selectVarServer <- function(id, data, filter = is.numeric) {
       updateSelectInput(session, "var", choices = find_vars(data(), filter))
     })
     
-    tagList(
+    list(
       name = reactive(input$var),
       value = reactive(data()[[input$var]])
     )
