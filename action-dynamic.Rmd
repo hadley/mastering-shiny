@@ -657,7 +657,7 @@ default_val <- function(x, value) {
 ```
 
 ```{r render-palette-full, fig.cap = demo$caption("Filling out the colours of the rainbow (left), then reducing the number of colours to 3 (right); note that the existing colours are preserved."), out.width = "50%", fig.show = "hold", fig.align = "default", echo = FALSE, message = FALSE, cache = FALSE}
-demo <- demo_inline("render-palette-full", ui, server, packages = "purrr")
+demo <- demo_inline("render-palette-full", ui, server, packages = "purrr", data = list(default_val = default_val))
 demo$resize(800)
 demo$set_values(
   col1 = "red", 
