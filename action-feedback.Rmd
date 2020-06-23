@@ -5,7 +5,7 @@ source("common.R")
 source("demo.R")
 ```
 
-You can often make your app more usable by giving the user more insight in to what is happening. This might take the form of better messages when inputs don't make sense, or progress bars for operations that take a long time. Some feedback occurs naturally through outputs, which you already know how to use, but you'll often need something else. The goal of this chapter is to show you some of your other options.
+You can often make your app more usable by giving the user more insight into what is happening. This might take the form of better messages when inputs don't make sense, or progress bars for operations that take a long time. Some feedback occurs naturally through outputs, which you already know how to use, but you'll often need something else. The goal of this chapter is to show you some of your other options.
 
 We'll start with techniques for **validation**, informing the user when an input (or combination of inputs) is in an invalid state. We'll then continue on to **notification**, sending general messages to the user, and **progress bars**, which give details for time consuming operations made up of many small steps. We'll finish up by discussing dangerous actions, and how you give your users peace of mind with **confirmation** dialogs or the ability to **undo** an action.
 

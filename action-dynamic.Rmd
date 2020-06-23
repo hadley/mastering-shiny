@@ -167,7 +167,7 @@ In the server function, I work top-down:
 
 3.  I create another reactive, `customer()`, that contains the rows from `territory()` that match the selected customer.
 
-4.  Whenever `customer()` changes, I update the list of `choices` in the the `input$ordernumber` select box.
+4.  Whenever `customer()` changes, I update the list of `choices` in the `input$ordernumber` select box.
 
 5.  I display the selected orders in `output$data`.
 
@@ -295,7 +295,7 @@ There's no way around this problem because you have one idea (the temperature) w
     )
     ```
 
-2.  Complete the user interface below with a server function that updates `input$county` choices based on `input$state`. For an added challenge, also change the label from "County" to "Parish" for Louisiana and "Borough" for "Alaska".
+2.  Complete the user interface below with a server function that updates `input$county` choices based on `input$state`. For an added challenge, also change the label from "County" to "Parish" for Louisiana and "Borough" for Alaska.
 
     ```{r, messages = FALSE}
     library(openintro)
@@ -553,7 +553,7 @@ server <- function(input, output, session) {
 }
 ```
 
-(I've removed the `min` and `max` arguments make it easier to fit everything on one line; you'd still need them in real code.)
+(I've removed the `min` and `max` arguments to make it easier to fit everything on one line; you'd still need them in real code.)
 
 The use of `isolate()` is important. We'll come back to exactly why it's needed in Chapter XYZ, but it ensures that we don't create a reactive dependency that would mean this code is re-run every time `input$dynamic` changes. We only want it to change when `input$type` or `inpu$label` changes.
 

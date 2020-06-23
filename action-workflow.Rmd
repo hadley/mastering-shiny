@@ -229,7 +229,7 @@ If you're using RStudio, the toolbar in Figure \@ref(fig:debug-toolbar) will app
 
 -   Stop, `Q`: stops debugging, terminates the function, and returns to the global workspace. Use this once you've figured out where the problem is, and you're ready to fix it and reload the code.
 
-```{r debug-toolbar, echo = FALSE, out.width = "50%", fig.cap = "RStudio debugging toolbar"}
+```{r debug-toolbar, echo = FALSE, out.width = "50%", fig.cap = "RStudio's debugging toolbar"}
 knitr::include_graphics("screenshots/action-workflow/debug-toolbar.png")
 ```
 
@@ -441,7 +441,7 @@ The first step in making a reprex is to create a single self-contained file that
 
 [^4]: Regardless of how you normally load packages, I strongly recommend using multiple `library()` calls. This eliminates a source of potential confusion for people who might not be familiar with the tool that you're using.
 
-Typically, the most challenging part of making your app work on someone elses computer is eliminating the use of data that's only stored on your computer. There are three useful patterns:
+Typically, the most challenging part of making your app work on someone else's computer is eliminating the use of data that's only stored on your computer. There are three useful patterns:
 
 -   Often the data you're using is not directly related to the problem, and you can instead use a built-in data set like `mtcars` or `iris`.
 
@@ -555,7 +555,7 @@ If you run this reprex, you'll see the same problem in the initial post: an erro
 
 To make this reprex simpler we can carefully work through each line of code and see if it's important. While doing this, I discovered:
 
--   Removing the the two lines starting with `print()` didn't affect the error. Those two lines used `lubridate::is.POSIXt()`, which was the only use of lubridate, so once I removed them, I no longer needed to load lubridate.
+-   Removing the two lines starting with `print()` didn't affect the error. Those two lines used `lubridate::is.POSIXt()`, which was the only use of lubridate, so once I removed them, I no longer needed to load lubridate.
 
 -   `df` is a data frame that's converted to an xts data frame called `timeSeries`. But the only way `timeSeries` is used is via `time(timeSeries)` which returns a date-time. So I created a new variable `datetime` that contained some dummy date-time data. This still yielded the same error, so I removed `timeSeres` and `df`, and since that was the only place xts was used, I also removed `library(xts)`
 

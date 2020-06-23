@@ -5,7 +5,7 @@ source("common.R")
 options(tibble.print_min = 6, tibble.print_max = 6)
 ```
 
-If you are using Shiny with the tidyverse, you will almost certainly encounter the challenge of programming with tidy evaluation. Tidy evaluation is a tool that the tidyverse uses to faciliate fluid interactive data exploration, but it comes with a cost: it's hard to refer to variables indirectly, and hence harder to program with.
+If you are using Shiny with the tidyverse, you will almost certainly encounter the challenge of programming with tidy evaluation. Tidy evaluation is a tool that the tidyverse uses to facilitate fluid interactive data exploration, but it comes with a cost: it's hard to refer to variables indirectly, and hence harder to program with.
 
 This chapter will show you how to use Shiny with the two most common forms of tidy evaluation:
 
@@ -69,7 +69,7 @@ diamonds[diamonds$x == 0 | diamonds$y == 0, ]
 
 The blurring of data-variables and env-variables makes data analysis easier at the cost of making indirection harder. When using Shiny[^2], indirection mostly frequently occurs when you have the name of a data-variable stored in an env-variable that comes with a reactive input. Learning how to work with this form of indirection is the key to effectively using Shiny with the tidyverse.
 
-[^2]: There's another form of indirection that happens when you're write functions which is solved using `{{ x }}`, called embracing. You can learn more about that in *[Programming with dplyr](http://dplyr.tidyverse.org/dev/articles/programming.html)*.
+[^2]: There's another form of indirection that happens when you're writing functions which is solved using `{{ x }}`, called embracing. You can learn more about that in *[Programming with dplyr](http://dplyr.tidyverse.org/dev/articles/programming.html)*.
 
 To make the problem concrete, take the following code which uses data-masking to refer to a data-variable (`carat`) and env-variable (`min_carat`) in the same way[^3]:
 
@@ -130,7 +130,7 @@ Now that you've seen the basics, we'll develop a couple of more realistic, but s
 
 ### Example: ggplot2
 
-Lets apply this idea to a dynamic plot where we allow the user to create a scatterplot by selecting the variables to appear on the `x` and `y` axes:
+Let's apply this idea to a dynamic plot where we allow the user to create a scatterplot by selecting the variables to appear on the `x` and `y` axes:
 
 ```{r}
 ui <- fluidPage(
@@ -311,7 +311,7 @@ Tidy-selection provides a concise way of selecting columns by position, name, or
 
 ### Indirection
 
-To refer to variables indirectly use `any_of()` or `all_of()`[^6]: both expect a character vector env-variable containing the names of data-variables. The only difference is what happens if you supply a variable named that doesn't exist in the input: `all_of()` will throw an error, while `any_of()` will silently ignore it.
+To refer to variables indirectly use `any_of()` or `all_of()`[^6]: both expect a character vector env-variable containing the names of data-variables. The only difference is what happens if you supply a variable name that doesn't exist in the input: `all_of()` will throw an error, while `any_of()` will silently ignore it.
 
 [^6]: In older versions of tidyselect and dplyr, you'll need to use `one_of()`. It has the same semantics as `any_of()`, but a less informative name.
 
@@ -333,7 +333,7 @@ server <- function(input, output, session) {
 
 ### Tidy-selection and data-masking
 
-Working with multiple variables is trivial when you're working with a function that uses tidy-selection: you can just pass a character vector of variable names in to `any_of()` or `all_of()`. Wouldn't it be nice if we could do that in data-masking functions too? That's the idea of the `across()` function, added in dplyr 1.0.0. It allows you to use tidy-selection inside data-masking functions.
+Working with multiple variables is trivial when you're working with a function that uses tidy-selection: you can just pass a character vector of variable names into `any_of()` or `all_of()`. Wouldn't it be nice if we could do that in data-masking functions too? That's the idea of the `across()` function, added in dplyr 1.0.0. It allows you to use tidy-selection inside data-masking functions.
 
 `across()` is typically used with either one or two arguments. The first argument selects variables, and is useful in functions like `group_by()` or `distinct()`. For example, the following app allows you to select any number of variables and count their unique values.
 
@@ -376,6 +376,6 @@ server <- function(input, output, session) {
 
 Before we go, it's worth a brief comment about `paste()` + `parse()` + `eval()`. If you have no idea what this combination is, you can skip this section, but if you have used it, I'd like to pass on a small note of caution.
 
-It's a tempting approach because it requires learning very few new ideas. But it has some major downsides: because you are pasting strings together, it's very easy to accidentally create invalid code, or code that can be abused to do something that you didn't want. This isn't super important if its a Shiny app that only you use, but it isn't a good habit to get into --- otherwise it's very easy to accidentally create a security hole in an app that you share more widely. We'll come back that idea in Chapter \@ref(scaling-safety).
+It's a tempting approach because it requires learning very few new ideas. But it has some major downsides: because you are pasting strings together, it's very easy to accidentally create invalid code, or code that can be abused to do something that you didn't want. This isn't super important if it's a Shiny app that only you use, but it isn't a good habit to get into --- otherwise it's very easy to accidentally create a security hole in an app that you share more widely. We'll come back that idea in Chapter \@ref(scaling-safety).
 
 (You shouldn't feel bad if this is the only way you can figure out to solve a problem, but when you have a bit more mental space, I'd recommend spending some time figuring out how to do it without string manipulation. This will help you to become a better R programmer.)

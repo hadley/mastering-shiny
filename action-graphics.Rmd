@@ -15,7 +15,7 @@ library(ggplot2)
 
 ## Interactivity
 
-One of the coolest things about `plotOutput()` is that as well as being an output that displays plots, it can also be an input that responds to pointer events. That allows you to create interactive graphics where the user interacts directly with the data on the plot. Interactive graphics are powerful tool, with a wide range of applications. I don't have space to show you all the possibilities, so here I'll focus on the basics, then point you towards resources to learn more.
+One of the coolest things about `plotOutput()` is that as well as being an output that displays plots, it can also be an input that responds to pointer events. That allows you to create interactive graphics where the user interacts directly with the data on the plot. Interactive graphics are a powerful tool, with a wide range of applications. I don't have space to show you all the possibilities, so here I'll focus on the basics, then point you towards resources to learn more.
 
 ### Basics
 
@@ -92,7 +92,7 @@ server <- function(input, output, session) {
 Another way to use `nearPoints()` is with `allRows = TRUE` and `addDist = TRUE`. That will return the original data frame with two new columns:
 
 -   `dist_` gives the distance between the row and the event (in pixels).
--   `selected_` says whether or not it should be selected (i.e. the logical vector that's returned.
+-   `selected_` says whether or not it should be selected (i.e. the logical vector that's usually returned).
 
 We'll see an example of that a little later.
 
@@ -312,7 +312,7 @@ You'll notice one important difference between `renderPlot()` and `renderCachedP
 -   The sizing policy, which ensures that plot is shared even when the sizes are a little different.
 -   The scoping, which controls how the cache is shared across users and app restarts.
 
-Here we'll focus on the big picture; full the full details you can refer to the [Shiny website](https://shiny.rstudio.com/articles/plot-caching.html).
+Here we'll focus on the big picture; for the full details you can refer to the [Shiny website](https://shiny.rstudio.com/articles/plot-caching.html).
 
 ### Cache key
 
@@ -342,7 +342,7 @@ By default, the plot cache is stored in memory, and shared across all users of t
 
 -   `cache = diskCache(...)`: shares across multiple users, multiple processes, and app restarts. Beware that restarting the app will no longer clear the cache, so if you change the plotting code, you'll also need to manually reset the cache by deleting the directory.
 
-It's also possible to store in a database, or write your own backend. See <https://shiny.rstudio.com/https://shiny.rstudio.com/articles/plot-caching.html> for more details.
+It's also possible to store in a database, or write your own backend. See <https://shiny.rstudio.com/articles/plot-caching.html> for more details.
 
 ## Images
 
