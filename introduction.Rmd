@@ -194,7 +194,7 @@ cat(".\n")
 
 ## Colophon
 
-This book was written in [RStudio](http://www.rstudio.com/ide/) using [bookdown](http://bookdown.org/). The [website](http://mastering-shiny.org/) is hosted with [netlify](http://netlify.com/), and automatically updated after every commit by [travis-ci](https://travis-ci.org/). The complete source is available from [GitHub](https://github.com/hadley/mastering-shiny). 
+This book was written in [RStudio](http://www.rstudio.com/ide/) using [bookdown](http://bookdown.org/). The [website](http://mastering-shiny.org/) is hosted with [netlify](http://netlify.com/), and automatically updated after every commit by [Github Actions](https://github.com/features/actions). The complete source is available from [GitHub](https://github.com/hadley/mastering-shiny). 
 
 This version of the book was built with `r R.version.string` and the following packages:
 
