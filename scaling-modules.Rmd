@@ -433,7 +433,7 @@ ui <- fluidPage(
       histogramOutputBins("hist")
     ),
     mainPanel(
-      histogramOutputBins("hist")
+      histogramOutputPlot("hist")
     )
   )
 )
