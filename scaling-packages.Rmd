@@ -1,22 +1,37 @@
 # Packages {#scaling-packaging}
 
-If you are creating a large/long-term Shiny app, I strongly recommend that you organise your app in the same way you'd organise an R package:
+```{r, include = FALSE}
+source("common.R")
+options(tibble.print_min = 6, tibble.print_max = 6)
+```
 
--   You have a `DESCRIPTION` file that declares the dependencies of your code.
+If you are creating a large/long-term Shiny app, I strongly recommend that you organise your app in the same way you'd organise an R package. This primarily means two things:
 
 -   You put all of your R code in `R/`
 
--   You have a function that runs your app.
+-   You have a `DESCRIPTION` file.
 
-Using the same basic structure as a package allows you to make use of existing tools that ease the development process. Tools like devtools and usethis.
+And then you create a function that runs your app. (This implies that a package can contain multiple apps, which may be useful if you have a series of related apps).
 
-Here I'm going to show you the bare minimum you need to know to turn your app into a package. If you want to learn more, I highly recommend <http://engineering-shiny.org/>.
+In brief, a package is just a set of standard for how you organise your R code. Doing the two things above gives you the absolute minimal compliance with the standard. That's still useful because it activates some convenient RStudio keyboard shortcuts, and
+
+Using the same basic structure as a package allows you to make use of existing tools that ease the development process. Tools like devtools and usethis. Will become particularly important when you start testing your app, because the devtools comes with a bunch of tools to make it easy to run tests, and see exactly what code you're testing. It also helps you document the pieces of complex apps, although we won't discuss that in this book. (See <https://r-pkgs.org/man.html> for information about how to document function with roxygen2).
+
+Here I'm going to show you the bare minimum you need to know to turn your app into a package. If you want to learn more, I highly recommend [http://engineering-shiny.org](http://engineering-shiny.org/){.uri}. If you want to learn more about R packages, I recommend <https://r-pkgs.org>.
+
+```{r setup}
+library(shiny)
+```
 
 ## Converting an existing app
 
+Converting an app to a package requires a little upfront work. And it's better to do earlier in the lifecycle of your app, so you don't have so many bad habits to undo.
+
+Follow these steps to create an package. Assuming that you app is called `myApp` and lives in directory `myApp/`.
+
 -   If it doesn't exist already, create an `R` directory
 
--   Move `app.R` into `R/` and where you currently have `shinyApp(ui, server)` change it to:
+-   Move `app.R` into `R/` and where you currently have `shinyApp(ui, server)` change it to: (Inspired by <https://engineering-shiny.org/structure.html#deploy>).
 
     ```{r}
     myApp <- function(...) {
@@ -24,16 +39,56 @@ Here I'm going to show you the bare minimum you need to know to turn your app in
     }
     ```
 
+-   If you're deploying your app using a standard tool, add a new `app.R`
+
+    ```{r, eval = FALSE}
+    pkgload::load_all()
+    myApp::myApp()
+    ```
+
 -   Call `usethis::use_description()` to create a description file.
 
-Next, there are a few things you'll need to do to your R code:
+-   Restart RStudio.
 
--   Remove any calls to `library()` or `require()` and instead call `usethis::use_package("name")` to add the required package to the `DESCRIPTION`.
-
--   Move data to ...
+This gives your app the basic structure of a package, which enables some useful keyboard shortcuts that we'll talk about next. It's possible to turn your app in to a "real" package, which means that it passes the automated `R CMD check`. That's not essential, but it can be useful if you're sharing with others.
 
 ## Workflow
 
--   Re-load all code in the app with `cmd + shift + L` (`devtools::load_all()`)
+-   Re-load all code in the app with `cmd + shift + L` (`devtools::load_all()`).
 
--   Re-run the app with `myApp()`
+-   Re-run the app with `myApp()`.
+
+## `R CMD check`
+
+You may also want to use `devtools::check()` which calls `R CMD check` and ensures that your app is fully compliant with the package standard. In the short term, there are relatively few benefits to this. But in the long-term this will protect you against a number of potential problems, and make it easier to share your app with others.
+
+Don't recommend that you do this now.
+
+To make an app pass `R CMD check`, you'll also need to:
+
+-   Remove any calls to `library()` or `require()` and instead replace them with a declaration in your `DESCRIPTION`. `usethis::use_package("name")` to add the required package to the `DESCRIPTION`[^1].
+
+    At a minimum, you'll need `usethis::use_package("shiny")`!.
+
+    Need to decide whether to use depends or be explicit with namespace. The first is easy, the second is a little more work but makes it easier to understand where functions are coming from
+
+-   `use_license_…()` (<https://github.com/r-lib/usethis/issues/1163>)
+
+-   Add `app.R` to `.Rbuildignore` with `usethis::use_build_ignore("app.R")` or similar.
+
+-   Document and export your app function.
+
+-   If you app contains small reference datasets put it in `data` or `inst/extdata`. Advantage of `data/` is that it's stored in `.rda` format, which is faster to load, and is lazy loaded so if it's not used by the app, it's not loaded in memory. (Although if that's a bottleneck you might want qs instead). Load using `system.file("exdata", "path", package = "myApp")`.
+
+-   Remove any calls to `source()` or `shiny::loadSupport()`. The package code loading process now takes care of these.
+
+-   Files in `www`? `inst/www`?
+
+-   You can also change your `app.R` to use an the package. This requires that your available somewhere that your deployment machine can install from. For public work this means a CRAN or GitHub package; for private work this means something like RSPM.
+
+    ```{r, eval = FALSE}
+    library(myApp)
+    myApp::myApp()
+    ```
+
+[^1]: The distinction between Imports and Suggests is not generally important for app packages. If you do want to make a distinction, the most useful is to use Imports for packages that need to be present on the deployment machine (in order for the app to work) and Suggests for packages that need to prsent on the development machine in order to develop the app.

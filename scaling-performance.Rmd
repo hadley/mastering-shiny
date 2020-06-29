@@ -1,11 +1,78 @@
 # Performance {#performance}
 
-Joe's keynote. https://resources.rstudio.com/rstudio-conf-2018/scaling-shiny-sean-lopp
+```{r, include = FALSE}
+source("common.R")
+options(tibble.print_min = 6, tibble.print_max = 6)
+```
+
+Joe's keynote. <https://rstudio.com/resources/rstudioconf-2019/shiny-in-production-principles-practices-and-tools/>. Use cran whales example from talk?
+
+<https://resources.rstudio.com/rstudio-conf-2018/scaling-shiny-sean-lopp>
 
 Shiny can support thousands or tens of thousands of users, if developed correctly. Even if your app doesn't need to support so many people, the advice in this chapter will help you make your app faster.
 
-## profvis
+One new challenge with Shiny apps that's a bit different than improving the performance of regular R code is that you need to be more conscious of memory usage. Typically, to get cost effective performance each R process will need to serve multiple people, which means that multiple copies of the app will be loaded at the same time. If you're working with large datasets, that means you need to think more carefully about how to ensure that the same data is shared across multiple users.
 
-## Load testing 
+If your app loads a large dataset and then filters it, you may instead want to consider putting the data in a database, and then only retrieving the data that the user specifically asks for. This will make individual apps slower (often only by a small amount), but will make each app take up much less memory so that you can more easily server multiple users.
+
+Focus is on increasing the performance for multiple users. If you're concerned about single user performance (i.e. it's just you using the app), it's very unlikely that Shiny is the bottleneck. Instead, improving the performance of your app is really about improving the performance of your R code. Many of the same techniques apply; in particular you'll still need to profile the performance of your app.
+
+```{r setup}
+library(shiny)
+```
+
+## Planning
+
+Start with a plan:
+
+-   How many people? How many people at the same time?
+
+-   What's the computing budget? i.e. how many cores, how many machines?
+
+Is it fast enough? shinyloadtest.
+
+What's making it slow? profvis
+
+Make it fast:
+
+-   Do less work
+
+-   Make code faster
+
+-   Use caching (speed-time tradeoff)
+
+-   Use async
+
+## Load testing
+
+-   Record sample app session: `shinyloadtest::record_session()`
+
+-   Replay with multiple users: shinycannon.
+
+-   Analyse: `shinyloadtest::report()`.
 
 <https://rstudio.github.io/shinyloadtest/>
+
+## profvis
+
+What do you measure the performance of? Your skills from testing will come in handy here, because it's useful to prepare an
+
+## Make it faster
+
+### Horizontal scaling
+
+Make it faster by throwing more computers at it.
+
+### Precomputation
+
+Number one most important advice is if you want to make your Shiny app fast: make it do less! If your app is doing a lot of computation, the chances are that it's doing the same computation for multiple people. There's no need to duplicate all that work!
+
+Instead, create a centralised process that's run on a regular interval that does all the computing and then saves the results. Then all the instances can load the precomuted data. Scheduled task: RStudio connect with scheduled rmarkdown reports. Or cron. Or whatever other technology you use.
+
+If there's a lot of data, make sure you're using a fast function to load it (e.g. `vroom::vroom` or `data.table::fread`), save it as an binary RDS file, or try the [qs](https://github.com/traversc/qs#qs) package.
+
+Make sure any data is loaded outside of the server function. That way the data is loaded once, rather than once per user, and there's a single copy in memory, instead of a single copy per user.
+
+### Caching
+
+If you have a computation that's going to return the same thing every time, and you call it a bunch of times --- maybe save the results and look it up!

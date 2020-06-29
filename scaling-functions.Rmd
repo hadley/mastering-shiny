@@ -163,7 +163,7 @@ Whenever you have a long reactive (say \>10 lines) you should consider pulling i
 
 The key benefits of a function in the UI tend to be around reducing duplication. The key benefits of functions in a server tend to be around isolation and testing.
 
-### Reading uploaded data
+### Reading uploaded data {#function-upload}
 
 Take this server from Section \@ref(uploading-data). It contains a moderately complex `reactive()`:
 
