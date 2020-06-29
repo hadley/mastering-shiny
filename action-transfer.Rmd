@@ -126,7 +126,7 @@ ui <- fluidPage(
 ui_screenshot(ui, "action-transfer/download")
 ```
 
-You can customise their appearance using the same `class` and `icon` arguments as for `actionButtons()`, as described in Section \@ref(@action-buttons).
+You can customise their appearance using the same `class` and `icon` arguments as for `actionButtons()`, as described in Section \@ref(action-buttons).
 
 Unlike other outputs, `downloadButton()` is not paired with a render function. Instead, you use `downloadHandler()`, which looks something like this:
 

@@ -137,7 +137,7 @@ s3 <- demo$screenshot("name")
 knitr::include_graphics(c(s1, s2, s3))
 ```
 
-`req()` works by signalling a special **condition**[^1]. This special condition causes all downstream reactives and outputs to stop executing. Technically, it leaves any downstream reactive consumers in an invalidated state. We'll come back to this terminology in Chapter \@ref(reactive-components).
+`req()` works by signalling a special **condition**[^1]. This special condition causes all downstream reactives and outputs to stop executing. Technically, it leaves any downstream reactive consumers in an invalidated state. We'll come back to this terminology in Chapter \@ref(reactivity-components).
 
 [^1]: "Condition" is a technical term that includes errors, warnings, and messages. If you're interested, you can learn more of the details of R's condition system in <https://adv-r.hadley.nz/conditions.html>.
 

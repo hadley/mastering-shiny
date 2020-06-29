@@ -849,7 +849,7 @@ filterApp <- function() {
 
 A big advantage of using a module here is that it wraps up a bunch of advanced Shiny programming techniques. You can use the filter module without having to understand the dynamic UI and functional programming techniques that make it work.
 
-## Single object modules
+## Single object modules {#module-objects}
 
 To conclude the chapter, I wanted to finish up with a brief discussion of a common reaction to modules. Feel free to skip this section if that wasn't your reaction.
 
