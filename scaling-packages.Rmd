@@ -5,19 +5,19 @@ source("common.R")
 options(tibble.print_min = 6, tibble.print_max = 6)
 ```
 
-If you are creating a large/long-term Shiny app, I strongly recommend that you organise your app in the same way you'd organise an R package. This primarily means two things:
+If you are creating a large/long-term Shiny app, I strongly recommend that you organise your app in the same way you'd organise an R package. This means three things:
 
--   You put all of your R code in `R/`
+-   You put all of your R code in `R/`.
+
+-   You have a function that creates your app (i.e. calls `shinyApp()` with your UI and server)
 
 -   You have a `DESCRIPTION` file.
 
-And then you create a function that runs your app. (This implies that a package can contain multiple apps, which may be useful if you have a series of related apps).
+This structure gets your toes in the water of package development. It's a long way from a complete package, but still useful because it activates new tools that make it easier to work with larger amounts of code. The investment in creating a package will pay off further when we talk about testing your app in Chapter \@ref(scaling-testing), because you get a bunch more tools that make it easy to run to tests and to see exactly what code you're testing. It also helps you document the pieces of complex apps, although we won't discuss that in this book.
 
-In brief, a package is just a set of standard for how you organise your R code. Doing the two things above gives you the absolute minimal compliance with the standard. That's still useful because it activates some convenient RStudio keyboard shortcuts, and
+It's easy to think of packages as these big complicated artefacts like Shiny, ggplot2, or dplyr. But packages can also be very simple, and at their heart, the key idea of a package is that it's a set of conventions for organising your code and related artifcats. In this chapter, I'll start by showing you how to achieve the absolute minimal compliance with the standard.
 
-Using the same basic structure as a package allows you to make use of existing tools that ease the development process. Tools like devtools and usethis. Will become particularly important when you start testing your app, because the devtools comes with a bunch of tools to make it easy to run tests, and see exactly what code you're testing. It also helps you document the pieces of complex apps, although we won't discuss that in this book. (See <https://r-pkgs.org/man.html> for information about how to document function with roxygen2).
-
-Here I'm going to show you the bare minimum you need to know to turn your app into a package. If you want to learn more, I highly recommend [http://engineering-shiny.org](http://engineering-shiny.org/){.uri}. If you want to learn more about R packages, I recommend <https://r-pkgs.org>.
+As you start working with apps in this structure, you may find that you enjoy the process and want to learn more. In this chapter, I'll provide a few hints as to next steps (most importantly getting `R CMD check` to pass), but if you want to learn more about R packages I recommend *[R Packages](https://r-pkgs.org){.uri}*, and if you want to learn more about the intersection of R packages and Shiny apps, I highly recommend *[Engineering Shiny](http://engineering-shiny.org/){.uri}*, by Colin Fay, Sébastien Rochette, Vincent Guyader, Cervan Girard.
 
 ```{r setup}
 library(shiny)
@@ -25,13 +25,11 @@ library(shiny)
 
 ## Converting an existing app
 
-Converting an app to a package requires a little upfront work. And it's better to do earlier in the lifecycle of your app, so you don't have so many bad habits to undo.
+Converting an app to a package requires a small little work. Follow these steps to create an package. I'm assuming that your app is called `myApp` and it already lives in a directory called `myApp/`.
 
-Follow these steps to create an package. Assuming that you app is called `myApp` and lives in directory `myApp/`.
+-   If it doesn't exist already, create an `R` directory.
 
--   If it doesn't exist already, create an `R` directory
-
--   Move `app.R` into `R/` and where you currently have `shinyApp(ui, server)` change it to: (Inspired by <https://engineering-shiny.org/structure.html#deploy>).
+-   Move `app.R` into `R/` and wrap the existing call to `shinyApp()` in a function called `myApp()`:
 
     ```{r}
     myApp <- function(...) {
@@ -39,14 +37,16 @@ Follow these steps to create an package. Assuming that you app is called `myApp`
     }
     ```
 
--   If you're deploying your app using a standard tool, add a new `app.R`
+-   If you're deploying your app (not just running it locally), you'll need to a add a new `app.R` that tells the deployment server how you run your app. The easiest way is to load the code with pkgload:
 
     ```{r, eval = FALSE}
     pkgload::load_all()
     myApp::myApp()
     ```
 
--   Call `usethis::use_description()` to create a description file.
+    (Inspired by <https://engineering-shiny.org/structure.html#deploy>).
+
+-   Call `usethis::use_description()` to create a description file. You don't have to even look at or touch this file (although you need to if you want to make a full package), but you need to have it to activate RStudio's "package development mode" which provides the keyboard shortcuts we'll use later.
 
 -   Restart RStudio.
 
@@ -60,9 +60,9 @@ This gives your app the basic structure of a package, which enables some useful 
 
 ## `R CMD check`
 
-You may also want to use `devtools::check()` which calls `R CMD check` and ensures that your app is fully compliant with the package standard. In the short term, there are relatively few benefits to this. But in the long-term this will protect you against a number of potential problems, and make it easier to share your app with others.
+You may also want to use `devtools::check()` which calls `R CMD check` and ensures that your app is fully compliant with the package standard. In the short term, this is often quite a lot of work for relatively little pay off. But in the long-term this will protect you against a number of potential problems, and because it adheres to common conventionsin the R community, it makes it easier for others to contribute to your app.
 
-Don't recommend that you do this now.
+I don't recommend that you do this the first time you try out the package structure; I include these notes for when you come back to it in the future.
 
 To make an app pass `R CMD check`, you'll also need to:
 
