@@ -5,9 +5,9 @@ source("common.R")
 options(tibble.print_min = 6, tibble.print_max = 6)
 ```
 
-As your app gets more complicated it becomes impossible to hold it all in your head simultaneously. Testing is a way to capture how you expect code to work and turn it into a permanent artefact that you can run again and again and again.
+As your app gets more complicated it becomes impossible to hold it all in your head simultaneously. Testing is a way to capture how you expect code to work and turn it into a permanent artefact that you can run again and again and again to ensure that your code keeps working the way that you expect.
 
-We'll discuss three basics types of testing in this chapter:
+We'll discuss three basic levels of testing in this chapter:
 
 -   Testing functions with testthat.
 
@@ -17,7 +17,19 @@ We'll discuss three basics types of testing in this chapter:
 
 Start simplest, and work our way up. This should also be how you write tests --- use the simplest test. This matches the advice that I've been giving your throughout the entire book --- if you can write code outside of Shiny, you should, because reactivity is complicated, and isolating it to the small part of your code as possible will make your app as easy to understand as possible.
 
-When write tests?
+We'll talk about the structure of tests in more detail very soon, but to give you an idea, this is what a test looks like:
+
+```{r}
+test_that("", {
+  
+})
+```
+
+There's a mix of regular R code that generates some output, and then some **expectations**, functions that start with `expect_` that define what the results should be. If the expectation is not true, the test will fail, and you'll learn about it.
+
+Why write tests? As mentioned in Chapter \@ref(best-practices), you don't have to write automated tests. But if you don't, you need to carefully prepare a script to ensure that you do the same things as consistently as possible. You only need to work through such a script a few times to get a feel for how tedious is. Sure, turning that script into code is going to be painful when you first do it (because you'll need to carefully turn every key press and mouse click into a line of code), but every time you need to run it, it is much much easier.
+
+When should you write tests? There are three basic options
 
 -   **Before you write the code**. This is a style of code called test driven development, and if you know exactly how a function should behave, it makes sense to capture that knowledge as code *before* you start writing the implementation.
 
@@ -35,7 +47,7 @@ library(shinytest)
 
 ## Testing non-Shiny functions
 
-Easiest to test code that is outside of the server functions. And for complex apps you as much code as possible should be independent of Shiny, mostly because it's so much easier to reason about, test, and document. This will also server as your intro to testthat independent of Shiny so you get the basics of testing down in a simpler environment. More details in <https://r-pkgs.org/tests.html>.
+Easiest to test code that is outside of the server functions, i.e. functions that you've extracted out as in Chapter \@ref(scaling-functions). And for complex apps you as much code as possible should be independent of Shiny, mostly because it's so much easier to reason about, test, and document. This will also serve as your intro to testthat independent of Shiny so you get the basics of testing down in a simpler environment. More details in <https://r-pkgs.org/tests.html>.
 
 ### Basic structure
 
@@ -45,11 +57,11 @@ Tests have three levels of hierarchy:
 
 -   **Test**. Each file broken down into tests. Each test is a call to `test_that()`.
 
--   **Expectation**: each test contains one or more expectations. These are very low level assertions. The two most important are `expect_equal()` and `expect_error()`. Many expectations others can be found on: <https://testthat.r-lib.org/reference/index.html#section-expectations>.
+-   **Expectation**: each test contains one or more expectations. These are very low level assertions. The two most important for Shiny apps `expect_equal()`, `expect_error()`, and `expect_snapshot_output()`. Many expectations others can be found on the [testthat website](https://testthat.r-lib.org/reference/index.html#section-expectations){.uri}.
 
 You can run all the tests for the current file with `devtools::test_file()`. Like `use_test()`, it looks at which file you currently have open in RStudio, and then automatically runs the appropriate tests.
 
-### Server example
+### Server side functions
 
 Take `load_file()` from \@ref(function-upload):
 
@@ -83,9 +95,15 @@ test_that("load_file() handles inputs types", {
 
 Note that I create a very simple data frame and use it to create temporary data inside of my test. This is good practice because you want your tests to be as self-contained as possible. That makes it much easier to debug them when they fail, and you need to figure out why.
 
-### UI example
+### User interface functions
 
-For UI, might want to use snapshot testing of html.
+Hard to describe exactly what HTML should like. So best we can do is check that it doesn't change unexpectedly.
+
+`expect_snapshot_output()`
+
+## Workflow
+
+Take a brief digression to work on your workflow before diving into testing Shiny specific code.
 
 ### Code coverage
 
@@ -117,11 +135,11 @@ This is what my keyboard shortcuts look like for the mac.
 knitr::include_graphics("screenshots/scaling-testing/keyboard-shortcuts.png", dpi = 300)
 ```
 
-### Workflow summary
+### Summary
 
--   Once: create file with `usethis::use_test()`
+-   From the R file, use `usethis::use_test()` to create the test file (the first time its run) or navigate to the test file (if it already exists).
 
--   Write code/write tests. Press `cmd/ctrl + T`. Iterate as needed.
+-   Write code/write tests. Press `cmd/ctrl + T` to run the tests and review the results in the console. Iterate as needed.
 
 -   If you encounter a new bug, start by capturing the bad behaviour in a test. In the course of making the minimal code, you'll often get a better understanding of where the bug lies, and having the test will ensure that you can't fool yourself into thinking that you've fixed the bug when you haven't.
 
@@ -134,6 +152,8 @@ knitr::include_graphics("screenshots/scaling-testing/keyboard-shortcuts.png", dp
 Now that you have your non-reactive code tested, it's time to move to Shiny specific stuff. We'll start by testing the flow of reactivity in the server function simulating everything in R. This allows you to check for the vast majority of reactivity issues. In the next section, we'll talk about problems that require a full browser loop.
 
 <!-- https://shiny.rstudio.com/articles/integration-testing.html -->
+
+Let's start with a simple app, that has a few inputs, an output, and some reactives.
 
 ```{r}
 ui <- fluidPage(
@@ -154,7 +174,17 @@ myApp <- function(...) {
 }
 ```
 
-As if your test code was running inside the server function: can access `input` and `output`, and reactives. And you can set input values using `session$setInputs()`, simulating user action in the browser. Then just combine that with standard testing setup.
+Testing this code using the approach above because all the complexity is in the reactivity, and the reactivity is sealed inside the server function in a way that's hard to access. Shiny 1.5.0 provides a new tool to help with this challenge: `testServer()`. It takes a Shiny app, and allows you to run code as if it was inside the server function:
+
+```{r}
+testServer(myApp(), {
+  session$setInputs(x = 1, y = 1, z = 1)
+  print(xy())
+  print(output$out)
+})
+```
+
+Note the use of `session$setInputs()` --- this is the key way in which you interact with the app, as if you were a user. You can then access and inspect the values of reactives and outputs. To turn this into a test, you just wrap it up in a `test_that()` block and use some expectations:
 
 ```{r}
 test_that("reactives and output updates", {
@@ -167,11 +197,35 @@ test_that("reactives and output updates", {
 })
 ```
 
-Note that unlike a real Shiny app, all inputs start as `NULL`. That's because this is a pure server side simulation; so it can't access the default values you set in your `ui`. We'll come back to this limitation and how to work around it, a little later.
+Note that unlike a real Shiny app, all inputs start as `NULL`. That's because this is a pure server side simulation; while we give it that app object that contains both the UI and server, it only uses the server function. We'll talk more about this limitation and how to work around shortly.
 
 ### Modules
 
-When testing modules, you use `session$returned` to access the value returned by the module.
+You could test modules in the same way as you test an app, assuming you've followed my advice in Chapter \@ref(modules), because every module will have an app function already. But you can also test the module server directly:
+
+```{r}
+datasetServer <- function(id) {
+  moduleServer(id, function(input, output, session) {
+    reactive(get(input$dataset, "package:datasets"))
+  })
+}
+
+test_that("can find dataset", {
+  testServer(datasetServer, {
+    dataset <- session$getReturned()
+    
+    session$setInputs(dataset = "mtcars")
+    expect_equal(dataset(), mtcars)
+    
+    session$setInputs(dataset = "iris")
+    expect_equal(dataset(), iris)
+  })
+})
+```
+
+Here I use `session$getReturned()` to capture the reactive returned from the session so that I can later check that it varies as I expect as I change the input name.
+
+Do we need to test what happens if `input$dataset` isn't a dataset? In this case, no because we know that the module UI restricts the options to valid choices.
 
 ### Timers
 
@@ -181,7 +235,7 @@ Time does not advanced automatically, so if you are using `reactiveTimer()` or `
 
 `testServer()` is a simulation of your app. The simulation is useful because it lets you quickly test reactive code, but it is not complete. Importantly, much of Shiny relies on javascript. This includes:
 
--   The update functions because they because they work by sending JS to the browser, pretending that you the user have changed something.
+-   The update functions, because they send JS to the browser which pretends that the user has changed something.
 
 -   `req()` and `validate()`.
 
