@@ -303,7 +303,7 @@ server <- function(input, output, session) {
 
 Note that there are two render functions that can be used with either of the text outputs:
 
-* `renderText()` combines the into a single string.
+* `renderText()` combines the result into a single string.
 * `renderPrint()` _prints_ the result.
 
 We can see the difference by taking advantage of a hidden feature of the render functions:
