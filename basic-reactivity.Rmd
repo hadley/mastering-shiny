@@ -494,7 +494,7 @@ In Shiny, however, I think you should consider the rule of one: whenever you cop
 
 ### Why do we need reactive expressions? {#reactive-roadblocks}
 
-When you first start working with reactive code, you might wonder why we need reactive expression. Why can't you use your existing tools for reducing duplication in code: creating new variables and writing functions? Unfortunately neither of these techniques work in a reactive environment.
+When you first start working with reactive code, you might wonder why we need reactive expressions. Why can't you use your existing tools for reducing duplication in code: creating new variables and writing functions? Unfortunately neither of these techniques work in a reactive environment.
 
 If you try to use a variable to reduce duplication, you might write something like this:
 
