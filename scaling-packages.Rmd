@@ -33,6 +33,9 @@ Converting an app to a package requires a small little work. Follow these steps 
 
     ```{r}
     myApp <- function(...) {
+      # Plus other stuff that was previously in app.R or globals.R
+      # Hopefully refactored in a few function calls
+      
       shinyApp(ui, server, ...)
     }
     ```
@@ -40,11 +43,10 @@ Converting an app to a package requires a small little work. Follow these steps 
 -   If you're deploying your app (not just running it locally), you'll need to a add a new `app.R` that tells the deployment server how you run your app. The easiest way is to load the code with pkgload:
 
     ```{r, eval = FALSE}
-    pkgload::load_all()
-    myApp::myApp()
+    myApp()
     ```
 
-    (Inspired by <https://engineering-shiny.org/structure.html#deploy>).
+    (You can see other techniques at <https://engineering-shiny.org/structure.html#deploy>).
 
 -   Call `usethis::use_description()` to create a description file. You don't have to even look at or touch this file (although you need to if you want to make a full package), but you need to have it to activate RStudio's "package development mode" which provides the keyboard shortcuts we'll use later.
 
@@ -58,7 +60,7 @@ This gives your app the basic structure of a package, which enables some useful 
 
 Putting your app code into the package structure unlocks a new workflow:
 
--   Re-load all code in the app with `cmd + shift + L`. This calls `devtools::load_all()` which automatically saves all open files, `source()`s every file in `R/`, then puts your cursor in the console.
+-   Re-load all code in the app with `cmd/ctrl + shift + L`. This calls `devtools::load_all()` which automatically saves all open files, `source()`s every file in `R/`, then puts your cursor in the console.
 
 -   Re-run the app with `myApp()`.
 
