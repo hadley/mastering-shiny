@@ -5,27 +5,30 @@ source("common.R")
 options(tibble.print_min = 6, tibble.print_max = 6)
 ```
 
-As your app gets more complicated it becomes impossible to hold it all in your head simultaneously. Testing is a way to capture how you expect code to work and turn it into a permanent artefact that you can run again and again and again to ensure that your code keeps working the way that you expect.
+For simple apps, its easy enough to remember how the app is supposed to work, so that when you make changes to add new features, you don't accidental break existing capabilities. However, as your app gets more complicated it becomes impossible to hold it all in your head simultaneously. Testing is a way to capture the desired behaviour of your code to work, and turn it into an automated tool that allows you verify that your code keeps working the way that you expect.
 
-We'll discuss three basic levels of testing in this chapter:
+We'll perform automated testing with the [testthat](http://testthat.r-lib.org/) package, the most popular testing package in R[^1]. This is what a testthat test looks like:
 
--   Testing functions with testthat.
+[^1]: It's used by over 4,700 packages on CRAN.
 
--   Testing reactivity with testthat and shiny.
-
--   Testing client side with shinytest.
-
-Start simplest, and work our way up. This should also be how you write tests --- use the simplest test. This matches the advice that I've been giving your throughout the entire book --- if you can write code outside of Shiny, you should, because reactivity is complicated, and isolating it to the small part of your code as possible will make your app as easy to understand as possible.
-
-We'll talk about the structure of tests in more detail very soon, but to give you an idea, this is what a test looks like:
-
-```{r}
-test_that("", {
-  
+```{r, eval = FALSE}
+test_that("as.vector() strips names", {
+  x <- c(a = 1, b = 2)
+  expect_equal(as.vector(x), c(1, 2))
 })
 ```
 
-There's a mix of regular R code that generates some output, and then some **expectations**, functions that start with `expect_` that define what the results should be. If the expectation is not true, the test will fail, and you'll learn about it.
+We'll come back to the precise details very soon, but note that a test includes a mix of regular R code that generates some output (here creating `x` then calling `as.vector()` on it) and then some **expectations**, functions that start with `expect_` that define what the results should be. Here we verify that the ouput of `as.vector(x))` equals `c(1, 2)`.
+
+We'll discuss three basic levels of testing in this chapter:
+
+-   We'll start by testing **functions**. This will allow you to verify the behaviour of code that you've extracted out of server and UI, and help you learn the basic testing workflow. It's the exactly the same type of testing you'd do if you were writing a package, and you can find more details in the [testing chapter](https://r-pkgs.org/tests.html) of *R Packages*.
+
+-   Next you'll learn how to test the flow of **reactivity** within your server function. You will simulate the user setting inputs and then verify that reactives and outputs update as you expect.
+
+-   Finally, we'll test the **client side** by running the app in a background web browser, using code to simulate the user pressing keys or clicking the mouse, and observing how the app updates in response.
+
+As we proceed through these techniques, they get progressively slower and more complex. So when you're writing tests, you should always strive to test at the simplest possible level. This makes your tests faster to run, and easier to debug when they fail. Over time this will also influence the way you right code. As you develop a clearer understanding of what code needs reactivity and what doesn't, you'll be able to simplify your app.
 
 Why write tests? As mentioned in Chapter \@ref(best-practices), you don't have to write automated tests. But if you don't, you need to carefully prepare a script to ensure that you do the same things as consistently as possible. You only need to work through such a script a few times to get a feel for how tedious is. Sure, turning that script into code is going to be painful when you first do it (because you'll need to carefully turn every key press and mouse click into a line of code), but every time you need to run it, it is much much easier.
 
@@ -45,9 +48,9 @@ library(testthat)
 library(shinytest)
 ```
 
-## Testing non-Shiny functions
+## Testing functions
 
-Easiest to test code that is outside of the server functions, i.e. functions that you've extracted out as in Chapter \@ref(scaling-functions). And for complex apps you as much code as possible should be independent of Shiny, mostly because it's so much easier to reason about, test, and document. This will also serve as your intro to testthat independent of Shiny so you get the basics of testing down in a simpler environment. More details in <https://r-pkgs.org/tests.html>.
+The easiest part of your app is test is the part that has little to do with Shiny: the functions that you've extracted out of your UI and server code as described in Chapter \@ref(scaling-functions).
 
 ### Basic structure
 
@@ -57,13 +60,13 @@ Tests have three levels of hierarchy:
 
 -   **Test**. Each file broken down into tests. Each test is a call to `test_that()`.
 
--   **Expectation**: each test contains one or more expectations. These are very low level assertions. The two most important for Shiny apps `expect_equal()`, `expect_error()`, and `expect_snapshot_output()`. Many expectations others can be found on the [testthat website](https://testthat.r-lib.org/reference/index.html#section-expectations){.uri}.
+-   **Expectation**: each test contains one or more expectations. These are very low level assertions. The most important for Shiny apps `expect_equal()`, `expect_error()`, and `expect_snapshot_output()`. Many expectations others can be found on the [testthat website](https://testthat.r-lib.org/reference/index.html#section-expectations){.uri}.
 
 You can run all the tests for the current file with `devtools::test_file()`. Like `use_test()`, it looks at which file you currently have open in RStudio, and then automatically runs the appropriate tests.
 
-### Server side functions
+### Basic workflow
 
-Take `load_file()` from \@ref(function-upload):
+Take `load_file()` from \@ref(function-upload). Assume that it lives in `R/load.R`
 
 ```{r}
 load_file <- function(name, path) {
@@ -76,7 +79,7 @@ load_file <- function(name, path) {
 }
 ```
 
-There are three main things we want to test --- can it load a csv file, can it load a tsv file, and does it give an error message?
+Call `use_test()`, which creates `tests/testthat/load.R`. Then we write a test. There are three main things we want to test --- can it load a csv file, can it load a tsv file, and does it give an error message?
 
 ```{r}
 test_that("load_file() handles inputs types", {
@@ -93,7 +96,13 @@ test_that("load_file() handles inputs types", {
 })
 ```
 
+Run with `devtools::test_file()`.
+
 Note that I create a very simple data frame and use it to create temporary data inside of my test. This is good practice because you want your tests to be as self-contained as possible. That makes it much easier to debug them when they fail, and you need to figure out why.
+
+### More server examples
+
+What should your test contain? How many tests per function? Why? When?
 
 ### User interface functions
 
@@ -104,6 +113,12 @@ Hard to describe exactly what HTML should like. So best we can do is check that 
 ## Workflow
 
 Take a brief digression to work on your workflow before diving into testing Shiny specific code.
+
+### Handling failures
+
+When a test fails, you'll need to use your debugging skills to figure out why.
+
+If you generally find it hard to debug a failing test, it may suggest that your tests are too complicated and you need to work on making them simpler; or that you need to deliberately practicde your debugging skills.
 
 ### Code coverage
 
@@ -203,6 +218,8 @@ Note that unlike a real Shiny app, all inputs start as `NULL`. That's because th
 
 You could test modules in the same way as you test an app, assuming you've followed my advice in Chapter \@ref(modules), because every module will have an app function already. But you can also test the module server directly:
 
+Need simpler case with module that just has outputs.
+
 ```{r}
 datasetServer <- function(id) {
   moduleServer(id, function(input, output, session) {
@@ -258,6 +275,9 @@ test_that("app works", {
   app <- shinytest::ShinyDriver$new("apps/shiny-test")
   app$setInputs(x = 1)
   expect_equal(app$getValue("y"), 2)
+  
+  expect_snapshot_value(app$getAllValues())
+  expect_snapshot_image(app$screenshot("output.blah"))
 })
 ```
 
@@ -265,8 +285,10 @@ Possible to do more advanced things like simulating keypresses, taking screensho
 
 `ShinyDriver$new()` is relatively expensive, which means that you'll tend to have fairly large tests. The best way to fight this tendency is to test everything else at a lower-level.
 
-## Challenges
+### Challenges
 
--   Complex output (like plots and htmlwidgets). Focus on testing the inputs. Snapshot testing
+-   Complex output (like plots and htmlwidgets). Focus on testing the inputs.
 
--   
+-   Snapshot testing
+
+## Manual testing
