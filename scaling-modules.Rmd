@@ -297,7 +297,7 @@ selectVarApp <- function(filter = is.numeric) {
 
 ### Server inputs
 
-When designing a module server, you need to think about who is going to provide the value for each argument: is it the R programmer calling your module, or the person using the app? Another way to think about this is when can the value to change: Is it fixed and constant over the life-time of the app, or is it reactive, changing as the user interacts with the app? This is an important design decision that determines whether or not an argument should be a reactive or not.
+When designing a module server, you need to think about who is going to provide the value for each argument: is it the R programmer calling your module, or the person using the app? Another way to think about this is when can the value change: is it fixed and constant over the life-time of the app, or is it reactive, changing as the user interacts with the app? This is an important design decision that determines whether or not an argument should be a reactive or not.
 
 Once you've made this decision, I think it's good practice to check that each input to your module is either reactive or constant. If you don't, and the user supplies the wrong type, they'll get a cryptic error message. You can make the life of module user much easier with a quick and dirty call to `stopifnot()`. For example, `selectVarServer()` could check that `data` is reactive and `filter` is not with the following code:
 
