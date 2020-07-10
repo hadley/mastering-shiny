@@ -588,7 +588,7 @@ You could continue to wrap up this module for still more specific purposes. For 
 
 ```{r}
 genderUI <- function(id, label = "Gender") {
-  radioExtraUI(id, "gender", 
+  radioExtraUI(id, 
     label = label,
     choices = c(
       male = "Male",
