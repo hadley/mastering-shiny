@@ -643,7 +643,7 @@ wrapPage <- function(title, page, button_left = NULL, button_right = NULL) {
 
 Then we can put it all together to generate the whole wizard. We loop over the list of pages provided by the user, create the buttons, then wrap up the user supplied page into a `tabPanel`, then combine all the panels into a `tabsetPanel`. Note that there are two special cases for buttons:
 
--   The first page doesn't have a previous button. Here I use a trick that `if` returns `NULL` if the condition is `FALSE` and there no else block.
+-   The first page doesn't have a previous button. Here I use a trick that `if` returns `NULL` if the condition is `FALSE` and there is no else block.
 
 -   The last page uses an input control supplied by the user. I think this is the simplest way to allow the user to control what happens when the wizard is done.
 
