@@ -622,7 +622,7 @@ prevPage <- function(id, i) {
 
 The only real complexity here is the `id`: since each input element needs to have a unique id, the id for each button needs to include both the current and the destination page.
 
-Next I write a function to generate a page of the wizard. This includes contain a "title" (not shown, but used to identify the page for switching), the contents of the page (supplied by the user), and the two buttons[^3].
+Next I write a function to generate a page of the wizard. This includes a "title" (not shown, but used to identify the page for switching), the contents of the page (supplied by the user), and the two buttons[^3].
 
 [^3]: Not every page will have both buttons (more on that shortly) so I mark them as optional by supplying a default value of `NULL`.
 
