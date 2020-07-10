@@ -481,7 +481,7 @@ histogramApp <- function() {
 
 The main challenge with this sort of code is remembering when you use the reactive (e.g. `x$value`) vs. when you use its value (e.g. `x$value()`). Just remember that when passing an argument to a module, you want the module to react to the value changing which means that you have to pass the reactive, not it's current value.
 
-If you find yourself frequently returning multiple value from a reactive, you might also consider using the zeallot package. zeallot provides the `%<-%` operator which allows you to assign into multiple variables (sometimes called multiple, unpacking, or destructuring assignment). This can useful when returning multiple values because you avoid a layer of indirection.
+If you find yourself frequently returning multiple values from a reactive, you might also consider using the zeallot package. zeallot provides the `%<-%` operator which allows you to assign into multiple variables (sometimes called multiple, unpacking, or destructuring assignment). This can useful when returning multiple values because you avoid a layer of indirection.
 
 ```{r}
 library(zeallot)
