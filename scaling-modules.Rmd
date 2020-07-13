@@ -139,7 +139,7 @@ Now that we have a complete app, let's circle back and talk about namespacing so
 
 This two-part specification means that you, the module author, don't need to worry about clashing with other UI components created by the user. You have your own "space" of names that you own, and can arrange to best meet your own needs.
 
-Namespacing turns modules into black boxes. From outside of the module, you can't see any of the inputs, outputs, or reactives inside of it. For example, take the app below. The output will never get updated because there is no `input$bins`; the `bins` input can only be seen inside of the `hist1` module.
+Namespacing turns modules into black boxes. From outside of the module, you can't see any of the inputs, outputs, or reactives inside of it. For example, take the app below. The text output `output$out` will never get updated because there is no `input$bins`; the `bins` input can only be seen inside of the `hist1` module.
 
 ```{r}
 ui <- fluidPage(
@@ -297,7 +297,7 @@ selectVarApp <- function(filter = is.numeric) {
 
 ### Server inputs
 
-When designing a module server, you need to think about who is going to provide the value for each argument: is it the R programmer calling your module, or the person using the app? Another way to think about this is when can the value to change: Is it fixed and constant over the life-time of the app, or is it reactive, changing as the user interacts with the app? This is an important design decision that determines whether or not an argument should be a reactive or not.
+When designing a module server, you need to think about who is going to provide the value for each argument: is it the R programmer calling your module, or the person using the app? Another way to think about this is when can the value change: is it fixed and constant over the life-time of the app, or is it reactive, changing as the user interacts with the app? This is an important design decision that determines whether or not an argument should be a reactive or not.
 
 Once you've made this decision, I think it's good practice to check that each input to your module is either reactive or constant. If you don't, and the user supplies the wrong type, they'll get a cryptic error message. You can make the life of module user much easier with a quick and dirty call to `stopifnot()`. For example, `selectVarServer()` could check that `data` is reactive and `filter` is not with the following code:
 
@@ -481,7 +481,7 @@ histogramApp <- function() {
 
 The main challenge with this sort of code is remembering when you use the reactive (e.g. `x$value`) vs. when you use its value (e.g. `x$value()`). Just remember that when passing an argument to a module, you want the module to react to the value changing which means that you have to pass the reactive, not it's current value.
 
-If you find yourself frequently returning multiple value from a reactive, you might also consider using the zeallot package. zeallot provides the `%<-%` operator which allows you to assign into multiple variables (sometimes called multiple, unpacking, or destructuring assignment). This can useful when returning multiple values because you avoid a layer of indirection.
+If you find yourself frequently returning multiple values from a reactive, you might also consider using the zeallot package. zeallot provides the `%<-%` operator which allows you to assign into multiple variables (sometimes called multiple, unpacking, or destructuring assignment). This can useful when returning multiple values because you avoid a layer of indirection.
 
 ```{r}
 library(zeallot)
@@ -588,7 +588,7 @@ You could continue to wrap up this module for still more specific purposes. For 
 
 ```{r}
 genderUI <- function(id, label = "Gender") {
-  radioExtraUI(id, "gender", 
+  radioExtraUI(id, 
     label = label,
     choices = c(
       male = "Male",
@@ -622,7 +622,7 @@ prevPage <- function(id, i) {
 
 The only real complexity here is the `id`: since each input element needs to have a unique id, the id for each button needs to include both the current and the destination page.
 
-Next I write a function to generate a page of the wizard. This includes contain a "title" (not shown, but used to identify the page for switching), the contents of the page (supplied by the user), and the two buttons[^3].
+Next I write a function to generate a page of the wizard. This includes a "title" (not shown, but used to identify the page for switching), the contents of the page (supplied by the user), and the two buttons[^3].
 
 [^3]: Not every page will have both buttons (more on that shortly) so I mark them as optional by supplying a default value of `NULL`.
 
@@ -643,7 +643,7 @@ wrapPage <- function(title, page, button_left = NULL, button_right = NULL) {
 
 Then we can put it all together to generate the whole wizard. We loop over the list of pages provided by the user, create the buttons, then wrap up the user supplied page into a `tabPanel`, then combine all the panels into a `tabsetPanel`. Note that there are two special cases for buttons:
 
--   The first page doesn't have a previous button. Here I use a trick that `if` returns `NULL` if the condition is `FALSE` and there no else block.
+-   The first page doesn't have a previous button. Here I use a trick that `if` returns `NULL` if the condition is `FALSE` and there is no else block.
 
 -   The last page uses an input control supplied by the user. I think this is the simplest way to allow the user to control what happens when the wizard is done.
 
@@ -756,7 +756,7 @@ server <- function(input, output, session) {
 
 ### Dynamic UI
 
-We'll finish up with a case study that uses dynamic UI, taking part of the dynamic filtering code found in Section \@ref(dynamic-filter) and turning it into a module. The main challenge of dynamic UI within a module is that because you will generating UI code wiithin your server function, we need a more precise definition of when explicit namespacing is needed.
+We'll finish up with a case study that uses dynamic UI, taking part of the dynamic filtering code found in Section \@ref(dynamic-filter) and turning it into a module. The main challenge of dynamic UI within a module is that because you will generating UI code within your server function, we need a more precise definition of when explicit namespacing is needed.
 
 As usual, we'll start with the module UI. It's very simple here, because we're just generating a "hole" that the server functions will fill in dynamically.
 
@@ -928,7 +928,7 @@ In Shiny, UI and server are inherently disconnected; Shiny doesn't know which UI
 
 1.  Example passing `input$foo` to reactive and it not working.
 
-2.  Rewrite `selectVarServer()` so that both `data` and `filter` are reactive. Pair it with a app function that lets the user pick the dataset with the `dataset` module, a function with an `inputSelect()` that lets the user filter for numeric, character, or factor variables.
+2.  Rewrite `selectVarServer()` so that both `data` and `filter` are reactive. Pair it with an app function that lets the user pick the dataset with the `dataset` module, a function with an `inputSelect()` that lets the user filter for numeric, character, or factor variables.
 
 3.  The following code defines output and server components of a module that takes a numeric input and produces a bulleted list of three summary statistics. Create an app function that allows you to experiment with it. The app function should take a data frame as input, and use `numericVarSelectInput()` to pick the variable to summarise.
 
@@ -970,4 +970,4 @@ In Shiny, UI and server are inherently disconnected; Shiny doesn't know which UI
 
 5.  In `radioExtraServer()`, return a list that contains both the value and whether or not it came from other.
 
-6.  In `wizardServer()` verify that the namespacing has been set up correctly by using two or more wizards in a single add, and checking that you can navigate through each wizard independently.
+6.  In `wizardServer()` verify that the namespacing has been set up correctly by using two or more wizards in a single app, and checking that you can navigate through each wizard independently.
