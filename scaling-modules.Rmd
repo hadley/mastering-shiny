@@ -970,4 +970,4 @@ In Shiny, UI and server are inherently disconnected; Shiny doesn't know which UI
 
 5.  In `radioExtraServer()`, return a list that contains both the value and whether or not it came from other.
 
-6.  In `wizardServer()` verify that the namespacing has been set up correctly by using two or more wizards in a single add, and checking that you can navigate through each wizard independently.
+6.  In `wizardServer()` verify that the namespacing has been set up correctly by using two or more wizards in a single app, and checking that you can navigate through each wizard independently.
