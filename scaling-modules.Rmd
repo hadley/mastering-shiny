@@ -756,7 +756,7 @@ server <- function(input, output, session) {
 
 ### Dynamic UI
 
-We'll finish up with a case study that uses dynamic UI, taking part of the dynamic filtering code found in Section \@ref(dynamic-filter) and turning it into a module. The main challenge of dynamic UI within a module is that because you will generating UI code wiithin your server function, we need a more precise definition of when explicit namespacing is needed.
+We'll finish up with a case study that uses dynamic UI, taking part of the dynamic filtering code found in Section \@ref(dynamic-filter) and turning it into a module. The main challenge of dynamic UI within a module is that because you will generating UI code within your server function, we need a more precise definition of when explicit namespacing is needed.
 
 As usual, we'll start with the module UI. It's very simple here, because we're just generating a "hole" that the server functions will fill in dynamically.
 
