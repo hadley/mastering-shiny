@@ -928,7 +928,7 @@ In Shiny, UI and server are inherently disconnected; Shiny doesn't know which UI
 
 1.  Example passing `input$foo` to reactive and it not working.
 
-2.  Rewrite `selectVarServer()` so that both `data` and `filter` are reactive. Pair it with a app function that lets the user pick the dataset with the `dataset` module, a function with an `inputSelect()` that lets the user filter for numeric, character, or factor variables.
+2.  Rewrite `selectVarServer()` so that both `data` and `filter` are reactive. Pair it with an app function that lets the user pick the dataset with the `dataset` module, a function with an `inputSelect()` that lets the user filter for numeric, character, or factor variables.
 
 3.  The following code defines output and server components of a module that takes a numeric input and produces a bulleted list of three summary statistics. Create an app function that allows you to experiment with it. The app function should take a data frame as input, and use `numericVarSelectInput()` to pick the variable to summarise.
 
