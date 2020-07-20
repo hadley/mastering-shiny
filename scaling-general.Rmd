@@ -77,7 +77,7 @@ Lastly, be wary of making assumptions about the local file system. If your code 
 
 Anyone who's been programming for long has inevitably arrived at a state where they've accidentally broken their app and want to roll back to a previous working state. This is incredibly arduous is done manually. Fortunately, however, you can rely on a "version-control system" that makes it easy track atomic changes, roll back to previous work, and integrate the work of multiple contributors.
 
-The most popular version-control system in the R community is Git. Git is typically paired with GitHub, a website that makes it easy to share your git repos with others. It definitely takes work to become proficient with Git and GitHub, but any experienced developer will confirm that the effort is well worth it. If you're new to git, I'd highly recommend starting with *[Happy Git and GitHub for the useR](https://happygitwithr.com/)*, by Jenny Bryan.
+The most popular version-control system in the R community is Git. Git is typically paired with GitHub, a website that makes it easy to share your git repos with others. It definitely takes work to become proficient with Git and GitHub, but any experienced developer will confirm that the effort is well worth it. If you're new to git, I'd highly recommend starting with [*Happy Git and GitHub for the useR*](https://happygitwithr.com/), by Jenny Bryan.
 
 ## Continuous integration/deployment (CI, CD)
 

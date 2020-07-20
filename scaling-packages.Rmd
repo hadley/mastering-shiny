@@ -17,7 +17,7 @@ This structure gets your toes into the water of package development. It's a long
 
 It's easy to think of packages as these big complicated artefacts like Shiny, ggplot2, or dplyr. But packages can also be very simple, and at their heart, the key idea of a package is that it's a set of conventions for organising your code and related artefacts. Here, I'll start by showing you how to achieve the absolute minimal compliance with the standard, and then provide a few hints as to next steps.
 
-As you start working with apps that use the package structure, you may find that you enjoy the process and want to learn more. I recommend *[R Packages](https://r-pkgs.org){.uri}*, and if you want to learn more about the intersection of R packages and Shiny apps, I highly recommend *[Engineering Shiny](http://engineering-shiny.org/){.uri}*, by Colin Fay, Sébastien Rochette, Vincent Guyader, Cervan Girard.
+As you start working with apps that use the package structure, you may find that you enjoy the process and want to learn more. I recommend [*R Packages*](https://r-pkgs.org){.uri}, and if you want to learn more about the intersection of R packages and Shiny apps, I highly recommend [*Engineering Shiny*](http://engineering-shiny.org/){.uri}, by Colin Fay, Sébastien Rochette, Vincent Guyader, Cervan Girard.
 
 ```{r setup}
 library(shiny)
@@ -70,6 +70,15 @@ As your app grows bigger, it's also worth remembering the keyboard shortcuts you
 
 -   When your cursor is on the name of function `F2` will jump to the function definition.
 
+If you do a lot of package development, we recommend making a couple of small additions to your `.Rprofile`. This file contains R code that's run whenever you start R, so it's create way to customise your interactive development environment. You can open it by running `usethis::edit_r_profile()`.
+
+``` {.r}
+if (interactive()) {
+  suppressMessages(suppressWarnings(require(devtools)))
+  suppressMessages(suppressWarnings(require(testthat)))
+}
+```
+
 ## `R CMD check`
 
 To make a "real" package, you can use `Cmd/Ctrl + Shift + E`. That calls `devtools::check()` which in turn calls `R CMD check`. This is R's tool for checking compliance to the package standard. Getting `R CMD check` to this is quite a lot of work and there's little pay off in the short term. But in the long-term this will protect you against a number of potential problems, and because it ensures your app adheres to standards that R developers are familiar with, it makes it easier for others to contribute to your app.
@@ -100,3 +109,4 @@ Before you make your first full app-package, I recommend read [The whole game](h
     ```
 
 [^1]: The distinction between Imports and Suggests is not generally important for app packages. If you do want to make a distinction, the most useful is to use Imports for packages that need to be present on the deployment machine (in order for the app to work) and Suggests for packages that need to prsent on the development machine in order to develop the app.
+

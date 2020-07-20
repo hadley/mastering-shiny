@@ -5,7 +5,7 @@ source("common.R")
 options(tibble.print_min = 6, tibble.print_max = 6)
 ```
 
-For simple apps, its easy enough to remember how the app is supposed to work, so that when you make changes to add new features, you don't accidental break existing capabilities. However, as your app gets more complicated it becomes impossible to hold it all in your head simultaneously. Testing is a way to capture the desired behaviour of your code to work, and turn it into an automated tool that allows you verify that your code keeps working the way that you expect.
+For simple apps, its easy enough to remember how the app is supposed to work, so that when you make changes to add new features, you don't accidental break existing capabilities. However, as your app gets more complicated it becomes impossible to hold it all in your head simultaneously. Testing is a way to capture the desired behaviour of your code to work, and turn it into an automated tool that allows you verify that your code keeps working the way that you expect. Turning your existing informal test into code is going to be Sure, turning that script into code is going to be painful when you first do it (because you'll need to carefully turn every key press and mouse click into a line of code), but every time you need to run it, it is much much easier.
 
 We'll perform automated testing with the [testthat](http://testthat.r-lib.org/) package, the most popular testing package in R[^1]. This is what a testthat test looks like:
 
@@ -18,7 +18,7 @@ test_that("as.vector() strips names", {
 })
 ```
 
-We'll come back to the precise details very soon, but note that a test includes a mix of regular R code that generates some output (here creating `x` then calling `as.vector()` on it) and then some **expectations**, functions that start with `expect_` that define what the results should be. Here we verify that the ouput of `as.vector(x))` equals `c(1, 2)`.
+We'll come back to the details very soon, but note that a test starts by declaring the intent of the code being tested ("`as.vector()` strips names). It then proceeds to use regular R code to generate a test case (here creating `x` then calling `as.vector()` on it) which is compared to the expected result using a **expectation**, a function that start with `expect_`. Here we verify that the ouput of `as.vector(x))` equals `c(1, 2)`, i.e. that the output isn't named.
 
 We'll discuss three basic levels of testing in this chapter:
 
@@ -28,19 +28,7 @@ We'll discuss three basic levels of testing in this chapter:
 
 -   Finally, we'll test the **client side** by running the app in a background web browser, using code to simulate the user pressing keys or clicking the mouse, and observing how the app updates in response.
 
-As we proceed through these techniques, they get progressively slower and more complex. So when you're writing tests, you should always strive to test at the simplest possible level. This makes your tests faster to run, and easier to debug when they fail. Over time this will also influence the way you right code. As you develop a clearer understanding of what code needs reactivity and what doesn't, you'll be able to simplify your app.
-
-Why write tests? As mentioned in Chapter \@ref(best-practices), you don't have to write automated tests. But if you don't, you need to carefully prepare a script to ensure that you do the same things as consistently as possible. You only need to work through such a script a few times to get a feel for how tedious is. Sure, turning that script into code is going to be painful when you first do it (because you'll need to carefully turn every key press and mouse click into a line of code), but every time you need to run it, it is much much easier.
-
-When should you write tests? There are three basic options
-
--   **Before you write the code**. This is a style of code called test driven development, and if you know exactly how a function should behave, it makes sense to capture that knowledge as code *before* you start writing the implementation.
-
--   **After you write the code**. While writing code you'll often build up a mental to-do list of worries about your code. After you've written the function, turn these into tests so that you can be confident that the function works the way that you expect.
-
--   **When you find a bug**. Whenever you find a bug, it's good practice to turn it into an automated test case. This has two advantages. Firstly, to make a good test case, you'll need to relentlessly simplify the problem until you have a very minimal reprex that you can include in a test. Secondly, you'll make sure that the bug never comes back again!
-
-But there's a balance --- you want to make sure that your tests are fast to run. If they're not fast, it'll be annoying to run time, and you won't run them as often as you should.
+Each technique is a fuller simulation of the user experience of your app than the previous. The downside of the better simulations is that each level gets progressively slower, because it has to do more. So when you're writing tests, you should always strive to test at the lowest level so your tests faster to run and easier to debug when they fail. Over time this will also influence the way you write code. As you develop a clearer understanding of what code needs reactivity and what doesn't, you'll be able to simplify your app.
 
 ```{r setup}
 library(shiny)
@@ -50,23 +38,23 @@ library(shinytest)
 
 ## Testing functions
 
-The easiest part of your app is test is the part that has little to do with Shiny: the functions that you've extracted out of your UI and server code as described in Chapter \@ref(scaling-functions).
+The easiest part of your app is test is the part that has the least to do with interactivity: the functions that you've extracted out of your UI and server code as described in Chapter \@ref(scaling-functions).
 
 ### Basic structure
 
 Tests have three levels of hierarchy:
 
--   **File**. All files live in `tests/testthat`. Each file should correspond to a file in `R/`, e.g. `R/module.R` it will create `tests/testthat/module.R`. Easiest way to create (or find!) that file is to run `use_test()`.
+-   **File**. All test files live in `tests/testthat`. Each test file should correspond to a code file in `R/`, e.g. the code in `R/module.R` should be tested by the code in `tests/testthat/module.R`. Fortunately you don't have to remeber that convention, you can just use `usethis::use_test()` to automatically create or locate the test file corresponding to the currently open R file.
 
--   **Test**. Each file broken down into tests. Each test is a call to `test_that()`.
+-   **Test**. Each file is broken down into tests, a call to `test_that()`. A test should generally check a single property of a function. It's hard to describe exactly how to structure your tests, so I think the best you can do is practice. A good heuristic is that you can easily describe what the test does in the first argument to `test_that()`.
 
--   **Expectation**: each test contains one or more expectations. These are very low level assertions. The most important for Shiny apps `expect_equal()`, `expect_error()`, and `expect_snapshot_output()`. Many expectations others can be found on the [testthat website](https://testthat.r-lib.org/reference/index.html#section-expectations){.uri}.
+-   **Expectation**. Each test contains one or more expectations, with a functions that start with `expect_`. These are the lowest level These are very low level assertions. I'll discuss the most important expectations for Shiny apps here: `expect_equal()`, `expect_error()`, and `expect_snapshot_output()`. Many expectations others can be found on the [testthat website](https://testthat.r-lib.org/reference/index.html#section-expectations){.uri}.
 
-You can run all the tests for the current file with `devtools::test_file()`. Like `use_test()`, it looks at which file you currently have open in RStudio, and then automatically runs the appropriate tests.
+The art of testing is figuring out how to write tests that clearly defines the expected behaviour of your function, without depending on incidental details that might change in the future.
 
 ### Basic workflow
 
-Take `load_file()` from \@ref(function-upload). Assume that it lives in `R/load.R`
+Assume you've written `load_file()` from \@ref(function-upload):
 
 ```{r}
 load_file <- function(name, path) {
@@ -79,10 +67,12 @@ load_file <- function(name, path) {
 }
 ```
 
-Call `use_test()`, which creates `tests/testthat/load.R`. Then we write a test. There are three main things we want to test --- can it load a csv file, can it load a tsv file, and does it give an error message?
+And for the sake of this example it lives in `R/load.R`. To test it, you first create a test file by calling `use_test()`, which creates `tests/testthat/load.R`.
+
+Then we write a test. There are three main things we want to test --- can it load a csv file, can it load a tsv file, and does it give an error message for other types? To test that, I first have to create a little sample data, which I put in the temp directory so it's automatically cleaned up after my tests are run. This is good practice because you want your tests to be as self-contained as possible. Then I write three expectations, two checking that loaded file equals my original data, and one checking that I get an error.
 
 ```{r}
-test_that("load_file() handles inputs types", {
+test_that("load_file() handles input types", {
   # Create sample data
   df <- tibble::tibble(x = 1, y = 2)
   path_csv <- tempfile()
@@ -96,9 +86,17 @@ test_that("load_file() handles inputs types", {
 })
 ```
 
-Run with `devtools::test_file()`.
+There are four ways to run this test:
 
-Note that I create a very simple data frame and use it to create temporary data inside of my test. This is good practice because you want your tests to be as self-contained as possible. That makes it much easier to debug them when they fail, and you need to figure out why.
+-   As I'm developing it, I run each line interactively at the console. When an expectation fails, it turns into an error, which I then fix.
+
+-   Once I've finished developing it, I run the whole test block. If the test passes, I get a message like `Test passed 😀`. If it fails, I get the details of what went wrong.
+
+-   As I develop more tests, I run all of the tests for the current file[^2] with `devtools::test_file()`. Because I do this so often, I have a special keyboard shortcut set up to make it as easy as possible. I'll show you how to set that up yourself very shortly.
+
+-   Every now and then I run all of the tests for the whole package with `devtools::test()`. This ensures that I haven't accidentally broken anything outside of the current file.
+
+[^2]: Like `usethis::use_test()` this only works if you're using RStudio.
 
 ### More server examples
 
@@ -106,13 +104,52 @@ What should your test contain? How many tests per function? Why? When?
 
 ### User interface functions
 
-Hard to describe exactly what HTML should like. So best we can do is check that it doesn't change unexpectedly.
+You can use the same basic idea to test functions that you've extracted out of your UI code. But these require a new expectation, because manually typing out all the HTML would be tedious, so instead we use a snapshot test. A snapshot expectation differs from other expectations primarily in that the expected result is stored in a separate snapshot file, rather than in the code itself.
 
-`expect_snapshot_output()`
+```{r}
+sliderInput01 <- function(id) {
+  sliderInput(id, label = id, min = 0, max = 1, value = 0.5, step = 0.1)
+}
+```
+
+Tests for UI functions tend to be coarser grained --- we really just want to generate the HTML so we can make sure it doesn't change unexpectedly.
+
+```{r}
+test_that("sliderInput creates expected HTML", {
+  expect_snapshot_output(sliderInput01("x"))
+})
+```
+
+Assuming that you code is in `R/slider.R`, and your test is in `tests/testthat/test-slider.R`, the snapshotot will be saved in `tests/testhat/_snaps/slider.md` and looks like:
+
+``` {.md}
+# sliderInput creates expected HTML
+
+    <div class="form-group shiny-input-container">
+      <label class="control-label" for="x">x</label>
+      <input class="js-range-slider" id="x" data-min="0" data-max="1" data-from="0.5" data-step="0.1" data-grid="true" data-grid-num="10" data-grid-snap="false" data-prettify-separator="," data-prettify-enabled="true" data-keyboard="true" data-data-type="number"/>
+    </div>
+```
+
+If the output later deliberately changes, you'll need to update the snapshot by running `testthat::snapshot_accept()`. You can learn more about snapshot tests at [https://testthat.r-lib.org/articles/snapshotting.html](https://testthat.r-lib.org/articles/snapshotting.html.).
+
+(snapshot tests will be available in testthat 3.0.0, so if you're reading the book now you'll need to install the dev version from GitHub: `devtools::install_github("r-lib/testhat")`.
 
 ## Workflow
 
 Take a brief digression to work on your workflow before diving into testing Shiny specific code.
+
+### When should you write tests?
+
+When should you write tests? There are three basic options
+
+-   **Before you write the code**. This is a style of code called test driven development, and if you know exactly how a function should behave, it makes sense to capture that knowledge as code *before* you start writing the implementation.
+
+-   **After you write the code**. While writing code you'll often build up a mental to-do list of worries about your code. After you've written the function, turn these into tests so that you can be confident that the function works the way that you expect.
+
+    When you start writing tests, beware writing them too soon. If your function is still actively evolving, keeping your tests up to date with all the changes is going to feel frustrating. That may indicate you need to wait a little longer.
+
+-   **When you find a bug**. Whenever you find a bug, it's good practice to turn it into an automated test case. This has two advantages. Firstly, to make a good test case, you'll need to relentlessly simplify the problem until you have a very minimal reprex that you can include in a test. Secondly, you'll make sure that the bug never comes back again!
 
 ### Handling failures
 
@@ -129,6 +166,10 @@ Won't cover in detail here, but I highly recommend trying it out. Main thing to 
 Basic workflow: Write tests. Inspect coverage. Contemplate why lines were tested. Add more tests. Repeat.
 
 Not a substitute for thinking about corner cases --- you can have 100% test coverage and still have bugs. But it's a fun and a useful tool to help you think about what's important, particularly when you have complex nested code.
+
+### R Profile
+
+Remember advice from scaling-packages.
 
 ### Keyboard shortcuts
 
@@ -216,9 +257,11 @@ Note that unlike a real Shiny app, all inputs start as `NULL`. That's because th
 
 ### Modules
 
-You could test modules in the same way as you test an app, assuming you've followed my advice in Chapter \@ref(modules), because every module will have an app function already. But you can also test the module server directly:
+You could test modules in the same way as you test an app, assuming you've followed my advice in Chapter \@ref(modules), because every module will have an app function already. But you can also test the module server directly.
 
-Need simpler case with module that just has outputs.
+Need to start with module that just has outputs.
+
+If your module has a return value (a reactive or list of reactives), you can capture it when `testServer()` starts with `session$getReturned()`. Then you can check the value of that reactive, just like any other reactive.
 
 ```{r}
 datasetServer <- function(id) {
@@ -240,9 +283,7 @@ test_that("can find dataset", {
 })
 ```
 
-Here I use `session$getReturned()` to capture the reactive returned from the session so that I can later check that it varies as I expect as I change the input name.
-
-Do we need to test what happens if `input$dataset` isn't a dataset? In this case, no because we know that the module UI restricts the options to valid choices.
+Do we need to test what happens if `input$dataset` isn't a dataset? In this case, no because we know that the module UI restricts the options to valid choices. That's not obvious from inspection of the server function alone.
 
 ### Timers
 
@@ -284,6 +325,10 @@ test_that("app works", {
 Possible to do more advanced things like simulating keypresses, taking screenshots, etc.
 
 `ShinyDriver$new()` is relatively expensive, which means that you'll tend to have fairly large tests. The best way to fight this tendency is to test everything else at a lower-level.
+
+### Case study
+
+Test as much as possible with `testServer()`, then test just the bit that uses `updateRadioInputs` with ShinyDriver.
 
 ### Challenges
 
