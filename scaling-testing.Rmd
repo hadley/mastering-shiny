@@ -18,7 +18,7 @@ test_that("as.vector() strips names", {
 })
 ```
 
-We'll come back to the details very soon, but note that a test starts by declaring the intent of the code being tested ("`as.vector()` strips names). It then proceeds to use regular R code to generate a test case (here creating `x` then calling `as.vector()` on it) which is compared to the expected result using a **expectation**, a function that start with `expect_`. Here we verify that the ouput of `as.vector(x))` equals `c(1, 2)`, i.e. that the output isn't named.
+We'll come back to the details very soon, but note that a test starts by declaring the intent of the code being tested (\"`as.vector()` strips names). It then proceeds to use regular R code to generate a test case (here creating `x` then calling `as.vector()` on it) which is compared to the expected result using a **expectation**, a function that start with `expect_`. Here we verify that the ouput of `as.vector(x))` equals `c(1, 2)`, i.e. that the output isn't named.
 
 We'll discuss three basic levels of testing in this chapter:
 

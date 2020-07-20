@@ -109,4 +109,3 @@ Before you make your first full app-package, I recommend read [The whole game](h
     ```
 
 [^1]: The distinction between Imports and Suggests is not generally important for app packages. If you do want to make a distinction, the most useful is to use Imports for packages that need to be present on the deployment machine (in order for the app to work) and Suggests for packages that need to prsent on the development machine in order to develop the app.
-
