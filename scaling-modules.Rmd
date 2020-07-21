@@ -186,7 +186,7 @@ You might see advice to use `session$userData` or other techniques to break out 
 
 To see how inputs and outputs work, we'll start off easy with a module that allows the user to select a dataset from built-in data provided by the datasets package. This isn't terribly useful by itself, but it illustrates some of the basic principles, is a useful building block for more complex modules, and you've seen the idea before in Section \@ref(adding-ui).
 
-We'll start with the module UI. Here I use a single additional argument so that you can built in datasets that are either data frames (`filter = is.data.frame`) or matrices (`filter = is.matrix`). I use this argument to optionally filter the objects found in the datasets package, then create a `selectInput()`.
+We'll start with the module UI. Here I use a single additional argument so that you can limit the options to built in datasets that are either data frames (`filter = is.data.frame`) or matrices (`filter = is.matrix`). I use this argument to optionally filter the objects found in the datasets package, then create a `selectInput()`.
 
 ```{r}
 datasetInput <- function(id, filter = NULL) {
