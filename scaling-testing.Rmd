@@ -5,7 +5,7 @@ source("common.R")
 options(tibble.print_min = 6, tibble.print_max = 6)
 ```
 
-For simple apps, its easy enough to remember how the app is supposed to work, so that when you make changes to add new features, you don't accidental break existing capabilities. However, as your app gets more complicated it becomes impossible to hold it all in your head simultaneously. Testing is a way to capture the desired behaviour of your code to work, and turn it into an automated tool that allows you verify that your code keeps working the way that you expect. Turning your existing informal test into code is going to be Sure, turning that script into code is going to be painful when you first do it (because you'll need to carefully turn every key press and mouse click into a line of code), but every time you need to run it, it is much much easier.
+For simple apps, its easy enough to remember how the app is supposed to work, so that when you make changes to add new features, you don't accidental break existing capabilities. However, as your app gets more complicated it becomes impossible to hold it all in your head simultaneously. Testing is a way to capture the desired behaviour of your code to work, and turn it into an automated tool that allows you verify that your code keeps working the way that you expect. Turning your existing informal test into code is going to be painful when you first do it (because you'll need to carefully turn every key press and mouse click into a line of code), but every time you need to run it, it is much much easier.
 
 We'll perform automated testing with the [testthat](http://testthat.r-lib.org/) package, the most popular testing package in R[^1]. This is what a testthat test looks like:
 
@@ -102,6 +102,12 @@ There are four ways to run this test:
 
 What should your test contain? How many tests per function? Why? When?
 
+### Handling failures
+
+When a test fails, you'll need to use your debugging skills to figure out why.
+
+If you generally find it hard to debug a failing test, it may suggest that your tests are too complicated and you need to work on making them simpler; or that you need to deliberately practicde your debugging skills.
+
 ### User interface functions
 
 You can use the same basic idea to test functions that you've extracted out of your UI code. But these require a new expectation, because manually typing out all the HTML would be tedious, so instead we use a snapshot test. A snapshot expectation differs from other expectations primarily in that the expected result is stored in a separate snapshot file, rather than in the code itself.
@@ -111,6 +117,8 @@ sliderInput01 <- function(id) {
   sliderInput(id, label = id, min = 0, max = 1, value = 0.5, step = 0.1)
 }
 ```
+
+It's probably not worth testing this function because it's so simple; you're mostly testing the behaviour of Shiny's HTML generation. This makes it a not very good test but it illustrates the basic idea.
 
 Tests for UI functions tend to be coarser grained --- we really just want to generate the HTML so we can make sure it doesn't change unexpectedly.
 
@@ -137,25 +145,7 @@ If the output later deliberately changes, you'll need to update the snapshot by 
 
 ## Workflow
 
-Take a brief digression to work on your workflow before diving into testing Shiny specific code.
-
-### When should you write tests?
-
-When should you write tests? There are three basic options
-
--   **Before you write the code**. This is a style of code called test driven development, and if you know exactly how a function should behave, it makes sense to capture that knowledge as code *before* you start writing the implementation.
-
--   **After you write the code**. While writing code you'll often build up a mental to-do list of worries about your code. After you've written the function, turn these into tests so that you can be confident that the function works the way that you expect.
-
-    When you start writing tests, beware writing them too soon. If your function is still actively evolving, keeping your tests up to date with all the changes is going to feel frustrating. That may indicate you need to wait a little longer.
-
--   **When you find a bug**. Whenever you find a bug, it's good practice to turn it into an automated test case. This has two advantages. Firstly, to make a good test case, you'll need to relentlessly simplify the problem until you have a very minimal reprex that you can include in a test. Secondly, you'll make sure that the bug never comes back again!
-
-### Handling failures
-
-When a test fails, you'll need to use your debugging skills to figure out why.
-
-If you generally find it hard to debug a failing test, it may suggest that your tests are too complicated and you need to work on making them simpler; or that you need to deliberately practicde your debugging skills.
+Take a brief digression to work on your workflow before diving into testing reactivity and client side functionality.
 
 ### Code coverage
 
@@ -167,15 +157,11 @@ Basic workflow: Write tests. Inspect coverage. Contemplate why lines were tested
 
 Not a substitute for thinking about corner cases --- you can have 100% test coverage and still have bugs. But it's a fun and a useful tool to help you think about what's important, particularly when you have complex nested code.
 
-### R Profile
-
-Remember advice from scaling-packages.
-
 ### Keyboard shortcuts
 
-If you use RStudio, it's worth setting up some keyboard shortucts:
+If you followed the advice in Section \@ref(package-workflow) then you can already run tests just by typing `test()` or `test_file()` at the console. But tests are something that you'll do so often it's worth having a keyboard shortcut at your finger tips.
 
--   Cmd/Ctrl + Shift + T is automatically bound to `devtools::test()`
+RStudio has one useful shortcut built in: Cmd/Ctrl + Shift + T run `devtools::test()`. I recommend that you add three yourself to complete the set:
 
 -   Cmd/Ctrl + T to `devtools::test_file()`
 
@@ -183,7 +169,7 @@ If you use RStudio, it's worth setting up some keyboard shortucts:
 
 -   Cmd/Ctrl + R to `devtools::test_coverage_file()`
 
-You're of course free to choose whatever makes sense to you. Keyboard shortcuts using Shift apply to the whole package. Without shift apply to the current file. Use the file based keyboard shortcuts for rapid iteration on a small part of your app. Use the whole package shortcuts to check that you haven't accidentally broken something unrelated.
+You're of course free to choose whatever shortcut makes sense to you, but these have share some underlying structure. Keyboard shortcuts using Shift apply to the whole package, and without shift apply to the current file.
 
 This is what my keyboard shortcuts look like for the mac.
 
@@ -207,8 +193,6 @@ knitr::include_graphics("screenshots/scaling-testing/keyboard-shortcuts.png", dp
 
 Now that you have your non-reactive code tested, it's time to move to Shiny specific stuff. We'll start by testing the flow of reactivity in the server function simulating everything in R. This allows you to check for the vast majority of reactivity issues. In the next section, we'll talk about problems that require a full browser loop.
 
-<!-- https://shiny.rstudio.com/articles/integration-testing.html -->
-
 Let's start with a simple app, that has a few inputs, an output, and some reactives.
 
 ```{r}
@@ -230,7 +214,9 @@ myApp <- function(...) {
 }
 ```
 
-Testing this code using the approach above because all the complexity is in the reactivity, and the reactivity is sealed inside the server function in a way that's hard to access. Shiny 1.5.0 provides a new tool to help with this challenge: `testServer()`. It takes a Shiny app, and allows you to run code as if it was inside the server function:
+<!-- TODO: test bare server functions -->
+
+Testing this code using the approach above because all the complexity is in the reactivity, and the reactivity is sealed inside the server function in a way that's hard to access. Shiny 1.5.0 provides a new tool to help with this challenge: `testServer()`. It takes a server function, and allows you to run code as if it was inside the server function:
 
 ```{r}
 testServer(myApp(), {
@@ -239,6 +225,8 @@ testServer(myApp(), {
   print(output$out)
 })
 ```
+
+(Note that we're not testing an app, we're testing just the server function, and `ui` is not used by `testServer()`.)
 
 Note the use of `session$setInputs()` --- this is the key way in which you interact with the app, as if you were a user. You can then access and inspect the values of reactives and outputs. To turn this into a test, you just wrap it up in a `test_that()` block and use some expectations:
 
@@ -253,15 +241,37 @@ test_that("reactives and output updates", {
 })
 ```
 
-Note that unlike a real Shiny app, all inputs start as `NULL`. That's because this is a pure server side simulation; while we give it that app object that contains both the UI and server, it only uses the server function. We'll talk more about this limitation and how to work around shortly.
+Unlike a real Shiny app, all inputs start as `NULL`. That's because this is a pure server side simulation; while we give it that app object that contains both the UI and server, it only uses the server function. We'll talk more about this limitation and how to work around shortly.
 
 ### Modules
 
-You could test modules in the same way as you test an app, assuming you've followed my advice in Chapter \@ref(modules), because every module will have an app function already. But you can also test the module server directly.
+You can test a module server function in a similar way to testing an app server function. If your module has no inputs or outputs, you test it in exactly the same way as regular server function. Here I'll show you how to test a module with
+
+Let's start with a simple module. This module uses three outputs to dispay a brief summary of a variable:
+
+```{r}
+summaryUI <- function(id) {
+  tagList(
+    outputText(ns(id, "min")),
+    outputText(ns(id, "mean")),
+    outputText(ns(id, "max")),
+  )
+}
+summaryServer <- function(id, var) {
+  stopifnot(is.reactive(var))
+  
+  moduleServer(id, function(input, output, session) {
+    range <- reactive(range(var(), na.rm = TRUE))
+    output$min <- renderText(range()[[1]])
+    output$max <- renderText(range()[[2]])
+    output$mean <- renderText(mean(var()))
+  })
+}
+```
 
 Need to start with module that just has outputs.
 
-If your module has a return value (a reactive or list of reactives), you can capture it when `testServer()` starts with `session$getReturned()`. Then you can check the value of that reactive, just like any other reactive.
+If your module has a return value (a reactive or list of reactives), you can capture it with `session$getReturned()`. Then you can check the value of that reactive, just like any other reactive.
 
 ```{r}
 datasetServer <- function(id) {
@@ -284,6 +294,30 @@ test_that("can find dataset", {
 ```
 
 Do we need to test what happens if `input$dataset` isn't a dataset? In this case, no because we know that the module UI restricts the options to valid choices. That's not obvious from inspection of the server function alone.
+
+If your module has additional arguments, you can pass them along as a list to the `args` argument. For example, take the function from Section \@ref(case-study-selecting-a-numeric-variable).
+
+```{r}
+selectVarServer <- function(id, data, filter = is.numeric) {
+  moduleServer(id, function(input, output, session) {
+    observeEvent(data(), {
+      updateSelectInput(session, "var", choices = find_vars(data(), filter))
+    })
+    
+    reactive(data()[[input$var]])
+  })
+}
+```
+
+To test this using `mtcars`, I'd call it as follows:
+
+```{r, eval = FALSE}
+testServer(selectVarServer, args = list(data = mtcars), {
+  
+})
+```
+
+Note that the `id` argument is always automatically filled it.
 
 ### Timers
 
@@ -336,4 +370,16 @@ Test as much as possible with `testServer()`, then test just the bit that uses `
 
 -   Snapshot testing
 
-## Manual testing
+## Philosophy
+
+### When should you write tests?
+
+When should you write tests? There are three basic options
+
+-   **Before you write the code**. This is a style of code called test driven development, and if you know exactly how a function should behave, it makes sense to capture that knowledge as code *before* you start writing the implementation.
+
+-   **After you write the code**. While writing code you'll often build up a mental to-do list of worries about your code. After you've written the function, turn these into tests so that you can be confident that the function works the way that you expect.
+
+    When you start writing tests, beware writing them too soon. If your function is still actively evolving, keeping your tests up to date with all the changes is going to feel frustrating. That may indicate you need to wait a little longer.
+
+-   **When you find a bug**. Whenever you find a bug, it's good practice to turn it into an automated test case. This has two advantages. Firstly, to make a good test case, you'll need to relentlessly simplify the problem until you have a very minimal reprex that you can include in a test. Secondly, you'll make sure that the bug never comes back again!
