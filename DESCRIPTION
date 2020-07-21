@@ -26,4 +26,5 @@ Remotes:
     rstudio/shiny,
     rstudio/thematic,
     rstudio/htmltools,
-    rstudio/bookdown
+    rstudio/bookdown,
+    r-lib/testthat
