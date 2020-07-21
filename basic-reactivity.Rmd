@@ -188,7 +188,9 @@ This difference between commands and recipes is one of the key differences betwe
   and/or when to translate that into action. This is the style of 
   programming you use in Shiny.
 
-With imperative code you say "Make me a sandwich". With declarative code you say "Ensure there is a sandwich in the refrigerator whenever I look inside of it". Imperative code is assertive; declarative code is passive-aggressive.
+With imperative code you say "Make me a sandwich"[^1]. With declarative code you say "Ensure there is a sandwich in the refrigerator whenever I look inside of it". Imperative code is assertive; declarative code is passive-aggressive.
+
+[^1]: https://xkcd.com/149/
 
 Most of the time, declarative programming is tremendously freeing: you describe your overall goals, and the software figures out how to achieve them without further intervention. The downside is the occasional time where you know exactly what you want, but you can't figure out how to frame it in a way that the declarative system understands[^ggplot2-legends]. The goal of this book is to help you develop your understanding of the underlying theory so that happens as infrequently as possible.
 
