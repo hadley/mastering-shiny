@@ -15,7 +15,7 @@ One new challenge with Shiny apps that's a bit different than improving the perf
 
 If your app loads a large dataset and then filters it, you may instead want to consider putting the data in a database, and then only retrieving the data that the user specifically asks for. This will make individual apps slower (often only by a small amount), but will make each app take up much less memory so that you can more easily server multiple users.
 
-Focus is on increasing the performance for multiple users. If you're concerned about single user performance (i.e. it's just you using the app), it's very unlikely that Shiny is the bottleneck. Instead, improving the performance of your app is really about improving the performance of your R code. Many of the same techniques apply; in particular you'll still need to profile the performance of your app.
+Focus is on increasing the performance for multiple users. If you're concerned about single user performance (i.e. it's just you using the app), it's very unlikely that Shiny is the bottleneck. Instead, improving the performance of your app is really about improving the performance of your R code. Many of the same techniques apply; in particular you'll still need to profile the performance of your app.
 
 ```{r setup}
 library(shiny)
@@ -27,7 +27,7 @@ Start with a plan:
 
 -   How many people? How many people at the same time?
 
--   What's the computing budget? i.e. how many cores, how many machines?
+-   What's the computing budget? i.e. how many cores, how many machines?
 
 Is it fast enough? shinyloadtest.
 
@@ -69,7 +69,7 @@ Number one most important advice is if you want to make your Shiny app fast: mak
 
 Instead, create a centralised process that's run on a regular interval that does all the computing and then saves the results. Then all the instances can load the precomuted data. Scheduled task: RStudio connect with scheduled rmarkdown reports. Or cron. Or whatever other technology you use.
 
-If there's a lot of data, make sure you're using a fast function to load it (e.g. `vroom::vroom` or `data.table::fread`), save it as an binary RDS file, or try the [qs](https://github.com/traversc/qs#qs) package.
+If there's a lot of data, make sure you're using a fast function to load it (e.g. `vroom::vroom` or `data.table::fread`), save it as an binary RDS file, or try the [qs](https://github.com/traversc/qs#qs) package.
 
 Make sure any data is loaded outside of the server function. That way the data is loaded once, rather than once per user, and there's a single copy in memory, instead of a single copy per user.
 

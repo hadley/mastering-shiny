@@ -9,7 +9,7 @@ If you are creating a large/long-term Shiny app, I strongly recommend that you o
 
 -   All R code lives in an `R/` directory.
 
--   There's a function that creates your app (i.e. calls `shinyApp()` with your UI and server)
+-   There's a function that creates your app (i.e. calls `shinyApp()` with your UI and server)
 
 -   A `DESCRIPTION` file exists in the root directory of the app.
 
@@ -56,7 +56,7 @@ Converting an app to a package requires a small little work. Follow these steps 
 
 This gives your app the basic structure of a package, which enables some useful keyboard shortcuts that we'll talk about next. It's possible to turn your app in to a "real" package, which means that it passes the automated `R CMD check`. That's not essential, but it can be useful if you're sharing with others.
 
-## Workflow
+## Workflow {#package-workflow}
 
 Putting your app code into the package structure unlocks a new workflow:
 
@@ -89,7 +89,7 @@ Before you make your first full app-package, I recommend read [The whole game](h
 
 -   Ensure that your app/directory name is a valid package name. A package name can't contain `-`.
 
--   Remove any calls to `library()` or `require()` and instead replace them with a declaration in your `DESCRIPTION`. `usethis::use_package("name")` to add the required package to the `DESCRIPTION`[^1]. You'll then need to decide whether you want to refer to each function explicitly with `::`, or use `@importFrom packageName functionName` to declare the import in one place.
+-   Remove any calls to `library()` or `require()` and instead replace them with a declaration in your `DESCRIPTION`. `usethis::use_package("name")` to add the required package to the `DESCRIPTION`[^scaling-packages-1]. You'll then need to decide whether you want to refer to each function explicitly with `::`, or use `@importFrom packageName functionName` to declare the import in one place.
 
     At a minimum, you'll need `usethis::use_package("shiny")`, and for Shiny apps, I recommend using `@import shiny` to make all the functions in the Shiny package easily available. (Using `@import` is not generally consider best practice, but it makes sense here).
 
@@ -108,4 +108,4 @@ Before you make your first full app-package, I recommend read [The whole game](h
     myApp::myApp()
     ```
 
-[^1]: The distinction between Imports and Suggests is not generally important for app packages. If you do want to make a distinction, the most useful is to use Imports for packages that need to be present on the deployment machine (in order for the app to work) and Suggests for packages that need to prsent on the development machine in order to develop the app.
+[^scaling-packages-1]: The distinction between Imports and Suggests is not generally important for app packages. If you do want to make a distinction, the most useful is to use Imports for packages that need to be present on the deployment machine (in order for the app to work) and Suggests for packages that need to prsent on the development machine in order to develop the app.

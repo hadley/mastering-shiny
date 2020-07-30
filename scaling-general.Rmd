@@ -71,7 +71,7 @@ Another tool for managing dependencies is the [config package](https://github.co
 
 -   In development, you might configure the application to use a small CSV with a subset of data to allow for faster iterating.
 
-Lastly, be wary of making assumptions about the local file system. If your code has references to data at `C:\data\cars.csv` or `~/my-projects/genes.rds`, for example, you need to realise that it's very unlikely that these files will exist on another computer. Instead, either use a path relative to the app directory (e.g. `data/cars.csv` or `genes.rds`), or use the config package to make the external path explicit and configurable.
+Lastly, be wary of making assumptions about the local file system. If your code has references to data at `C:\data\cars.csv` or `~/my-projects/genes.rds`, for example, you need to realise that it's very unlikely that these files will exist on another computer. Instead, either use a path relative to the app directory (e.g. `data/cars.csv` or `genes.rds`), or use the config package to make the external path explicit and configurable.
 
 ## Source code management
 
