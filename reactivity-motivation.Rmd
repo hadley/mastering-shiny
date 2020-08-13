@@ -18,7 +18,7 @@ Reactive programming is a style of programming that emphasizes values that chang
 
 For Shiny apps to be useful, we need two things:
 
-* Expressions and outputs should update whenever one of there input values 
+* Expressions and outputs should update whenever one of their input values 
   changes. This ensures that input and output stay in sync.
   
 * Expressions and outputs should update _only_ when one of their inputs
