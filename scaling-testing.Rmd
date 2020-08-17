@@ -7,13 +7,7 @@ options(tibble.print_min = 6, tibble.print_max = 6)
 
 For simple apps, its easy enough to remember how the app is supposed to work, so that when you make changes to add new features, you don't accidental break existing capabilities. However, as your app gets more complicated it becomes impossible to hold it all in your head simultaneously. Testing is a way to capture the desired behaviour of your code to work, and turn it into an automated tool that allows you verify that your code keeps working the way that you expect. Turning your existing informal tests into code is going to be painful when you first do it (because you'll need to carefully turn every key press and mouse click into a line of code), but every time you need to run it, it is much much easier.
 
-```{r}
-stop("!")
-```
-
-We'll perform automated testing with the [testthat](http://testthat.r-lib.org/) package, the a popular testing package[^scaling-testing-1]. A testthat test looks like this:
-
-[^scaling-testing-1]: It's used by over 4,700 packages on CRAN.
+We'll perform automated testing with the [testthat](http://testthat.r-lib.org/) package. A testthat test looks like this:
 
 ```{r, eval = FALSE}
 test_that("as.vector() strips names", {
@@ -22,21 +16,21 @@ test_that("as.vector() strips names", {
 })
 ```
 
-We'll come back to the details very soon, but note that a test starts by declaring what it test (\"`as.vector()` strips names) then uses regular R code to generate some test data. The test data is then compared to the expected result using a **expectation**, a function that starts with `expect_`. Here we verify that the ouput of `as.vector(x)` equals `c(1, 2)`.
+We'll come back to the details very soon, but note that a test starts by declaring the intent ("`as.vector()` strips names) then uses regular R code to generate some test data. The test data is then compared to the expected result using a **expectation**, a function that starts with `expect_`. Here we verify that the output of `as.vector(x)` equals `c(1, 2)`.
 
 We'll discuss four basic levels of testing in this chapter:
 
 -   We'll start by testing **functions**. This will allow you to verify the behaviour of code that you've extracted out of the server function or UI, and help you learn the basic testing workflow. This is the exactly the same type of testing you'd do if you were writing a package, so you can find more details in the [testing chapter](https://r-pkgs.org/tests.html) of *R Packages*.
 
--   Next you'll learn how to test the flow of **reactivity** within your server function. You will simulate the user setting inputs and then verify that reactives and outputs update as you expect.
+-   Next you'll learn how to test the flow of **reactivity** within your server function. You will simulate setting inputs to specific values then verifying that the reactives and outputs have the values you expect.
 
--   Then we'll test parts of Shiny that use **javascript** (including the `update*()` family of functions) by running the app in a web browser. This is a higher fidelity simulation because it runs a real browser in the background, but the downside is that tests are slower to run, and you can no longer peek at reactive values.
+-   Then we'll test parts of Shiny that use **javascript** (most importantly, the `update*` family of functions) by running the app in a web browser. This is a higher fidelity simulation because it runs a real browser in the background, but the downside is that tests are slower to run, and you can no longer so easily peek inside the app to see the values of reactives.
 
--   Finally, we'll test **app visuals** by saving screenshots of selected elements. This is necessary for testing app layout and CSS, plots, and HTML widgets, but screenshots can change for unrelated reasons and a human intervention is required to confirm whether each change is ok or not.
+-   Finally, we'll test **app visuals** by saving screenshots of selected elements. This is necessary for testing app layout and CSS, plots, and HTML widgets, but is fragile because screenshots can change for unrelated reasons. Human intervention is required to confirm whether each change is OK or not, making this the most labour intensive form of testing.
 
-These levels of testing form a natural hierarch because each technique provides a fuller simulation of the user experience of an app. The downside of the better simulations is that each level gets progressively slower because it has to do more, and more fragile because it's harder to verify changes automatically. So when writing tests, you should always strive to test at the lowest level so your tests are as fast and reliable as possible. Over time this will also influence the way you write code: knowing what sort of code is easiest to test tends to naturally push you towards clearer designs.
+These levels of testing form a natural hierarchy because each technique provides a fuller simulation of the user experience of an app. The downside of the better simulations is that each level gets progressively slower because it has to do more, and more fragile because more external forces come into play. You should always strive to work at the lowest possible level so your tests are as fast and robust as possible. Over time this will also influence the way you write code: knowing what sort of code is easier to test will naturally push you towards simpler designs.
 
-Interleaved between these levels of testing, I'll also provide advice about testing workflow and more general testing philosophy.
+Interleaved between the description of the levels of testing, I'll also provide advice about testing workflow and more general testing philosophy.
 
 ```{r setup}
 library(shiny)
@@ -44,17 +38,17 @@ library(testthat)
 library(shinytest)
 ```
 
-This chapter uses features in the upcoming release of testthat 3.0.0, so if you're reading the book now you'll need to install the development version of testthat from GitHub: `remotes::install_github("r-lib/testhat")`.
+This chapter uses features in the upcoming release of testthat 3.0.0 and shinytest 1.5.0, so if you're reading the book now you'll need to install their development versions from GitHub: `remotes::install_github(c("r-lib/testhat", "rstudio/shinytest"))`.
 
 ## Testing functions
 
-The easiest part of your app is test is the part that has the least to do with interactivity: the functions that you've extracted out of your UI and server code as described in Chapter \@ref(scaling-functions).
+The easiest part of your app is test is the part that has the least to do with Shiny: the functions that you've extracted out of your UI and server code as described in Chapter \@ref(scaling-functions). We'll start by discussing how to test these non-reactive functions, showing you the basic structure of unit testing with the testthat package.
 
 ### Basic structure
 
 Tests have three levels of hierarchy:
 
--   **File**. All test files live in `tests/testthat`. Each test file should correspond to a code file in `R/`, e.g. the code in `R/module.R` should be tested by the code in `tests/testthat/module.R`. Fortunately you don't have to remeber that convention, you can just use `usethis::use_test()` to automatically create or locate the test file corresponding to the currently open R file.
+-   **File**. All test files live in `tests/testthat`. Each test file should correspond to a code file in `R/`, e.g. the code in `R/module.R` should be tested by the code in `tests/testthat/module.R`. Fortunately you don't have to remember that convention, you can just use `usethis::use_test()` to automatically create or locate the test file corresponding to the currently open R file.
 
 -   **Test**. Each file is broken down into tests, a call to `test_that()`. A test should generally check a single property of a function. It's hard to describe exactly how to structure your tests, so I think the best you can do is practice. A good heuristic is that you can easily describe what the test does in the first argument to `test_that()`.
 
@@ -102,11 +96,11 @@ There are four ways to run this test:
 
 -   Once I've finished developing it, I run the whole test block. If the test passes, I get a message like `Test passed 😀`. If it fails, I get the details of what went wrong.
 
--   As I develop more tests, I run all of the tests for the current file[^scaling-testing-2] with `devtools::test_file()`. Because I do this so often, I have a special keyboard shortcut set up to make it as easy as possible. I'll show you how to set that up yourself very shortly.
+-   As I develop more tests, I run all of the tests for the current file[^scaling-testing-1] with `devtools::test_file()`. Because I do this so often, I have a special keyboard shortcut set up to make it as easy as possible. I'll show you how to set that up yourself very shortly.
 
 -   Every now and then I run all of the tests for the whole package with `devtools::test()`. This ensures that I haven't accidentally broken anything outside of the current file.
 
-[^scaling-testing-2]: Like `usethis::use_test()` this only works if you're using RStudio.
+[^scaling-testing-1]: Like `usethis::use_test()` this only works if you're using RStudio.
 
 ### More server examples
 
@@ -116,7 +110,7 @@ What should your test contain? How many tests per function? Why? When?
 
 When a test fails, you'll need to use your debugging skills to figure out why.
 
-If you generally find it hard to debug a failing test, it may suggest that your tests are too complicated and you need to work on making them simpler; or that you need to deliberately practicde your debugging skills.
+If you generally find it hard to debug a failing test, it may suggest that your tests are too complicated and you need to work on making them simpler; or that you need to deliberately practice your debugging skills.
 
 ### User interface functions
 
@@ -138,7 +132,7 @@ test_that("sliderInput creates expected HTML", {
 })
 ```
 
-Assuming that you code is in `R/slider.R`, and your test is in `tests/testthat/test-slider.R`, the snapshotot will be saved in `tests/testhat/_snaps/slider.md` and looks like:
+Assuming that you code is in `R/slider.R`, and your test is in `tests/testthat/test-slider.R`, the snapshot will be saved in `tests/testhat/_snaps/slider.md` and looks like:
 
 ``` {.md}
 # sliderInput creates expected HTML
@@ -265,7 +259,7 @@ test_that("reactives and output updates", {
 
 You can test a module server function in a similar way to testing an app server function. If your module has no inputs or outputs, you test it in exactly the same way as regular server function. Here I'll show you how to test a module with
 
-Let's start with a simple module. This module uses three outputs to dispay a brief summary of a variable:
+Let's start with a simple module. This module uses three outputs to display a brief summary of a variable:
 
 ```{r}
 summaryUI <- function(id) {
@@ -371,8 +365,8 @@ Because `testServer()` runs only a limited simulation of the full Shiny app, no 
 
 -   Any `update*()` function
 -   show/remove notification
--   insertUI/removeUI
--   appendTab/insertTab/removeTab
+-   `insertUI()`/`removeUI()`
+-   `appendTab()`/`insertTab()`/`removeTab()`
 -   show/hide modal
 
 To test these functions you need to run the Shiny app in a real browser and simulate the user interactions. We can do this with an off-label use of the [shinytest](https://rstudio.github.io/shinytest) package. You can use it as the website recommends, because I think it yields tests that are a little more fragile than desirable. shinytest is great if you don't know how to use testthat, but you do, I don't think the benefits outweigh the costs.
@@ -429,6 +423,6 @@ expect_snapshot_screenshot <- function(app, id, name, parent = FALSE) {
 
 ### Continuous integration
 
-The primary downside of checking screenshots for differences is that even the tiniest of changes requires a human to look at confirm that it's ok. For example, it's very difficult to compare same screenshots generated by difference computers because even the same browser tends to render pages very slightly differently across operating systems due to tiny differences in font rendering. Making browser rendering 100% reproducible at the pixel-level is extremely challenging so visual tests are best re-run on the same computer, and it's generally not worthwhile to run them in a continuous integration tool. It is possible to work around these issues, but it's considerably challenge and beyond the scope of this book.
+The primary downside of checking screenshots for differences is that even the tiniest of changes requires a human to look at confirm that it's OK. For example, it's very difficult to compare same screenshots generated by difference computers because even the same browser tends to render pages very slightly differently across operating systems due to tiny differences in font rendering. Making browser rendering 100% reproducible at the pixel-level is extremely challenging so visual tests are best re-run on the same computer, and it's generally not worthwhile to run them in a continuous integration tool. It is possible to work around these issues, but it's considerably challenge and beyond the scope of this book.
 
 This is the reason why that `expect_snapshot_screenshot()` contains both `skip_on_ci()` and `skip_on_cran()`; the chances of the snapshot failing on either CI or CRAN are high, and the failure is unlikely to give you actionable insight. This is another reason to be cautious with screenshot tests.
