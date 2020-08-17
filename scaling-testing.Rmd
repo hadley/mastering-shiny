@@ -301,7 +301,7 @@ testServer(myApp(), {
 
 Despite the fact that we're passing a complete app to `testServer()`, we are only testing the server function; the `ui` component of the app is effectively ignored.
 You can see this most clearly by inspecting the inputs: unlike a real Shiny app, all inputs start as `NULL`, because the initial value is recorded in the `ui`.
-We'll come back to UI testing in Section \@ref(testing-interaction).
+We'll come back to UI testing in Section \@ref(testing-javascript).
 
 ```{r}
 testServer(myApp(), {
@@ -522,7 +522,7 @@ expect_snapshot_screenshot <- function(app, id, name, parent = FALSE) {
   skip_on_ci()
   skip_on_cran()
   
-  path <- screenshot_element(app, id, parent)
+  path <- app$screenshot_element(id, parent)
   expect_snapshot_file(path, name)
 }
 ```
