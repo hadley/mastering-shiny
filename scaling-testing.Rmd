@@ -1,3 +1,9 @@
+---
+editor_options:
+  markdown:
+    wrap: sentence
+---
+
 # Testing {#scaling-testing}
 
 ```{r, include = FALSE}
@@ -5,9 +11,13 @@ source("common.R")
 options(tibble.print_min = 6, tibble.print_max = 6)
 ```
 
-For simple apps, its easy enough to remember how the app is supposed to work, so that when you make changes to add new features, you don't accidental break existing capabilities. However, as your app gets more complicated it becomes impossible to hold it all in your head simultaneously. Testing is a way to capture the desired behaviour of your code to work, and turn it into an automated tool that allows you verify that your code keeps working the way that you expect. Turning your existing informal tests into code is going to be painful when you first do it (because you'll need to carefully turn every key press and mouse click into a line of code), but every time you need to run it, it is much much easier.
+For simple apps, its easy enough to remember how the app is supposed to work, so that when you make changes to add new features, you don't accidental break existing capabilities.
+However, as your app gets more complicated it becomes impossible to hold it all in your head simultaneously.
+Testing is a way to capture the desired behaviour of your code to work, and turn it into an automated tool that allows you verify that your code keeps working the way that you expect.
+Turning your existing informal tests into code is going to be painful when you first do it (because you'll need to carefully turn every key press and mouse click into a line of code), but every time you need to run it, it is much much easier.
 
-We'll perform automated testing with the [testthat](http://testthat.r-lib.org/) package. A testthat test looks like this:
+We'll perform automated testing with the [testthat](http://testthat.r-lib.org/) package.
+A testthat test looks like this:
 
 ```{r, eval = FALSE}
 test_that("as.vector() strips names", {
@@ -16,19 +26,30 @@ test_that("as.vector() strips names", {
 })
 ```
 
-We'll come back to the details very soon, but note that a test starts by declaring the intent ("`as.vector()` strips names) then uses regular R code to generate some test data. The test data is then compared to the expected result using a **expectation**, a function that starts with `expect_`. Here we verify that the output of `as.vector(x)` equals `c(1, 2)`.
+We'll come back to the details very soon, but note that a test starts by declaring the intent ("`as.vector()` strips names) then uses regular R code to generate some test data.
+The test data is then compared to the expected result using a **expectation**, a function that starts with `expect_`.
+Here we verify that the output of `as.vector(x)` equals `c(1, 2)`.
 
 We'll discuss four basic levels of testing in this chapter:
 
--   We'll start by testing **functions**. This will allow you to verify the behaviour of code that you've extracted out of the server function or UI, and help you learn the basic testing workflow. This is the exactly the same type of testing you'd do if you were writing a package, so you can find more details in the [testing chapter](https://r-pkgs.org/tests.html) of *R Packages*.
+-   We'll start by testing **functions**.
+    This will allow you to verify the behaviour of code that you've extracted out of the server function or UI, and help you learn the basic testing workflow.
+    This is the exactly the same type of testing you'd do if you were writing a package, so you can find more details in the [testing chapter](https://r-pkgs.org/tests.html) of *R Packages*.
 
--   Next you'll learn how to test the flow of **reactivity** within your server function. You will simulate setting inputs to specific values then verifying that the reactives and outputs have the values you expect.
+-   Next you'll learn how to test the flow of **reactivity** within your server function.
+    You will simulate setting inputs to specific values then verifying that the reactives and outputs have the values you expect.
 
--   Then we'll test parts of Shiny that use **javascript** (most importantly, the `update*` family of functions) by running the app in a web browser. This is a higher fidelity simulation because it runs a real browser in the background, but the downside is that tests are slower to run, and you can no longer so easily peek inside the app to see the values of reactives.
+-   Then we'll test parts of Shiny that use **javascript** (most importantly, the `update*` family of functions) by running the app in a web browser.
+    This is a higher fidelity simulation because it runs a real browser in the background, but the downside is that tests are slower to run, and you can no longer so easily peek inside the app to see the values of reactives.
 
--   Finally, we'll test **app visuals** by saving screenshots of selected elements. This is necessary for testing app layout and CSS, plots, and HTML widgets, but is fragile because screenshots can change for unrelated reasons. Human intervention is required to confirm whether each change is OK or not, making this the most labour intensive form of testing.
+-   Finally, we'll test **app visuals** by saving screenshots of selected elements.
+    This is necessary for testing app layout and CSS, plots, and HTML widgets, but is fragile because screenshots can change for unrelated reasons.
+    Human intervention is required to confirm whether each change is OK or not, making this the most labour intensive form of testing.
 
-These levels of testing form a natural hierarchy because each technique provides a fuller simulation of the user experience of an app. The downside of the better simulations is that each level gets progressively slower because it has to do more, and more fragile because more external forces come into play. You should always strive to work at the lowest possible level so your tests are as fast and robust as possible. Over time this will also influence the way you write code: knowing what sort of code is easier to test will naturally push you towards simpler designs.
+These levels of testing form a natural hierarchy because each technique provides a fuller simulation of the user experience of an app.
+The downside of the better simulations is that each level gets progressively slower because it has to do more, and more fragile because more external forces come into play.
+You should always strive to work at the lowest possible level so your tests are as fast and robust as possible.
+Over time this will also influence the way you write code: knowing what sort of code is easier to test will naturally push you towards simpler designs.
 
 Interleaved between the description of the levels of testing, I'll also provide advice about testing workflow and more general testing philosophy.
 
@@ -42,17 +63,29 @@ This chapter uses features in the upcoming release of testthat 3.0.0 and shinyte
 
 ## Testing functions
 
-The easiest part of your app is test is the part that has the least to do with Shiny: the functions that you've extracted out of your UI and server code as described in Chapter \@ref(scaling-functions). We'll start by discussing how to test these non-reactive functions, showing you the basic structure of unit testing with the testthat package.
+The easiest part of your app is test is the part that has the least to do with Shiny: the functions that you've extracted out of your UI and server code as described in Chapter \@ref(scaling-functions).
+We'll start by discussing how to test these non-reactive functions, showing you the basic structure of unit testing with the testthat package.
 
 ### Basic structure
 
 Tests have three levels of hierarchy:
 
--   **File**. All test files live in `tests/testthat`. Each test file should correspond to a code file in `R/`, e.g. the code in `R/module.R` should be tested by the code in `tests/testthat/module.R`. Fortunately you don't have to remember that convention, you can just use `usethis::use_test()` to automatically create or locate the test file corresponding to the currently open R file.
+-   **File**.
+    All test files live in `tests/testthat`.
+    Each test file should correspond to a code file in `R/`, e.g. the code in `R/module.R` should be tested by the code in `tests/testthat/module.R`.
+    Fortunately you don't have to remember that convention, you can just use `usethis::use_test()` to automatically create or locate the test file corresponding to the currently open R file.
 
--   **Test**. Each file is broken down into tests, a call to `test_that()`. A test should generally check a single property of a function. It's hard to describe exactly how to structure your tests, so I think the best you can do is practice. A good heuristic is that you can easily describe what the test does in the first argument to `test_that()`.
+-   **Test**.
+    Each file is broken down into tests, a call to `test_that()`.
+    A test should generally check a single property of a function.
+    It's hard to describe exactly how to structure your tests, so I think the best you can do is practice.
+    A good heuristic is that you can easily describe what the test does in the first argument to `test_that()`.
 
--   **Expectation**. Each test contains one or more expectations, with a functions that start with `expect_`. These are the lowest level These are very low level assertions. I'll discuss the most important expectations for Shiny apps here: `expect_equal()`, `expect_error()`, and `expect_snapshot_output()`. Many expectations others can be found on the [testthat website](https://testthat.r-lib.org/reference/index.html#section-expectations){.uri}.
+-   **Expectation**.
+    Each test contains one or more expectations, with a functions that start with `expect_`.
+    These are the lowest level These are very low level assertions.
+    I'll discuss the most important expectations for Shiny apps here: `expect_equal()`, `expect_error()`, and `expect_snapshot_output()`.
+    Many expectations others can be found on the [testthat website](https://testthat.r-lib.org/reference/index.html#section-expectations){.uri}.
 
 The art of testing is figuring out how to write tests that clearly defines the expected behaviour of your function, without depending on incidental details that might change in the future.
 
@@ -71,9 +104,14 @@ load_file <- function(name, path) {
 }
 ```
 
-And for the sake of this example it lives in `R/load.R`. To test it, you first create a test file by calling `use_test()`, which creates `tests/testthat/load.R`.
+And for the sake of this example it lives in `R/load.R`.
+To test it, you first create a test file by calling `use_test()`, which creates `tests/testthat/load.R`.
 
-Then we write a test. There are three main things we want to test --- can it load a csv file, can it load a tsv file, and does it give an error message for other types? To test that, I first have to create a little sample data, which I put in the temp directory so it's automatically cleaned up after my tests are run. This is good practice because you want your tests to be as self-contained as possible. Then I write three expectations, two checking that loaded file equals my original data, and one checking that I get an error.
+Then we write a test.
+There are three main things we want to test --- can it load a csv file, can it load a tsv file, and does it give an error message for other types?
+To test that, I first have to create a little sample data, which I put in the temp directory so it's automatically cleaned up after my tests are run.
+This is good practice because you want your tests to be as self-contained as possible.
+Then I write three expectations, two checking that loaded file equals my original data, and one checking that I get an error.
 
 ```{r}
 test_that("load_file() handles input types", {
@@ -92,19 +130,28 @@ test_that("load_file() handles input types", {
 
 There are four ways to run this test:
 
--   As I'm developing it, I run each line interactively at the console. When an expectation fails, it turns into an error, which I then fix.
+-   As I'm developing it, I run each line interactively at the console.
+    When an expectation fails, it turns into an error, which I then fix.
 
--   Once I've finished developing it, I run the whole test block. If the test passes, I get a message like `Test passed 😀`. If it fails, I get the details of what went wrong.
+-   Once I've finished developing it, I run the whole test block.
+    If the test passes, I get a message like `Test passed 😀`.
+    If it fails, I get the details of what went wrong.
 
--   As I develop more tests, I run all of the tests for the current file[^scaling-testing-1] with `devtools::test_file()`. Because I do this so often, I have a special keyboard shortcut set up to make it as easy as possible. I'll show you how to set that up yourself very shortly.
+-   As I develop more tests, I run all of the tests for the current file[^scaling-testing-1] with `devtools::test_file()`.
+    Because I do this so often, I have a special keyboard shortcut set up to make it as easy as possible.
+    I'll show you how to set that up yourself very shortly.
 
--   Every now and then I run all of the tests for the whole package with `devtools::test()`. This ensures that I haven't accidentally broken anything outside of the current file.
+-   Every now and then I run all of the tests for the whole package with `devtools::test()`.
+    This ensures that I haven't accidentally broken anything outside of the current file.
 
 [^scaling-testing-1]: Like `usethis::use_test()` this only works if you're using RStudio.
 
 ### More server examples
 
-What should your test contain? How many tests per function? Why? When?
+What should your test contain?
+How many tests per function?
+Why?
+When?
 
 ### Handling failures
 
@@ -114,7 +161,9 @@ If you generally find it hard to debug a failing test, it may suggest that your 
 
 ### User interface functions
 
-You can use the same basic idea to test functions that you've extracted out of your UI code. But these require a new expectation, because manually typing out all the HTML would be tedious, so instead we use a snapshot test. A snapshot expectation differs from other expectations primarily in that the expected result is stored in a separate snapshot file, rather than in the code itself.
+You can use the same basic idea to test functions that you've extracted out of your UI code.
+But these require a new expectation, because manually typing out all the HTML would be tedious, so instead we use a snapshot test.
+A snapshot expectation differs from other expectations primarily in that the expected result is stored in a separate snapshot file, rather than in the code itself.
 
 ```{r}
 sliderInput01 <- function(id) {
@@ -122,7 +171,8 @@ sliderInput01 <- function(id) {
 }
 ```
 
-It's probably not worth testing this function because it's so simple; you're mostly testing the behaviour of Shiny's HTML generation. This makes it a not very good test but it illustrates the basic idea.
+It's probably not worth testing this function because it's so simple; you're mostly testing the behaviour of Shiny's HTML generation.
+This makes it a not very good test but it illustrates the basic idea.
 
 Tests for UI functions tend to be coarser grained --- we really just want to generate the HTML so we can make sure it doesn't change unexpectedly.
 
@@ -143,9 +193,12 @@ Assuming that you code is in `R/slider.R`, and your test is in `tests/testthat/t
     </div>
 ```
 
-If the output later deliberately changes, you'll need to update the snapshot by running `testthat::snapshot_accept()`. You can learn more about snapshot tests at [https://testthat.r-lib.org/articles/snapshotting.html](https://testthat.r-lib.org/articles/snapshotting.html.).
+If the output later deliberately changes, you'll need to update the snapshot by running `testthat::snapshot_accept()`.
+You can learn more about snapshot tests at [https://testthat.r-lib.org/articles/snapshotting.html](https://testthat.r-lib.org/articles/snapshotting.html.).
 
-Understanding the output requires that you understand the generated HTML. Later, we'll come back to a technique that allows you to take a screenshot of the control. This has some drawbacks, but can be worthwhile for high-stakes and complex components.
+Understanding the output requires that you understand the generated HTML.
+Later, we'll come back to a technique that allows you to take a screenshot of the control.
+This has some drawbacks, but can be worthwhile for high-stakes and complex components.
 
 ## Workflow
 
@@ -153,19 +206,28 @@ Take a brief digression to work on your workflow before diving into testing reac
 
 ### Code coverage
 
-`devtools::test_coverage()` and `devtools::test_coverage_file()` will perform "code coverage", running all the tests and recording which lines of code are run. This is useful to check that you have tested the lines of code that you think you have tested, and gives you an opportunity to reflect on if you've tested the most important, highest risk, or hardest to program parts of your code.
+`devtools::test_coverage()` and `devtools::test_coverage_file()` will perform "code coverage", running all the tests and recording which lines of code are run.
+This is useful to check that you have tested the lines of code that you think you have tested, and gives you an opportunity to reflect on if you've tested the most important, highest risk, or hardest to program parts of your code.
 
-Won't cover in detail here, but I highly recommend trying it out. Main thing to notice is that green lines are tested; red lines are not.
+Won't cover in detail here, but I highly recommend trying it out.
+Main thing to notice is that green lines are tested; red lines are not.
 
-Basic workflow: Write tests. Inspect coverage. Contemplate why lines were tested. Add more tests. Repeat.
+Basic workflow: Write tests.
+Inspect coverage.
+Contemplate why lines were tested.
+Add more tests.
+Repeat.
 
-Not a substitute for thinking about corner cases --- you can have 100% test coverage and still have bugs. But it's a fun and a useful tool to help you think about what's important, particularly when you have complex nested code.
+Not a substitute for thinking about corner cases --- you can have 100% test coverage and still have bugs.
+But it's a fun and a useful tool to help you think about what's important, particularly when you have complex nested code.
 
 ### Keyboard shortcuts
 
-If you followed the advice in Section \@ref(package-workflow) then you can already run tests just by typing `test()` or `test_file()` at the console. But tests are something that you'll do so often it's worth having a keyboard shortcut at your finger tips.
+If you followed the advice in Section \@ref(package-workflow) then you can already run tests just by typing `test()` or `test_file()` at the console.
+But tests are something that you'll do so often it's worth having a keyboard shortcut at your finger tips.
 
-RStudio has one useful shortcut built in: Cmd/Ctrl + Shift + T run `devtools::test()`. I recommend that you add three yourself to complete the set:
+RStudio has one useful shortcut built in: Cmd/Ctrl + Shift + T run `devtools::test()`.
+I recommend that you add three yourself to complete the set:
 
 -   Cmd/Ctrl + T to `devtools::test_file()`
 
@@ -173,7 +235,8 @@ RStudio has one useful shortcut built in: Cmd/Ctrl + Shift + T run `devtools::te
 
 -   Cmd/Ctrl + R to `devtools::test_coverage_file()`
 
-You're of course free to choose whatever shortcut makes sense to you, but these have share some underlying structure. Keyboard shortcuts using Shift apply to the whole package, and without shift apply to the current file.
+You're of course free to choose whatever shortcut makes sense to you, but these have share some underlying structure.
+Keyboard shortcuts using Shift apply to the whole package, and without shift apply to the current file.
 
 This is what my keyboard shortcuts look like for the mac.
 
@@ -185,9 +248,12 @@ knitr::include_graphics("screenshots/scaling-testing/keyboard-shortcuts.png", dp
 
 -   From the R file, use `usethis::use_test()` to create the test file (the first time its run) or navigate to the test file (if it already exists).
 
--   Write code/write tests. Press `cmd/ctrl + T` to run the tests and review the results in the console. Iterate as needed.
+-   Write code/write tests.
+    Press `cmd/ctrl + T` to run the tests and review the results in the console.
+    Iterate as needed.
 
--   If you encounter a new bug, start by capturing the bad behaviour in a test. In the course of making the minimal code, you'll often get a better understanding of where the bug lies, and having the test will ensure that you can't fool yourself into thinking that you've fixed the bug when you haven't.
+-   If you encounter a new bug, start by capturing the bad behaviour in a test.
+    In the course of making the minimal code, you'll often get a better understanding of where the bug lies, and having the test will ensure that you can't fool yourself into thinking that you've fixed the bug when you haven't.
 
 -   Press `ctrl/cmd + R` to check that you're testing what you think you're testing
 
@@ -195,7 +261,10 @@ knitr::include_graphics("screenshots/scaling-testing/keyboard-shortcuts.png", dp
 
 ## Testing reactivity
 
-Now that you have your non-reactive code tested, it's time to move to Shiny specific stuff. We'll start by testing the flow of reactivity in the server function simulating everything in R. This allows you to check for the vast majority of reactivity issues. In the next section, we'll talk about problems that require a full browser loop.
+Now that you have your non-reactive code tested, it's time to move to Shiny specific stuff.
+We'll start by testing the flow of reactivity in the server function simulating everything in R.
+This allows you to check for the vast majority of reactivity issues.
+In the next section, we'll talk about problems that require a full browser loop.
 
 Let's start with a simple app, that has a few inputs, an output, and some reactives.
 
@@ -218,9 +287,9 @@ myApp <- function(...) {
 }
 ```
 
-<!-- TODO: test bare server functions -->
-
-Testing this code using the approach above because all the complexity is in the reactivity, and the reactivity is sealed inside the server function in a way that's hard to access. Shiny 1.5.0 provides a new tool to help with this challenge: `testServer()`. It takes a server function, and allows you to run code as if it was inside the server function:
+Testing this code using the approach above because all the complexity is in the reactivity, and the reactivity is sealed inside the server function in a way that's hard to access.
+Shiny 1.5.0 provides a new tool to help with this challenge: `testServer()`.
+It takes a server function, and allows you to run code as if it was inside the server function:
 
 ```{r}
 testServer(myApp(), {
@@ -230,7 +299,9 @@ testServer(myApp(), {
 })
 ```
 
-Despite the fact that we're passing a complete app to `testServer()`, we are only testing the server function; the `ui` component of the app is effectively ignored. You can see this most clearly by inspecting the inputs: unlike a real Shiny app, all inputs start as `NULL`, because the initial value is recorded in the `ui`. We'll come back to UI testing in Section \@ref(testing-interaction).
+Despite the fact that we're passing a complete app to `testServer()`, we are only testing the server function; the `ui` component of the app is effectively ignored.
+You can see this most clearly by inspecting the inputs: unlike a real Shiny app, all inputs start as `NULL`, because the initial value is recorded in the `ui`.
+We'll come back to UI testing in Section \@ref(testing-interaction).
 
 ```{r}
 testServer(myApp(), {
@@ -240,7 +311,9 @@ testServer(myApp(), {
 
 That's because this is a pure server side simulation; while we give it that app object that contains both the UI and server, it only uses the server function.
 
-The second argument to `testServer()` is the code to run. This code is run in a special environment that allows you to access the output values, reactives, and a special `session` that allows you to simulate user interaction. The main time you'll use this is for `session$setInputs()` which allows you to set the value of input controls, as if you were a user interacting with the app in a browser.
+The second argument to `testServer()` is the code to run.
+This code is run in a special environment that allows you to access the output values, reactives, and a special `session` that allows you to simulate user interaction.
+The main time you'll use this is for `session$setInputs()` which allows you to set the value of input controls, as if you were a user interacting with the app in a browser.
 
 To turn the code above into a test, you just wrap it up in a `test_that()` block and use some expectations:
 
@@ -257,9 +330,12 @@ test_that("reactives and output updates", {
 
 ### Modules
 
-You can test a module server function in a similar way to testing an app server function. If your module has no inputs or outputs, you test it in exactly the same way as regular server function. Here I'll show you how to test a module with
+You can test a module server function in a similar way to testing an app server function.
+If your module has no inputs or outputs, you test it in exactly the same way as regular server function.
+Here I'll show you how to test a module with
 
-Let's start with a simple module. This module uses three outputs to display a brief summary of a variable:
+Let's start with a simple module.
+This module uses three outputs to display a brief summary of a variable:
 
 ```{r}
 summaryUI <- function(id) {
@@ -283,7 +359,8 @@ summaryServer <- function(id, var) {
 
 Need to start with module that just has outputs.
 
-If your module has a return value (a reactive or list of reactives), you can capture it with `session$getReturned()`. Then you can check the value of that reactive, just like any other reactive.
+If your module has a return value (a reactive or list of reactives), you can capture it with `session$getReturned()`.
+Then you can check the value of that reactive, just like any other reactive.
 
 ```{r}
 datasetServer <- function(id) {
@@ -305,9 +382,12 @@ test_that("can find dataset", {
 })
 ```
 
-Do we need to test what happens if `input$dataset` isn't a dataset? In this case, no because we know that the module UI restricts the options to valid choices. That's not obvious from inspection of the server function alone.
+Do we need to test what happens if `input$dataset` isn't a dataset?
+In this case, no because we know that the module UI restricts the options to valid choices.
+That's not obvious from inspection of the server function alone.
 
-If your module has additional arguments, you can pass them along as a list to the `args` argument. For example, take the function from Section \@ref(case-study-selecting-a-numeric-variable).
+If your module has additional arguments, you can pass them along as a list to the `args` argument.
+For example, take the function from Section \@ref(case-study-selecting-a-numeric-variable).
 
 ```{r}
 selectVarServer <- function(id, data, filter = is.numeric) {
@@ -337,7 +417,10 @@ Time does not advanced automatically, so if you are using `reactiveTimer()` or `
 
 ### Limitations
 
-`testServer()` is a simulation of your app. The simulation is useful because it lets you quickly test reactive code, but it is not complete. Importantly, much of Shiny relies on javascript. This includes:
+`testServer()` is a simulation of your app.
+The simulation is useful because it lets you quickly test reactive code, but it is not complete.
+Importantly, much of Shiny relies on javascript.
+This includes:
 
 -   The update functions, because they send JS to the browser which pretends that the user has changed something.
 
@@ -349,31 +432,50 @@ If you want to test them, you'll need to use the next technique.
 
 ### When should you write tests?
 
-When should you write tests? There are three basic options
+When should you write tests?
+There are three basic options
 
--   **Before you write the code**. This is a style of code called test driven development, and if you know exactly how a function should behave, it makes sense to capture that knowledge as code *before* you start writing the implementation.
+-   **Before you write the code**.
+    This is a style of code called test driven development, and if you know exactly how a function should behave, it makes sense to capture that knowledge as code *before* you start writing the implementation.
 
--   **After you write the code**. While writing code you'll often build up a mental to-do list of worries about your code. After you've written the function, turn these into tests so that you can be confident that the function works the way that you expect.
+-   **After you write the code**.
+    While writing code you'll often build up a mental to-do list of worries about your code.
+    After you've written the function, turn these into tests so that you can be confident that the function works the way that you expect.
 
-    When you start writing tests, beware writing them too soon. If your function is still actively evolving, keeping your tests up to date with all the changes is going to feel frustrating. That may indicate you need to wait a little longer.
+    When you start writing tests, beware writing them too soon.
+    If your function is still actively evolving, keeping your tests up to date with all the changes is going to feel frustrating.
+    That may indicate you need to wait a little longer.
 
--   **When you find a bug**. Whenever you find a bug, it's good practice to turn it into an automated test case. This has two advantages. Firstly, to make a good test case, you'll need to relentlessly simplify the problem until you have a very minimal reprex that you can include in a test. Secondly, you'll make sure that the bug never comes back again!
+-   **When you find a bug**.
+    Whenever you find a bug, it's good practice to turn it into an automated test case.
+    This has two advantages.
+    Firstly, to make a good test case, you'll need to relentlessly simplify the problem until you have a very minimal reprex that you can include in a test.
+    Secondly, you'll make sure that the bug never comes back again!
 
 ## Testing javascript
 
-Because `testServer()` runs only a limited simulation of the full Shiny app, no Shiny function that uses javascript will work. This includes:
+Because `testServer()` runs only a limited simulation of the full Shiny app, no Shiny function that uses javascript will work.
+This includes:
 
 -   Any `update*()` function
+
 -   show/remove notification
+
 -   `insertUI()`/`removeUI()`
+
 -   `appendTab()`/`insertTab()`/`removeTab()`
+
 -   show/hide modal
 
-To test these functions you need to run the Shiny app in a real browser and simulate the user interactions. We can do this with an off-label use of the [shinytest](https://rstudio.github.io/shinytest) package. You can use it as the website recommends, because I think it yields tests that are a little more fragile than desirable. shinytest is great if you don't know how to use testthat, but you do, I don't think the benefits outweigh the costs.
+To test these functions you need to run the Shiny app in a real browser and simulate the user interactions.
+We can do this with an off-label use of the [shinytest](https://rstudio.github.io/shinytest) package.
+You can use it as the website recommends, because I think it yields tests that are a little more fragile than desirable.
+shinytest is great if you don't know how to use testthat, but you do, I don't think the benefits outweigh the costs.
 
 Pros: Very high fidelity, since it actually starts up an R process and a browser in the background.
 
-Cons: Slower. Can only test the outside of the app, i.e. you can't see the values of specific reactives, only their outcomes on the app itself.
+Cons: Slower.
+Can only test the outside of the app, i.e. you can't see the values of specific reactives, only their outcomes on the app itself.
 
 ### Basic operation
 
@@ -385,17 +487,18 @@ test_that("app works", {
 })
 ```
 
-There are two functions that are the workforce of your app testing: `app$setInputs()` and `app$getValue(name)`. `setInputs()` works just like reactivity testing; it simulates
+There are two functions that are the workforce of your app testing: `app$setInputs()` and `app$getValue(name)`.
+`setInputs()` works just like reactivity testing; it simulates
 
 `ShinyDriver$new()` is relatively expensive to start up since it ha, which means that you'll tend to have few fairly large tests.
 
-Currently requires an app on disk. So what to do in a package? Just create `app.R` like `shiny::shinyApp(myPackage::myApp())`.
+Currently requires an app on disk.
+So what to do in a package?
+Just create `app.R` like `shiny::shinyApp(myPackage::myApp())`.
 
 ### Advanced controls
 
 -   Mouse click: `app$executeScript(paste0("$('#", id, ”').click()"))`
-
-<!-- -->
 
 -   `app$sendKeys(name, keys)` (see `?webdriver::key`)
 
@@ -407,9 +510,12 @@ Test as much as possible with `testServer()`, then test just the bit that uses `
 
 ## Testing visuals
 
-What about components like plots or HTML widgets where it's difficult to assert correct behaviour using only specific values. So you can use the final, richest and most fragile testing technique: save a screenshot of the affected component.
+What about components like plots or HTML widgets where it's difficult to assert correct behaviour using only specific values.
+So you can use the final, richest and most fragile testing technique: save a screenshot of the affected component.
 
-This uses a feature of testthat called whole file snapshotting. It's a generalisation of `expect_snapshot()` described above that also works with images. If the image changes, you'll be prompted to run `snapshot_review()` which is a Shiny app that shows you a visual comparison of the two images and allows you to accept or reject them.
+This uses a feature of testthat called whole file snapshotting.
+It's a generalisation of `expect_snapshot()` described above that also works with images.
+If the image changes, you'll be prompted to run `snapshot_review()` which is a Shiny app that shows you a visual comparison of the two images and allows you to accept or reject them.
 
 ```{r}
 expect_snapshot_screenshot <- function(app, id, name, parent = FALSE) {
@@ -423,6 +529,10 @@ expect_snapshot_screenshot <- function(app, id, name, parent = FALSE) {
 
 ### Continuous integration
 
-The primary downside of checking screenshots for differences is that even the tiniest of changes requires a human to look at confirm that it's OK. For example, it's very difficult to compare same screenshots generated by difference computers because even the same browser tends to render pages very slightly differently across operating systems due to tiny differences in font rendering. Making browser rendering 100% reproducible at the pixel-level is extremely challenging so visual tests are best re-run on the same computer, and it's generally not worthwhile to run them in a continuous integration tool. It is possible to work around these issues, but it's considerably challenge and beyond the scope of this book.
+The primary downside of checking screenshots for differences is that even the tiniest of changes requires a human to look at confirm that it's OK.
+For example, it's very difficult to compare same screenshots generated by difference computers because even the same browser tends to render pages very slightly differently across operating systems due to tiny differences in font rendering.
+Making browser rendering 100% reproducible at the pixel-level is extremely challenging so visual tests are best re-run on the same computer, and it's generally not worthwhile to run them in a continuous integration tool.
+It is possible to work around these issues, but it's considerably challenge and beyond the scope of this book.
 
-This is the reason why that `expect_snapshot_screenshot()` contains both `skip_on_ci()` and `skip_on_cran()`; the chances of the snapshot failing on either CI or CRAN are high, and the failure is unlikely to give you actionable insight. This is another reason to be cautious with screenshot tests.
+This is the reason why that `expect_snapshot_screenshot()` contains both `skip_on_ci()` and `skip_on_cran()`; the chances of the snapshot failing on either CI or CRAN are high, and the failure is unlikely to give you actionable insight.
+This is another reason to be cautious with screenshot tests.
