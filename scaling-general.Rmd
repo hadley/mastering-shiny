@@ -12,11 +12,11 @@ When you start using Shiny, it'll take you a long time to make even small apps, 
 
 -   "The app works on my computer but doesn't work on my collaborator's or in production."
 
-In this, the "best practices", part of the book, you'll learn some key concepts and tools from software engineering that will help you overcome these challenges. Below, I'll briefly introduce you to the big ideas, and then dive into the details in subsequent chapters. Of course you can't learn everything about software engineer in one part of one book, so I'll also point you to good places to learn more.
+In this, the "best practices", part of the book, you'll learn some key concepts and tools from software engineering that will help you overcome these challenges. Below, I'll briefly introduce you to the big ideas, and then dive into the details in subsequent chapters. Of course you can't learn everything about software engineering in one part of one book, so I'll also point you to good places to learn more.
 
-Improving your software engineering skills is a lifelong journey. Expect to have frustrations as you start learning them, but understand that everyone experiences the same issues, and if you stick with you'll get past them. Most people go through the same evolution when learning a new techniques: "I don't understand it and have to look it up every time I use" to "I vaguely understand it but still read the documentation a lot" to eventually "I understand them and can use them fluidly". It takes time and practice to get to the final stage.
+Improving your software engineering skills is a lifelong journey. Expect to have frustrations as you start learning them, but understand that everyone experiences the same issues, and if you persevere you'll get past them. Most people go through the same evolution when learning a new technique: "I don't understand it and have to look it up every time I use it" to "I vaguely understand it but still read the documentation a lot" to eventually "I understand it and can use it fluidly". It takes time and practice to get to the final stage.
 
-I recommend setting aside some time each week where to practice your software development skills. During this time, try to avoid touching the behaviour or appearance of your app, but instead focus your efforts on making the app easier to understand and develop. This will make your app easier to change in the future, and as you improve your software development you first attempt at an app will also become higher quality.
+I recommend setting aside some time each week to practice your software development skills. During this time, try to avoid touching the behaviour or appearance of your app, but instead focus your efforts on making the app easier to understand and develop. This will make your app easier to change in the future, and as you improve your software development your first attempt at an app will also become higher quality.
 
 ## Code organization
 
@@ -44,11 +44,11 @@ There's no silver bullet to address all of these points---and many times they in
 
 ## Testing
 
-Developing a test plan for an application is critical to ensure its ongoing stability. Without a test plan, every change jeopardizes the application. When the application is small enough that you can hold it all in your head, you might feel that there's no need for an additional test plan. And sure, testing very simple apps can seem like more trouble than its worth. However, the lack of a plan is likely to cause pain as soon someone else starts contributing to your app, or when you've spend enough time away from it that you've forgotten how it all fits together.
+Developing a test plan for an application is critical to ensure its ongoing stability. Without a test plan, every change jeopardizes the application. When the application is small enough that you can hold it all in your head, you might feel that there's no need for an additional test plan. And sure, testing very simple apps can seem like more trouble than its worth. However, the lack of a plan is likely to cause pain as soon as someone else starts contributing to your app, or when you've spent enough time away from it that you've forgotten how it all fits together.
 
 A testing plan could be entirely manual. A great place to start is a simple text file giving a script to follow to check that all is well. However, that script will have to grow as the application becomes more complex, and you'll either spend more and more of your time manually testing the application, or you'll start skipping some of the script.
 
-So the next step is to start to automate some of your testing. Automatiion takes time to set up, but it pays off over time because you can run the tests more frequently. For that reason, various forms of automated testing have been developed for Shiny, as outlined in Chapter \@ref(scaling-testing). As that chapter will explain, you can develop:
+So the next step is to start to automate some of your testing. Automation takes time to set up, but it pays off over time because you can run the tests more frequently. For that reason, various forms of automated testing have been developed for Shiny, as outlined in Chapter \@ref(scaling-testing). As that chapter will explain, you can develop:
 
 -   Unit tests that confirm the correct behaviour of an individual function.
 -   Integration tests to confirm the interactions between reactives.
@@ -61,7 +61,7 @@ The beauty of writing an automated test is that once you've taken the time to wr
 
 If you've ever tried to reproduce some analysis in R written by someone else, or even tried to rerun some analysis or Shiny application you wrote some time ago, you may have run into trouble around dependencies. An app's dependencies are anything beyond the source code that it requires to run. These could include files on the hard drive, an external database or API, or other R packages that are used by the app.
 
-For any analysis that you may want to reproduce in the future, consider using [renv](https://rstudio.github.io/renv/) which enables you to create **r**eproducible R **env**ironments. Using renv, you can capture the exact package versions that your application use so that when you go to use this application on another, you can use exactly the same package versions. This is vital for app run in production, just not because it gets the versions right on the first run, but because it also isolates your app from version changes over time.
+For any analysis that you may want to reproduce in the future, consider using [renv](https://rstudio.github.io/renv/) which enables you to create **r**eproducible R **env**ironments. Using renv, you can capture the exact package versions that your application uses so that when you go to use this application on another computer, you can use exactly the same package versions. This is vital for apps run in production, not just because it gets the versions right on the first run, but because it also isolates your app from version changes over time.
 
 Another tool for managing dependencies is the [config package](https://github.com/rstudio/config). The config package doesn't actually manage dependencies itself, but it does provide a convenient place for you to track and manage dependencies other than R packages. For instance, you might specify the path to a CSV file that your application depends on, or the URL of an API that you require. Having these enumerated in the config file gives you a single place where you can track and manage these dependencies. Even better, it enables you to create different configurations for different environments. For example, if your application analyses a database with lots of data, you might choose to configure a few different environments:
 
@@ -75,7 +75,7 @@ Lastly, be wary of making assumptions about the local file system. If your code 
 
 ## Source code management
 
-Anyone who's been programming for long has inevitably arrived at a state where they've accidentally broken their app and want to roll back to a previous working state. This is incredibly arduous is done manually. Fortunately, however, you can rely on a "version-control system" that makes it easy track atomic changes, roll back to previous work, and integrate the work of multiple contributors.
+Anyone who's been programming for a long time has inevitably arrived at a state where they've accidentally broken their app and want to roll back to a previous working state. This is incredibly arduous when done manually. Fortunately, however, you can rely on a "version-control system" that makes it easy to track atomic changes, roll back to previous work, and integrate the work of multiple contributors.
 
 The most popular version-control system in the R community is Git. Git is typically paired with GitHub, a website that makes it easy to share your git repos with others. It definitely takes work to become proficient with Git and GitHub, but any experienced developer will confirm that the effort is well worth it. If you're new to git, I'd highly recommend starting with [*Happy Git and GitHub for the useR*](https://happygitwithr.com/), by Jenny Bryan.
 
@@ -85,7 +85,7 @@ Once you are using a version control system and have a robust set of automated t
 
 There are a variety of services that can connect to a Git repo and automatically run tests when you push a new commit or propose changes. Depending on where your code is hosted, you can consider [GitHub actions](https://github.com/features/actions), [Travis CI](https://travis-ci.org/), [Azure Pipelines](https://azure.microsoft.com/en-us/services/devops/pipelines/), [AppVeyor](https://www.appveyor.com/), [Jenkins](https://jenkins.io/), or [GitLab CI/CD](https://about.gitlab.com/product/continuous-integration/), to name a few.
 
-```{r ci, echo = FALSE, out.width = NULL, fig.cap="An example CI run, showing succesful results across four independent testing environments"}
+```{r ci, echo = FALSE, out.width = NULL, fig.cap="An example CI run, showing successful results across four independent testing environments"}
 knitr::include_graphics("images/prod-best-practices/ci-screenshot.png", dpi = 300)
 ```
 

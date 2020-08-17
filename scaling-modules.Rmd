@@ -6,7 +6,7 @@ source("common.R")
 
 In the last chapter we used functions to decompose parts of your Shiny app into independent pieces. Functions work well for code that is either completely on the server side or completely on the client side. For code that spans both, i.e. whether the server code relies on specific structure in the UI, you'll need a new technique: modules.
 
-At the simplest level, a module is a pair of UI and server functions. The magic of modules comes because these functions are constructed in a special way that creates a "namespace". So far, when writing an app, the names (`id`s) of the controls are global: all parts of your server function can see all parts of your UI. Modules give you the ability to create controls that can only be seen from within the module. This is a called a **namespace** because it creates "spaces" of "names" that are isolated from the rest of the app.
+At the simplest level, a module is a pair of UI and server functions. The magic of modules comes because these functions are constructed in a special way that creates a "namespace". So far, when writing an app, the names (`id`s) of the controls are global: all parts of your server function can see all parts of your UI. Modules give you the ability to create controls that can only be seen from within the module. This is called a **namespace** because it creates "spaces" of "names" that are isolated from the rest of the app.
 
 Shiny modules have two big advantages. Firstly, namespacing makes it easier to understand how your app works because you can write, analyse, and test individual components in isolation. Secondly, because modules are functions they help you reuse code; anything you can do with a function, you can do with a module.
 
@@ -69,7 +69,7 @@ A module is very similar to an app. Like an app, it's composed of two pieces[^1]
 -   The **module UI** function that generates the `ui` specification.
 -   The **module server** function that runs code inside the `server` function.
 
-The two functions have standard forms. They both take an `id` argument and use it to namespace the module. To create a module, we need to extract code out of the the app UI and server and put it in to the module UI and server.
+The two functions have standard forms. They both take an `id` argument and use it to namespace the module. To create a module, we need to extract code out of the app UI and server and put it in to the module UI and server.
 
 ### Module UI
 
@@ -178,15 +178,15 @@ Sometimes a module with only an `id` argument to the module UI and server is use
 
 Most of the time, however, your module UI and server will need additional arguments. Adding arguments to the module UI gives greater control over module appearance, allowing you to use the same module in more places in your app. But the module UI is just a regular R function, so there's relatively little to learn that's specific to Shiny, and much of it was already covered in Chapter \@ref(scaling-functions).
 
-So in following sections, I'll focus on the module server, and discuss how your module can take additional reactive inputs and return one or more reactive outputs. Unlike regular Shiny code, connecting modules together requires you to be explicit about inputs and outputs. Initially, this is going to feel tiresome. And it's certainly more work than the Shiny's usual free-form association. But modules enforce specific lines of communication for a reason: they're a little more work to create, but much easier to understand, and allow you to build substantially more complex apps.
+So in following sections, I'll focus on the module server, and discuss how your module can take additional reactive inputs and return one or more reactive outputs. Unlike regular Shiny code, connecting modules together requires you to be explicit about inputs and outputs. Initially, this is going to feel tiresome. And it's certainly more work than Shiny's usual free-form association. But modules enforce specific lines of communication for a reason: they're a little more work to create, but much easier to understand, and allow you to build substantially more complex apps.
 
-You might see advice to use `session$userData` or other techniques to break out of the module straitjacket. Be wary of such advice: it's showing you how to work around the rules imposed by namespacing, making it easy to re-introduce much complexity to your app and significantly reducing the benefits of using an module in the first place.
+You might see advice to use `session$userData` or other techniques to break out of the module straitjacket. Be wary of such advice: it's showing you how to work around the rules imposed by namespacing, making it easy to re-introduce much complexity to your app and significantly reducing the benefits of using a module in the first place.
 
 ### Getting started: UI input + server output
 
 To see how inputs and outputs work, we'll start off easy with a module that allows the user to select a dataset from built-in data provided by the datasets package. This isn't terribly useful by itself, but it illustrates some of the basic principles, is a useful building block for more complex modules, and you've seen the idea before in Section \@ref(adding-ui).
 
-We'll start with the module UI. Here I use a single additional argument so that you can built in datasets that are either data frames (`filter = is.data.frame`) or matrices (`filter = is.matrix`). I use this argument to optionally filter the objects found in the datasets package, then create a `selectInput()`.
+We'll start with the module UI. Here I use a single additional argument so that you can limit the options to built-in datasets that are either data frames (`filter = is.data.frame`) or matrices (`filter = is.matrix`). I use this argument to optionally filter the objects found in the datasets package, then create a `selectInput()`.
 
 ```{r}
 datasetInput <- function(id, filter = NULL) {
@@ -360,7 +360,7 @@ selectDataVarApp <- function(filter = is.numeric) {
 
 ### Case study: histogram
 
-Now lets circle back to original histogram module and refactor it into something more composable. The key challenge of creating modules is creating functions that are flexible enough to be used in multiple places, but simple enough that they can easily be understood. Figuring out how to write functions that are good building blocks is the journey of a lifetime; expect that you'll have to do it wrong quite a few times before you get it right. (I wish I could offer more concrete advice here, but currently this is a skill that you'll have to refine through practice and conscious reflection.)
+Now lets circle back to the original histogram module and refactor it into something more composable. The key challenge of creating modules is creating functions that are flexible enough to be used in multiple places, but simple enough that they can easily be understood. Figuring out how to write functions that are good building blocks is the journey of a lifetime; expect that you'll have to do it wrong quite a few times before you get it right. (I wish I could offer more concrete advice here, but currently this is a skill that you'll have to refine through practice and conscious reflection.)
 
 I'm also going to consider it as an output control because while it does use an input (the number of bins) that's used only to tweak the display, and doesn't need to be returned by the module.
 
@@ -481,7 +481,7 @@ histogramApp <- function() {
 
 The main challenge with this sort of code is remembering when you use the reactive (e.g. `x$value`) vs. when you use its value (e.g. `x$value()`). Just remember that when passing an argument to a module, you want the module to react to the value changing which means that you have to pass the reactive, not it's current value.
 
-If you find yourself frequently returning multiple values from a reactive, you might also consider using the zeallot package. zeallot provides the `%<-%` operator which allows you to assign into multiple variables (sometimes called multiple, unpacking, or destructuring assignment). This can useful when returning multiple values because you avoid a layer of indirection.
+If you find yourself frequently returning multiple values from a reactive, you might also consider using the zeallot package. zeallot provides the `%<-%` operator which allows you to assign into multiple variables (sometimes called multiple, unpacking, or destructuring assignment). This can be useful when returning multiple values because you avoid a layer of indirection.
 
 ```{r}
 library(zeallot)
@@ -502,7 +502,7 @@ histogramApp <- function() {
 
 To summarise what you've learned in this section:
 
--   Module inputs (i.e. addition arguments to the module server) can be reactives or constants. The choice is a design decision that you make based on who sets the arguments and when they change. You should always check the arguments are of the expected type to avoid unhelpful error messages.
+-   Module inputs (i.e. additional arguments to the module server) can be reactives or constants. The choice is a design decision that you make based on who sets the arguments and when they change. You should always check the arguments are of the expected type to avoid unhelpful error messages.
 
 -   Unlike app servers, but like regular functions, module servers can return values. The return value of a module should always be a reactive or, if you want to return multiple values, a list of reactives.
 
@@ -520,11 +520,11 @@ We also show a few tricks that you might find helpful in your own modules:
 
 To finish up the chapter, I present a few case studies that show a few more examples of using modules. Unfortunately I don't have the space to show every possible way you might use a module to help simplify your app, but hopefully these examples will give you a little flavour for what you can do, and suggest ways you might extend in the future.
 
-The last two examples focus on more complex ownership cases where some of the UI is generated at different time by different people. This situations are complex because you need to remember the details of how namespacing works.
+The last two examples focus on more complex ownership cases where some of the UI is generated at different time by different people. These situations are complex because you need to remember the details of how namespacing works.
 
 ### Limited selection + other
 
-Another important use of modules is to give complex UI elements a simpler user interface. Here I'm going to create a useful control that Shiny doesn't provide by default: a small set of options displayed with radio buttons coupled with an "other" field. The inside of this module uses multiple input elements, but from the outside it works as single combined object. This makes it useful
+Another important use of modules is to give complex UI elements a simpler user interface. Here I'm going to create a useful control that Shiny doesn't provide by default: a small set of options displayed with radio buttons coupled with an "other" field. The inside of this module uses multiple input elements, but from the outside it works as a single combined object.
 
 I'm going to parametrise the UI side with `label`, `choices`, and `selected` which get passed directly to `radioButtons()`. I also create a `textInput()` containing a placeholder, that defaults to "Other". To combine the text box and the radio button, I take advantage of the fact that `choiceValues` can be a list of HTML elements, including other input widgets.
 
@@ -601,15 +601,15 @@ genderUI <- function(id, label = "Gender") {
 }
 ```
 
-Here it's important to provide the most common choices, male and female, an option to not provide that data, and then a write in option where people can use whatever term they're most comfortable with. It's considerate not to a use placeholder of "other" here.
+Here it's important to provide the most common choices, male and female, an option to not provide that data, and then a write in option where people can use whatever term they're most comfortable with. It's considerate not to use a placeholder of "other" here.
 
-For a deeper dive on this issue, and a discussion of why many commonly used way of asking about gender can be hurtful to some people, I recommend reading "Designing forms for gender diversity and inclusion" by Sabrina Fonseca: <https://uxdesign.cc/d8194cf1f51>.
+For a deeper dive on this issue, and a discussion of why many commonly used ways of asking about gender can be hurtful to some people, I recommend reading "Designing forms for gender diversity and inclusion" by Sabrina Fonseca: <https://uxdesign.cc/d8194cf1f51>.
 
 ### Wizard {#module-wizard}
 
 Next we'll tackle a pair of case studies that dive into some subtleties of namespacing. We'll start with a module that wraps up a wizard interface, a style of UI where you break a complex process down into a series of simple pages that the user works through one-by-one. I showed how to create a basic wizard in Section \@ref(dynamic-wizard). Now we'll automate the process, so that when creating a wizard you can focus on the content of each page, rather on how they are connected together to form a whole.
 
-To explain this module I'm going to start from the bottom and we'll work our way up. The main part of the wizard UI are the buttons. Each page has two buttons: one to take them to on to the next page, and one to return them to the previous. We'll start by creating helpers to build these buttons:
+To explain this module I'm going to start from the bottom and we'll work our way up. The main part of the wizard UI are the buttons. Each page has two buttons: one to take them on to the next page, and one to return them to the previous. We'll start by creating helpers to build these buttons:
 
 ```{r}
 nextPage <- function(id, i) {
@@ -670,9 +670,9 @@ wizardUI <- function(id, pages, doneButton = NULL) {
 
 The code to create the tabset panel requires a little explanation: unfortunately `tabsetPanel()` doesn't allow us to pass in a list of tabs. So instead we need to do a little `do.call()` magic to make it work. `do.call(function_name, list(arg1, arg2, …)` is equivalent to `function_name(arg1, arg2, …)`, so here we're creating a call like `tabstPanel(pages[[1]], pages[[2]], …, id = NS(id, "wizard"), type = "hidden")`. Hopefully this will be simplified in a future version of Shiny.
 
-Now that we've completed the module UI, we need to turn our attention to the module server. The essence of the server is straightforward: we just need to make buttons work, so that you can travel from page-to-page in either direction. To do that we need to setup a `observeEvent()` for each button that calls `updateTabsetPanel()`. This would be relativley simple if we knew exactly how many pages there were. But we don't, because the user of the module gets to control that.
+Now that we've completed the module UI, we need to turn our attention to the module server. The essence of the server is straightforward: we just need to make buttons work, so that you can travel from page-to-page in either direction. To do that we need to setup a `observeEvent()` for each button that calls `updateTabsetPanel()`. This would be relatively simple if we knew exactly how many pages there were. But we don't, because the user of the module gets to control that.
 
-So instead, we need to do a little functional programming to set up the `(n - 1) * 2` observers (two observers for each page except for the first and last, which only need one). The server function below starts by extracting out the basic code we need for one button in the `changePage()` function. It uses `input[[]]`, as in Section \@ref(multiple-controls), so we can refer to control dynamically. Then we use `lapply()` to loop over all the previous buttons (needed for every page except the first), and the all the next buttons (needed for every page except the last).
+So instead, we need to do a little functional programming to set up the `(n - 1) * 2` observers (two observers for each page except for the first and last, which only need one). The server function below starts by extracting out the basic code we need for one button in the `changePage()` function. It uses `input[[]]`, as in Section \@ref(multiple-controls), so we can refer to control dynamically. Then we use `lapply()` to loop over all the previous buttons (needed for every page except the first), and all the next buttons (needed for every page except the last).
 
 ```{r}
 wizardServer <- function(id, n) {
@@ -689,9 +689,9 @@ wizardServer <- function(id, n) {
 }
 ```
 
-Note that it's not possible to use a for loop instead of `map()`/`lapply()` here; we'll come back to why Chapter XYZ.
+Note that it's not possible to use a for loop instead of `map()`/`lapply()` here; we'll come back to why in Chapter XYZ.
 
-Now we can construct and app and simple example to make sure we've plumbed everything together correctly:
+Now we can construct an app and simple example to make sure we've plumbed everything together correctly:
 
 ```{r}
 wizardApp <- function(...) {
@@ -715,7 +715,7 @@ wizardApp(
 )
 ```
 
-Unfortunately we need to repeat ourselves slightly when using the module: need to make sure that `n` argument to `wizardServer()` is consistent with the `pages` argument to `wizardUi()`. This is a principled limitation of the module system which we'll discuss in more detail in Section \@ref(module-objects).
+Unfortunately we need to repeat ourselves slightly when using the module: need to make sure that the `n` argument to `wizardServer()` is consistent with the `pages` argument to `wizardUi()`. This is a principled limitation of the module system which we'll discuss in more detail in Section \@ref(module-objects).
 
 <!-- TODO: add demo -->
 
@@ -756,7 +756,7 @@ server <- function(input, output, session) {
 
 ### Dynamic UI
 
-We'll finish up with a case study that uses dynamic UI, taking part of the dynamic filtering code found in Section \@ref(dynamic-filter) and turning it into a module. The main challenge of dynamic UI within a module is that because you will generating UI code within your server function, we need a more precise definition of when explicit namespacing is needed.
+We'll finish up with a case study that uses dynamic UI, taking part of the dynamic filtering code found in Section \@ref(dynamic-filter) and turning it into a module. The main challenge of dynamic UI within a module is that because you will be generating UI code within your server function, we need a more precise definition of when explicit namespacing is needed.
 
 As usual, we'll start with the module UI. It's very simple here, because we're just generating a "hole" that the server functions will fill in dynamically.
 
@@ -820,7 +820,7 @@ filterServer <- function(id, df) {
 }
 ```
 
-Now we can put it all together in a module app that allows you to select a buit-in dataset and then filter on any numeric or categorical variable.
+Now we can put it all together in a module app that allows you to select a built-in dataset and then filter on any numeric or categorical variable.
 
 ```{r}
 filterApp <- function() {
