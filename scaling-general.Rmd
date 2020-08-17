@@ -48,7 +48,7 @@ Developing a test plan for an application is critical to ensure its ongoing stab
 
 A testing plan could be entirely manual. A great place to start is a simple text file giving a script to follow to check that all is well. However, that script will have to grow as the application becomes more complex, and you'll either spend more and more of your time manually testing the application, or you'll start skipping some of the script.
 
-So the next step is to start to automate some of your testing. Automatiion takes time to set up, but it pays off over time because you can run the tests more frequently. For that reason, various forms of automated testing have been developed for Shiny, as outlined in Chapter \@ref(scaling-testing). As that chapter will explain, you can develop:
+So the next step is to start to automate some of your testing. Automation takes time to set up, but it pays off over time because you can run the tests more frequently. For that reason, various forms of automated testing have been developed for Shiny, as outlined in Chapter \@ref(scaling-testing). As that chapter will explain, you can develop:
 
 -   Unit tests that confirm the correct behaviour of an individual function.
 -   Integration tests to confirm the interactions between reactives.
@@ -85,7 +85,7 @@ Once you are using a version control system and have a robust set of automated t
 
 There are a variety of services that can connect to a Git repo and automatically run tests when you push a new commit or propose changes. Depending on where your code is hosted, you can consider [GitHub actions](https://github.com/features/actions), [Travis CI](https://travis-ci.org/), [Azure Pipelines](https://azure.microsoft.com/en-us/services/devops/pipelines/), [AppVeyor](https://www.appveyor.com/), [Jenkins](https://jenkins.io/), or [GitLab CI/CD](https://about.gitlab.com/product/continuous-integration/), to name a few.
 
-```{r ci, echo = FALSE, out.width = NULL, fig.cap="An example CI run, showing succesful results across four independent testing environments"}
+```{r ci, echo = FALSE, out.width = NULL, fig.cap="An example CI run, showing successful results across four independent testing environments"}
 knitr::include_graphics("images/prod-best-practices/ci-screenshot.png", dpi = 300)
 ```
 
