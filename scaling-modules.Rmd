@@ -522,7 +522,7 @@ To finish up the chapter, I present a few case studies that show a few more exam
 
 The last two examples focus on more complex ownership cases where some of the UI is generated at different time by different people. These situations are complex because you need to remember the details of how namespacing works.
 
-### Limited selection + other
+### Limited selection + other {#radio-other}
 
 Another important use of modules is to give complex UI elements a simpler user interface. Here I'm going to create a useful control that Shiny doesn't provide by default: a small set of options displayed with radio buttons coupled with an "other" field. The inside of this module uses multiple input elements, but from the outside it works as a single combined object.
 

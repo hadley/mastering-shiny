@@ -137,8 +137,7 @@ There are four ways to run this test:
     If the test passes, I get a message like `Test passed 😀`.
     If it fails, I get the details of what went wrong.
 
--   As I develop more tests, I run all of the tests for the current file[^scaling-testing-1] with `devtools::test_file()`.
-    Because I do this so often, I have a special keyboard shortcut set up to make it as easy as possible.
+-   As I develop more tests, I run all of the tests for the current file[^scaling-testing-1] with `devtools::test_file()`. Because I do this so often, I have a special keyboard shortcut set up to make it as easy as possible.
     I'll show you how to set that up yourself very shortly.
 
 -   Every now and then I run all of the tests for the whole package with `devtools::test()`.
@@ -493,65 +492,151 @@ To test these functions you need to run the Shiny app in a real browser which ac
 We can do this with an off-label use of the [shinytest](https://rstudio.github.io/shinytest) package.
 You can use it as the website recommends, automatically generating test code using an app, but I think it yields tests that are a little more fragile than desirable.
 
+What does headless mean?
+
 The main advantage of using shinytest is that it's very high fidelity because it actually starts up an R process and a browser in the background, and then controls them using code.
 The primary downside is that this is slower than the other approaches (it takes at least a second for even the simplest apps), and you can only the outside of the app (i.e. you can't see the values of specific reactives, only their outcomes on the app itself).
 
 ### Basic operation
 
+To use shinytest you start an app with `app <- ShinyDriver$new()`, interact with it using `app$setInputs()` and friends, then test values returned by `app$getValue()`:
+
 ```{r, eval = FALSE}
 test_that("app works", {
-  app <- shinytest::ShinyDriver$new("apps/shiny-test")
+  app <- shinytest::ShinyDriver$new(myapp())
   app$setInputs(x = 1)
   expect_equal(app$getValue("y"), 2)
 })
 ```
 
-There are two functions that are the workforce of your app testing: `app$setInputs()` and `app$getValue(name)`.
-`setInputs()` works just like reactivity testing; it simulates
+The code chunk above show the three most important methods of ShinyDriver that you'll use all the time:
 
-`ShinyDriver$new()` is relatively expensive to start up since it ha, which means that you'll tend to have few fairly large tests.
+-   `ShinyDriver$new()` takes either a Shiny app object, or a path to a Shiny app.
+    Typically when testing a package, you'll use the former.
+    This call takes a couple of seconds to run because it has to launch a new R process to run your Shiny app, and a new headless browser to simulate someone using your app.
 
-Currently requires an app on disk.
-So what to do in a package?
-Just create `app.R` like `shiny::shinyApp(myPackage::myApp())`.
+-   `app$setInputs()` works much like `session$setInputs()` above --- it updates the values in the browser, and then waits until all reactive updates are complete.
 
-### Advanced controls
+-   `app$getValue()` retrieves the value of an output control.
 
--   Mouse click: `app$executeScript(paste0("$('#", id, ”').click()"))`
-
--   `app$sendKeys(name, keys)` (see `?webdriver::key`)
-
--   `app$setWindowSize(width, height)`
+See `?ShinyDriver` for more details, and a list of more esoteric methods.
 
 ### Case study
 
-Test as much as possible with `testServer()`, then test just the bit that uses `updateRadioInputs` with ShinyDriver.
+To explore this we'll start with the radio button + other example from Section \@ref(radio-other):
+
+```{r}
+ui <- fluidPage(
+  radioButtons("extra", "Select one",
+    choiceNames = list(
+      "apple", 
+      "pear", 
+      textInput("other", label = NULL, placeholder = "Other")
+    ),
+    choiceValues = c("apple", "pear", "other")
+  ), 
+  textOutput("value")
+)
+
+server <- function(input, output, session) {
+  observeEvent(input$other, ignoreInit = TRUE, {
+    updateRadioButtons(session, "extra", selected = "other")
+  })
+    
+  output$value <- renderText({
+    if (input$extra == "other") {
+      req(input$other)
+      input$other
+    } else {
+      input$extra
+    }
+  })
+}
+```
+
+We'll start by testing everything we can with `testServer()`:
+
+```{r}
+test_that("returns other value when primary is other", {
+  testServer(shinyApp(ui, server), {
+    session$setInputs(extra = "apple")
+    expect_equal(output$value, "apple")
+    
+    session$setInputs(extra = "other", other = "orange")
+    expect_equal(output$value, "orange")
+  })  
+})
+```
+
+That doesn't check that other is automatically selected when we start typing in the other box.
+We can't test that using `testServer()` because it relies on `updateRadioButtons()`:
+
+```{r, error = TRUE}
+test_that("returns other value when primary is other", {
+  testServer(shinyApp(ui, server), {
+    session$setInputs(other = "orange")
+    expect_equal(output$value, "orange")
+  })  
+})
+```
+
+So now we need to use ShinyDriver:
+
+```{r, eval = FALSE}
+test_that("automatically switches to other", {
+  app <- ShinyDriver$new(shinyApp(ui, server))
+  app$setInput(primary = "apple")
+  expect_equal(app$getValue("value"), "apple")
+  
+  app$setInput(other = "orange")
+  expect_equal(app$getValue("primary"), "other")
+  expect_equal(app$getValue("value"), "orange")
+})
+```
+
+### Modules
+
+If this was a module, as in the original Section \@ref(radio-other), then there's an additional complexity --- how do set inputs inside a module?
+That's usually forbidden by code due to namespacing.
+But now we need some way to refer to those controls/
+
+### Advanced controls
+
+For more advanced interactions with input and output controls, you'll need to use `control <- app$findWidget("name")` to get a Widget object.
+This object gives additional additional controls:
+
+-   `control$click()` simulates a mouse click on the control.
+
+-   `control$sendKeys(keys)` simulates individual key presses.
+
+There are also a couple of methods that are specialised for specific control types:
+
+-   `control$uploadFile(path)` simulates uploading a file to a `fileInput()`
+
+-   `control$listTabs()` lists the tabs on a `tabsetPanel()`.
+
+Note that when you move away from `app$setInputs()` it starts to become your responsibility to check that the app has completed reactive updates before retrieving values using `getValues()`.
 
 ## Testing visuals
 
-What about components like plots or HTML widgets where it's difficult to assert correct behaviour using only specific values.
-So you can use the final, richest and most fragile testing technique: save a screenshot of the affected component.
-
-This uses a feature of testthat called whole file snapshotting.
-It's a generalisation of `expect_snapshot()` described above that also works with images.
-If the image changes, you'll be prompted to run `snapshot_review()` which is a Shiny app that shows you a visual comparison of the two images and allows you to accept or reject them.
+What about components like plots or HTML widgets where it's difficult to describe the correct appearance using code?
+You can use the final, richest, and most fragile testing technique: save a screenshot of the affected component.
+This combines screenshotting from shinytest with whole-file snapshotting from testthat.
+It works similarly to the snapshotting described in Section \@ref(user-interface-functions) but there's one important difference: it's no longer possible to see the differences on the console.
+So instead you'll be prompted to run `testthat::snapshot_review()` which uses a Shiny app to visually show the differences.
 
 ```{r}
 expect_snapshot_screenshot <- function(app, id, name, parent = FALSE) {
   skip_on_ci()
-  skip_on_cran()
-  
-  path <- app$screenshot_element(id, parent)
+
+  path <- tempfile()
+  app$screenshot(path, id, parent = parent)
   expect_snapshot_file(path, name)
 }
 ```
 
-### Continuous integration
-
-The primary downside of checking screenshots for differences is that even the tiniest of changes requires a human to look at confirm that it's OK.
-For example, it's very difficult to compare same screenshots generated by difference computers because even the same browser tends to render pages very slightly differently across operating systems due to tiny differences in font rendering.
-Making browser rendering 100% reproducible at the pixel-level is extremely challenging so visual tests are best re-run on the same computer, and it's generally not worthwhile to run them in a continuous integration tool.
-It is possible to work around these issues, but it's considerably challenge and beyond the scope of this book.
-
-This is the reason why that `expect_snapshot_screenshot()` contains both `skip_on_ci()` and `skip_on_cran()`; the chances of the snapshot failing on either CI or CRAN are high, and the failure is unlikely to give you actionable insight.
-This is another reason to be cautious with screenshot tests.
+The primary downside of testing using screenshots is that even the tiniest of changes requires a human confirm that it's OK.
+This is a problem because it's hard to get different computers to generate pixel-reproducible screenshots.
+Differences in operating system, browser version, and even font versions, can lead to screenshots that look the same to a human, but are very slightly different.
+This generally means that visual tests are best run by one person on their local computer, and it's generally not worthwhile to run them in a continuous integration tool.
+It is possible to work around these issues, but it's considerable challenge and beyond the scope of this book.
