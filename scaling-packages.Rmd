@@ -25,7 +25,7 @@ library(shiny)
 
 ## Converting an existing app
 
-Converting an app to a package requires a small little work. Follow these steps to create an package. I'm assuming that your app is called `myApp` and it already lives in a directory called `myApp/`.
+Converting an app to a package requires a small amount of work. Follow these steps to create a package. I'm assuming that your app is called `myApp` and it already lives in a directory called `myApp/`.
 
 -   If it doesn't exist already, create an `R` directory.
 
@@ -97,15 +97,15 @@ Before you make your first full app-package, I recommend read [The whole game](h
 
 -   Add `app.R` to `.Rbuildignore` with `usethis::use_build_ignore("app.R")` or similar.
 
--   If your app contains small reference datasets put it in `data` or `inst/extdata`. The advantage of `data/` is that it's stored in `.rda` format, which is faster to load, and is loaded lazily so if it's not used by the app, it's not loaded in memory. Alternatively, you can put raw data in `inst/ext` and load it with `read.csv(system.file("exdata", "mydata.csv", package = "myApp"))` or similar.
+-   If your app contains small reference datasets, put them in `data` or `inst/extdata`. The advantage of `data/` is that it's stored in `.rda` format, which is faster to load, and is loaded lazily so if it's not used by the app, it's not loaded in memory. Alternatively, you can put raw data in `inst/ext` and load it with `read.csv(system.file("exdata", "mydata.csv", package = "myApp"))` or similar.
 
 -   Files in `www`? `inst/www`?
 
--   You can also change your `app.R` to use an the package. This requires that your available somewhere that your deployment machine can install from. For public work this means a CRAN or GitHub package; for private work this means something like RSPM.
+-   You can also change your `app.R` to use the package. This requires that your package is available somewhere that your deployment machine can install from. For public work this means a CRAN or GitHub package; for private work this means something like RSPM.
 
     ```{r, eval = FALSE}
     library(myApp)
     myApp::myApp()
     ```
 
-[^scaling-packages-1]: The distinction between Imports and Suggests is not generally important for app packages. If you do want to make a distinction, the most useful is to use Imports for packages that need to be present on the deployment machine (in order for the app to work) and Suggests for packages that need to prsent on the development machine in order to develop the app.
+[^scaling-packages-1]: The distinction between Imports and Suggests is not generally important for app packages. If you do want to make a distinction, the most useful is to use Imports for packages that need to be present on the deployment machine (in order for the app to work) and Suggests for packages that need to be present on the development machine (in order to develop the app).
