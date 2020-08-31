@@ -1,9 +1,3 @@
----
-editor_options:
-  markdown:
-    wrap: sentence
----
-
 # Testing {#scaling-testing}
 
 ```{r, include = FALSE}
