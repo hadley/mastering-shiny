@@ -230,8 +230,6 @@ load_file <- function(name, path) {
 }
 ```
 
-(Should it take `name` and `path` arguments or a single list?)
-
 When extracting out such helpers, avoid taking reactives as input or returning outputs.
 Instead, pass them in through the arguments, and assume the caller will turn into a reactive.
 This isn't a hard and fast rule; sometimes it will make sense for your functions to input or output reactives.
