@@ -52,7 +52,7 @@ library(testthat)
 library(shinytest)
 ```
 
-This chapter uses features in the upcoming release of testthat 3.0.0 and shinytest 1.5.0, so if you're reading the book now you'll need to install their development versions from GitHub with `remotes::install_github(c("r-lib/testhat", "rstudio/shinytest"))`.
+This chapter uses features in the upcoming releases of shiny 1.5.1, testthat 3.0.0, and shinytest 1.5.0, so if you're reading the book now you'll need to install their development versions from GitHub with `remotes::install_github(c("r-lib/testhat", "rstudio/shinytest", "rstudio/shiny))`.
 
 ```{r, include = FALSE}
 local_edition(3)
@@ -358,9 +358,6 @@ server <- function(input, output, session) {
   xyz <- reactive(xy() * yz())
   output$out <- renderText(paste0("Result: ", xyz()))
 }
-myApp <- function(...) {
-  shinyApp(ui, server, ...)
-}
 ```
 
 To test this code we'll use the `testServer()`.
@@ -369,7 +366,7 @@ The code is run in a special environment, *inside* the server function, so you c
 The main time you'll use this is for `session$setInputs()` which allows you to set the value of input controls, as if you were a user interacting with the app in a browser.
 
 ```{r}
-testServer(myApp(), {
+testServer(server, {
   session$setInputs(x = 1, y = 1, z = 1)
   print(xy())
   print(output$out)
@@ -378,12 +375,12 @@ testServer(myApp(), {
 
 (You can abuse `testServer()` to get in an interactive environment that does support reactivity: `testServer(myApp(), browser())`)
 
-Despite the fact that we're passing a complete app to `testServer()`, we are only testing the server function; the `ui` component of the app is completely ignored.
+Note that we're only testing the server function; the `ui` component of the app is completely ignored.
 You can see this most clearly by inspecting the inputs: unlike a real Shiny app, all inputs start as `NULL`, because the initial value is recorded in the `ui`.
 We'll come back to UI testing in Section \@ref(testing-javascript).
 
 ```{r}
-testServer(myApp(), {
+testServer(server, {
   print(input$x)
 })
 ```
@@ -392,7 +389,7 @@ Now that you have a way to run code in a reactive environment you can combine it
 
 ```{r}
 test_that("reactives and output updates", {
-  testServer(myApp(), {
+  testServer(server, {
     session$setInputs(x = 1, y = 1, z = 1)
     expect_equal(xy(), 0)
     expect_equal(yz(), 2)
@@ -430,8 +427,8 @@ summaryServer <- function(id, var) {
 ```
 
 We'll use `testServer()` as above, but the call is a little different.
-This time, the first argument is the module server, and then we supply the arguments to that function in a new argument called `args`.
-This takes a list of arguments to the module server, always omitting the `id` argument, since that's automatically filled in by `testServer()`.
+As before the first argument is the server function (now the the module server), but now we also need to supply additional arguments in a list called `args`.
+This takes a list of arguments to the module server (the `id` argument is optional; `testServer()` will fill it in automatically if omitted).
 Then we finish up with the code to run:
 
 ```{r}
@@ -545,7 +542,7 @@ server <- function(input, output, session) {
 
 To use shinytest you start an app with `app <- ShinyDriver$new()`, interact with it using `app$setInputs()` and friends, then get values returned by `app$getValue()`:
 
-```{r, eval = FALSE}
+```{r}
 app <- shinytest::ShinyDriver$new(shinyApp(ui, server))
 app$setInputs(name = "Hadley")
 app$getValue("greeting")
@@ -553,35 +550,49 @@ app$click("reset")
 app$getValue("greeting")
 ```
 
-And then as before, you can turn into a test by wrapping in `test_that()` and calling expectations:
+Every use of shinytest begins by creating a ShinyDriver object with `ShinyDriver$new()`, which takes a Shiny app object or a path to a Shiny app.
+It returns an R6 object that you interact with much like the session object you encountered above, using `app$setInputs()` --- it takes a set of name-value pairs, updates the controls in the browser, and then waits until all reactive updates are complete.
 
-```{r, eval = FALSE}
-test_that("app works", {
-  app <- shinytest::ShinyDriver$new(myapp())
-  app$setInputs(x = 1)
-  expect_equal(app$getValue("y"), 2)
-})
-```
+The first difference is that you'll need to explicitly retrieve values using `app$getValue(name)`.
+Unlike with `testServer()`, you can't generally, you can't access the values of reactives using ShinyDriver because it can only see what a user of the app can see.
+But there's a special Shiny function called `exportTestValues()` that creates a special output that shinytest can see but a human cannot.
 
-The code chunk above show the three most important methods of ShinyDriver that you'll use all the time:
+There are two other methods that allow you to simulate other actions:
 
--   `ShinyDriver$new()` takes either a Shiny app object, or a path to a Shiny app.
-    Typically when testing a package, you'll use the former.
-    This call takes a couple of seconds to run because it has to launch a new R process to run your Shiny app, and a new headless browser to simulate someone using your app.
+-   `app$click(name)` clicks a button called `name`.
 
--   `app$setInputs()` works much like `session$setInputs()` above --- it updates the values in the browser, and then waits until all reactive updates are complete.
-
--   `app$getValue()` retrieves the value of an output control.
+-   `app$sendKeys(name, keys)` sends key presses to an input control called `name`.
+    `keys` will normally be string like `app$sendKeys(id, "Hi!")`.
+    But you can also send special keys using `webdriver::key`, a la `app$sendKeys(id, c(webdriver::key$control, "x"))`.
+    Note that any modifier keys will be applied to all subsequent key presses, so you'll need multiple calls if you want some key presses with modifiers and some without.
 
 See `?ShinyDriver` for more details, and a list of more esoteric methods.
 
+As before, once you've figured out the appropriate sequence of actions interactively, you can turn it into a test by wrapping in `test_that()` and calling expectations:
+
+```{r, eval = FALSE}
+test_that("can set and reset name", {
+  app <- shinytest::ShinyDriver$new(shinyApp(ui, server))
+  app$setInputs(name = "Hadley")
+  expect_equal(app$getValue("greeting"), "Hi Hadley")
+  
+  app$click("reset")
+  expect_equal(app$getValue("greeting"), "")
+})
+```
+
+The background Shiny app and web browser are automatically shut down when the `app` object is deleted and collected by the garbage collector.
+If you're not familiar with what that means, you might find <https://adv-r.hadley.nz/names-values.html#gc> helpful.
+
 ### Case study
 
-To explore this we'll start with the radio button + other example from Section \@ref(radio-other):
+We'll finish up with a case study exploring how you might test a more realistic example, combining both `testServer()` and shinytest.
+We'll use a radio-button control that also provides a free-text "other" option.
+This might look familiar, as we used it before as a motivation for developing a module in \@ref(radio-other).
 
 ```{r}
 ui <- fluidPage(
-  radioButtons("extra", "Select one",
+  radioButtons("fruit", "What's your favourite fruit?",
     choiceNames = list(
       "apple", 
       "pear", 
@@ -594,29 +605,46 @@ ui <- fluidPage(
 
 server <- function(input, output, session) {
   observeEvent(input$other, ignoreInit = TRUE, {
-    updateRadioButtons(session, "extra", selected = "other")
+    updateRadioButtons(session, "fruit", selected = "other")
   })
     
   output$value <- renderText({
-    if (input$extra == "other") {
+    if (input$fruit == "other") {
       req(input$other)
       input$other
     } else {
-      input$extra
+      input$fruit
     }
   })
 }
 ```
 
-We'll start by testing everything we can with `testServer()`:
+The actual computation is quite simple.
+We *could* consider pulling the `renderText()` expression out into its own function:
+
+```{r}
+other_value <- function(fruit, other) {
+  if (fruit == "other") {
+    other
+  } else {
+    fruit
+  }
+}
+```
+
+But I don't think it's worth it because the logic here is very simple and not generalisable to other situations.
+I think the net effect of pulling this code out of the app into a separate file would be make the code harder to read.
+
+So we'll start by testing the basic flow of reactivity: do we get the correct value after setting `fruit` to an existing option?
+And do we get the correct value after setting fruit to other and adding some free text?
 
 ```{r}
 test_that("returns other value when primary is other", {
-  testServer(shinyApp(ui, server), {
-    session$setInputs(extra = "apple")
+  testServer(server, {
+    session$setInputs(fruit = "apple")
     expect_equal(output$value, "apple")
     
-    session$setInputs(extra = "other", other = "orange")
+    session$setInputs(fruit = "other", other = "orange")
     expect_equal(output$value, "orange")
   })  
 })
@@ -627,8 +655,8 @@ We can't test that using `testServer()` because it relies on `updateRadioButtons
 
 ```{r, error = TRUE}
 test_that("returns other value when primary is other", {
-  testServer(shinyApp(ui, server), {
-    session$setInputs(other = "orange")
+  testServer(server, {
+    session$setInputs(fruit = "apple", other = "orange")
     expect_equal(output$value, "orange")
   })  
 })
@@ -639,55 +667,21 @@ So now we need to use ShinyDriver:
 ```{r, eval = FALSE}
 test_that("automatically switches to other", {
   app <- ShinyDriver$new(shinyApp(ui, server))
-  app$setInput(primary = "apple")
-  expect_equal(app$getValue("value"), "apple")
-  
-  app$setInput(other = "orange")
-  expect_equal(app$getValue("primary"), "other")
+  app$setInputs(other = "orange")
+  expect_equal(app$getValue("fruit"), "other")
   expect_equal(app$getValue("value"), "orange")
 })
 ```
 
-### Modules
-
-If this was a module, as in the original Section \@ref(radio-other), then there's an additional complexity --- how do set inputs inside a module?
-That's usually forbidden by code due to namespacing.
-But now we need some way to refer to those controls/
-
-### Advanced controls
-
-For more advanced interactions with input and output controls, you'll need to use `control <- app$findWidget("name")` to get a Widget object.
-This object gives additional additional controls:
-
--   `control$click()` simulates a mouse click on the control.
-
--   `control$sendKeys(keys)` simulates individual key presses.
-
-There are also a couple of methods that are specialised for specific control types:
-
--   `control$uploadFile(path)` simulates uploading a file to a `fileInput()`
-
--   `control$listTabs()` lists the tabs on a `tabsetPanel()`.
-
-Note that when you move away from `app$setInputs()` it starts to become your responsibility to check that the app has completed reactive updates before retrieving values using `getValues()`.
+Generally, you are best off using `testServer()` as much as possible, and only using `ShinyDriver` for the bits that need a real browser.
 
 ## Testing visuals
 
 What about components like plots or HTML widgets where it's difficult to describe the correct appearance using code?
 You can use the final, richest, and most fragile testing technique: save a screenshot of the affected component.
 This combines screenshotting from shinytest with whole-file snapshotting from testthat.
-It works similarly to the snapshotting described in Section \@ref(user-interface-functions) but there's one important difference: it's no longer possible to see the differences on the console.
-So instead you'll be prompted to run `testthat::snapshot_review()` which uses a Shiny app to visually show the differences.
-
-```{r}
-expect_snapshot_screenshot <- function(app, id, name, parent = FALSE) {
-  skip_on_ci()
-
-  path <- tempfile()
-  app$screenshot(path, id, parent = parent)
-  expect_snapshot_file(path, name)
-}
-```
+It works similarly to the snapshotting described in Section \@ref(user-interface-functions) but instead of saving text into an `.md` file, it creates a `.png` file.
+This is also means that there's no way see the differences on the console, so you'll instead be prompted to run `testthat::snapshot_review()` which uses a Shiny app to visualise the differences.
 
 The primary downside of testing using screenshots is that even the tiniest of changes requires a human confirm that it's OK.
 This is a problem because it's hard to get different computers to generate pixel-reproducible screenshots.
@@ -695,7 +689,35 @@ Differences in operating system, browser version, and even font versions, can le
 This generally means that visual tests are best run by one person on their local computer, and it's generally not worthwhile to run them in a continuous integration tool.
 It is possible to work around these issues, but it's considerable challenge and beyond the scope of this book.
 
+Screenshotting individual elements in shinytest and whole file snapshotting in testthat are both very new features, and it's still not clear to us what the ideal interface is.
+So for, now you'll need to string the pieces together yourself, using code like:
+
+```{r, eval = FALSE}
+path <- tempfile()
+app <- ShinyDriver$new(shinyApp(ui, server))
+
+# Save screenshot to temporary file
+app$takeScreenshot(path, "plot")
+# 
+expect_snapshot_file(path, "plot-init.png")
+
+app$setValue(x = 2)
+app$takeScreenshot(path, "plot")
+expect_snapshot_file(path, "plot-update.png")
+```
+
+The second argument to `expect_snapshot_file()` gives the file name that the image will be saved in file snapshot directory.
+If these tests are in a file called `test-app.R` then these two file snapshot will be saved in `tests/testthat/_snaps/app/plot-init.png` and `tests/testthat/_snaps/app/plot-update.png`.
+You want to keep the names of these files short, but evocative enough to remind you what you're testing if something goes wrong.
+
 ## Philosophy
+
+This document has focussed mostly on the mechanics of testing, which are most important when you get started with testing.
+But you'll soon get the mechanics under your belt and your questions will become more structural and philosophical.
+
+I think it's useful to think about false positives and false negatives: it's possible to write tests that don't fail when they should, and do fail when they shouldn't.
+I think when you start testing your biggest struggles are with false positives: how do you make sure your tests are actually catching bad behaviour.
+But I think you move past this fairly quickl
 
 ### When should you write tests?
 
@@ -718,3 +740,4 @@ There are three basic options
     This has two advantages.
     Firstly, to make a good test case, you'll need to relentlessly simplify the problem until you have a very minimal reprex that you can include in a test.
     Secondly, you'll make sure that the bug never comes back again!
+
