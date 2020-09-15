@@ -26,35 +26,42 @@ demoApp <- R6::R6Class("demoApp", public = list(
     self$server <- server
     self$data <- app_data(server, ui, env)
 
-    fs::dir_create(self$path())
+    fs::dir_create(fs::path("demos", fs::path_dir(name)))
     self$run()
   },
 
   run = function() {
     self$running <- self$outdated() && !is_ci()
-
-    if (self$running) {
-      rlang::inform("Starting ShinyDriver")
-      file.copy("demo-app.R", self$path("app.R"))
-      saveRDS(self$data, self$path("data.rds"))
-
-      self$driver <- shinytest::ShinyDriver$new(self$path())
-      self$resize(600)
+    if (!self$running) {
+      return()
     }
+
+    saveRDS(self$data, self$path("rds"))
+
+    rlang::inform("Starting ShinyDriver")
+    self$driver <- shinytest::ShinyDriver$new(self$saveApp())
+    self$resize(600)
+  },
+
+  saveApp = function(path = tempfile()) {
+    dir.create(path)
+    file.copy("demo-app.R", file.path(path, "app.R"))
+    saveRDS(self$data, file.path(path, "data.rds"))
+    path
   },
 
   reset = function() {
     self$finalize()
-    fs::file_delete(self$path("data.rds"))
+    fs::file_delete(self$path("rds"))
     self$run()
   },
 
   outdated = function() {
-    if (!file.exists(self$path("data.rds"))) {
+    if (!file.exists(self$path("rds"))) {
       rlang::inform(paste0("Initialising ", self$name))
       return(TRUE)
     }
-    data_old <- readRDS(self$path("data.rds"))
+    data_old <- readRDS(self$path("rds"))
 
     diff <- waldo::compare(data_old, self$data, x_arg = "old", y_arg = "new")
     if (length(diff) == 0) {
@@ -68,8 +75,12 @@ demoApp <- R6::R6Class("demoApp", public = list(
     }
   },
 
-  path = function(...) {
-    fs::path("demos", self$name, ...)
+  path = function(ext, name = NULL) {
+    if (is.null(name)) {
+      fs::path("demos", self$name, ext = ext)
+    } else {
+      fs::path("demos", paste0(self$name, "-", name), ext = ext)
+    }
   },
 
   resize = function(width, height = NULL) {
@@ -139,8 +150,8 @@ demoApp <- R6::R6Class("demoApp", public = list(
     invisible(self)
   },
 
-  takeScreenshot = function(path = "screenshot", id = NULL, parent = FALSE) {
-    path <- self$path(path, ext = "png")
+  takeScreenshot = function(name = NULL, id = NULL, parent = FALSE) {
+    path <- self$path("png", name)
     if (self$running) {
       rlang::inform("Taking screenshot")
       self$driver$takeScreenshot(path, id = id, parent = parent)
@@ -156,7 +167,6 @@ demoApp <- R6::R6Class("demoApp", public = list(
   finalize = function() {
     if (self$running) {
       self$driver$stop()
-      unlink(self$path("app.R"))
       self$running <- FALSE
     }
   },
@@ -175,7 +185,7 @@ demoApp <- R6::R6Class("demoApp", public = list(
       }
 
       rsconnect::deployApp(
-        appDir = self$path(),
+        appDir = self$saveApp(),
         appName = paste0("ms-", self$name),
         appTitle = paste0("Mastering Shiny: ", self$name),
         server = "shinyapps.io",
@@ -183,7 +193,7 @@ demoApp <- R6::R6Class("demoApp", public = list(
         logLevel = if (quiet) "quiet" else "normal",
         launch.browser = FALSE
       )
-      fs::dir_delete(self$path("rsconnect"))
+      fs::dir_delete(self$path("", "rsconnect"))
     }
 
     invisible(self)
