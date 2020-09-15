@@ -89,7 +89,7 @@ demoApp <- R6::R6Class("demoApp", public = list(
         self$driver$setWindowSize(width, height)
       } else {
         self$driver$setWindowSize(width, 100)
-        height <- app_height(self$driver)
+        height <- self$driver$findElement("body")$getRect()$height
         self$driver$setWindowSize(width, height)
       }
       self$driver$waitForShiny()
@@ -220,9 +220,9 @@ demoApp <- R6::R6Class("demoApp", public = list(
 app_data <- function(server, ui, packages = character(), env = parent.frame()) {
   globals <- app_server_globals(server, env)
 
-  data <- strip_srcrefs(globals$globals)
+  data <- globals$globals
   data$`_ui` <- ui
-  data$`_server` <- strip_srcrefs(server)
+  data$`_server` <- server
   data$`_resources` <- shiny::resourcePaths()
   data$`_packages` <- union(globals$packages, packages)
   data
@@ -255,24 +255,7 @@ app_server_globals <- function(server, env = parent.frame()) {
   )
 }
 
-strip_srcrefs <- function(x) {
-  if (is.list(x)) {
-    lapply(x, strip_srcrefs)
-  } else if (is.function(x)) {
-    removeSource(x)
-  } else {
-    x
-  }
-}
-
 # Helpers -----------------------------------------------------------------
-
-app_height <- function(app) {
-  wd <- app$.__enclos_env__$private$web
-  obj <- wd$findElement("body")
-  rect <- obj$getRect()
-  rect$height
-}
 
 # Controls the size of automated shiny screenshots via app_screenshot().
 # I don't understand why these values need to be different, they've been
@@ -292,5 +275,3 @@ resourcePathReset <- function() {
 }
 
 is_ci <- function() isTRUE(as.logical(Sys.getenv("CI")))
-
-"%||%" <- function(x, y) if (is.null(x)) y else x
