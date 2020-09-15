@@ -2,6 +2,7 @@
 
 ```{r, include = FALSE}
 source("common.R")
+source("demo.R")
 ```
 
 ## Introduction
@@ -56,11 +57,9 @@ ui <- fluidPage(
   textAreaInput("story", "Tell me about yourself", rows = 3)
 )
 ```
-```{r, echo = FALSE, out.width = NULL}
-app <- testApp(ui)
-app$setInputs(name = "Joe")
-app$setInputs(password = "mypassword")
-app_screenshot(app, "basic-ui/free-text")
+```{r, echo = FALSE, out.width = NULL, message = FALSE}
+demo <- demoApp$new("basic-ui/free-text", ui)
+demo$takeScreenshot()
 ```
 
 If you want to ensure that the text has certain properties you can use `validate()`, which we'll come back to in Chapter \@ref(action-feedback). 
@@ -76,8 +75,9 @@ ui <- fluidPage(
   sliderInput("rng", "Range", value = c(10, 20), min = 0, max = 100)
 )
 ```
-```{r, echo = FALSE, out.width = NULL}
-ui_screenshot(ui, "basic-ui/numeric")
+```{r, echo = FALSE, out.width = NULL, message = FALSE}
+demo <- demoApp$new("basic-ui/numeric", ui)
+demo$takeScreenshot()
 ```
 
 Generally, I recommend only using sliders for small ranges, or cases where the precise value is not so important. Attempting to precisely select a number on a small slider is an exercise in frustration! 
@@ -94,8 +94,9 @@ ui <- fluidPage(
   dateRangeInput("holiday", "When do you want to go on vacation next?")
 )
 ```
-```{r, echo = FALSE, out.width = NULL}
-ui_screenshot(ui, "basic-ui/date")
+```{r, echo = FALSE, out.width = NULL, message = FALSE}
+demo <- demoApp$new("basic-ui/date", ui)
+demo$takeScreenshot()
 ```
 
 Date format, language, and the day on which the week starts defaults to US standards. If you are creating an app with an international audience, set `format`, `language`, and `weekstart` so that the dates are natural to your users.
@@ -112,8 +113,9 @@ ui <- fluidPage(
   radioButtons("animal", "What's your favourite animal?", animals)
 )
 ```
-```{r, echo = FALSE, out.width = NULL}
-ui_screenshot(ui, "basic-ui/limited-choices")
+```{r, echo = FALSE, out.width = NULL, message = FALSE}
+demo <- demoApp$new("basic-ui/limited-choices", ui)
+demo$takeScreenshot()
 ```
 
 Radio buttons have two nice features: they show all possible options, making them suitable for short lists, and via the `choiceNames`/`choiceValues` arguments, they can display options other than plain text.
@@ -130,8 +132,10 @@ ui <- fluidPage(
   )
 )
 ```
-```{r, echo = FALSE, out.width = NULL}
-ui_screenshot(ui, "basic-ui/radio-icon")
+```{r, echo = FALSE, out.width = NULL, message = FALSE}
+demo <- demoApp$new("basic-ui/radio-icon", ui)
+demo$takeScreenshot()
+resourcePathReset()
 ```
 
 Dropdowns created with `selectInput()` take up the same amount of space, regardless of the number of options, making them more suitable for longer options. You can also set `multiple = TRUE` to allow the user to select multiple elements.
@@ -144,14 +148,9 @@ ui <- fluidPage(
   )
 )
 ```
-```{r, eval = FALSE, echo = FALSE, out.width = NULL}
-# Doesn't work: https://github.com/rstudio/shinytest/issues/262
-app <- testApp(ui)
-app$setInputs(state = "Texas")
-app$setInputs(`state-selectized` = "Cali")
-app_screenshot(app, "basic-ui/limited-choices-multi")
-```
+
 ```{r, echo = FALSE, out.width = NULL}
+# Can't easily automate because of dropdown js
 knitr::include_graphics("images/basic-ui/multi-select.png", dpi = 300)
 ```
 
@@ -162,8 +161,9 @@ ui <- fluidPage(
   checkboxGroupInput("animal", "What animals do you like?", animals)
 )
 ```
-```{r, echo = FALSE, out.width = NULL}
-ui_screenshot(ui, "basic-ui/multi-radio")
+```{r, echo = FALSE, out.width = NULL, message = FALSE}
+demo <- demoApp$new("basic-ui/multi-radio", ui)
+demo$takeScreenshot()
 ```
 
 If you want a single checkbox for a single yes/no question, use `checkboxInput()`:
@@ -174,8 +174,9 @@ ui <- fluidPage(
   checkboxInput("shutdown", "Shutdown?")
 )
 ```
-```{r, echo = FALSE, out.width = NULL}
-ui_screenshot(ui, "basic-ui/yes-no")
+```{r, echo = FALSE, out.width = NULL, message = FALSE}
+demo <- demoApp$new("basic-ui/yes-no", ui)
+demo$takeScreenshot()
 ```
 
 ### File uploads
@@ -187,8 +188,9 @@ ui <- fluidPage(
   fileInput("upload", NULL)
 )
 ```
-```{r, echo = FALSE, out.width = NULL}
-ui_screenshot(ui, "basic-ui/upload")
+```{r, echo = FALSE, out.width = NULL, message = FALSE}
+demo <- demoApp$new("basic-ui/upload", ui)
+demo$takeScreenshot()
 ```
 
 `fileInput()` requires special handling on the server side, and is discussed in detail in Chapter \@ref(action-transfer).
@@ -203,8 +205,10 @@ ui <- fluidPage(
   actionButton("drink", "Drink me!", icon = icon("cocktail"))
 )
 ```
-```{r, echo = FALSE, out.width = NULL}
-ui_screenshot(ui, "basic-ui/action")
+```{r, echo = FALSE, out.width = NULL, message = FALSE}
+demo <- demoApp$new("basic-ui/action", ui)
+demo$takeScreenshot()
+resourcePathReset()
 ```
 
 You can customise the appearance using the `class` argument by using one of `"btn-primary"`, `"btn-success"`, `"btn-info"`, `"btn-warning"`, or `"btn-danger"`. You can also change the size with `"btn-lg"`, `"btn-sm"`, `"btn-xs"`. Finally, you can make buttons span the entire width of the element they are embedded within using `"btn-block"`. See the detail of the underlying CSS classes at <http://bootstrapdocs.com/v3.3.6/docs/css/#buttons>. 
@@ -220,8 +224,9 @@ ui <- fluidPage(
   )
 )
 ```
-```{r, echo = FALSE, out.width = NULL}
-ui_screenshot(ui, "basic-ui/action-css")
+```{r, echo = FALSE, out.width = NULL, message = FALSE}
+demo <- demoApp$new("basic-ui/action-css", ui)
+demo$takeScreenshot()
 ```
 
 ### Exercises
@@ -230,22 +235,24 @@ ui_screenshot(ui, "basic-ui/action-css")
     placeholder that appears _inside_ the text entry area. How do you call 
     `textInput()` to generate the UI below?
     
-    ```{r, echo = FALSE, out.width = NULL}
+    ```{r, echo = FALSE, out.width = NULL, message = FALSE}
     ui <- fluidPage(
       textInput("name", NULL, placeholder = "Your name")
     )
-    ui_screenshot(ui, "basic-ui/placeholder")
-    ```
+    demo <- demoApp$new("basic-ui/placeholder", ui)
+    demo$takeScreenshot()
+```
 
 1.  Carefully read the documentation for `sliderInput()` to figure out how to 
     create a date slider, as shown below.
 
-    ```{r, echo = FALSE, out.width = NULL, message=FALSE}
+    ```{r, echo = FALSE, out.width = NULL, message = FALSE}
     today <- Sys.Date()
     ui <- fluidPage(
       sliderInput("delivery", "When should we deliver?", today, min = today, max = today + 7, value = today + 1, step = 1, round = TRUE)
     )
-    ui_screenshot(ui, "basic-ui/date-slider")
+    demo <- demoApp$new("basic-ui/date-slider", ui)
+    demo$takeScreenshot()
     ```
 
 1.  If you have a moderately long list, it's useful to create sub-headings that
@@ -288,8 +295,9 @@ server <- function(input, output, session) {
   })
 }
 ```
-```{r, echo = FALSE, out.width = NULL}
-app_screenshot(testApp(ui, server), "basic-ui/output-text")
+```{r, echo = FALSE, out.width = NULL, message = FALSE}
+demo <- demoApp$new("basic-ui/output-text", ui, server)
+demo$takeScreenshot()
 ```
 
 Note that the `{}` are not required in render functions, unless you need to run multiple lines of code. You could also write the server function more compactly. I think this is generally good style as you should do as little computation in your render functions as possible.
@@ -337,8 +345,10 @@ server <- function(input, output, session) {
   output$dynamic <- renderDataTable(mtcars, options = list(pageLength = 5))
 }
 ```
-```{r, echo = FALSE, out.width = "100%"}
-app_screenshot(testApp(ui, server), "basic-ui/output-table", width = 800)
+```{r, echo = FALSE, out.width = "100%", message = FALSE}
+demo <- demoApp$new("basic-ui/output-table", ui, server)
+demo$resize(width = 800)
+demo$takeScreenshot()
 ```
 
 ### Plots
@@ -353,8 +363,9 @@ server <- function(input, output, session) {
   output$plot <- renderPlot(plot(1:5), res = 96)
 }
 ```
-```{r, echo = FALSE, out.width = NULL}
-app_screenshot(testApp(ui, server), "basic-ui/output-plot")
+```{r, echo = FALSE, out.width = NULL, message = FALSE}
+demo <- demoApp$new("basic-ui/output-plot", ui, server)
+demo$takeScreenshot()
 ```
 
 By default, `plotOutput()` will take up the full width of its container (more on that shortly), and will be 400 pixels high. You can override these defaults with the `height` and `width` arguments. We recommend always setting `res = 96` as that will make your Shiny plots match what you see in RStudio as closely as possible.
@@ -489,10 +500,10 @@ server <- function(input, output, session) {
   }, res = 96)
 }
 ```
-```{r, echo = FALSE, out.width = "100%"}
-app <- testApp(ui, server)
-Sys.sleep(0.5)
-app_screenshot(app, "basic-ui/sidebar", width = 800)
+```{r, echo = FALSE, out.width = "100%", message = FALSE}
+demo <- demoApp$new("basic-ui/sidebar", ui, server)
+demo$resize(width = 800)
+demo$takeScreenshot()
 ```
 
 ### Multi-row
@@ -553,11 +564,12 @@ theme_demo("sandstone")
 theme_demo("united")
 ```
 
-```{r, echo = FALSE, out.width = "50%", fig.show="hold", fig.align='default'}
-ui_screenshot(theme_demo("darkly"), "basic-ui/theme-darkly")
-ui_screenshot(theme_demo("flatly"), "basic-ui/theme-flatly")
-ui_screenshot(theme_demo("sandstone"), "basic-ui/theme-sandstone")
-ui_screenshot(theme_demo("united"), "basic-ui/theme-united")
+```{r, echo = FALSE, out.width = "50%", fig.show="hold", fig.align='default', message = FALSE}
+demoApp$new("basic-ui/theme-darkly", theme_demo("darkly"))$takeScreenshot()
+demoApp$new("basic-ui/theme-flatly", theme_demo("flatly"))$takeScreenshot()
+demoApp$new("basic-ui/theme-sandstone", theme_demo("sandstone"))$takeScreenshot()
+demoApp$new("basic-ui/theme-united", theme_demo("united"))$takeScreenshot()
+resourcePathReset()
 ```
 
 As you can see, theming your app is quite straightforward: you just need to use the `theme` argument to `fluidPage()`. To find out what themes are available, and what they look like, take a look at the Shiny theme selector app at <https://shiny.rstudio.com/gallery/shiny-theme-selector.html>. You might also want to take a look at the [fresh](https://dreamrs.github.io/fresh/) package, which provides even more themes.
