@@ -21,6 +21,7 @@ Suggests:
     png,
     sessioninfo,
     shinytest,
+    waldo,
     webshot (>= 0.5.0.9000)
 Encoding: UTF-8
 Remotes: 
