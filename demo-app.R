@@ -6,7 +6,7 @@ for (prefix in names(`_resources`)) {
   shiny::addResourcePath(prefix, `_resources`[[prefix]])
 }
 
-if (is.null(`_server`)) {
+if (!exists("_server")) {
   `_server` <- function(input, output, session) {}
 }
 
