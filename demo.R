@@ -233,7 +233,7 @@ app_server_globals <- function(server, env = parent.frame()) {
   env <- new.env(parent = env)
   env$output <- NULL
 
-  globals <- globals::globalsOf(server, envir = env, recursive = FALSE)
+  globals <- globals::globalsOf(server, envir = env, recursive = FALSE, mustExist = FALSE)
   globals <- globals::cleanup(globals)
 
   # remove globals found in packages
