@@ -1,13 +1,13 @@
 library(shiny)
-`_data` <- readRDS('data.rds')
+attach(readRDS("data.rds"))
 
-lapply(`_data`$packages, library, character.only = TRUE)
-for (prefix in names(`_data`$resources)) {
-  shiny::addResourcePath(prefix, `_data`$resources[[prefix]])
+lapply(`_packages`, library, character.only = TRUE)
+for (prefix in names(`_resources`)) {
+  shiny::addResourcePath(prefix, `_resources`[[prefix]])
 }
 
-if (is.null(`_data`$server)) {
-  `_data`$server <- function(input, output, session) {}
+if (is.null(`_server`)) {
+  `_server` <- function(input, output, session) {}
 }
 
-shinyApp(`_data`$ui, `_data`$server)
+shinyApp(`_ui`, `_server`)

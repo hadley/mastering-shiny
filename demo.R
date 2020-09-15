@@ -20,11 +20,11 @@ demoApp <- R6::R6Class("demoApp", public = list(
   running = FALSE,
   driver = NULL,
 
-  initialize = function(name, ui, server = NULL, env = parent.frame()) {
+  initialize = function(name, ui, server = NULL, packages = character(), env = parent.frame()) {
     self$name <- name
     self$ui <- ui
     self$server <- server
-    self$data <- app_data(server, ui, env)
+    self$data <- app_data(server, ui, packages, env)
 
     fs::dir_create(fs::path("demos", fs::path_dir(name)))
     self$run()
@@ -217,14 +217,14 @@ demoApp <- R6::R6Class("demoApp", public = list(
 
 # server + ui -> app ------------------------------------------------------
 
-app_data <- function(server, ui, env = parent.frame()) {
+app_data <- function(server, ui, packages = character(), env = parent.frame()) {
   globals <- app_server_globals(server, env)
 
   data <- strip_srcrefs(globals$globals)
-  data$ui <- ui
-  data$server <- strip_srcrefs(server)
-  data$resources <- shiny::resourcePaths()
-  data$packages <- globals$packages
+  data$`_ui` <- ui
+  data$`_server` <- strip_srcrefs(server)
+  data$`_resources` <- shiny::resourcePaths()
+  data$`_packages` <- union(globals$packages, packages)
   data
 }
 
