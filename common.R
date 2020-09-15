@@ -17,6 +17,11 @@ knitr::opts_chunk$set(
 
 options(digits = 3)
 
+options(
+  rlang_trace_top_env = rlang::current_env()
+)
+
+
 # In final book can go up to 81
 # http://oreillymedia.github.io/production-resources/styleguide/#code
 # See preamble.tex for tweak that makes this work in pdf output
