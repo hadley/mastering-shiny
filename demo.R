@@ -31,7 +31,7 @@ demoApp <- R6::R6Class("demoApp", public = list(
   },
 
   run = function() {
-    self$running <- self$outdated() && !is_ci()
+    self$running <- !is_ci() && self$outdated()
     if (!self$running) {
       return()
     }
