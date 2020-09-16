@@ -2,6 +2,7 @@
 
 ```{r, include = FALSE}
 source("common.R")
+source("demo.R")
 ```
 
 ## Introduction
@@ -131,8 +132,9 @@ Layout functions, inputs, and outputs have different uses, but they are fundamen
 
 Go ahead and run the app again. You'll now see Figure \@ref(fig:basic-ui), a page containing a select box. We only see the input, not the two outputs, because we haven't yet told Shiny how the input and outputs are related.
 
-```{r basic-ui, echo = FALSE, out.width = NULL, fig.cap="The datasets app with UI"}
-ui_screenshot(ui, "basic-app/ui")
+```{r basic-ui, echo = FALSE, out.width = NULL, fig.cap="The datasets app with UI", message = FALSE}
+demo <- demoApp$new("basic-app/ui", ui)
+demo$takeScreenshot()
 ```
 
 ## Adding behavior {#server-function}
@@ -172,9 +174,9 @@ Each `render*` function is designed to work with a particular type of output tha
 
 Run the app again and play around, watching what happens to the output when you change an input. Figure \@ref(fig:basic-server) shows what you'll see when you open the app.
 
-```{r basic-server, echo = FALSE, out.width = NULL, fig.cap = "Now that we've provided a server function that connects outputs and inputs, we have a fully functional app"}
-app <- testApp(ui, server)
-app_screenshot(app, "basic-app/server")
+```{r basic-server, echo = FALSE, out.width = NULL, fig.cap = "Now that we've provided a server function that connects outputs and inputs, we have a fully functional app", message = FALSE}
+demo <- demoApp$new("basic-app/server", ui, server)
+demo$takeScreenshot()
 ```
 
 Notice that I haven't written any code that checks for changes to `input$dataset` and explicitly updates the two outputs. That's because outputs are __reactive__: they automatically recalculate when their inputs change. Because both of the rendering code blocks I wrote used `input$dataset`, whenever the value of `input$dataset` changes (i.e. the user changes their selection in the UI), both outputs will recalculate and update in the browser. 
@@ -261,9 +263,9 @@ knitr::include_graphics("images/basic-app/cheatsheet.png", dpi = 300)
     
     But unfortunately it has an error:
 
-    ```{r, echo = FALSE, out.width = NULL}
-    app <- testApp(ui, server)
-    app_screenshot(app, "basic-app/ex-x-times-5")
+    ```{r, echo = FALSE, out.width = NULL, message = FALSE}
+    demo <- demoApp$new("basic-app/ex-x-times-5", ui, server)
+    demo$takeScreenshot()
     ```
    
     Can you help them find and correct the error?
@@ -272,7 +274,7 @@ knitr::include_graphics("images/basic-app/cheatsheet.png", dpi = 300)
     value of the multiplier, `y`, so that the app yields the value of `x * y`. 
     The final result should look like this:.
 
-    ```{r, echo = FALSE, out.width = NULL}
+    ```{r, echo = FALSE, out.width = NULL, message = FALSE}
     ui <- fluidPage(
       sliderInput("x", "If x is", min = 1, max = 50, value = 30),
       sliderInput("y", "and y is", min = 1, max = 50, value = 5),
@@ -285,8 +287,8 @@ knitr::include_graphics("images/basic-app/cheatsheet.png", dpi = 300)
       })
       
     }
-    app <- testApp(ui, server)
-    app_screenshot(app, "basic-app/ex-x-times-y")
+    demo <- demoApp$new("basic-app/ex-x-times-y", ui, server)
+    demo$takeScreenshot()
     ```
 
 1.  Replace the UI and server components of your app from the previous exercise 

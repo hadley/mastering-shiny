@@ -2,6 +2,7 @@
 
 ```{r, include = FALSE}
 source("common.R")
+source("demo.R")
 ```
 
 Transferring files to and from the user is a common feature of apps. You can use it to upload data for analysis, or download the results as a dataset or as a report. This chapter shows the UI and server components that you'll need to transfer files in and out of your app. 
@@ -122,8 +123,9 @@ ui <- fluidPage(
   downloadLink("download2")
 )
 ```
-```{r, echo = FALSE, out.width = NULL}
-ui_screenshot(ui, "action-transfer/download")
+```{r, echo = FALSE, out.width = NULL, message = FALSE}
+demo <- demoApp$new("action-transfer/download", ui)
+demo$takeScreenshot()
 ```
 
 You can customise their appearance using the same `class` and `icon` arguments as for `actionButtons()`, as described in Section \@ref(action-buttons).
@@ -353,8 +355,10 @@ ui <- fluidPage(
   ui_download
 )
 ```
-```{r, echo = FALSE, out.width = NULL}
-ui_screenshot(ui, "action-transfer/case-study", width = 800)
+```{r, echo = FALSE, out.width = NULL, message = FALSE}
+demo <- demoApp$new("action-transfer/case-study", ui)
+demo$resize(800)
+demo$takeScreenshot()
 ```
 
 This same organisation makes it easier to understand the app:

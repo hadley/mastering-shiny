@@ -310,7 +310,7 @@ Keyboard shortcuts using Shift apply to the whole package, and without shift app
 This is what my keyboard shortcuts look like on a Mac:
 
 ```{r, echo = FALSE, out.width = NULL}
-knitr::include_graphics("screenshots/scaling-testing/keyboard-shortcuts.png", dpi = 300)
+knitr::include_graphics("images/scaling-testing/keyboard-shortcuts.png", dpi = 300)
 ```
 
 ### Workflow summary
@@ -740,4 +740,3 @@ There are three basic options
     This has two advantages.
     Firstly, to make a good test case, you'll need to relentlessly simplify the problem until you have a very minimal reprex that you can include in a test.
     Secondly, you'll make sure that the bug never comes back again!
-

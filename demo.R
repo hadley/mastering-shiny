@@ -1,96 +1,85 @@
 shiny:::withPrivateSeed(set.seed(100))
 
 #' @examples
+#' library(shiny)
 #' ui <- fluidPage("Hello world!")
-#' app <- demo_inline("hello-world", ui)
+#' app <- demoApp$new("hello-world", ui)
 #' app$running
 #' app$reset()
-#' app$resize(100)$screenshot("test-100")
-#' app$resize(600)$screenshot("test-600")
+#' app$resize(100)$takeScreenshot("test-100")
+#' app$resize(600)$takeScreenshot("test-600")
 #' app$deploy()
-demo_inline <- function(name,
-                     ui,
-                     server = NULL,
-                     packages = character(),
-                     data = list()
-                     ) {
 
-  server <- strip_srcrefs(server)
-  data <- lapply(data, strip_srcrefs)
-
-  demoApp$new(name, ui = ui, server = server, packages = packages, data = data)
-}
 
 demoApp <- R6::R6Class("demoApp", public = list(
   name = character(),
   ui = NULL,
   server = NULL,
-  packages = NULL,
   data = NULL,
 
   running = FALSE,
   driver = NULL,
 
-  initialize = function(name, ui, server = NULL, packages = character(), data = list()) {
+  initialize = function(name, ui, server = NULL, packages = character(), env = parent.frame()) {
     self$name <- name
     self$ui <- ui
     self$server <- server
-    self$packages <- packages
-    self$data <- data
+    self$data <- app_data(server, ui, packages, env)
 
-    fs::dir_create(self$path())
+    fs::dir_create(fs::path("demos", fs::path_dir(name)))
     self$run()
   },
 
   run = function() {
-    self$running <- self$outdated() && !is_ci()
-
-    if (self$running) {
-      app_from_components(self$path(), self$ui, self$server, self$packages, self$data)
-      message("Starting ShinyDriver")
-      self$driver <- shinytest::ShinyDriver$new(self$path())
-      self$resize(600)
-      self$save_hash()
+    self$running <- !is_ci() && self$outdated()
+    if (!self$running) {
+      return()
     }
+
+    saveRDS(self$data, self$path("rds"))
+
+    rlang::inform("Starting ShinyDriver")
+    self$driver <- shinytest::ShinyDriver$new(self$saveApp())
+    self$resize(600)
+  },
+
+  saveApp = function(path = tempfile()) {
+    dir.create(path)
+    file.copy("demo-app.R", file.path(path, "app.R"))
+    saveRDS(self$data, file.path(path, "data.rds"))
+    path
   },
 
   reset = function() {
     self$finalize()
-    fs::file_delete(self$path("HASH"))
+    fs::file_delete(self$path("rds"))
     self$run()
   },
 
-  hash = function() {
-    digest::digest(list(as.character(self$ui), self$server, self$packages, self$data))
-  },
-
-  save_hash = function() {
-    writeLines(self$hash(), self$path("HASH"))
-  },
-
   outdated = function() {
-    path <- self$path("HASH")
-    if (!fs::file_exists(path)) {
+    if (!file.exists(self$path("rds"))) {
+      rlang::inform(paste0("Initialising ", self$name))
       return(TRUE)
     }
+    data_old <- readRDS(self$path("rds"))
 
-    old <- readLines(path)
-    new <- self$hash()
-    if (old == new) {
+    diff <- waldo::compare(data_old, self$data, x_arg = "old", y_arg = "new")
+    if (length(diff) == 0) {
       FALSE
     } else {
-      message(self$name, " hash changed: ", old, " -> ", new)
+      rlang::inform(paste0(
+        self$name, " has changed:\n",
+        paste0(diff, collapse = "\n\n")
+      ))
       TRUE
     }
   },
 
-  path = function(...) {
-    fs::path("demos", self$name, ...)
-  },
-
-  sleep = function(x) {
-    if (self$running) {
-      Sys.sleep(x)
+  path = function(ext, name = NULL) {
+    if (is.null(name)) {
+      fs::path("demos", self$name, ext = ext)
+    } else {
+      fs::path("demos", paste0(self$name, "-", name), ext = ext)
     }
   },
 
@@ -100,20 +89,30 @@ demoApp <- R6::R6Class("demoApp", public = list(
         self$driver$setWindowSize(width, height)
       } else {
         self$driver$setWindowSize(width, 100)
-        height <- app_height(self$driver)
+        height <- self$driver$findElement("body")$getRect()$height
         self$driver$setWindowSize(width, height)
       }
+      self$driver$waitForShiny()
     }
     invisible(self)
   },
 
-  set_values = function(...) {
+  setInputs = function(...) {
     if (self$running) {
-      vals <- rlang::list2(...)
-      for (nm in names(vals)) {
-        self$driver$setValue(nm, vals[[nm]])
-      }
-      Sys.sleep(0.1)
+      self$driver$setInputs(...)
+    }
+    invisible(self)
+  },
+
+  sendKeys = function(name, keys) {
+    if (self$running) {
+      self$driver$sendKeys(name, keys)
+    }
+    invisible(self)
+  },
+  click = function(id) {
+    if (self$running) {
+      self$driver$click(id)
     }
     invisible(self)
   },
@@ -125,12 +124,7 @@ demoApp <- R6::R6Class("demoApp", public = list(
     invisible(self)
   },
 
-  click = function(id) {
-    js <- glue::glue('$("#{id}").click()');
-    self$execute_js(js)
-  },
-
-  drop_down = function(id, pos = NULL) {
+  dropDown = function(id, pos = NULL) {
     js <- glue::glue('
       $("#{id}")
         .siblings()
@@ -156,11 +150,11 @@ demoApp <- R6::R6Class("demoApp", public = list(
     invisible(self)
   },
 
-  screenshot = function(path = "screenshot") {
-    path <- self$path(path, ext = "png")
+  takeScreenshot = function(name = NULL, id = NULL, parent = FALSE) {
+    path <- self$path("png", name)
     if (self$running) {
-      message("Taking screenshot")
-      self$driver$takeScreenshot(path)
+      rlang::inform("Taking screenshot")
+      self$driver$takeScreenshot(path, id = id, parent = parent)
     } else {
       if (!fs::file_exists(path)) {
         stop("'", path, "' doesn't exist and app isn't running", call. = FALSE)
@@ -185,21 +179,21 @@ demoApp <- R6::R6Class("demoApp", public = list(
 
   deploy = function(quiet = TRUE) {
     if (self$running) {
-      message("Deploying ", self$name, " to shinyapps.io")
+      name <- fs::path_file(self$name)
+      rlang::inform(paste0("Deploying ", name, " to shinyapps.io"))
       if (!requireNamespace("rsconnect", quietly = TRUE)) {
         return(invisible(self))
       }
 
       rsconnect::deployApp(
-        appDir = self$path(),
-        appName = paste0("ms-", self$name),
-        appTitle = paste0("Mastering Shiny: ", self$name),
+        appDir = self$saveApp(),
+        appName = paste0("ms-", name),
+        appTitle = paste0("Mastering Shiny: ", name),
         server = "shinyapps.io",
         forceUpdate = TRUE,
         logLevel = if (quiet) "quiet" else "normal",
         launch.browser = FALSE
       )
-      fs::dir_delete(self$path("rsconnect"))
     }
 
     invisible(self)
@@ -221,59 +215,47 @@ demoApp <- R6::R6Class("demoApp", public = list(
   }
 ))
 
+# server + ui -> app ------------------------------------------------------
 
-strip_srcrefs <- function(x) {
-  if (is.function(x)) {
-    removeSource(x)
-  } else {
-    x
-  }
+app_data <- function(server, ui, packages = character(), env = parent.frame()) {
+  globals <- app_server_globals(server, env)
+
+  data <- globals$globals
+  data$`_ui` <- ui
+  data$`_server` <- server
+  data$`_resources` <- shiny::resourcePaths()
+  data$`_packages` <- union(globals$packages, packages)
+  data
 }
 
-missing_server <- strip_srcrefs(function(input, output, session) {})
+app_server_globals <- function(server, env = parent.frame()) {
+  # Work around for https://github.com/HenrikBengtsson/globals/issues/61
+  env <- new.env(parent = env)
+  env$output <- NULL
 
-app_from_components <- function(app_dir, ui, server = NULL, deps = character(), data = list()) {
-  if (is.null(server)) {
-    server <- missing_server
-  }
+  globals <- globals::globalsOf(server, envir = env, recursive = FALSE, mustExist = FALSE)
+  globals <- globals::cleanup(globals)
 
-  data <- modifyList(
-    data,
-    list(
-      ui = ui,
-      server = server,
-      resources = resource_paths_get()
-    )
+  # remove globals found in packages
+  pkgs <- globals::packagesOf(globals)
+  in_package <- vapply(
+    attr(globals, "where"),
+    function(x) !is.null(attr(x, "name")),
+    logical(1)
   )
-  saveRDS(data, file.path(app_dir, "data.rds"))
+  globals <- globals[!in_package]
+  attributes(globals) <- list(names = names(globals))
 
-  deps <- lapply(rlang::syms(deps), function(dep) rlang::expr(library(!!dep)))
-  app <- rlang::expr({
-    library(shiny)
-    !!!deps
+  # https://github.com/HenrikBengtsson/globals/issues/61
+  globals$output <- NULL
 
-    data <- attach(readRDS("data.rds"))
-    for (prefix in names(resources)) {
-      shiny::addResourcePath(prefix, resources[[prefix]])
-    }
-
-    shinyApp(ui, server)
-  })
-  cat(rlang::expr_text(app), file = file.path(app_dir, "app.R"))
-
-  invisible()
+  list(
+    globals = globals,
+    packages = pkgs
+  )
 }
-
-
 
 # Helpers -----------------------------------------------------------------
-
-app_height <- function(app) {
-  wd <- app$.__enclos_env__$private$web
-  obj <- wd$findElement("body")
-  rect <- obj$getRect()
-  rect$height
-}
 
 # Controls the size of automated shiny screenshots via app_screenshot().
 # I don't understand why these values need to be different, they've been
@@ -286,9 +268,10 @@ screenshot_dpi <- function() {
   }
 }
 
-resource_paths_get <- function() {
-  resources <- shiny:::.globals$resources
-  vapply(resources, "[[", "directoryPath", FUN.VALUE = character(1))
+resourcePathReset <- function() {
+  for (prefix in names(shiny::resourcePaths())) {
+    shiny::removeResourcePath(prefix)
+  }
 }
 
 is_ci <- function() isTRUE(as.logical(Sys.getenv("CI")))

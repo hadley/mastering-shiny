@@ -39,7 +39,7 @@ You'll likely quickly get sick of typing that code in, so RStudio provides a cou
 -   If you want to start a new project[^2], go to the File menu, select "New Project" then select "Shiny Web Aplication":
 
     ```{r, echo = FALSE, out.width = NULL}
-    knitr::include_graphics("screenshots/action-workflow/new-project.png", dpi = 300)
+    knitr::include_graphics("images/action-workflow/new-project.png", dpi = 300)
     ```
 
 [^1]: Snippets are text macros that you can use to insert common code fragments. See <https://support.rstudio.com/hc/en-us/articles/204463668-Code-Snippets> for more details.
@@ -73,7 +73,7 @@ As your app gets bigger and bigger, you'll find that the "interactively experime
 By default, when you run the app, it will appear in a pop-out window. There are two other options that you can choose from the Run App drop down:
 
 ```{r, echo = FALSE, out.width = NULL}
-knitr::include_graphics("screenshots/action-workflow/run-app.png", dpi = 300)
+knitr::include_graphics("images/action-workflow/run-app.png", dpi = 300)
 ```
 
 -   **Run in Viewer Pane** opens the app in the viewer pane (usually located on the right hand side of the IDE). It's useful for smaller apps because you can see it at the same time as you run your app code.
@@ -216,7 +216,7 @@ Once you've located the source of the error and want to figure out what's causin
 -   Add an RStudio breakpoint by clicking to the left of the line number. You can remove the breakpoint by clicking on the red circle.
 
     ```{r, echo = FALSE, out.width = NULL}
-    knitr::include_graphics("screenshots/action-workflow/breakpoint.png", dpi = 300)
+    knitr::include_graphics("images/action-workflow/breakpoint.png", dpi = 300)
     ```
 
     The advantage of breakpoints is that they're not code, so you never have to worry about accidentally checking them into your version control system.
@@ -230,7 +230,7 @@ If you're using RStudio, the toolbar in Figure \@ref(fig:debug-toolbar) will app
 -   Stop, `Q`: stops debugging, terminates the function, and returns to the global workspace. Use this once you've figured out where the problem is, and you're ready to fix it and reload the code.
 
 ```{r debug-toolbar, echo = FALSE, out.width = "50%", fig.cap = "RStudio's debugging toolbar"}
-knitr::include_graphics("screenshots/action-workflow/debug-toolbar.png")
+knitr::include_graphics("images/action-workflow/debug-toolbar.png")
 ```
 
 As well as stepping through the code line-by-line using these tools, you'll also run a *bunch* of interactive code to understand why you're seeing the error you see. Debugging is the process of systematically comparing your expectations to reality until you find the mismatch.
