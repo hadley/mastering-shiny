@@ -28,8 +28,8 @@ jobs:
         uses: actions/cache@v1
         with:
           path: ${{ env.R_LIBS_USER }}
-          key: r-4-${{ hashFiles('DESCRIPTION') }}
-          restore-keys: r-4-
+          key: r-5-${{ hashFiles('DESCRIPTION') }}
+          restore-keys: r-5-
 
       - name: Cache bookdown results
         uses: actions/cache@v1
