@@ -333,7 +333,7 @@ There are two options for displaying data frames in tables:
 * `dataTableOutput()` and `renderDataTable()` render a dynamic table, showing
   a fixed number of rows along with controls to change which rows are visible.
   
-`tableOutput()` is most useful for small, fixed summaries (e.g. model coefficients); `dataTableOutput()` is most appropriate if you want to expose a complete data frame to the user.
+`tableOutput()` is most useful for small, fixed summaries (e.g. model coefficients); `dataTableOutput()` is most appropriate if you want to expose a complete data frame to the user. If you want greater control over the output of `dataTableOutput()`, I highly recommend the [reactable](https://glin.github.io/reactable/index.html) package by Greg Lin.
   
 ```{r}
 ui <- fluidPage(
