@@ -179,21 +179,21 @@ demoApp <- R6::R6Class("demoApp", public = list(
 
   deploy = function(quiet = TRUE) {
     if (self$running) {
-      rlang::inform(paste("Deploying ", self$name, " to shinyapps.io"))
+      name <- fs::path_file(self$name)
+      rlang::inform(paste0("Deploying ", name, " to shinyapps.io"))
       if (!requireNamespace("rsconnect", quietly = TRUE)) {
         return(invisible(self))
       }
 
       rsconnect::deployApp(
         appDir = self$saveApp(),
-        appName = paste0("ms-", self$name),
-        appTitle = paste0("Mastering Shiny: ", self$name),
+        appName = paste0("ms-", name),
+        appTitle = paste0("Mastering Shiny: ", name),
         server = "shinyapps.io",
         forceUpdate = TRUE,
         logLevel = if (quiet) "quiet" else "normal",
         launch.browser = FALSE
       )
-      fs::dir_delete(self$path("", "rsconnect"))
     }
 
     invisible(self)
