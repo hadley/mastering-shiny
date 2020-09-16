@@ -19,7 +19,7 @@ One of the coolest things about `plotOutput()` is that as well as being an outpu
 
 ### Basics
 
-A plot can respond to four different mouse[^1] events: `click`, `dblClick` (double click), `hover` (when the mouse stays in the same place for a little while), and `brush` (a rectangular selection tool). To turn these events into Shiny inputs, you supply a string to the corresponding `plotOutput()` argument, e.g. `plotOutput("plot", click = "plot_click")`. This creates an `input$plot_click` that you can use to handle mouse clicks on the plot.
+A plot can respond to four different mouse[^1] events: `click`, `dblclick` (double click), `hover` (when the mouse stays in the same place for a little while), and `brush` (a rectangular selection tool). To turn these events into Shiny inputs, you supply a string to the corresponding `plotOutput()` argument, e.g. `plotOutput("plot", click = "plot_click")`. This creates an `input$plot_click` that you can use to handle mouse clicks on the plot.
 
 [^1]: Shiny didn't support touch events when I wrote this chapter, but it might by the time you read this.
 
@@ -47,7 +47,7 @@ server <- function(input, output) {
 
 (Note the use of `req()`, to make sure the app doesn't do anything before the first click, and that the coordinates are in terms of the underlying `wt` and `mpg` variables.)
 
-The following sections describe the events in more details. We'll start with the click events, then briefly discuss the closely related `dblClick` and `hover`. Then you'll learn about the `brush` event, which provides a rectangular "brush" defined by its four sides (`xmin`, `xmax`, `ymin`, and `ymax`). I'll then give a couple of examples of updating the plot with the results of the action, and then discuss some of the limitations of interactive graphics in Shiny.
+The following sections describe the events in more details. We'll start with the click events, then briefly discuss the closely related `dblclick` and `hover`. Then you'll learn about the `brush` event, which provides a rectangular "brush" defined by its four sides (`xmin`, `xmax`, `ymin`, and `ymax`). I'll then give a couple of examples of updating the plot with the results of the action, and then discuss some of the limitations of interactive graphics in Shiny.
 
 ### Clicking
 
@@ -98,7 +98,7 @@ We'll see an example of that a little later.
 
 ### Other point events
 
-The same approach works equally well with `click`, `dblClick`, and `hover`: just change the name of the argument. If needed, you can get additional control over the events by supplying `clickOpts()`, `dblclickOpts()`, or `hoverOpts()` instead of a string giving the input id. These are rarely needed, so I won't discuss them here; see the documentation for details.
+The same approach works equally well with `click`, `dblclick`, and `hover`: just change the name of the argument. If needed, you can get additional control over the events by supplying `clickOpts()`, `dblclickOpts()`, or `hoverOpts()` instead of a string giving the input id. These are rarely needed, so I won't discuss them here; see the documentation for details.
 
 You can use multiple interactions types on one plot. Just make sure to explain to the user what they can do: one downside of using mouse events to interact with an app is that they're not immediately discoverable[^2].
 
