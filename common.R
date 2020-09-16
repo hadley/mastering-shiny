@@ -15,32 +15,21 @@ knitr::opts_chunk$set(
   eval.after = 'fig.cap' # so captions can use link to demos
 )
 
-options(digits = 3)
-
 options(
+  digits = 3,
+
+  # Suppress crayon since it's falsely on in GHA
+  crayon.enabled = FALSE,
+
+  # Better rlang tracebacks
   rlang_trace_top_env = rlang::current_env()
 )
-
 
 # In final book can go up to 81
 # http://oreillymedia.github.io/production-resources/styleguide/#code
 # See preamble.tex for tweak that makes this work in pdf output
 knitr::opts_chunk$set(width = 81)
 options(width = 81)
-
-# Suppress crayon since it's falsely on in GHA
-options(crayon.enabled = FALSE)
-
-# Controls the size of automated shiny screenshots via app_screenshot().
-# I don't understand why these values need to be different, they've been
-# determined empirically.
-screenshot_dpi <- function() {
-  if (knitr::is_latex_output()) {
-    120
-  } else {
-    96
-  }
-}
 
 # Reactive console simulation  -------------------------------------------------
 # See discussion at https://github.com/rstudio/shiny/issues/2518
