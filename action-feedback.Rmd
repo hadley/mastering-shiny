@@ -199,7 +199,7 @@ We're going to use `req()` in two ways:
 -   Then we check to see if the supplied name actually exists.
     If it doesn't, we display an error message, and then use `req()` to pause computation.
     Note the use of `cancelOutput = TRUE`: normally "pausing" a reactive will reset all downstream outputs; using `cancelOutput = TRUE` leaves them displaying the last good value.
-    This is important for `inputText()` which may trigger an update while you're in the middle of typing a name.
+    This is important for `textInput()` which may trigger an update while you're in the middle of typing a name.
 
 ```{r}
 server <- function(input, output, session) {
