@@ -62,6 +62,7 @@ reactive_console_funs <- list(
   }
 )
 
+# https://github.com/rstudio/shiny/issues/2518
 consoleReactive <- function(state) {
   if (state) {
     options(shiny.suppressMissingContextError = TRUE)

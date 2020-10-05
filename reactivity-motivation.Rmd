@@ -15,14 +15,14 @@ Even experienced R users can have trouble getting their heads around reactive pr
 
 Fortunately shiny is "good" magic.
 As Tom Dale said of his Ember.js JavaScript framework: "We do a lot of magic, but it's *good magic*, which means it decomposes into sane primitives." This is the quality that the Shiny team aspires to for Shiny, especially when it comes to reactive programming.
-When you peel back the layers of reactive programming, you won't find a pile of heuristics, special cases, and hacks; instead you'll find, a clever, but ultimately fairly straightforward mechanism.
+When you peel back the layers of reactive programming, you won't find a pile of heuristics, special cases, and hacks; instead you'll find a clever, but ultimately fairly straightforward mechanism.
 Once you've formed an accurate mental model, you'll see that there's nothing up Shiny's sleeves: the magic comes from simple concepts combined in consistent ways.
 
-In this part of the book, you'll dive into the details of reactivity, learning why reactivity is necessary, how it works underneath the covers, and how you might use the atoms of reactivity to create your own building blocks.
+In this part of the book, you'll dive into the details of reactivity: learning why reactivity is necessary, how it works underneath the covers, and how you might use the atoms of reactivity to create your own building blocks.
 
 ## Why reactive programming? {#motivation}
 
-Reactive programming is a style of programming that emphasizes values that change over time, and calculations and actions that depend on those values.
+Reactive programming is a style of programming that focuses on values that change over time, and calculations and actions that depend on those values.
 This is important for Shiny apps because they're interactive: users change input controls (dragging sliders, typing in textboxes, and checking checkboxes) which causes logic to run on the server (reading CSVs, subsetting data, and fitting models) ultimately resulting in outputs updating (plots replotting, tables updating).
 
 For Shiny apps to be useful, we need two things:
@@ -33,7 +33,7 @@ For Shiny apps to be useful, we need two things:
 -   Expressions and outputs should update *only* when one of their inputs changes.
     This ensures that apps respond quickly to user input, doing the minimal amount.
 
-It's relatively easy to satisify one of the two conditions, but much harder to satisfy both.
+It's relatively easy to satisfy one of the two conditions, but much harder to satisfy both.
 To see why, and to see how we might attack the basic problem with other styles of programming we'll use a very simple example, eliminating the additional complexity of a web app, and focussing on the underlying code.
 
 ### Why can't you use variables?
@@ -41,7 +41,7 @@ To see why, and to see how we might attack the basic problem with other styles o
 In one sense, you already know how to handle "values that change over time": they're called "variables".
 Variables in R represent values and they can change over time, but they're not designed to help you when they change.
 
-Take this simple example of converting a temperature from Celsius to Fahrentheit:
+Take this simple example of converting a temperature from Celsius to Fahrenheit:
 
 ```{r}
 temp_c <- 10
@@ -92,7 +92,7 @@ Every time you call `temp_f()` it recomputes:
 temp_f() 
 ```
 
-That isn't a problem in this trivial example, but minimising recomputation is a substantial challenge in real apps.
+That isn't a problem in this trivial example, but minimising re-computation is a substantial challenge in real apps.
 
 ### Event-driven programming {#event-driven}
 
@@ -108,27 +108,30 @@ If you're not familiar with R6, don't worry about it, and instead focus on the i
 DynamicValue <- R6::R6Class("DynamicValue", list(
   value = NULL,
   on_update = NULL,
+
   get = function() self$value,
+
   set = function(value) {
     self$value <- value
     if (!is.null(self$on_update)) 
-      self$on_update()
+      self$on_update(value)
     invisible(self)
   },
-  onUpdate = function(action) {
-    self$on_update <- rlang::as_function(rlang::enquo(action))
+  
+  onUpdate = function(on_update) {
+    self$on_update <- on_update
     invisible(self)
   }
 ))
 ```
 
-So if Shiny had been invented five years earlier, we might've have written something like this:
+So if Shiny had been invented five years earlier, it might have looked more like this:
 
 ```{r}
 temp_c <- DynamicValue$new()
-temp_c$onUpdate({
+temp_c$onUpdate(function(value) {
   message("Converting") 
-  temp_f <<- (temp_c$get() * 9 / 5) + 32
+  temp_f <<- (value * 9 / 5) + 32
 })
 
 temp_c$set(10)
@@ -142,13 +145,15 @@ Now `temp_c` is a dynamic value that uses `<<-` to automatically update `temp_f`
 
 Unfortunately, this kind of programming is *simple*, not *easy*!
 As your application adds more features, it becomes very difficult to keep track of what inputs affect what calculations, and what calculations affect each other, and what input and calculations affect what outputs and actions.
-Before long, you start to trade off correctness (just update everything whenever anything changes) against performance (try to update only the necessary parts, and pray you didn't miss any edge cases) because it's so difficult to do both.
+Before long, you start to trade off correctness (just update everything whenever anything changes) against performance (try to update only the necessary parts, and hope that you didn't miss any edge cases) because it's so difficult to do both.
 
-### Reactive programming
+## Reactive programming
 
 Reactive programming elegantly solves both problems by combining features of the solutions above.
-Now we can show you some real Shiny code, using a special Shiny mode, `consoleReactive(TRUE)`, enabling reactivity in the console so you can experiment with it directly, outside of an app.
+Now we can show you some real Shiny code, using a special Shiny mode, `consoleReactive(TRUE)`, that enable reactivity in the console so you can experiment with it directly.
 This mode isn't enabled by default because it makes a certain class of bugs harder to spot in an app, and its primary benefit is to help you understand reactivity.
+
+(It's also not yet available in Shiny, but you can track progress at <https://github.com/rstudio/shiny/issues/2518>.)
 
 ```{r, cache = FALSE}
 library(shiny)
@@ -156,9 +161,13 @@ consoleReactive(TRUE)
 ```
 
 As with event-driven programming, we need some way to indicate that we have a special special type of variable, a reactive value[^reactivity-motivation-1], created with `shiny::reactiveVal()`. This creates a single **reactive value** that has a special syntax for getting and setting its value.
-To get the value, you call it like a function; to set the value, you call it with a value.
+To get the value, you call it like a function; to set the value, you call it with a value[^reactivity-motivation-2]
+.
 
 [^reactivity-motivation-1]: If you've programmed in languages like rust or clojure this might look familiar: a reactive value is very similar to a mutable cell.
+
+[^reactivity-motivation-2]: If you've ever used active bindings in R, you might notice that the syntax is the same.
+    This is not a coincidence.
 
 ```{r}
 temp_c <- reactiveVal(10)
@@ -186,31 +195,57 @@ temp_f()
 temp_f()
 ```
 
-Note that the conversion only happens if we request the value of `temp_f()` (unlike the event-driven approach), and the computation happens only once (unlike the functional approach).
-A reactive expression caches the result of the last call, and will only recompute if one of the inputs changes.
+By looking at when "converting" is printed that you can confirm that that conversion happens only when we request the value of `temp_f()` (unlike the event-driven approach), and it happens only once (unlike the functional approach).
+That's because a a reactive expression caches the result of the last call, and will only recompute if one of the inputs changes.
 
 Together these properties ensure that Shiny does as little work as possible, making your app as efficient as possible.
 
+### Reactive values
+
+How does this connect to real Shiny apps?
+You don't normally have to call `reactiveVal()` and instead work with the `inputs` argument.
+`inputs` is a minor variation of `reactiveVal()` called `reactiveValues()` --- instead of managing a single reactive value, it manages a list of reactive values.
+It works just like a regular list:
+
+```{r}
+vals <- reactiveValues(a = 1, b = 2)
+vals$a
+vals$a <- 100
+vals$a
+```
+
+But if you use a reactive expression, it will automatically update when the values change:
+
+```{r}
+sum <- reactive({
+  message("Summing")
+  vals$a + vals$b
+})
+sum()
+
+vals$a <- 10
+sum()
+```
+
+It's unfortunate that you have to use different code to get and set the value of a standalone reactive value and a reactive value in a list.
+This is because there's no easy way to make them exactly the same, and the advantage of making the `reactiveValues()` behave just like a list is that you don't need to learn about the details when you first start learning Shiny.
+
 ## A brief history of reactive programming
 
-```{=html}
-<!--
-https://www.cocoawithlove.com/blog/reactive-programming-what-and-why.html#appendix-a-little-bit-of-history
--->
-```
+If you want to learn more about reactive programming in other languages, a little history can be helpful.
 You can see the genesis of reactive programming over 40 years ago in [VisiCalc](https://en.wikipedia.org/wiki/VisiCalc), the first spreadsheet:
 
 > I imagined a magic blackboard that if you erased one number and wrote a new thing in, all of the other numbers would automatically change, like word processing with numbers.
 > --- [Dan Bricklin](https://youtu.be/YDvbDiJZpy0)
 
 Spreadsheets are closely related to reactive programming: you declare the relationship between cells (using formulas), and when one cell changes, all of its dependencies automatically update.
-So the chances are you've already done a bunch of reactive programming without knowing it!
+So the chances are that you've already done a bunch of reactive programming without knowing it!
 
-While the ideas of reactivity have been around for a long time, it wasn't until 1997 before they were seriously studied as a research topic within computer science.
+While the ideas of reactivity have been around for a long time, it wasn't until 1997 before they were seriously studied in academic computer science.
 Research in reactive programming was kicked off by FRAN [@fran], **f**unctional **r**eactive **an**imation, a novel system for incorporating changes over time and user input into a functional programming language.
-This spawned a rich literature [@rp-survey], but it took some time until it affected how people program.
+This spawned a rich literature [@rp-survey], but had little impact on the practice of programming.
 
-In the 2010s, reactive programming roared into the programming mainstream via the blisteringly fast-paced world of JavaScript UI frameworks.
+It wasn't until the 2010s that reactive programming roared into the programming mainstream via the blisteringly fast-paced world of JavaScript UI frameworks.
 Pioneering frameworks like [Knockout](https://knockoutjs.com/), [Ember](https://emberjs.com/), and (Joe Cheng's personal inspiration) [Meteor](https://www.meteor.com) demonstrated that reactive programming could make UI programming dramatically easier.
 Within a few short years, reactive programming has come to dominate UI programming on the web, with hugely popular frameworks like [React](https://reactjs.org), [Vue.js](https://vuejs.org), and [Angular](https://angularjs.org) which are either inherently reactive or designed to work hand-in-hand with reactive backends.
 
