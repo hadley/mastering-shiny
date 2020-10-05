@@ -4,6 +4,8 @@
 
 This is the work-in-progress repo for the book _Mastering Shiny_ by Hadley Wickham. It is licensed under the Creative Commons [Attribution-NonCommercial-NoDerivatives 4.0 International License](http://creativecommons.org/licenses/by-nc-nd/4.0/). 
 
+![](./images/for-readme/book-cover.jpg)
+
 Built with [bookdown](https://bookdown.org/yihui/bookdown/).
 
 ## Table of contents
