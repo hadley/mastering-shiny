@@ -30,6 +30,19 @@ jobs:
           key: r-5-${{ hashFiles('DESCRIPTION') }}
           restore-keys: r-5-
 
+      - name: Install pak
+        run: |
+          install.packages("pak", repos = "https://r-lib.github.io/p/pak/dev/")
+        shell: Rscript {0}
+
+      - name: Install dependencies
+        run: |
+          pak::local_install_dev_deps()
+        shell: Rscript {0}
+
+      - name: Install PhantomJS
+        run: R -e 'webshot::install_phantomjs()'
+
       - name: Cache bookdown results
         uses: actions/cache@v1
         with:
@@ -37,20 +50,8 @@ jobs:
           key: bookdown-2-${{ hashFiles('**/*Rmd') }}
           restore-keys: bookdown-2-
 
-      - name: Install packages
-        run: |
-          R -e 'install.packages("remotes")'
-          R -e 'install.packages("ps", type = "binary")'
-          R -e 'remotes::install_deps(dependencies = TRUE)'
-
-      - name: Install PhantomJS
-        run: R -e 'webshot::install_phantomjs()'
-
-      - name: Build site
+      - name: Build book
         run: Rscript -e 'bookdown::render_book("index.Rmd", quiet = TRUE)'
-
-      - name: Install npm
-        uses: actions/setup-node@v1
 
       - name: Deploy to Netlify
         if: contains(env.isExtPR, 'false')
