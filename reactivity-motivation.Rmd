@@ -18,7 +18,15 @@ As Tom Dale said of his Ember.js JavaScript framework: "We do a lot of magic, bu
 When you peel back the layers of reactive programming, you won't find a pile of heuristics, special cases, and hacks; instead you'll find a clever, but ultimately fairly straightforward mechanism.
 Once you've formed an accurate mental model, you'll see that there's nothing up Shiny's sleeves: the magic comes from simple concepts combined in consistent ways.
 
-In this part of the book, you'll dive into the details of reactivity: learning why reactivity is necessary, how it works underneath the covers, and how you might use the atoms of reactivity to create your own building blocks.
+In this part of the book, you'll dive into the details of reactivity:
+
+-   In this chapter, you'll learn why reactivity is necessary, and a little bit about the history of reactive programming outside of R.
+
+-   In Chapter \@ref(dependency-tracking), you'll learn more about how reactivity works underneath the covers.
+
+-   Chapter \@ref(scoping) goes into the details of object lifetimes including how you can share data across users, and how and why you might create an app within a function.
+
+-   In Chapter \@ref(reactivity-components), you'll learn more about the data structures that underlying reactive programming, and how you can compose them to solve new problems.
 
 ## Why reactive programming? {#motivation}
 
@@ -202,9 +210,9 @@ Together these properties ensure that Shiny does as little work as possible, mak
 
 ### Reactive values
 
-How does this connect to real Shiny apps?
-You don't normally have to call `reactiveVal()` and instead work with the `inputs` argument.
-`inputs` is a minor variation of `reactiveVal()` called `reactiveValues()` --- instead of managing a single reactive value, it manages a list of reactive values.
+How does the behaviour of `reactiveVal()` tie in with regular Shiny apps?
+Usually, you don't work with a single reactive value, but a list of them, inside the `input` argument.
+`inputs` is a minor variation of `reactiveVal()` called `reactiveValues()` that manages a list of reactive values, instead of just one..
 It works just like a regular list:
 
 ```{r}
@@ -214,7 +222,7 @@ vals$a <- 100
 vals$a
 ```
 
-But if you use a reactive expression, it will automatically update when the values change:
+But if you refer to the values inside a reactive expression, it will automatically update when the values change:
 
 ```{r}
 sum <- reactive({
