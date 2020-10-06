@@ -10,6 +10,7 @@ Imports:
     shinycssloaders,
     shinyFeedback,
     shinythemes,
+    testthat,
     thematic (>= 0.0.1),
     tidyverse,
     vroom,
