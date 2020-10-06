@@ -1,6 +1,10 @@
 on:
   push:
-    branches: '*'
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
   schedule:
     # run every day at 11 PM
     - cron: '0 23 * * *'
@@ -12,6 +16,8 @@ env:
 
 jobs:
   build:
+    env:
+      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
     runs-on: macOS-latest
     steps:
       - name: Checkout repo
