@@ -1,84 +1,14 @@
-# Dependency tracking {#dependency-tracking}
+# The reactive graph {#dependency-tracking}
 
 ```{r include=FALSE}
 source("common.R")
 ```
 
+## Introduction
+
+Precisely how dependency tracking and invailidation works.
+
 <!-- TODO: redraw diagrams in omnigraffle with reactlog colours -->
-
-## How dependency tracking works
-
-The most striking aspect of reactive programming in Shiny is that a reactive expression, observer, or output "knows" which reactive values/inputs and reactive expressions it depends on.
-For example:
-
-```{r eval=FALSE}
-output$plot <- renderPlot({
-  plot(head(cars, input$rows))
-}, res = 96)
-```
-
-When people are first exposed to Shiny code like this, the most common question is, "How does Shiny know that `output$plot` reads `input$rows`?" And the most common guess is that Shiny parses the body of the `renderPlot()` code block, looking for symbols that seem to be relevant for reactivity, the same way a human being would.
-If that strikes you as a fragile approach, I agree.
-Even a change as simple as giving `input` a new name would break things:
-
-```{r eval=FALSE}
-output$plot <- renderPlot({
-  x <- input
-  plot(head(cars, x$rows))
-}, res = 96)
-```
-
-So, no, that's not the way Shiny works.
-In computer science, that approach is called **static analysis**, because it looks at the code without running it.
-Instead, Shiny is using **dynamic instrumentation**, where as the code is run it collects additional information about what's going on.
-
-### Reactive contexts
-
-Before the `plot` output begins executing, it creates an object that's internal to Shiny called a **reactive context**.
-As an app author, you'll never create or see one of these objects directly, but they're very important in the implementation of Shiny.
-The reactive context doesn't represent the `plot` output as a whole, but just a single execution of the output.
-If, over the life of a Shiny session, the plot is (re)rendered a dozen times, then a dozen reactive contexts will have been created.
-
-The Shiny package has a top-level variable (like a global variable, but one only visible to code inside the Shiny package) that is always pointing to the "current" or "active" reactive context.
-The `plot` output assigns its new context to this variable, then executes its code block, then restores the previous value of the variable.
-Basically like this code sketch (for illustrative purposes only):
-
-```{r eval=FALSE}
-# Create the new context
-ctx <- ReactiveContext$new()
-
-# Set as the current context (but save the prev context)
-prev_ctx <- shiny:::currentContext
-shiny:::currentContext <- ctx
-
-# Actually run user code here
-renderPlot({ ... }, res = 96)
-
-# Restore the prev context
-shiny:::currentContext <- prev_ctx
-```
-
-The purpose of the context object is to provide a rendezvous point between the reactive consumer that is executing, and the reactive producers that it's reading from.
-There are two important methods on context objects:
-
-1.  `invalidate()` - Informs the context that a producer that it read from is now potentially out of date (invalidated); and so whatever reactive consumer owns the context should also be considered out of date.
-
-2.  `onInvalidated(func)` - Asks the context to invoke the given callback function in the future, if and when `invalidate()` is called.
-
-### Intercepting reads
-
-You might be able to see where this is going.
-While a reactive consumer is executing, it creates a context object and puts it in a globally accessible variable, making it possible for any other code to invalidate that context at any point in the future.
-
-Reactive values and expressions use this context object to connect the dots between reactive dependencies.
-When a reactive producer is read--using either `input$x` or `up_to_date()`--not only is the appropriate value returned, but a side effect also silently occurs.
-Each reactive value or expression maintains a list of contexts that depend on its current value being up-to-date; each read of the reactive value or expression causes the current context object to be added to that list.
-
-Each time a reactive value is modified, or a reactive expression is invalidated, it calls `invalidate()` on each dependent context.
-This invalidates the corresponding reactive consumer objects.
-
-In summary, the way Shiny "magically" establishes the connections between dependency and dependant really comes to these two simple mechanisms: each reactive consumer creates a context object and installs it in a global location during execution, and each reactive producer augments every read operation by grabbing the context object so it can be later invalidated.
-There is no way that Shiny can accidentally overlook a reactive dependency relationship, or establish one erroneously (though there are a few ways to *instruct* Shiny to intentionally overlook reactive dependencies, as we'll see later).
 
 ## A step-by-step tour of reactive execution {#step-through}
 
@@ -265,6 +195,8 @@ That's great, as we won't need to reexecute those parts of the graph, even if th
 
 ## The react log
 
+<https://rstudio.github.io/reactlog/>
+
 ## Applications
 
 ### Conditional dependency
@@ -299,10 +231,83 @@ But in fact, the graph either looks like this or that, depending on the value of
 
 This is because shiny dynamically constructs the graph.
 
-### Auto-update checkbox
+## How does it work?
 
-```{r, eval = FALSE}
-if (input$autorefresh) {
-  invalidateLater(1000)
-}
+Before we carry on, I wanted to give you a quick sense of how things work behind the scenes.
+This knowledge isn't likely to help you build better apps, but it might resolve some lingering questions
+
+Take this simple example:
+
+```{r eval=FALSE}
+output$plot <- renderPlot({
+  plot(head(cars, input$rows))
+}, res = 96)
 ```
+
+How does Shiny know that `output$plot` reads `input$rows`?
+
+You might wonder if Shiny parses the body of the `renderPlot()` code block, looking for symbols that seem to be relevant for reactivity, the same way a human being would.
+If that strikes you as a fragile approach, I agree.
+Even a change as simple as giving `input` a new name would break things:
+
+```{r eval=FALSE}
+output$plot <- renderPlot({
+  x <- input
+  plot(head(cars, x$rows))
+}, res = 96)
+```
+
+So, no, that's not the way Shiny works.
+In computer science, that approach is called **static analysis**, because it looks at the code without running it.
+Instead, Shiny is using **dynamic instrumentation**, where as the code is run it collects additional information about what's going on.
+
+### Reactive contexts
+
+Before the `plot` output begins executing, it creates an object that's internal to Shiny called a **reactive context**.
+As an app author, you'll never create or see one of these objects directly, but they're very important in the implementation of Shiny.
+The reactive context doesn't represent the `plot` output as a whole, but just a single execution of the output.
+If, over the life of a Shiny session, the plot is (re)rendered a dozen times, then a dozen reactive contexts will have been created.
+
+The Shiny package has a top-level variable (like a global variable, but one only visible to code inside the Shiny package) that is always pointing to the "current" or "active" reactive context.
+The `plot` output assigns its new context to this variable, then executes its code block, then restores the previous value of the variable.
+Basically like this code sketch (for illustrative purposes only):
+
+```{r eval=FALSE}
+# Create and activate new context 
+old <- setReactiveContext(ReactiveContext$new())
+
+# Then we run the user code
+renderPlot({ 
+  plot(head(cars, input$rows))
+})
+
+# Restore the prev context
+setReactiveContext(old)
+```
+
+The purpose of the context object is to provide a rendezvous point between the reactive consumer that is executing, and the reactive producers that it's reading from.
+There are two important methods on context objects:
+
+1.  `invalidate()` - Informs the context that a producer that it read from is now potentially out of date (invalidated); and so whatever reactive consumer owns the context should also be considered out of date.
+
+2.  `onInvalidated(func)` - Asks the context to invoke the given callback function in the future, if and when `invalidate()` is called.
+
+### Intercepting reads
+
+You might be able to see where this is going.
+While a reactive consumer is executing, it creates a context object and puts it in a globally accessible variable, making it possible for any other code to invalidate that context at any point in the future.
+
+Reactive values and expressions use this context object to connect the dots between reactive dependencies.
+When a reactive producer is read---using either `input$x` or `up_to_date()`---not only is the appropriate value returned, but a side effect also silently occurs.
+Each reactive value or expression maintains a list of contexts that depend on its current value being up-to-date; each read of the reactive value or expression causes the current context object to be added to that list.
+
+Each time a reactive value is modified, or a reactive expression is invalidated, it calls `invalidate()` on each dependent context.
+This invalidates the corresponding reactive consumer objects.
+
+In summary, the way Shiny "magically" establishes the connections between dependency and dependant really comes to these two simple mechanisms:
+
+-   each reactive consumer creates a context object and installs it in a global location during execution,
+
+-   each reactive producer augments every read operation by grabbing the context object so it can be later invalidated.
+
+There is no way that Shiny can accidentally overlook a reactive dependency relationship, or establish one erroneously.

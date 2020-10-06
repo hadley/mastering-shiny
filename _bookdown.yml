@@ -35,7 +35,7 @@ rmd_files:
     "scaling-safety.Rmd",
     "scaling-performance.Rmd",
 
-    "reactivity-mastering.Rmd",
+    "reactivity.Rmd",
     "reactivity-motivation.Rmd",
     "reactivity-tracking.Rmd",
     "reactivity-scoping.Rmd",

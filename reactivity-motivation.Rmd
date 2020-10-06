@@ -18,15 +18,18 @@ As Tom Dale said of his Ember.js JavaScript framework: "We do a lot of magic, bu
 When you peel back the layers of reactive programming, you won't find a pile of heuristics, special cases, and hacks; instead you'll find a clever, but ultimately fairly straightforward mechanism.
 Once you've formed an accurate mental model, you'll see that there's nothing up Shiny's sleeves: the magic comes from simple concepts combined in consistent ways.
 
-In this part of the book, you'll dive into the details of reactivity:
+In this part of the book, you'll dive into the theory of reactivity:
 
--   In this chapter, you'll learn why reactivity is necessary, and a little bit about the history of reactive programming outside of R.
+-   In this chapter, you'll learn why reactivity is needed, and a little bit about the history of reactive programming outside of R.
 
--   In Chapter \@ref(dependency-tracking), you'll learn more about how reactivity works underneath the covers.
+-   In Chapter \@ref(dependency-tracking), you'll learn exactly how and when reactive components are updated.
 
--   Chapter \@ref(scoping) goes into the details of object lifetimes including how you can share data across users, and how and why you might create an app within a function.
+-   Chapter \@ref(reactivity-scoping) goes into the details of object lifetimes including how you can share data across users, and how and why you might create an app within a function.
 
--   In Chapter \@ref(reactivity-components), you'll learn more about the data structures that underlying reactive programming, and how you can compose them to solve new problems.
+-   In Chapter \@ref(reactivity-components), , and how you can compose them to solve new problems.
+
+You certainly don't need to understand the details of the theory for routine development of Shiny apps.
+But understanding what's going on will help you create more complex apps and give you greater powers to extract out repeated patterns into reusable functions.
 
 ## Why reactive programming? {#motivation}
 
@@ -206,7 +209,20 @@ temp_f()
 By looking at when "converting" is printed that you can confirm that that conversion happens only when we request the value of `temp_f()` (unlike the event-driven approach), and it happens only once (unlike the functional approach).
 That's because a a reactive expression caches the result of the last call, and will only recompute if one of the inputs changes.
 
-Together these properties ensure that Shiny does as little work as possible, making your app as efficient as possible.
+The first time a reactive expression is called, it will execute its code body, and depending on what that code does, it might take a significant amount of time.
+But when the calculation is complete, the resulting value will be both returned to the caller *and* remembered by the reactive expression.
+Subsequent calls to the reactive expression take essentially no time at all, as the saved value can be returned instantly.
+If a reactive expression depends on reactive values or expressions, then any changes to those will cause the cached value to be discarded.
+When that happens, the next call to the reactive expression will again cause an actual calculation, whose result will then be saved for subsequent calls.
+
+These particular properties -- laziness, caching, reactivity, and lack of side effects -- combine to give us an elegant and versatile building block for reactive programming.
+
+-   reactive: they know when the reactive values they've read have changed, and they alert their readers when their own value may have changed.
+
+-   *lazy*: they contain code, but that code doesn't execute unless/until someone tries to actually retrieve the value of the reactive expression (by calling it like a function).
+
+-   cached: The final important property of reactive expressions is that they *cache* their most recent value, so that it can be used to satisfy future requests.
+    This is why the lack of side-effects is so important.
 
 ### Reactive values
 
@@ -237,6 +253,93 @@ sum()
 
 It's unfortunate that you have to use different code to get and set the value of a standalone reactive value and a reactive value in a list.
 This is because there's no easy way to make them exactly the same, and the advantage of making the `reactiveValues()` behave just like a list is that you don't need to learn about the details when you first start learning Shiny.
+
+-   inputs are read-only `reactiveValues()` --- you can't write to reactive values in the `inputs`, but Shiny can.
+    Behind the scenes, any time a user performs an action in the browser, Shiny updates these values.
+    They're read only to you because Shiny wants to avoid the possibility of inconsistencies between the browser and R.
+
+### Observers
+
+Now let's shift gears and talk about the objects that *can* read reactive values, and what will happen when they're notified of changes in the reactives that they use.
+We need to first make an important distinction between functions that perform a **calculation** vs those that take an **action**:
+
+1.  Calculation return a value: e.g. `sum()`, `mean()`, `read.csv()`.
+2.  Actions change the world in some way: e.g. `print()`, `plot()`, `write.csv()`. In programming terminology, changing the world is called a **side-effect**. Unlike pharmaceuticals where side effects are always unintentional and usually negative, we simply mean any effects apart from a function's return value. Changing a file on disk is a side effect. Printing words to the console is a side effect. Sending a message to another computer is a side effect.
+
+The two fundamental types of reactive consumers in Shiny differ based on whether you used them with functions that perform a calculation or take an action:
+
+1.  Reactive expressions are for calculations.
+2.  Observers are for actions.
+
+Observers are reactive consumers that take a code block that performs an action.
+Observers are reactive consumers because they know how to respond to one of their dependencies changed: they re-run their code block.
+Here's an observer that prints the value of `x` every time it changes:
+
+```{r}
+x <- reactiveVal(10)
+o <- observe({
+  message("`x` is ", x())
+})
+class(o)
+
+x(5)
+x(10)
+```
+
+This observer does two things.
+It prints out a message giving the current value of x, *and* it subscribes to be notified of the next change to `x()`.
+When `x` changes, and this observer is notified, it requests that the Shiny runtime run its code block again, and two steps repeat.
+It's important to understand that the subscription is not permanent, but happens multiple times, and it happens dynamically.
+
+Note that observers force evaluation of the reactive expressions that they refer to.
+
+Observers aren't limited to reading a single reactive value; each observer can read zero, one, or multiple reactive values.
+
+`observe()` is wrapped by two useful functions that fit a little better in Shiny apps:
+
+-   `observeEvent(event, action)`
+
+-   `eventReactive(event, calculation)`
+
+`isolate()`
+
+### Outputs
+
+You may wonder how Shiny outputs, like the following code, fit into this picture.
+
+```{r eval = FALSE}
+output$text <- renderText({
+  paste(up_to_x(), collapse = ", ")
+})
+```
+
+Is this an observer or a reactive expression?
+It looks like a reactive expression because we're assigning the result of `renderText()`, but `output` is write-only: you can't retrieve the value.
+It feels like a observer, because it has a side-effect: updating the contents of a text box.
+The answer is neither, per se.
+
+Reactive expressions and observers (and reactive values) are fundamental building blocks of reactive programming.
+Outputs, however, are a feature of Shiny built on top of those foundations.
+The details of how they are implemented are not that important, but it is important to know their characteristics.
+
+Most importantly, outputs are reactive consumers.
+Output code is allowed to read reactive values like `input$x` or reactive expressions like `up_to_x()`, and the output will know when those reactive dependencies change.
+
+Whereas observers execute eagerly and reactive expressions execute lazily, outputs are somewhere in between.
+When an output's corresponding UI element is visible in the browser, outputs execute eagerly; that is, once at startup, and once anytime their relevant inputs or reactive expressions change.
+However, if their UI element becomes hidden (e.g. it is located on a `tabPanel` that is not active, or `removeUI` is called to actively remove it from the page) then Shiny will automatically suspend (pause) that output from reactively executing[^reactivity-motivation-3].
+
+[^reactivity-motivation-3]: In rare cases, you may prefer to process even outputs that aren't hidden.
+    You can use the `outputOptions()` function's `suspendWhenHidden` to opt out of the automatic suspension feature on an output-by-output basis.
+
+We also know that observers should be used for side effects (actions), and reactive expressions for their return values (calculations).
+Again, outputs are somewhere in between.
+Depending on the `renderXXX` function you use to wrap it, your render code block may need to return a value and/or perform a side effect.
+For example, `renderText` expects you to return a string, while `renderPrint` expects you to make calls to `print()`; and `renderPlot` expects you to either draw a plot to the active graphics device or return a plottable object (like a ggplot2 object).
+But those render functions are specifically designed to turn side-effects into values.
+
+If your output code block contains logic whose side effects are important for reasons apart from the actual output, you should extract that logic into a separate observer.
+That way, you can be confident it will execute regardless of whether the output is visible or not, now or in the future.
 
 ## A brief history of reactive programming
 
