@@ -270,28 +270,55 @@ Observers differ from expressions in a couple of important ways:
 -   They are eager and forgetful --- they run as soon as possibly can and they don't remember their previous action.
     This eagerness is "infectious" because if they use a reactive expression, that reactive expression will also be evaluated immediately.
 
-### Isolate
-
-Occasionally, you want to access the value of a reactive producer without taking a dependency on it.
-
-`observe()` is the building block that powers the `observeEvent()` function that you learned about in Section \@ref(observers).
-`observeEvent(event, action)` is basically equivalent to:
+Observers are often coupled with reactive values in order to track state changes over time.
+But if you're not careful, you quickly hit a problem.
+For example, take this code which tracks how many times `x` changes:
 
 ```{r, eval = FALSE}
-observe(
-  event
-  isolate({
-    action
-  })
-)
+count <- reactiveVal(0)
+x <- reactiveVal(1)
+observe({
+  x()
+  count(count() + 1)
+})
 ```
 
-In Chapter \@ref(reactivity-components) we'll see how you can use reactive values, `observe()`, and `isolate()` to manage changes to state over time.
-For example, maybe you want to display the number of times a button is pushed, or (more usually) combing the results of the current brushing gesture with the points that are already selected.
+If you were to run it, you'd immediately get stuck in an infinite loop because the observer will take a reactive dependency on `x` **and** `count`; and since it modifies `count`, it will immediately re-run.
+
+Fortunately, Shiny provides a function to resolve this problem: `isolate()`.
+This function allows you to access the current value of a reactive value or expression without taking a dependency on it:
+
+```{r}
+count <- reactiveVal(0)
+x <- reactiveVal(1)
+observe({
+  x()
+  isolate(count(count() + 1))
+})
+
+x(1)
+x(2)
+count()
+x(3)
+count()
+```
+
+Another way to avoid this problem is to use the `observeEvent()` function that you learned about in Section \@ref(observers).
+It decouples listening from reaction, so you could rewrite the above as:
+
+```{r, eval = FALSE}
+observeEvent(x(), {
+  count(count() + 1))
+})
+```
+
+In Chapter \@ref(reactivity-components) we'll come back to the problem of managing state over time in much more detail.
 
 ### Outputs
 
-You may wonder how Shiny outputs, like the following code, fit into this picture.
+If you've being paying close attention you might have noticed that I've explained `input`, reactive expressions, and observer, but I haven't said anything about `output`.
+How do they fit into the picture?
+For the purposes of discussion, take this simple output:
 
 ```{r eval = FALSE}
 output$text <- renderText({
@@ -300,32 +327,21 @@ output$text <- renderText({
 ```
 
 Is this an observer or a reactive expression?
-It looks like a reactive expression because we're assigning the result of `renderText()`, but `output` is write-only: you can't retrieve the value.
-It feels like a observer, because it has a side-effect: updating the contents of a text box.
-The answer is neither, per se.
+It looks like a reactive expression because we're assigning the result of `renderText()`.
+On the other hand, it feels like a observer, because it has a side-effect: updating the contents of a text box.
+It turns out that outputs are neither reactive expressions nor observers, and indeed aren't even a fundamental building block.
+In fact, they're a Shiny feature built on top of the foundations that behave somewhat in between reactive expressions and observers.
 
-Reactive expressions and observers (and reactive values) are fundamental building blocks of reactive programming.
-Outputs, however, are a feature of Shiny built on top of those foundations.
-The details of how they are implemented are not that important, but it is important to know their characteristics.
-
-Most importantly, outputs are reactive consumers.
-Output code is allowed to read reactive values like `input$x` or reactive expressions like `up_to_x()`, and the output will know when those reactive dependencies change.
-
-Whereas observers execute eagerly and reactive expressions execute lazily, outputs are somewhere in between.
-When an output's corresponding UI element is visible in the browser, outputs execute eagerly; that is, once at startup, and once anytime their relevant inputs or reactive expressions change.
-However, if their UI element becomes hidden (e.g. it is located on a `tabPanel` that is not active, or `removeUI` is called to actively remove it from the page) then Shiny will automatically suspend (pause) that output from reactively executing[^reactivity-motivation-3].
+Reactive expressions, observers, and outputs are all reactive consumers.
+They differ primarily in their execution model: observers are eager, reactive expressions are lazy, and outputs are somewhere in between.
+When an output's UI element is visible in the browser, outputs execute eagerly; that is, once at startup, and once anytime their relevant inputs or reactive expressions change.
+However, if the UI element is hidden then Shiny will automatically suspend (pause) that output from reactively executing[^reactivity-motivation-3].
 
 [^reactivity-motivation-3]: In rare cases, you may prefer to process even outputs that aren't hidden.
     You can use the `outputOptions()` function's `suspendWhenHidden` to opt out of the automatic suspension feature on an output-by-output basis.
 
-We also know that observers should be used for side effects (actions), and reactive expressions for their return values (calculations).
-Again, outputs are somewhere in between.
-Depending on the `renderXXX` function you use to wrap it, your render code block may need to return a value and/or perform a side effect.
-For example, `renderText` expects you to return a string, while `renderPrint` expects you to make calls to `print()`; and `renderPlot` expects you to either draw a plot to the active graphics device or return a plottable object (like a ggplot2 object).
-But those render functions are specifically designed to turn side-effects into values.
-
-If your output code block contains logic whose side effects are important for reasons apart from the actual output, you should extract that logic into a separate observer.
-That way, you can be confident it will execute regardless of whether the output is visible or not, now or in the future.
+Outputs also have a somewhat complicated relationship with side-effects, particularly printing and plotting because `renderPrint()` and `renderPlot()` capture printing and plotting side-effects and convert them into special values that can be sent to the browser.
+Apart from these special side-effects handled by matching render functions, outputs should be free of side-effects, as you have no guarantee of when they'll be performed.
 
 ## A brief history of reactive programming
 
