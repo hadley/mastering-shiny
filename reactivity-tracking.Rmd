@@ -231,7 +231,21 @@ But in fact, the graph either looks like this or that, depending on the value of
 
 This is because shiny dynamically constructs the graph.
 
-## How does it work?
+Emphasise that this also happens for observers:
+
+```{r}
+server <- function(input, output, session) {
+  observe({
+    if (input$choice == "a") {
+      print(input$a)
+    } else {
+      print(input$b)
+    }
+  }) 
+}
+```
+
+## How does it work? {#how-it-works}
 
 Before we carry on, I wanted to give you a quick sense of how things work behind the scenes.
 This knowledge isn't likely to help you build better apps, but it might resolve some lingering questions

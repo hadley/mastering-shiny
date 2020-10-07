@@ -163,7 +163,6 @@ Before long, you start to trade off correctness (just update everything whenever
 Reactive programming elegantly solves both problems by combining features of the solutions above.
 Now we can show you some real Shiny code, using a special Shiny mode, `consoleReactive(TRUE)`, that enable reactivity in the console so you can experiment with it directly.
 This mode isn't enabled by default because it makes a certain class of bugs harder to spot in an app, and its primary benefit is to help you understand reactivity.
-
 (It's also not yet available in Shiny, but you can track progress at <https://github.com/rstudio/shiny/issues/2518>.)
 
 ```{r, cache = FALSE}
@@ -171,24 +170,25 @@ library(shiny)
 consoleReactive(TRUE)
 ```
 
-As with event-driven programming, we need some way to indicate that we have a special special type of variable, a reactive value[^reactivity-motivation-1], created with `shiny::reactiveVal()`. This creates a single **reactive value** that has a special syntax for getting and setting its value.
-To get the value, you call it like a function; to set the value, you call it with a value[^reactivity-motivation-2]
+As with event-driven programming, we need some way to indicate that we have a special special type of variable.
+In Shiny, we use a **reactive value**, which has a special syntax[^reactivity-motivation-1] for getting and setting its value.
+We create the object with `shiny::reactiveVal()`, get its value by calling it like a zero-argument function, and set its value by calling it like a one-argument function[^reactivity-motivation-2]
 .
 
 [^reactivity-motivation-1]: If you've programmed in languages like rust or clojure this might look familiar: a reactive value is very similar to a mutable cell.
 
-[^reactivity-motivation-2]: If you've ever used active bindings in R, you might notice that the syntax is the same.
+[^reactivity-motivation-2]: If you've ever used R's active bindings, you might notice that the syntax is the very similar.
     This is not a coincidence.
 
 ```{r}
-temp_c <- reactiveVal(10)
-temp_c()   # get
-temp_c(20) # set
-temp_c()   # get
+temp_c <- reactiveVal(10) # create
+temp_c()                  # get
+temp_c(20)                # set
+temp_c()                  # get
 ```
 
 Now we can create a reactive expression that depends on this value.
-As you've seen previously, a reactive expression automatically tracks all of its dependencies:
+As you've learned when creating apps, a reactive expression automatically tracks all of its dependencies:
 
 ```{r}
 temp_f <- reactive({
@@ -198,38 +198,25 @@ temp_f <- reactive({
 temp_f()
 ```
 
-Later, if `temp_c` changes, `temp_f()` will be up to date:
+So that later, if `temp_c` changes, `temp_f` will automatically update:
 
 ```{r}
 temp_c(-3)
+temp_c(-10)
 temp_f()
 temp_f()
 ```
 
-By looking at when "converting" is printed that you can confirm that that conversion happens only when we request the value of `temp_f()` (unlike the event-driven approach), and it happens only once (unlike the functional approach).
-That's because a a reactive expression caches the result of the last call, and will only recompute if one of the inputs changes.
+The reactive expression has two important properties that you can verify by looking at when "converting" is printed:
 
-The first time a reactive expression is called, it will execute its code body, and depending on what that code does, it might take a significant amount of time.
-But when the calculation is complete, the resulting value will be both returned to the caller *and* remembered by the reactive expression.
-Subsequent calls to the reactive expression take essentially no time at all, as the saved value can be returned instantly.
-If a reactive expression depends on reactive values or expressions, then any changes to those will cause the cached value to be discarded.
-When that happens, the next call to the reactive expression will again cause an actual calculation, whose result will then be saved for subsequent calls.
+-   It's **lazy**: it doesn't do any work until it's called.
 
-These particular properties -- laziness, caching, reactivity, and lack of side effects -- combine to give us an elegant and versatile building block for reactive programming.
-
--   reactive: they know when the reactive values they've read have changed, and they alert their readers when their own value may have changed.
-
--   *lazy*: they contain code, but that code doesn't execute unless/until someone tries to actually retrieve the value of the reactive expression (by calling it like a function).
-
--   cached: The final important property of reactive expressions is that they *cache* their most recent value, so that it can be used to satisfy future requests.
-    This is why the lack of side-effects is so important.
+-   It's **cached**: it doesn't do any work the second and subsequent times its called because it caches the previous result.
 
 ### Reactive values
 
-How does the behaviour of `reactiveVal()` tie in with regular Shiny apps?
-Usually, you don't work with a single reactive value, but a list of them, inside the `input` argument.
-`inputs` is a minor variation of `reactiveVal()` called `reactiveValues()` that manages a list of reactive values, instead of just one..
-It works just like a regular list:
+You might wonder why it's taken so long to mention `reactiveVal()` --- we've done 20+ chapters of Shiny programming without needing it more than a handful of places.
+That's because normally in Shiny you work with a special `reactiveValues()` object:
 
 ```{r}
 vals <- reactiveValues(a = 1, b = 2)
@@ -238,6 +225,7 @@ vals$a <- 100
 vals$a
 ```
 
+A `reactiveValues()` works like a regular list.
 But if you refer to the values inside a reactive expression, it will automatically update when the values change:
 
 ```{r}
@@ -251,57 +239,55 @@ vals$a <- 10
 sum()
 ```
 
-It's unfortunate that you have to use different code to get and set the value of a standalone reactive value and a reactive value in a list.
-This is because there's no easy way to make them exactly the same, and the advantage of making the `reactiveValues()` behave just like a list is that you don't need to learn about the details when you first start learning Shiny.
+This might look familiar --- ever app you've written works with `inputs` in this way.
+`inputs` is a special type of `reactiveValues()` object that is read only.
+You're not allowed to touch the values because Shiny automatically updates them based on the users action in the browser.
 
--   inputs are read-only `reactiveValues()` --- you can't write to reactive values in the `inputs`, but Shiny can.
-    Behind the scenes, any time a user performs an action in the browser, Shiny updates these values.
-    They're read only to you because Shiny wants to avoid the possibility of inconsistencies between the browser and R.
+It's unfortunate that you have to use different syntax to get and set the value of a standalone reactive value and a reactive value in a list.
+Unfortunately there's no easy way to make them behave the same, and since you `inputs` frequently and `reactiveVal()` rarely, the decision was to make `input` as familiar as possible.
 
 ### Observers
 
-Now let's shift gears and talk about the objects that *can* read reactive values, and what will happen when they're notified of changes in the reactives that they use.
-We need to first make an important distinction between functions that perform a **calculation** vs those that take an **action**:
-
-1.  Calculation return a value: e.g. `sum()`, `mean()`, `read.csv()`.
-2.  Actions change the world in some way: e.g. `print()`, `plot()`, `write.csv()`. In programming terminology, changing the world is called a **side-effect**. Unlike pharmaceuticals where side effects are always unintentional and usually negative, we simply mean any effects apart from a function's return value. Changing a file on disk is a side effect. Printing words to the console is a side effect. Sending a message to another computer is a side effect.
-
-The two fundamental types of reactive consumers in Shiny differ based on whether you used them with functions that perform a calculation or take an action:
-
-1.  Reactive expressions are for calculations.
-2.  Observers are for actions.
-
-Observers are reactive consumers that take a code block that performs an action.
-Observers are reactive consumers because they know how to respond to one of their dependencies changed: they re-run their code block.
-Here's an observer that prints the value of `x` every time it changes:
+Along with reactive values and expressions, there is one more fundamental building block of reactivity: **observers**.
+An observer sets up a block of code that is run every time one of the reactive values or expressions it uses is updated:
 
 ```{r}
-x <- reactiveVal(10)
-o <- observe({
-  message("`x` is ", x())
+y <- reactiveVal(10)
+observe({
+  message("`y` is ", y())
 })
-class(o)
 
-x(5)
-x(10)
+y(5)
+y(4)
 ```
 
-This observer does two things.
-It prints out a message giving the current value of x, *and* it subscribes to be notified of the next change to `x()`.
-When `x` changes, and this observer is notified, it requests that the Shiny runtime run its code block again, and two steps repeat.
-It's important to understand that the subscription is not permanent, but happens multiple times, and it happens dynamically.
+Observers differ from expressions in a couple of important ways:
 
-Note that observers force evaluation of the reactive expressions that they refer to.
+-   They are designed to work with functions that change the world in some way, like `print()`, `plot()`, or `write.csv()`.
+    In programming terminology, changing the world is called a **side-effect**.
+    Unlike pharmaceuticals where side effects are always unintentional and usually negative, we simply mean any effects apart from a function's return value.
 
-Observers aren't limited to reading a single reactive value; each observer can read zero, one, or multiple reactive values.
+-   They are eager and forgetful --- they run as soon as possibly can and they don't remember their previous action.
+    This eagerness is "infectious" because if they use a reactive expression, that reactive expression will also be evaluated immediately.
 
-`observe()` is wrapped by two useful functions that fit a little better in Shiny apps:
+### Isolate
 
--   `observeEvent(event, action)`
+Occasionally, you want to access the value of a reactive producer without taking a dependency on it.
 
--   `eventReactive(event, calculation)`
+`observe()` is the building block that powers the `observeEvent()` function that you learned about in Section \@ref(observers).
+`observeEvent(event, action)` is basically equivalent to:
 
-`isolate()`
+```{r, eval = FALSE}
+observe(
+  event
+  isolate({
+    action
+  })
+)
+```
+
+In Chapter \@ref(reactivity-components) we'll see how you can use reactive values, `observe()`, and `isolate()` to manage changes to state over time.
+For example, maybe you want to display the number of times a button is pushed, or (more usually) combing the results of the current brushing gesture with the points that are already selected.
 
 ### Outputs
 
