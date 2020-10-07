@@ -216,7 +216,7 @@ The reactive expression has two important properties that you can verify by look
 ### Reactive values
 
 You might wonder why it's taken so long to mention `reactiveVal()` --- we've done 20+ chapters of Shiny programming without needing it more than a handful of places.
-That's because normally in Shiny you work with a special `reactiveValues()` object:
+That's because you most often work with a special `reactiveValues()` object:
 
 ```{r}
 vals <- reactiveValues(a = 1, b = 2)
@@ -225,7 +225,7 @@ vals$a <- 100
 vals$a
 ```
 
-A `reactiveValues()` works like a regular list.
+From the outside `vals` appears to be a regular list.
 But if you refer to the values inside a reactive expression, it will automatically update when the values change:
 
 ```{r}
@@ -239,9 +239,9 @@ vals$a <- 10
 sum()
 ```
 
-This might look familiar --- ever app you've written works with `inputs` in this way.
-`inputs` is a special type of `reactiveValues()` object that is read only.
-You're not allowed to touch the values because Shiny automatically updates them based on the users action in the browser.
+This might look familiar --- ever app you've written works with `input` in this way.
+That's because `input` is a special type of read-only `reactiveValues()`.
+You're not allowed to modify the values because Shiny automatically updates them based on the users action in the browser.
 
 It's unfortunate that you have to use different syntax to get and set the value of a standalone reactive value and a reactive value in a list.
 Unfortunately there's no easy way to make them behave the same, and since you `inputs` frequently and `reactiveVal()` rarely, the decision was to make `input` as familiar as possible.
