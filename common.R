@@ -32,8 +32,7 @@ knitr::opts_chunk$set(width = 81)
 options(width = 81)
 
 # Reactive console simulation  -------------------------------------------------
-# See discussion at https://github.com/rstudio/shiny/issues/2518
-
+# From https://github.com/rstudio/shiny/issues/2518#issuecomment-507408379
 reactive_console_funs <- list(
   reactiveVal = function(value = NULL, label = NULL) {
     if (missing(label)) {
@@ -59,16 +58,19 @@ reactive_console_funs <- list(
   `$<-.rv_flush_on_write` = function(x, name, value) {
     on.exit(shiny:::flushReact(), add = TRUE, after = FALSE)
     NextMethod()
+  },
+  observe = function(...) {
+    on.exit(shiny:::flushReact(), add = TRUE, after = FALSE)
+    shiny::observe(...)
   }
 )
 
-# https://github.com/rstudio/shiny/issues/2518
-consoleReactive <- function(state) {
-  if (state) {
-    options(shiny.suppressMissingContextError = TRUE)
+# stays in the book
+consoleReactive <- function(enabled = TRUE) {
+  options(shiny.suppressMissingContextError = enabled)
+  if (enabled) {
     attach(reactive_console_funs, name = "reactive_console", warn.conflicts = FALSE)
   } else {
-    options(shiny.suppressMissingContextError = FALSE)
     detach("reactive_console")
   }
 }
