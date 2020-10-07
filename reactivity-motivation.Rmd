@@ -161,13 +161,13 @@ Before long, you start to trade off correctness (just update everything whenever
 ## Reactive programming
 
 Reactive programming elegantly solves both problems by combining features of the solutions above.
-Now we can show you some real Shiny code, using a special Shiny mode, `consoleReactive(TRUE)`, that enable reactivity in the console so you can experiment with it directly.
+Now we can show you some real Shiny code, using a special Shiny mode, `reactiveConsole(TRUE)`, that enable reactivity in the console so you can experiment with it directly.
 This mode isn't enabled by default because it makes a certain class of bugs harder to spot in an app, and its primary benefit is to help you understand reactivity.
-(It's also not yet available in Shiny, but you can track progress at <https://github.com/rstudio/shiny/issues/2518>.)
+(It's only available in Shiny 1.6.0 so you may need to upgrade if it's not available for you.)
 
 ```{r, cache = FALSE}
 library(shiny)
-consoleReactive(TRUE)
+reactiveConsole(TRUE)
 ```
 
 As with event-driven programming, we need some way to indicate that we have a special special type of variable.

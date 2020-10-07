@@ -65,8 +65,8 @@ reactive_console_funs <- list(
   }
 )
 
-# stays in the book
-consoleReactive <- function(enabled = TRUE) {
+# override shiny::reactiveConsole() with shims that work in knitr
+reactiveConsole <- function(enabled = TRUE) {
   options(shiny.suppressMissingContextError = enabled)
   if (enabled) {
     attach(reactive_console_funs, name = "reactive_console", warn.conflicts = FALSE)
