@@ -10,8 +10,16 @@ Sometimes you need to create new reactive components that don't otherwise exist 
 These tend to be typically related to managing state over time.
 Animations.
 
+Useful because it allows you to break free from some of the constraints of reactive programming.
+It allows you to do things that you otherwise could not, but you also lose all the protections you normally get.
+You want to have these tools available, but you want to avoid using them as much as possible.
+
+Allows you to programmatically invalidate the left hand side.
+
 If this idea is interesting you might want to read the code in [shinySignals](https://github.com/hadley/shinySignals/), an experimental package that I made to play around with these ideas some time ago.
 Wouldn't recommend you use it for anything serious, but reading the source code might be interesting.
+
+`reducePast()`
 
 ```{r}
 library(shiny)
@@ -68,11 +76,40 @@ This feels very much like imperative programming --- when this happens, do that.
 This makes it easier to understand on a small scale, but harder to understand when bigger pieces start interacting.
 So goal is to keep imperative code isolated inside larger functions.
 
+Go + reset buttons.
+
+Pause/play animation.
+
 ## Creating components
 
 `reactivePoll()` how is it implemented
 
 Brushing
+
+### Reactive timer vs invalidate later
+
+```{r}
+observe({
+  invalidateLater(1000)
+  takes_a_long_time()
+})
+
+observe({
+  on.exit(invalidateLater(1000))
+  takes_a_long_time()
+})
+
+last_time <- NULL
+observe({
+  # what happens if it takes more a complete interval? how to 
+  # decide when to run next
+  invalidateLater(round(last_time) - 1)
+  takes_a_variable_amount_time()
+  last_time <<- proc.time()[[1]]
+})
+```
+
+Variable back-off
 
 ### Observers vs reactives
 
@@ -98,6 +135,15 @@ dedupe <- function(r) {
   
   reactive(prev())
 }
+
+dedupe <- function(r, priority = 100) {
+  stopifnot(is.reactive(r))
+  
+  prev <- reactiveVal(NULL)
+  observe(prev(r()), priority = 100)
+
+  reactive(prev())
+}
 ```
 
 ```{r}
@@ -107,10 +153,23 @@ dedupe <- function(r) {
   prev <- NULL
   reactive({
     val <- r()
-    req(!identical(val, prev))
+    cancelInvalidationIf(!identical(val, prev))
+    
+    req(!identical(val, prev), cancelOutput = TRUE)
 
     prev <<- val
     val
   })
 }
 ```
+
+## Anti-patterns
+
+Uniformly inferior:
+
+```{r, eval = FALSE}
+x <- reactiveVal(10)
+observe(x(input$y * 2))
+```
+
+shinyconf talk has more.
