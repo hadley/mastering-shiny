@@ -1,5 +1,0 @@
-# Scoping {#reactivity-scoping}
-
-```{r setup, include=FALSE}
-source("common.R")
-```
