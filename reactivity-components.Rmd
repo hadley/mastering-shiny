@@ -6,101 +6,111 @@ source("common.R")
 
 ## Introduction
 
+Sometimes you need to create new reactive components that don't otherwise exist in Shiny.
+These tend to be typically related to managing state over time.
+Animations.
+
+If this idea is interesting you might want to read the code in [shinySignals](https://github.com/hadley/shinySignals/), an experimental package that I made to play around with these ideas some time ago.
+Wouldn't recommend you use it for anything serious, but reading the source code might be interesting.
+
+```{r}
+library(shiny)
+```
+
+## Motivation
+
+Here are two simple example of what I mean by accumulating state over time.
+In the first example, we have an app with two buttons, that let you increase and decrease values.
+
+```{r}
+ui <- fluidPage(
+  actionButton("up", "up"),
+  actionButton("down", "down"),
+  textOutput("n")
+)
+server <- function(input, output, session) {
+  n <- reactiveVal(0)
+  observeEvent(input$up, n(n() + 1))
+  observeEvent(input$down, n(n() - 1))
+  
+  output$n <- renderText(n())
+}
+```
+
+Maintain a growing list of entries
+
+```{r}
+ui <- fluidPage(
+  textInput("name", "name"),
+  actionButton("add", "add"),
+  textOutput("names")
+)
+server <- function(input, output, session) {
+  names <- reactiveVal()
+  observeEvent(input$add, {
+    names(c(input$name, names()))
+    updateTextInput(session, "name", value = "")
+  })
+  
+  output$names <- renderText(names())
+}
+```
+
+Single message that multiple observers can "write" to.
+Brushing example using different events.
+
+```{r, eval = FALSE}
+message <- reactiveVal()
+output$widgets <- renderText(messsage())
+```
+
+This feels very much like imperative programming --- when this happens, do that.
+This makes it easier to understand on a small scale, but harder to understand when bigger pieces start interacting.
+So goal is to keep imperative code isolated inside larger functions.
+
 ## Creating components
 
-<https://github.com/hadley/shinySignals/>
+`reactivePoll()` how is it implemented
 
-### Isolate
+Brushing
 
-Generally, you don't need to use `reactiveValues()` yourself.
-But then it can be useful for achieving specific types of coordination that would otherwise be inaccessible, particularly maintaining state.
-You need to be extra careful when reading to and writing from `reactiveValues()` because unlike the rest of Shiny, there's nothing to stop you from getting caught in an infinite loop.
+### Observers vs reactives
+
+One caution --- whenever you use `observe()` you force the computation of all reactive expressions.
+Often this is not a big deal, but if you are designing tools that compute on reactives, it's good to know about.
+
+Draw out the graph
 
 ```{r}
-count <- function(signal) {
-  val <- reactiveVal(0)
+dedupe <- function(r) {
+  stopifnot(is.reactive(r))
   
+  prev <- reactiveVal(NULL)
   observe({
-    signal()
-    val(val() + 1)
-  })
-
-  reactive(val())
-}
-```
-
-```{r}
-count <- function(signal) {
-  val <- reactiveVal(0)
-  
-  observeEvent(signal(), {
-    val(val() + 1)
-  })
-
-  reactive(val())
-}
-```
-
-```{r}
-count <- function(signal) {
-  val <- reactiveVal(0)
-  
-  observe({
-    signal()
-    val(isolate(val()) + 1)
-  })
-
-  reactive(val())
-}
-```
-
-Whenever you modify a reactive value based on a previous value you'll need to use isolate to avoid getting stuck in an infinite loop.
-
-### Temporal dependence
-
-```{r}
-dropRepeats <- function(signal) {
-  val <- reactiveVal()
-
-  observe({
-    cur_val <- isolate(val())
-    new_val <- signal()
-    if (!identical(cur_val, new_val)) {
-      val(new_val)
-    }
+    val <- r()
+    
+    isolate({
+      if (!identical(val, prev())) {
+        prev(val)
+      }
+    })
   })
   
-  reactive(val)
+  reactive(prev())
 }
 ```
 
-<https://plotly-r.com/linking-views-with-shiny.html#reactive-vals>
-
 ```{r}
-brush <- function(n, mode = "|") {
-  selected <- reactiveVal(rep(FALSE, n))
+dedupe <- function(r) {
+  stopifnot(is.reactive(r))
   
-  list(
-    brush = function(new) {
-      selected(do.call(mode, isolate(selected()), new))
-    },
-    reset = function() {
-      selected(rep(FALSE, n))
-    },
-    selected = reactive(selected)
-  )
-}
-```
+  prev <- NULL
+  reactive({
+    val <- r()
+    req(!identical(val, prev))
 
-### Combining reactives
-
-```{r}
-merge <- function(signal1, signal2) {
-  val <- reactiveVal()
-
-  observe(val(signal1()))
-  observe(val(signal2()))
-
-  reactive(val())
+    prev <<- val
+    val
+  })
 }
 ```
