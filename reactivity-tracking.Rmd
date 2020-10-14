@@ -16,6 +16,7 @@ That chapter lays the ground work for the concepts that we'll explore in more de
 
 ```{r}
 library(shiny)
+reactiveConsole(TRUE)
 ```
 
 ## A step-by-step tour of reactive execution {#step-through}
@@ -245,7 +246,9 @@ Tips and tricks:
     To make things easier to understand you may want to supply the `label` argument, which will then appear on the reactive graph.
     You may want to label particularly important reactives with emoji so that they stand out.
 
-## Applications
+## Consequences
+
+Now that you understand more of the details of the reactive graph, and you have the tools to automatically draw the reactive graph for a live app, I want to walk through some of the none obvious consequences of the design described above.
 
 ### Conditional dependency
 
@@ -270,22 +273,24 @@ server <- function(input, output, session) {
 }
 ```
 
-What does the reactive graph to look like?
-You might expect to look like this:
-
-But in fact, the graph either looks like this or that, depending on the value of `input$choice`.
-
-This is because shiny dynamically constructs the graph.
-
-Also happens for observers.
+You might expect the reactive to look like Figure \@ref(fig:).
+But it actually looks like either of the graphs in Figure \@ref(fig:), depending on the value of `input$choice`.
+Remember, Shiny dynamically reconstructs the graph after the output has been invalidated.
+This is helps ensure that Shiny does the minimum amount of work --- if `input$choice` is set to "b", then the value of `input$a` doesn't affect the output and there's no need to invaldate it.
 
 ### Invalidating reactive inputs
 
-There are two cases where a reactive input might be invalidated without the user doing anything:
+In the step-by-step tour above, we discussed one case that causes a reactive input to be invalidated, and the invalidation and re-computing cycle to be kicked off.
+There are two other important cases that will trigger invalidation:
 
--   If you've called, `update*(value = )` sends a message to the browser to change the value.
+-   You call an `update` function setting the `value` argument.
+    This sends a message to the browser to changing the value of an input, which then notifies R that the invalid has been changed.
 
--   If you have a `reactiveVal()` (or `reactiveVals()`) that you've modified.
+-   You modify the value of a `reactiveVal()` or `reactiveValues()` used in your app.
+
+It's important to note that in both these cases an action in an observer[^reactivity-tracking-3],
+
+[^reactivity-tracking-3]: Technically, you can perform these operations in an output, but it's not recommended --- keep side-effects in observers.
 
 It's worth drawing this out --- the most important thing to notice that we don't get any new reactive dependencies.
 This relationship is not one that Shiny recognises automatically.
@@ -326,7 +331,7 @@ Normally we think of `reactive()` as capturing return value, and errors as side-
 But `reactive()` also captures and replays errors.
 We can verify that errors are always replayed by capturing the time:
 
-```{r}
+```{r, error = TRUE}
 r <- reactive(stop("Error occured at ", Sys.time(), call. = FALSE))
 r()
 Sys.sleep(1)
@@ -334,11 +339,14 @@ r()
 ```
 
 This is also how the `req()` function works.
-It emits a special type of error[^reactivity-tracking-3] that Shiny swallows instead of displaying in the outputs.
+It emits a special type of error[^reactivity-tracking-4] that Shiny swallows instead of displaying in the outputs.
 If you set `cancelOutput = TRUE`, the error includes a little additional metadata so that R tells leaves the display in the browser as is.
 
-[^reactivity-tracking-3]: Technically, a custom condition.
+[^reactivity-tracking-4]: Technically, a custom condition.
     See <https://adv-r.hadley.nz/conditions.html#custom-conditions> for more details.
+
+The behaviour of errors in observers and outputs work slightly different.
+An error in a observer will cause the app to terminate; an error in an output will be displayed in the app.
 
 ## How does it work?
 
