@@ -22,7 +22,7 @@ In this part of the book, you'll dive into the theory of reactivity:
 
 -   In this chapter, you'll learn why reactivity is needed, and a little bit about the history of reactive programming outside of R.
 
--   In Chapter \@ref(dependency-tracking), you'll learn exactly how and when reactive components are updated.
+-   In Chapter \@ref(reactive-graph), you'll learn exactly how and when reactive components are updated.
 
 -   Chapter \@ref(reactivity-scoping) goes into the details of object lifetimes including how you can share data across users, and how and why you might create an app within a function.
 
@@ -356,7 +356,7 @@ So the chances are that you've already done a bunch of reactive programming with
 
 While the ideas of reactivity have been around for a long time, it wasn't until 1997 before they were seriously studied in academic computer science.
 Research in reactive programming was kicked off by FRAN [@fran], **f**unctional **r**eactive **an**imation, a novel system for incorporating changes over time and user input into a functional programming language.
-This spawned a rich literature [@rp-survey], but had little impact on the practice of programming.
+This spawned a rich literature [\@rp-survey], but had little impact on the practice of programming.
 
 It wasn't until the 2010s that reactive programming roared into the programming mainstream via the blisteringly fast-paced world of JavaScript UI frameworks.
 Pioneering frameworks like [Knockout](https://knockoutjs.com/), [Ember](https://emberjs.com/), and (Joe Cheng's personal inspiration) [Meteor](https://www.meteor.com) demonstrated that reactive programming could make UI programming dramatically easier.

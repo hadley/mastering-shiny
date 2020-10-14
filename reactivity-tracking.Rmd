@@ -1,4 +1,4 @@
-# The reactive graph {#dependency-tracking}
+# The reactive graph {#reactive-graph}
 
 ```{r include=FALSE}
 source("common.R")
@@ -47,6 +47,7 @@ ui <- fluidPage(
   textOutput("y"),
   textOutput("z")
 )
+
 server <- function(input, output, session) {
   two_a <- reactive(input$a * 2)
   two_a_b <- reactive(two_a() + input$b)
@@ -217,12 +218,32 @@ knitr::include_graphics("diagrams/reactivity-tracking/12.png", dpi = 300)
 Again, I won't show you the details, but the end result will be a reactive graph at rest, with all nodes marked in green.
 The neat thing about this process is that Shiny has done the minimum amount of work --- we've only done the work needed to update the outputs that are actually affected by the changed inputs.
 
-## The react log
+## The reactlog package
 
-<https://rstudio.github.io/reactlog/>
+Drawing the react graph by hand is a powerful technique to help you understand simple apps and build up an accurate mental model of reactive programming.
+But would it be great if we could automatically drawn the graph using the state that Shiny maintains internally?
+It turns out we can, generating the so called **reactlog** which shows how the reactive graph evolves over time for an app.
+Here I'll give you the basics, and then you can learn more on <https://rstudio.github.io/reactlog/>.
 
-Can set `label` to make it easier to identify key reactives.
-A handy tip is to use emoji.
+To use the reactlog you'll need to first install the reactlog package, then turn it by running `reactlog::reactlog_enable()`, and then start your app.
+You then have two options to see the reactlog:
+
+-   While the app is running, press Cmd + F3 (Ctrl + F3 on Windows), to show the reactlog generated up to the that point.
+
+-   After the app has closed, run `shiny::reactlogShow()` to see the log for the complete session.
+
+reactlog uses the same graphical conventions as this chapter, so it should feel instantly familiar.
+The biggest difference is that reactlog draw every dependency, even if it's not currently used, in order to keep the automated layout stable.
+Connections that are not active currently (but were in the past or will be in the future) are drawn as thin dotted lines.
+
+Tips and tricks:
+
+-   If you're using the react log a lot, learn the keyboard shortcuts: use the left and right arrows to step through one item at a time.
+    Use option
+
+-   Reactive inputs and outputs have names, but `reactive()`s and `observe()`rs do not, so they're labelled with their contents.
+    To make things easier to understand you may want to supply the `label` argument, which will then appear on the reactive graph.
+    You may want to label particularly important reactives with emoji so that they stand out.
 
 ## Applications
 
@@ -231,8 +252,6 @@ A handy tip is to use emoji.
 Consider the following simple app:
 
 ```{r}
-library(shiny)
-
 ui <- fluidPage(
   selectInput("choice", "A or B?", c("a", "b")),
   numericInput("a", "a", 0),
@@ -260,21 +279,23 @@ This is because shiny dynamically constructs the graph.
 
 Also happens for observers.
 
-```{r}
-server <- function(input, output, session) {
-  observe({
-    if (input$choice == "a") {
-      print(input$a)
-    } else {
-      print(input$b)
-    }
-  }) 
-}
-```
+### Invalidating reactive inputs
 
-### Nested observers
+There are two cases where a reactive input might be invalidated without the user doing anything:
 
-Every time it activates you get one more:
+-   If you've called, `update*(value = )` sends a message to the browser to change the value.
+
+-   If you have a `reactiveVal()` (or `reactiveVals()`) that you've modified.
+
+It's worth drawing this out --- the most important thing to notice that we don't get any new reactive dependencies.
+This relationship is not one that Shiny recognises automatically.
+You're now breaking free of the reactive graph, as we'll discuss in more detail in Chapter \@ref(reactivity-components).
+
+### Nested observers and outputs
+
+It's important to think of `observer()` and the render functions not as doing something, but creating something (and then that thing automatically takes action as needed).
+For example, take this simple example.
+Every time the observer is trigged, it creates another observer, so we get one more print each time.
 
 ```{r, eval = FALSE}
 x <- reactiveVal(1)
@@ -289,11 +310,37 @@ x(3)
 Not usually this obvious --- same problem occurs whenever you nest an observer in an output function or a output function in an observer.
 Might be hard to spot if you have very large blocks --- just another reason to keep your reactive code as minimal as possible.
 
-### req()
+```{r, eval = FALSE}
+observe({
+  df <- head(cars, input$nrows)
+  output$plot <- renderPlot(plot(df))
+})
+```
 
-`req()` works by firing a special type of error.
+The easiest way to spot this is to use the reactlog --- generally you should expect your observers and outputs to be fairly static over the lifetime of the app.
+In this case, you'll see them steadily growing (and consequently, the performance of the app steadily degrading).
 
-## How does it work? {#how-it-works}
+### Errors
+
+Normally we think of `reactive()` as capturing return value, and errors as side-effects.
+But `reactive()` also captures and replays errors.
+We can verify that errors are always replayed by capturing the time:
+
+```{r}
+r <- reactive(stop("Error occured at ", Sys.time(), call. = FALSE))
+r()
+Sys.sleep(1)
+r()
+```
+
+This is also how the `req()` function works.
+It emits a special type of error[^reactivity-tracking-3] that Shiny swallows instead of displaying in the outputs.
+If you set `cancelOutput = TRUE`, the error includes a little additional metadata so that R tells leaves the display in the browser as is.
+
+[^reactivity-tracking-3]: Technically, a custom condition.
+    See <https://adv-r.hadley.nz/conditions.html#custom-conditions> for more details.
+
+## How does it work?
 
 Before we carry on, I wanted to give you a quick sense of how things work behind the scenes.
 This knowledge isn't likely to help you build better apps, but it might resolve some lingering questions.
