@@ -14,11 +14,6 @@ You'll also learn about the reactlog package which can automatically draw the re
 Before you read this chapter, I highly recommend that you re-read Chapter \@ref(basic-reactivity) if it's been a while since you looked at it.
 That chapter lays the ground work for the concepts that we'll explore in more detail here.
 
-```{r}
-library(shiny)
-reactiveConsole(TRUE)
-```
-
 ## A step-by-step tour of reactive execution {#step-through}
 
 We'll begin with a thorough investigation of the reactive graph.
@@ -165,7 +160,7 @@ Now when a reactive input changes we know to invalidate reactive expressions and
 Just as importantly we also know which nodes are *not* dependent on each other: if no path exists from a reactive input to a output, then changing the input can't affect the output.
 That allows Shiny to do the minimum amount of re-computation when an input changes.
 
-### An input changes
+### An input changes {#input-changes}
 
 The previous step left off with our Shiny session in a fully idle state.
 Now imagine that the user of the application changes the value of a slider.
@@ -219,6 +214,18 @@ knitr::include_graphics("diagrams/reactivity-tracking/12.png", dpi = 300)
 Again, I won't show you the details, but the end result will be a reactive graph at rest, with all nodes marked in green.
 The neat thing about this process is that Shiny has done the minimum amount of work --- we've only done the work needed to update the outputs that are actually affected by the changed inputs.
 
+### Exercises
+
+-   Draw the reactive graph for the following server function and then explain why the reactives are not run.
+
+    ```{r}
+    server <- function(input, output, session) {
+      sum <- reactive(input$x + input$y + input$z)
+      prod <- reactive(input$x * input$y * input$z)
+      division <- reactive(prod() / sum())
+    }
+    ```
+
 ## The reactlog package
 
 Drawing the react graph by hand is a powerful technique to help you understand simple apps and build up an accurate mental model of reactive programming.
@@ -248,7 +255,12 @@ Tips and tricks:
 
 ## Consequences
 
-Now that you understand more of the details of the reactive graph, and you have the tools to automatically draw the reactive graph for a live app, I want to walk through some of the none obvious consequences of the design described above.
+Now that you understand more of the details of the reactive graph and you have the tools to automatically draw the reactive graph for a live app, I want to walk through some of the less obvious consequences of the reactive graph.
+
+```{r}
+library(shiny)
+reactiveConsole(TRUE)
+```
 
 ### Conditional dependency
 
@@ -273,34 +285,68 @@ server <- function(input, output, session) {
 }
 ```
 
-You might expect the reactive to look like Figure \@ref(fig:).
-But it actually looks like either of the graphs in Figure \@ref(fig:), depending on the value of `input$choice`.
-Remember, Shiny dynamically reconstructs the graph after the output has been invalidated.
-This is helps ensure that Shiny does the minimum amount of work --- if `input$choice` is set to "b", then the value of `input$a` doesn't affect the output and there's no need to invaldate it.
+You might expect the reactive to look like Figure \@ref(fig:dynamic-wrong).
+
+```{r dynamic-wrong, echo = FALSE, out.width = NULL, fig.cap = "If Shiny analysed reactivity statically, the reactive graph would always connect `choice`, `a`, and `b` to `out`."}
+knitr::include_graphics("diagrams/reactivity-tracking/dynamic.png", dpi = 300)
+```
+
+But remember that Shiny dynamically reconstructs the graph after the output has been invalidated so it actually looks either of the graphs in Figure \@ref(fig:dynamic-right), depending on the value of `input$choice`.
+This ensure that Shiny does the minimum amount of work when an input is invalidated.
+In this, if `input$choice` is set to "b", then the value of `input$a` doesn't affect the `output$out` and there's no need to recompute it.
+
+```{r dynamic-right, echo = FALSE, out.width = NULL, fig.cap = "But Shiny's reactive graph is dynamic, so the graph either connects `out` to `choice` and `a` (left) or `choice` and `b` (right)."}
+knitr::include_graphics("diagrams/reactivity-tracking/dynamic2.png", dpi = 300)
+```
 
 ### Invalidating reactive inputs
 
-In the step-by-step tour above, we discussed one case that causes a reactive input to be invalidated, and the invalidation and re-computing cycle to be kicked off.
-There are two other important cases that will trigger invalidation:
+In Section \@ref(input-changes) we discussed what happens when the user causes an input to be invalidated.
+There are two other important cases where you as the app author might invalidate an input:
 
 -   You call an `update` function setting the `value` argument.
     This sends a message to the browser to changing the value of an input, which then notifies R that the invalid has been changed.
 
--   You modify the value of a `reactiveVal()` or `reactiveValues()` used in your app.
+-   You modify the value of a reactive value (created with `reactiveVal()` or `reactiveValues()`).
 
-It's important to note that in both these cases an action in an observer[^reactivity-tracking-3],
+It's important to understand these cases will invalidate the reactive input, but don't affect the connections in the reactive graph.
+To make this concrete, take the following simple app, with reactive graph shown in Figure \@ref(fig:graph-mutation).
 
-[^reactivity-tracking-3]: Technically, you can perform these operations in an output, but it's not recommended --- keep side-effects in observers.
+```{r}
+ui <- fluidPage(
+  textInput("nm", "name"),
+  actionButton("clr", "Clear"),
+  textOutput("hi")
+)
+server <- function(input, output, session) {
+  hi <- reactive(paste0("Hi ", input$nm))
+  output$hi <- renderText(hi())
+  observeEvent(input$clr, {
+    updateTextInput(session, "nm", value = "")
+  })
+}
+```
 
-It's worth drawing this out --- the most important thing to notice that we don't get any new reactive dependencies.
-This relationship is not one that Shiny recognises automatically.
-You're now breaking free of the reactive graph, as we'll discuss in more detail in Chapter \@ref(reactivity-components).
+```{r graph-mutation, echo = FALSE, out.width = NULL, fig.cap = "The reactive graph does not record the connection between the unnamed observer and `input$nm`. This dependency is outside of its scope."}
+knitr::include_graphics("diagrams/reactivity-tracking/invalidate-1.png", dpi = 300)
+```
+
+What happens when you press the clear button?
+
+1.  `input$clr` invalidates, which then invalidates the observer.
+2.  The observer recomputes, recreating the dependency on `input$clr`, and telling the browser to change the value of the input control.
+3.  The browser changes the value of `nm`.
+4.  `input$nm` invalidates, invalidating `hi()` then `output$hi`.
+5.  `output$hi` recomputes, forcing `hi()` to recompute.
+
+None of these actions change the reactive graph, so it remains as in Figure \@ref(fig:graph-mutation) and the graph does not capture the connection from the observer to `input$nm`.
+This means that you're now breaking free of the constraints of the reactive graph, which we'll discuss in more detail in Chapter \@ref(reactivity-components).
 
 ### Nested observers and outputs
 
-It's important to think of `observer()` and the render functions not as doing something, but creating something (and then that thing automatically takes action as needed).
-For example, take this simple example.
-Every time the observer is trigged, it creates another observer, so we get one more print each time.
+It's important to think of `observer()` and the render functions not as doing something, but creating something (which then takes action as needed).
+In other words, you might want to think of `observe()` as `newObserver()` and (e.g.) `renderText()` as `newTextRenderer()`.
+That mindset helps you to understand what's going on in this example:
 
 ```{r, eval = FALSE}
 x <- reactiveVal(1)
@@ -312,8 +358,8 @@ x(2)
 x(3)
 ```
 
-Not usually this obvious --- same problem occurs whenever you nest an observer in an output function or a output function in an observer.
-Might be hard to spot if you have very large blocks --- just another reason to keep your reactive code as minimal as possible.
+Every time the observer is trigged, it creates another observer, so each time `x` changes, one it's value is printed one more time.
+The problem is usually a little more subtle in real code, but a typical case is creating an output inside of an observer:
 
 ```{r, eval = FALSE}
 observe({
@@ -322,31 +368,55 @@ observe({
 })
 ```
 
-The easiest way to spot this is to use the reactlog --- generally you should expect your observers and outputs to be fairly static over the lifetime of the app.
-In this case, you'll see them steadily growing (and consequently, the performance of the app steadily degrading).
+As a general rule, you should only ever create observers or outputs at the top-level of your server function.
+If you find yourself needing to nest them, sit down and sketch out the reactive graph that you're trying to create.
+In this example, we do the computation in a `reactive()` and then use it in `renderPlot()`:
+
+```{r, eval = FALSE}
+df <- reactive(head(cars, input$nrows))
+output$plot <- renderPlot(plot(df()))
+```
+
+If you make this mistake in a more complex app, you'll notice that the performance of your app steadily degrades as it duplicates observers or outputs again and again.
+Or since memory will be steadily sucked up, you might notice that your app runs out of memory after a few hours.
+In either case, the easiest way to to find the problem is to use the reactlog: just look for the number of observers or outputs growing a lot, then track back to what is creating them.
 
 ### Errors
 
-Normally we think of `reactive()` as capturing return value, and errors as side-effects.
-But `reactive()` also captures and replays errors.
-We can verify that errors are always replayed by capturing the time:
+What happens when a reactive throws an error?
+For example, take this reactive that immediately throws an error (you'll see why capturing the current time is important in a moment):
 
 ```{r, error = TRUE}
 r <- reactive(stop("Error occured at ", Sys.time(), call. = FALSE))
 r()
-Sys.sleep(1)
+```
+
+Normally we think of `reactive()` as caching values, but it also caches errors.
+So if we wait a second or two, we can see that we get the same error as before:
+
+```{r, error = TRUE}
+Sys.sleep(2)
 r()
 ```
 
-This is also how the `req()` function works.
-It emits a special type of error[^reactivity-tracking-4] that Shiny swallows instead of displaying in the outputs.
-If you set `cancelOutput = TRUE`, the error includes a little additional metadata so that R tells leaves the display in the browser as is.
+Errors are also treated the same way as values when it comes to the reactive graph: any error will propagate through the reactive graph exactly the same way as a regular value.
+The only difference is when it hits an output or observer:
 
-[^reactivity-tracking-4]: Technically, a custom condition.
+-   An error in an output will be displayed in the app.
+-   An error in an observer will cause the app to terminate.
+
+This same system powers `req()`, which emits a special type of error[^reactivity-tracking-3] with special behaviour.
+It causes observers and outputs to stop what they're doing but not otherwise fail.
+By default, outputs will reset to their initial blank state, but if you use `req(..., cancelOutput = TRUE)` they'll preserve their current state.
+
+[^reactivity-tracking-3]: Technically, a custom condition.
     See <https://adv-r.hadley.nz/conditions.html#custom-conditions> for more details.
 
-The behaviour of errors in observers and outputs work slightly different.
-An error in a observer will cause the app to terminate; an error in an output will be displayed in the app.
+### Exercises
+
+1.  Use the reactlog to confirm that the explanation of reactive flow in "Invalidating reactives" is correct.
+2.  Create an app that creates an observer inside an observer, and observe (HA HA) what happens using the reactlog.
+3.  Create an app with a moderately complicated reactive graph, and make one of the early reactives throw an error.
 
 ## How does it work?
 
@@ -361,10 +431,9 @@ output$plot <- renderPlot({
 ```
 
 How does Shiny know that `output$plot` reads `input$rows`?
-Your first guess might be that `renderPlot()` parses its code looking for looking for symbols that seem to be relevant for reactivity.
+Your first guess might be that `renderPlot()` parses its code looking for looking for references to `input`.
 This is a natural guess because it's how you build up a reactive graph when reading code.
-
-Unfortunately, however, this technique is very fragile because even a change as simple as giving `input` a new name would break things:
+Unfortunately, however, this technique is very fragile because even simple change would break things:
 
 ```{r eval = FALSE}
 output$plot <- renderPlot({
@@ -373,16 +442,15 @@ output$plot <- renderPlot({
 })
 ```
 
-In compute science this approach is called **static analysis**, because it looks at the code without running it (i.e. it's not moving, it's static).
-Instead, Shiny uses **dynamic instrumentation**, where collects additional information about what's going on as it is run.
+In computer science this approach is called **static analysis**, because it looks at the code without running it (i.e. it's not moving, it's static).
+Shiny instead uses **dynamic analysis**, where collects additional information about what's going on as the code is run.
 
 The basic process is something like this.
 `renderPlot()` starts by creating a **reactive context**.
-A reactive context is a internal object that is used coordinate reactive consumers and producers.
+A reactive context is a internal object that's used coordinate reactive consumers and producers.
 You'll never see once of these objects as an app author, but they're a crucial piece of infrastructure behind the scenes.
-
 The reactive context is then stored in a special place that's accessible to other Shiny functions.
-Once `renderPlot()` is done, it restores the previous context, using something like this imaginary code:
+Then once `renderPlot()` is done, it restores the previous context, using something like this imaginary code:
 
 ```{r eval=FALSE}
 # renderPlot() creates and activate new context 
@@ -396,10 +464,9 @@ plot(head(cars, input$rows))
 setReactiveContext(old)
 ```
 
-Now, while a reactive consumer is running, reactive producers can get hold of the active context with `getReactiveContext()`.
-Then when the reactive producer is asked for a value, as well as return the value, it also saves the current reactive context.
-When the reactive producer is later modified, it iterates through all its saved contexts and invalidates them.
-This then invalidates the corresponding reactive consumers.
+Now, while a reactive consumer is running, reactive producers can grab the active context with something like `getReactiveContext()`.
+Then producers can return the requested value and register the current reactive context.
+When the reactive producer is later invalidated, it can consult its registry of contexts, and tell the to also invalidate.
 
 So Shiny "magically" establishes the connections between producer and consumer with these two simple mechanisms:
 
