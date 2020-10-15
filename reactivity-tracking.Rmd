@@ -116,7 +116,7 @@ knitr::include_graphics("diagrams/reactivity-tracking/04.png", dpi = 300)
 In our example, the reactive expression reads another reactive expression, which in turn reads another input.
 We'll skip over the blow-by-blow description of those steps, since they're just a repeat of what we've already described, and jump directly to Figure \@ref(fig:graph-reactive-complete).
 
-```{r graph-reactive-complete, echo = FALSE, out.width = NULL, fig.caption = "The reactive expression has finished computing so turns green."}
+```{r graph-reactive-complete, echo = FALSE, out.width = NULL, fig.cap = "The reactive expression has finished computing so turns green."}
 knitr::include_graphics("diagrams/reactivity-tracking/05.png", dpi = 300)
 ```
 
@@ -148,7 +148,7 @@ Now in Figure \@ref(fig:graph-complete-2), all of the outputs have finished exec
 This round of reactive execution is complete, and no more work will occur until some external force acts on the system (e.g. the user of the Shiny app moving a slider in the user interface).
 In reactive terms, this session is now at rest.
 
-```{r graph-complete-2, echo = FALSE, out.width = NULL, fig.caption = "All output and reactive expressions have finished and turned green."}
+```{r graph-complete-2, echo = FALSE, out.width = NULL, fig.cap = "All output and reactive expressions have finished and turned green."}
 knitr::include_graphics("diagrams/reactivity-tracking/08.png", dpi = 300)
 ```
 
@@ -418,7 +418,7 @@ By default, outputs will reset to their initial blank state, but if you use `req
 2.  Create an app that creates an observer inside an observer, and observe (HA HA) what happens using the reactlog.
 3.  Create an app with a moderately complicated reactive graph, and make one of the early reactives throw an error.
 
-## How does it work?
+## How does it work? {#how-it-works}
 
 Before we carry on, I wanted to give you a quick sense of how things work behind the scenes.
 This knowledge isn't likely to help you build better apps, but it might resolve some lingering questions.
