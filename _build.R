@@ -37,3 +37,14 @@ file_delete(graffle)
 
 # Copy screenshots
 dir_copy("images", "_book")
+
+
+# Alternative approach ---------------------------------------------------------
+library(dplyr)
+
+rmds <- dir_ls(glob = "*.Rmd")
+names(rmds) <- rmds
+resources <- purrr::map_df(rmds, rmarkdown::find_external_resources, .id = "rmd")
+resources <- as_tibble(resources)
+
+resources %>% filter(web) %>% pull(path)
