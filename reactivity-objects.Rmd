@@ -1,0 +1,249 @@
+# Reactive objects {#reactivity-objects}
+
+```{r setup, include=FALSE}
+source("common.R")
+```
+
+```{r}
+library(shiny)
+reactiveConsole(TRUE)
+```
+
+## Reactive values
+
+You might wonder why it's taken so long to mention `reactiveVal()` --- we've done 20+ chapters of Shiny programming without needing it more than a handful of places.
+That's because you most often work with a special `reactiveValues()` object:
+
+```{r}
+vals <- reactiveValues(a = 1, b = 2)
+vals$a
+vals$a <- 100
+vals$a
+```
+
+From the outside `vals` appears to be a regular list.
+But if you refer to the values inside a reactive expression, it will automatically update when the values change:
+
+```{r}
+sum <- reactive({
+  message("Summing")
+  vals$a + vals$b
+})
+sum()
+
+vals$a <- 10
+sum()
+```
+
+This might look familiar --- ever app you've written works with `input` in this way.
+That's because `input` is a special type of read-only `reactiveValues()`.
+You're not allowed to modify the values because Shiny automatically updates them based on the users action in the browser.
+
+It's unfortunate that you have to use different syntax to get and set the value of a standalone reactive value and a reactive value in a list.
+Unfortunately there's no easy way to make them behave the same, and since you `inputs` frequently and `reactiveVal()` rarely, the decision was to make `input` as familiar as possible.
+
+## Reactive expressions
+
+### Errors
+
+What happens when a reactive throws an error?
+For example, take this reactive that immediately throws an error (you'll see why capturing the current time is important in a moment):
+
+```{r, error = TRUE}
+r <- reactive(stop("Error occured at ", Sys.time(), call. = FALSE))
+r()
+```
+
+Normally we think of `reactive()` as caching values, but it also caches errors.
+So if we wait a second or two, we can see that we get the same error as before:
+
+```{r, error = TRUE}
+Sys.sleep(2)
+r()
+```
+
+Errors are also treated the same way as values when it comes to the reactive graph: any error will propagate through the reactive graph exactly the same way as a regular value.
+The only difference is when it hits an output or observer:
+
+-   An error in an output will be displayed in the app.
+-   An error in an observer will cause the app to terminate.
+
+This same system powers `req()`, which emits a special type of error[^reactivity-objects-1] with special behaviour.
+It causes observers and outputs to stop what they're doing but not otherwise fail.
+By default, outputs will reset to their initial blank state, but if you use `req(..., cancelOutput = TRUE)` they'll preserve their current state.
+
+[^reactivity-objects-1]: Technically, a custom condition.
+    See <https://adv-r.hadley.nz/conditions.html#custom-conditions> for more details.
+
+## Observers
+
+Along with reactive values and expressions, there is one more fundamental building block of reactivity: **observers**.
+An observer sets up a block of code that is run every time one of the reactive values or expressions it uses is updated:
+
+```{r}
+y <- reactiveVal(10)
+observe({
+  message("`y` is ", y())
+})
+
+y(5)
+y(4)
+```
+
+Observers differ from expressions in a couple of important ways:
+
+-   They are designed to work with functions that change the world in some way, like `print()`, `plot()`, or `write.csv()`.
+    In programming terminology, changing the world is called a **side-effect**.
+    Unlike pharmaceuticals where side effects are always unintentional and usually negative, we simply mean any effects apart from a function's return value.
+
+-   They are eager and forgetful --- they run as soon as possibly can and they don't remember their previous action.
+    This eagerness is "infectious" because if they use a reactive expression, that reactive expression will also be evaluated immediately.
+
+Observers are often coupled with reactive values in order to track state changes over time.
+But if you're not careful, you quickly hit a problem.
+For example, take this code which tracks how many times `x` changes:
+
+```{r, eval = FALSE}
+count <- reactiveVal(0)
+x <- reactiveVal(1)
+observe({
+  x()
+  count(count() + 1)
+})
+```
+
+If you were to run it, you'd immediately get stuck in an infinite loop because the observer will take a reactive dependency on `x` **and** `count`; and since it modifies `count`, it will immediately re-run.
+
+Fortunately, Shiny provides a function to resolve this problem: `isolate()`.
+This function allows you to access the current value of a reactive value or expression without taking a dependency on it:
+
+```{r}
+count <- reactiveVal(0)
+x <- reactiveVal(1)
+observe({
+  x()
+  isolate(count(count() + 1))
+})
+
+x(1)
+x(2)
+count()
+x(3)
+count()
+```
+
+Another way to avoid this problem is to use the `observeEvent()` function that you learned about in Section \@ref(observers).
+It decouples listening from reaction, so you could rewrite the above as:
+
+```{r, eval = FALSE}
+observeEvent(x(), {
+  count(count() + 1))
+})
+```
+
+In Chapter \@ref(reactivity-components) we'll come back to the problem of managing state over time in much more detail.
+
+### Timers
+
+Another related useful pattern.
+Extension of `reactiveTimer()` that we discussed in ...
+
+`reactivePoll()` how is it implemented.
+
+For accurate animation, you should record exactly how much time has elapsed.
+
+Retrying a buggy operation.
+Exponential variable back-off
+
+```{r, eval = FALSE}
+last_time <- proc.time()[[3]]
+observe({
+  # what happens if it takes more a complete interval? how to 
+  # decide when to run next
+  invalidateLater(round(last_time) - 1)
+  takes_a_variable_amount_time()
+  last_time <<- proc.time()[[1]]
+})
+```
+
+### Reactive timer vs invalidate later
+
+```{r, eval = FALSE}
+observe({
+  invalidateLater(1000)
+  takes_a_long_time()
+})
+
+observe({
+  on.exit(invalidateLater(1000))
+  takes_a_long_time()
+})
+```
+
+### Nested observers and outputs
+
+It's important to think of `observer()` and the render functions not as doing something, but creating something (which then takes action as needed).
+In other words, you might want to think of `observe()` as `newObserver()` and (e.g.) `renderText()` as `newTextRenderer()`.
+That mindset helps you to understand what's going on in this example:
+
+```{r}
+x <- reactiveVal(1)
+y <- observe({
+  x()
+  observe(print(x()))
+})
+x(2)
+x(3)
+```
+
+Every time the observer is trigged, it creates another observer, so each time `x` changes, one it's value is printed one more time.
+The problem is usually a little more subtle in real code, but a typical case is creating an output inside of an observer:
+
+```{r, eval = FALSE}
+observe({
+  df <- head(cars, input$nrows)
+  output$plot <- renderPlot(plot(df))
+})
+```
+
+As a general rule, you should only ever create observers or outputs at the top-level of your server function.
+If you find yourself needing to nest them, sit down and sketch out the reactive graph that you're trying to create.
+In this example, we do the computation in a `reactive()` and then use it in `renderPlot()`:
+
+```{r, eval = FALSE}
+df <- reactive(head(cars, input$nrows))
+output$plot <- renderPlot(plot(df()))
+```
+
+If you make this mistake in a more complex app, you'll notice that the performance of your app steadily degrades as it duplicates observers or outputs again and again.
+Or since memory will be steadily sucked up, you might notice that your app runs out of memory after a few hours.
+In either case, the easiest way to to find the problem is to use the reactlog: just look for the number of observers or outputs growing a lot, then track back to what is creating them.
+
+## Outputs {#outputs-theory}
+
+If you've being paying close attention you might have noticed that I've explained `input`, reactive expressions, and observer, but I haven't said anything about `output`.
+How do they fit into the picture?
+For the purposes of discussion, take this simple output:
+
+```{r eval = FALSE}
+output$text <- renderText({
+  paste(up_to_x(), collapse = ", ")
+})
+```
+
+Is this an observer or a reactive expression?
+It looks like a reactive expression because we're assigning the result of `renderText()`.
+On the other hand, it feels like a observer, because it has a side-effect: updating the contents of a text box.
+It turns out that outputs are neither reactive expressions nor observers, and indeed aren't even a fundamental building block.
+In fact, they're a Shiny feature built on top of the foundations that behave somewhat in between reactive expressions and observers.
+
+Reactive expressions, observers, and outputs are all reactive consumers.
+They differ primarily in their execution model: observers are eager, reactive expressions are lazy, and outputs are somewhere in between.
+When an output's UI element is visible in the browser, outputs execute eagerly; that is, once at startup, and once anytime their relevant inputs or reactive expressions change.
+However, if the UI element is hidden then Shiny will automatically suspend (pause) that output from reactively executing[^reactivity-objects-2].
+
+[^reactivity-objects-2]: In rare cases, you may prefer to process even outputs that aren't hidden.
+    You can use the `outputOptions()` function's `suspendWhenHidden` to opt out of the automatic suspension feature on an output-by-output basis.
+
+Outputs also have a somewhat complicated relationship with side-effects, particularly printing and plotting because `renderPrint()` and `renderPlot()` capture printing and plotting side-effects and convert them into special values that can be sent to the browser.
+Apart from these special side-effects handled by matching render functions, outputs should be free of side-effects, as you have no guarantee of when they'll be performed.

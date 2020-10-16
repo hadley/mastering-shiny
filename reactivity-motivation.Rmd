@@ -213,135 +213,7 @@ The reactive expression has two important properties that you can verify by look
 
 -   It's **cached**: it doesn't do any work the second and subsequent times its called because it caches the previous result.
 
-### Reactive values
-
-You might wonder why it's taken so long to mention `reactiveVal()` --- we've done 20+ chapters of Shiny programming without needing it more than a handful of places.
-That's because you most often work with a special `reactiveValues()` object:
-
-```{r}
-vals <- reactiveValues(a = 1, b = 2)
-vals$a
-vals$a <- 100
-vals$a
-```
-
-From the outside `vals` appears to be a regular list.
-But if you refer to the values inside a reactive expression, it will automatically update when the values change:
-
-```{r}
-sum <- reactive({
-  message("Summing")
-  vals$a + vals$b
-})
-sum()
-
-vals$a <- 10
-sum()
-```
-
-This might look familiar --- ever app you've written works with `input` in this way.
-That's because `input` is a special type of read-only `reactiveValues()`.
-You're not allowed to modify the values because Shiny automatically updates them based on the users action in the browser.
-
-It's unfortunate that you have to use different syntax to get and set the value of a standalone reactive value and a reactive value in a list.
-Unfortunately there's no easy way to make them behave the same, and since you `inputs` frequently and `reactiveVal()` rarely, the decision was to make `input` as familiar as possible.
-
-### Observers
-
-Along with reactive values and expressions, there is one more fundamental building block of reactivity: **observers**.
-An observer sets up a block of code that is run every time one of the reactive values or expressions it uses is updated:
-
-```{r}
-y <- reactiveVal(10)
-observe({
-  message("`y` is ", y())
-})
-
-y(5)
-y(4)
-```
-
-Observers differ from expressions in a couple of important ways:
-
--   They are designed to work with functions that change the world in some way, like `print()`, `plot()`, or `write.csv()`.
-    In programming terminology, changing the world is called a **side-effect**.
-    Unlike pharmaceuticals where side effects are always unintentional and usually negative, we simply mean any effects apart from a function's return value.
-
--   They are eager and forgetful --- they run as soon as possibly can and they don't remember their previous action.
-    This eagerness is "infectious" because if they use a reactive expression, that reactive expression will also be evaluated immediately.
-
-Observers are often coupled with reactive values in order to track state changes over time.
-But if you're not careful, you quickly hit a problem.
-For example, take this code which tracks how many times `x` changes:
-
-```{r, eval = FALSE}
-count <- reactiveVal(0)
-x <- reactiveVal(1)
-observe({
-  x()
-  count(count() + 1)
-})
-```
-
-If you were to run it, you'd immediately get stuck in an infinite loop because the observer will take a reactive dependency on `x` **and** `count`; and since it modifies `count`, it will immediately re-run.
-
-Fortunately, Shiny provides a function to resolve this problem: `isolate()`.
-This function allows you to access the current value of a reactive value or expression without taking a dependency on it:
-
-```{r}
-count <- reactiveVal(0)
-x <- reactiveVal(1)
-observe({
-  x()
-  isolate(count(count() + 1))
-})
-
-x(1)
-x(2)
-count()
-x(3)
-count()
-```
-
-Another way to avoid this problem is to use the `observeEvent()` function that you learned about in Section \@ref(observers).
-It decouples listening from reaction, so you could rewrite the above as:
-
-```{r, eval = FALSE}
-observeEvent(x(), {
-  count(count() + 1))
-})
-```
-
-In Chapter \@ref(reactivity-components) we'll come back to the problem of managing state over time in much more detail.
-
-### Outputs {#outputs-theory}
-
-If you've being paying close attention you might have noticed that I've explained `input`, reactive expressions, and observer, but I haven't said anything about `output`.
-How do they fit into the picture?
-For the purposes of discussion, take this simple output:
-
-```{r eval = FALSE}
-output$text <- renderText({
-  paste(up_to_x(), collapse = ", ")
-})
-```
-
-Is this an observer or a reactive expression?
-It looks like a reactive expression because we're assigning the result of `renderText()`.
-On the other hand, it feels like a observer, because it has a side-effect: updating the contents of a text box.
-It turns out that outputs are neither reactive expressions nor observers, and indeed aren't even a fundamental building block.
-In fact, they're a Shiny feature built on top of the foundations that behave somewhat in between reactive expressions and observers.
-
-Reactive expressions, observers, and outputs are all reactive consumers.
-They differ primarily in their execution model: observers are eager, reactive expressions are lazy, and outputs are somewhere in between.
-When an output's UI element is visible in the browser, outputs execute eagerly; that is, once at startup, and once anytime their relevant inputs or reactive expressions change.
-However, if the UI element is hidden then Shiny will automatically suspend (pause) that output from reactively executing[^reactivity-motivation-3].
-
-[^reactivity-motivation-3]: In rare cases, you may prefer to process even outputs that aren't hidden.
-    You can use the `outputOptions()` function's `suspendWhenHidden` to opt out of the automatic suspension feature on an output-by-output basis.
-
-Outputs also have a somewhat complicated relationship with side-effects, particularly printing and plotting because `renderPrint()` and `renderPlot()` capture printing and plotting side-effects and convert them into special values that can be sent to the browser.
-Apart from these special side-effects handled by matching render functions, outputs should be free of side-effects, as you have no guarantee of when they'll be performed.
+We'll come back to these important properties in Chapter \@ref(reactive-graph).
 
 ## A brief history of reactive programming
 
@@ -355,8 +227,7 @@ Spreadsheets are closely related to reactive programming: you declare the relati
 So the chances are that you've already done a bunch of reactive programming without knowing it!
 
 While the ideas of reactivity have been around for a long time, it wasn't until 1997 before they were seriously studied in academic computer science.
-Research in reactive programming was kicked off by FRAN [@fran], **f**unctional **r**eactive **an**imation, a novel system for incorporating changes over time and user input into a functional programming language.
-This spawned a rich literature [\@rp-survey], but had little impact on the practice of programming.
+Research in reactive programming was kicked off by FRAN [@fran], **f**unctional **r**eactive **an**imation, a novel system for incorporating changes over time and user input into a functional programming language. This spawned a rich literature [\@rp-survey], but had little impact on the practice of programming.
 
 It wasn't until the 2010s that reactive programming roared into the programming mainstream via the blisteringly fast-paced world of JavaScript UI frameworks.
 Pioneering frameworks like [Knockout](https://knockoutjs.com/), [Ember](https://emberjs.com/), and (Joe Cheng's personal inspiration) [Meteor](https://www.meteor.com) demonstrated that reactive programming could make UI programming dramatically easier.
