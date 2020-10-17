@@ -32,8 +32,8 @@ demoApp <- R6::R6Class("demoApp", public = list(
 
   run = function() {
     self$running <- !is_ci() &&
-      self$outdated() &&
-      knitr::is_html_output(excludes = "markdowon")
+      knitr::is_html_output(excludes = "markdown") &&
+      self$outdated()
     if (!self$running) {
       return()
     }
