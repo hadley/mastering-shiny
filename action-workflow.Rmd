@@ -5,7 +5,9 @@ source("common.R")
 options(tibble.print_min = 4, tibble.print_max = 4)
 ```
 
-If you're going to be writing a lot of Shiny apps (and since you're reading this book I hope you will be!), it's worth investing some time in your basic workflow. Improving workflow is a good place to invest time because it tends to pay great dividends in the long run. It doesn't just increase the proportion of your time spent writing R code, but because you see the results more quickly, it makes the process of writing Shiny apps more enjoyable, and helps your skills improve more quickly.
+If you're going to be writing a lot of Shiny apps (and since you're reading this book I hope you will be!), it's worth investing some time in your basic workflow.
+Improving workflow is a good place to invest time because it tends to pay great dividends in the long run.
+It doesn't just increase the proportion of your time spent writing R code, but because you see the results more quickly, it makes the process of writing Shiny apps more enjoyable, and helps your skills improve more quickly.
 
 The goal of this chapter is to help you improve three important Shiny workflows:
 
@@ -13,11 +15,14 @@ The goal of this chapter is to help you improve three important Shiny workflows:
 
 -   Debugging, the workflow where you figure out what's gone wrong with your code and then brainstorm solutions to fix it.
 
--   Writing reprexes, self-contained chunks of code that illustrate a problem. Reprexes are a powerful debugging technique, and they are essential if you want to get help from someone else.
+-   Writing reprexes, self-contained chunks of code that illustrate a problem.
+    Reprexes are a powerful debugging technique, and they are essential if you want to get help from someone else.
 
 ## Development workflow
 
-The goal of optimising your development workflow is to reduce the time between making a change and seeing the outcome. The faster you can iterate, the faster you can experiment, and the faster you can become a better Shiny developer. There are two main workflows to optimise here: creating an app for the first time, and speeding up the iterative cycle of tweaking code and trying out the results.
+The goal of optimising your development workflow is to reduce the time between making a change and seeing the outcome.
+The faster you can iterate, the faster you can experiment, and the faster you can become a better Shiny developer.
+There are two main workflows to optimise here: creating an app for the first time, and speeding up the iterative cycle of tweaking code and trying out the results.
 
 ### Creating the app
 
@@ -34,23 +39,27 @@ shinyApp(ui, server)
 
 You'll likely quickly get sick of typing that code in, so RStudio provides a couple of shortcuts:
 
--   If you already have your future `app.R` open, type `shinyapp` then press `Shift` + `Tab` to insert the Shiny app snippet.[^1]
+-   If you already have your future `app.R` open, type `shinyapp` then press `Shift` + `Tab` to insert the Shiny app snippet.[^action-workflow-1]
 
--   If you want to start a new project[^2], go to the File menu, select "New Project" then select "Shiny Web Aplication":
+-   If you want to start a new project[^action-workflow-2], go to the File menu, select "New Project" then select "Shiny Web Aplication":
 
     ```{r, echo = FALSE, out.width = NULL}
     knitr::include_graphics("images/action-workflow/new-project.png", dpi = 300)
     ```
 
-[^1]: Snippets are text macros that you can use to insert common code fragments. See <https://support.rstudio.com/hc/en-us/articles/204463668-Code-Snippets> for more details.
+[^action-workflow-1]: Snippets are text macros that you can use to insert common code fragments.
+    See <https://support.rstudio.com/hc/en-us/articles/204463668-Code-Snippets> for more details.
 
-[^2]: A project is a self-contained directory that is isolated from the other projects that you're working on. If you use RStudio, but don't currently use projects, I highly recommend reading about the [project oriented lifestyle](https://whattheyforgot.org/project-oriented-workflow.html).
+[^action-workflow-2]: A project is a self-contained directory that is isolated from the other projects that you're working on.
+    If you use RStudio, but don't currently use projects, I highly recommend reading about the [project oriented lifestyle](https://whattheyforgot.org/project-oriented-workflow.html).
 
 You might think it's not worthwhile to learn these shortcuts because you'll only create an app or two a day, but creating simple apps is a great way to check that you have the basic concepts down before you start on a bigger project, and they're a great tool for debugging.
 
 ### Seeing your changes
 
-You'll *create* a few apps a day, but you'll *run* apps hundreds of times, so mastering the development workflow is particularly important. The first way to reduce your iteration time is to avoid clicking on the "Run App" button, and instead learn the keyboard shortcut `Cmd/Ctrl` + `Shift` + `Enter`. This gives you the following development workflow:
+You'll *create* a few apps a day, but you'll *run* apps hundreds of times, so mastering the development workflow is particularly important.
+The first way to reduce your iteration time is to avoid clicking on the "Run App" button, and instead learn the keyboard shortcut `Cmd/Ctrl` + `Shift` + `Enter`.
+This gives you the following development workflow:
 
 1.  Write some code.
 2.  Launch the app with `Cmd/Ctrl` + `Shift` + `Enter`.
@@ -58,7 +67,9 @@ You'll *create* a few apps a day, but you'll *run* apps hundreds of times, so ma
 4.  Close the app.
 5.  Go to 1.
 
-Another way to increase your iteration speed still further is to turn autoreload on (`options(shiny.autoreload = TRUE)`) and then run the app in a background job, as described in <https://github.com/sol-eng/background-jobs/tree/master/shiny-job>. With this workflow as soon as you save a file, your app will relaunch: no need to close and restart. This leads to an even faster workflow:
+Another way to increase your iteration speed still further is to turn autoreload on (`options(shiny.autoreload = TRUE)`) and then run the app in a background job, as described in <https://github.com/sol-eng/background-jobs/tree/master/shiny-job>.
+With this workflow as soon as you save a file, your app will relaunch: no need to close and restart.
+This leads to an even faster workflow:
 
 1.  Write some code and press `Cmd/Ctrl` + `S` to save the file.
 2.  Interactively experiment.
@@ -66,39 +77,62 @@ Another way to increase your iteration speed still further is to turn autoreload
 
 The chief disadvantage of this technique is that because the app is running in a separate process, it's considerably harder to debug.
 
-As your app gets bigger and bigger, you'll find that the "interactively experiment" step starts to become onerous. It's too hard to remember to re-check every component of your app that you might have affected with your changes. Later, in Chapter \@ref(scaling-testing), you'll learn the tools of automated testing, which allows you to turn the interactive experiments you're running into automated code. This lets you run the tests more quickly (because they're automated), and means that you can't forget to run an important test. It requires some initial investment to develop the tests, but the investment pays off handsomely for large apps.
+As your app gets bigger and bigger, you'll find that the "interactively experiment" step starts to become onerous.
+It's too hard to remember to re-check every component of your app that you might have affected with your changes.
+Later, in Chapter \@ref(scaling-testing), you'll learn the tools of automated testing, which allows you to turn the interactive experiments you're running into automated code.
+This lets you run the tests more quickly (because they're automated), and means that you can't forget to run an important test.
+It requires some initial investment to develop the tests, but the investment pays off handsomely for large apps.
 
 ### Controlling the view
 
-By default, when you run the app, it will appear in a pop-out window. There are two other options that you can choose from the Run App drop down:
+By default, when you run the app, it will appear in a pop-out window.
+There are two other options that you can choose from the Run App drop down:
 
 ```{r, echo = FALSE, out.width = NULL}
 knitr::include_graphics("images/action-workflow/run-app.png", dpi = 300)
 ```
 
--   **Run in Viewer Pane** opens the app in the viewer pane (usually located on the right hand side of the IDE). It's useful for smaller apps because you can see it at the same time as you run your app code.
+-   **Run in Viewer Pane** opens the app in the viewer pane (usually located on the right hand side of the IDE).
+    It's useful for smaller apps because you can see it at the same time as you run your app code.
 
--   **Run External** opens the app in your usual web browser. It's useful for larger apps and when you want to see what your app looks like in the context that most users will experience it.
+-   **Run External** opens the app in your usual web browser.
+    It's useful for larger apps and when you want to see what your app looks like in the context that most users will experience it.
 
 ## Debugging
 
-When you start writing apps, it is almost guaranteed that something will go wrong. The cause of most bugs is a mismatch between your mental model of Shiny, and what Shiny actually does. As you read this book, your mental model will improve so that you make fewer mistakes, and when you do make one, it's easier to spot the problem. However, it takes years of experience in any language before you can reliably write code that works the first time. This means you need to develop a robust workflow for identifying and fixing mistakes. Here we'll focus on the challenges specific to Shiny apps; if you're new to debugging in R, start with Jenny Bryan's rstudio::conf(2020) keynote "[Object of type 'closure' is not subsettable](https://resources.rstudio.com/rstudio-conf-2020/object-of-type-closure-is-not-subsettable-jenny-bryan)".
+When you start writing apps, it is almost guaranteed that something will go wrong.
+The cause of most bugs is a mismatch between your mental model of Shiny, and what Shiny actually does.
+As you read this book, your mental model will improve so that you make fewer mistakes, and when you do make one, it's easier to spot the problem.
+However, it takes years of experience in any language before you can reliably write code that works the first time.
+This means you need to develop a robust workflow for identifying and fixing mistakes.
+Here we'll focus on the challenges specific to Shiny apps; if you're new to debugging in R, start with Jenny Bryan's rstudio::conf(2020) keynote "[Object of type 'closure' is not subsettable](https://resources.rstudio.com/rstudio-conf-2020/object-of-type-closure-is-not-subsettable-jenny-bryan)".
 
 There are three main cases of problems which we'll discuss below:
 
--   You get an unexpected error. This is the easiest case, because you'll get a traceback which allows you to figure out exactly where the error occurred. Once you've identified the problem, you'll need to systematically test your assumptions until you find a difference between your expectations and reality. The interactive debugger is a powerful assistant for this process.
+-   You get an unexpected error.
+    This is the easiest case, because you'll get a traceback which allows you to figure out exactly where the error occurred.
+    Once you've identified the problem, you'll need to systematically test your assumptions until you find a difference between your expectations and reality.
+    The interactive debugger is a powerful assistant for this process.
 
--   You don't get any errors, but some value is incorrect. Here, you'll need to use the interactive debugger, along with your investigative skills to track down the root cause.
+-   You don't get any errors, but some value is incorrect.
+    Here, you'll need to use the interactive debugger, along with your investigative skills to track down the root cause.
 
--   All the values are correct, but they're not updated when you expect. This is the most challenging problem because it's unique to Shiny, so you can't take advantage of your existing R debugging skills.
+-   All the values are correct, but they're not updated when you expect.
+    This is the most challenging problem because it's unique to Shiny, so you can't take advantage of your existing R debugging skills.
 
 It's frustrating when these situations arise, but you can turn them into opportunities to practice your debugging skills.
 
-We'll come back to another important technique, making a minimal reproducible example, in the next section. Creating a minimal example is crucial if you get stuck and need to get help from someone else. But creating a minimal example is also a profoundly important skill when debugging your own code. Typically you have a lot of code that works just fine, and a very small amount of code that's causing problems. If you can narrow in on the problematic code by removing the code that works, you'll be able to iterate on a solution much more quickly. This is a technique that I use every day.
+We'll come back to another important technique, making a minimal reproducible example, in the next section.
+Creating a minimal example is crucial if you get stuck and need to get help from someone else.
+But creating a minimal example is also a profoundly important skill when debugging your own code.
+Typically you have a lot of code that works just fine, and a very small amount of code that's causing problems.
+If you can narrow in on the problematic code by removing the code that works, you'll be able to iterate on a solution much more quickly.
+This is a technique that I use every day.
 
 ### Reading tracebacks
 
-Every error is accompanied by a traceback, or call stack, which literally traces back through the sequence of calls that lead to the error. For example, take this simple sequence of calls: `f()` calls `g()` calls `h()` which calls the multiplication operator:
+Every error is accompanied by a traceback, or call stack, which literally traces back through the sequence of calls that lead to the error.
+For example, take this simple sequence of calls: `f()` calls `g()` calls `h()` which calls the multiplication operator:
 
 ```{r}
 f <- function(x) g(x)
@@ -118,7 +152,10 @@ The call stack is the sequence of calls that lead to the problem:
     2: g(x)
     3: h(x)
 
-You might already be familiar with `traceback()`. You can run this function interactively to see the sequence of calls that lead to an error, *after* the error has occured. Unfortunately, you can't use this function in Shiny because you can't interactively run code while an app is running. Instead, Shiny will automatically print the traceback for you.
+You might already be familiar with `traceback()`.
+You can run this function interactively to see the sequence of calls that lead to an error, *after* the error has occured.
+Unfortunately, you can't use this function in Shiny because you can't interactively run code while an app is running.
+Instead, Shiny will automatically print the traceback for you.
 
 For example, take this simple app that uses the `f()` function I defined above:
 
@@ -178,7 +215,8 @@ There are three basic parts to the call stack:
         3: print.shiny.appobj
         5: runApp
 
-    Here the file is `source()`d, then `print.shiny.appobj()` calls `runApp()` to start the app. In general, you can ignore anything before the first `runApp()`; this is just the setup code to get the app running.
+    Here the file is `source()`d, then `print.shiny.appobj()` calls `runApp()` to start the app.
+    In general, you can ignore anything before the first `runApp()`; this is just the setup code to get the app running.
 
 -   Next, you'll see some internal shiny code in charge of calling the reactive expression:
 
@@ -189,7 +227,8 @@ There are three basic parts to the call stack:
         129: drawPlot
         169: func
 
-    Here, spotting `output$plot` is really important --- that tells which of your reactives (`plot`) is causing the error. The next few functions are internal, and you can ignore them.
+    Here, spotting `output$plot` is really important --- that tells which of your reactives (`plot`) is causing the error.
+    The next few functions are internal, and you can ignore them.
 
 -   Finally, at the very bottom, you'll see the code that you have written:
 
@@ -197,15 +236,21 @@ There are three basic parts to the call stack:
         172: f [sample.R#3]
         173: g [sample.R#4]
 
-    This is the code called inside of `renderPlot()`. You can tell you should pay attention here because of the file path and line number; this lets you know that it's your code.
+    This is the code called inside of `renderPlot()`.
+    You can tell you should pay attention here because of the file path and line number; this lets you know that it's your code.
 
-If you get an error in your app but don't see a traceback then make sure that you're running the app using `Cmd/Ctrl` + `Shift` + `Enter` (or if not in RStudio, calling `runApp()`), and that you've saved the file that you're running it from. Other ways of running the app don't always capture the information necessary to make a traceback.
+If you get an error in your app but don't see a traceback then make sure that you're running the app using `Cmd/Ctrl` + `Shift` + `Enter` (or if not in RStudio, calling `runApp()`), and that you've saved the file that you're running it from.
+Other ways of running the app don't always capture the information necessary to make a traceback.
 
 ### The interactive debugger
 
-Once you've located the source of the error and want to figure out what's causing it, the most powerful tool you have at your disposal is the **interactive debugger**. The debugger pauses execution and gives you an interactive R console where you can run any code to figure out what's gone wrong. There are two ways to launch the debugger:
+Once you've located the source of the error and want to figure out what's causing it, the most powerful tool you have at your disposal is the **interactive debugger**.
+The debugger pauses execution and gives you an interactive R console where you can run any code to figure out what's gone wrong.
+There are two ways to launch the debugger:
 
--   Add a call to `browser()` in your source code. This is the standard R way of lauching the interactive debugger, and will work however you're running shiny. The other advantage of `browser()` is that because it's R code, you can make it conditional by combining it with an `if` statement:
+-   Add a call to `browser()` in your source code.
+    This is the standard R way of lauching the interactive debugger, and will work however you're running shiny.
+    The other advantage of `browser()` is that because it's R code, you can make it conditional by combining it with an `if` statement:
 
     ```{r, eval = FALSE}
     if (input$debug) {
@@ -213,7 +258,8 @@ Once you've located the source of the error and want to figure out what's causin
     }
     ```
 
--   Add an RStudio breakpoint by clicking to the left of the line number. You can remove the breakpoint by clicking on the red circle.
+-   Add an RStudio breakpoint by clicking to the left of the line number.
+    You can remove the breakpoint by clicking on the red circle.
 
     ```{r, echo = FALSE, out.width = NULL}
     knitr::include_graphics("images/action-workflow/breakpoint.png", dpi = 300)
@@ -221,27 +267,36 @@ Once you've located the source of the error and want to figure out what's causin
 
     The advantage of breakpoints is that they're not code, so you never have to worry about accidentally checking them into your version control system.
 
-If you're using RStudio, the toolbar in Figure \@ref(fig:debug-toolbar) will appear when you're in the debugger. The toolbar is an easy way to remember the debugging commands that are now available to you. They're also available outside of RStudio; you'll just need to remember the one letter command to activate them. The three most useful commands are:
+If you're using RStudio, the toolbar in Figure \@ref(fig:debug-toolbar) will appear when you're in the debugger.
+The toolbar is an easy way to remember the debugging commands that are now available to you.
+They're also available outside of RStudio; you'll just need to remember the one letter command to activate them.
+The three most useful commands are:
 
--   Next, `n`: executes the next step in the function. Note that if you have a variable named `n`, you'll need to use `print(n)` to display its value.
+-   Next, `n`: executes the next step in the function.
+    Note that if you have a variable named `n`, you'll need to use `print(n)` to display its value.
 
--   Continue, `c`: leaves interactive debugging and continues regular execution of the function. This is useful if you've fixed the bad state and want to check that the function proceeds correctly.
+-   Continue, `c`: leaves interactive debugging and continues regular execution of the function.
+    This is useful if you've fixed the bad state and want to check that the function proceeds correctly.
 
--   Stop, `Q`: stops debugging, terminates the function, and returns to the global workspace. Use this once you've figured out where the problem is, and you're ready to fix it and reload the code.
+-   Stop, `Q`: stops debugging, terminates the function, and returns to the global workspace.
+    Use this once you've figured out where the problem is, and you're ready to fix it and reload the code.
 
 ```{r debug-toolbar, echo = FALSE, out.width = "50%", fig.cap = "RStudio's debugging toolbar"}
 knitr::include_graphics("images/action-workflow/debug-toolbar.png")
 ```
 
-As well as stepping through the code line-by-line using these tools, you'll also run a *bunch* of interactive code to understand why you're seeing the error you see. Debugging is the process of systematically comparing your expectations to reality until you find the mismatch.
+As well as stepping through the code line-by-line using these tools, you'll also run a *bunch* of interactive code to understand why you're seeing the error you see.
+Debugging is the process of systematically comparing your expectations to reality until you find the mismatch.
 
 ### Case study
 
 > Once you eliminate the impossible, whatever remains, no matter how improbable, must be the truth --- Sherlock Holmes
 
-To demonstrate the basic debugging approach, I'll show you a little problem I encountered when writing Section \@ref(hierarchical-select). I'll first show you the basic context, then you'll see a problem I resolved without interactive debugging tools, a problem that required interactive debugging, and discover a final suprise.
+To demonstrate the basic debugging approach, I'll show you a little problem I encountered when writing Section \@ref(hierarchical-select).
+I'll first show you the basic context, then you'll see a problem I resolved without interactive debugging tools, a problem that required interactive debugging, and discover a final suprise.
 
-The initial goal is pretty simple: I have a dataset of sales, and I want to filter it by territory. Here's what the data looks like:
+The initial goal is pretty simple: I have a dataset of sales, and I want to filter it by territory.
+Here's what the data looks like:
 
 ```{r, message = FALSE}
 sales <- readr::read_csv("sales-dashboard/sales_data_sample.csv")
@@ -268,42 +323,54 @@ server <- function(input, output, session) {
 }
 ```
 
-I thought, *it's an eight line app, what could possibly go wrong?* Well, when I opened the app up I saw a **lot** of missing values, no matter what territory I selected. So stopped the app, and quickly verified that subsetting worked the way I thought it did:
+I thought, *it's an eight line app, what could possibly go wrong?* Well, when I opened the app up I saw a **lot** of missing values, no matter what territory I selected.
+So stopped the app, and quickly verified that subsetting worked the way I thought it did:
 
 ```{r}
 sales[sales$TERRITORY == "EMEA", ]
 ```
 
-Ooops! I'd forgotten that `territory` contained a bunch of missing values and `NA == NA` returns `NA`. I quickly brainstormed a few possible solutions. I could:
+Ooops!
+I'd forgotten that `territory` contained a bunch of missing values and `NA == NA` returns `NA`.
+I quickly brainstormed a few possible solutions.
+I could:
 
 -   Use `subset()` or `dplyr::filter()` which automatically drop rows where the condition evaluates to `NA`, e.g. `subset(sales, TERRITORY == "EMEA")`.
 -   Explicitly select out missing values, `sales[!is.na(sales$TERRITORY) & sales$TERRITORY == "EMEA", ]`.
 -   Use `which()` to convert the logical vector to an integer vector of `TRUE` locations, which drops `NA`s as side-effect.
 -   Use `%in%` instead `==` because`NA %in% NA` returns `TRUE`, i.e. `sales[sales$TERRITORY %in% "EMEA", ]`.
 
-I decided to use the first form[^3] because I think it's the most explicit, and has the pleasant side-effect of reducing the duplication in my code. I then double-checked that this had the result I expected:
+I decided to use the first form[^action-workflow-3] because I think it's the most explicit, and has the pleasant side-effect of reducing the duplication in my code.
+I then double-checked that this had the result I expected:
 
-[^3]: I'm using `subset()` so that my app doesn't require any other packages. In a bigger app, I'd probably prefer `dplyr::filter()` just because I'm a little more familiar with its behaviour.
+[^action-workflow-3]: I'm using `subset()` so that my app doesn't require any other packages.
+    In a bigger app, I'd probably prefer `dplyr::filter()` just because I'm a little more familiar with its behaviour.
 
 ```{r}
 subset(sales, TERRITORY == "EMEA")
 ```
 
-This fixed most of the problems, but I **still** had a problem when I selected `NA` in the territory dropdown: there were still no rows appearing. So again, I checked on the console:
+This fixed most of the problems, but I **still** had a problem when I selected `NA` in the territory dropdown: there were still no rows appearing.
+So again, I checked on the console:
 
 ```{r}
 subset(sales, TERRITORY == NA)
 ```
 
-And then I remembered, of course this won't work, because of the `NA` problem I already thought about --- I had forgotten that the `NA` might also appear on the right-hand side. Fortunately, one of the techniques that I'd already brainstormed came to the rescue:
+And then I remembered, of course this won't work, because of the `NA` problem I already thought about --- I had forgotten that the `NA` might also appear on the right-hand side.
+Fortunately, one of the techniques that I'd already brainstormed came to the rescue:
 
 ```{r}
 subset(sales, TERRITORY %in% NA)
 ```
 
-So I updated the app and tried again. It still didn't work! When I selected "NA" in the drop down, I didn't see any rows.
+So I updated the app and tried again.
+It still didn't work!
+When I selected "NA" in the drop down, I didn't see any rows.
 
-At this point, I figured I'd done everything I could on the console, and I needed to perform an experiment to figure out why the code inside of Shiny was behaving differently to my expectations. I guessed that the most likely source of the problem would be in the `selected` reactive, so I added a `browser()` statement there. (This made it a two-line reactive, so I also needed to wrap it in `{}`.)
+At this point, I figured I'd done everything I could on the console, and I needed to perform an experiment to figure out why the code inside of Shiny was behaving differently to my expectations.
+I guessed that the most likely source of the problem would be in the `selected` reactive, so I added a `browser()` statement there.
+(This made it a two-line reactive, so I also needed to wrap it in `{}`.)
 
 ```{r}
 server <- function(input, output, session) {
@@ -315,18 +382,27 @@ server <- function(input, output, session) {
 }
 ```
 
-Now when my app ran, I was immediately dumped into an interactive console. Luckily the default value in the select input was `NA` so I could immediately dive in to the problem. If that wasn't the case, I would have used `c` to continue execution, and then interacted with the app to get it into the state I needed.
+Now when my app ran, I was immediately dumped into an interactive console.
+Luckily the default value in the select input was `NA` so I could immediately dive in to the problem.
+If that wasn't the case, I would have used `c` to continue execution, and then interacted with the app to get it into the state I needed.
 
-Then, to check I'd put the `browser()` in the right place, I ran `subset(sales, TERRITORY %in% input$territory)`. Indeed, it returned an empty data frame, so I could proceed to the next step.
+Then, to check I'd put the `browser()` in the right place, I ran `subset(sales, TERRITORY %in% input$territory)`.
+Indeed, it returned an empty data frame, so I could proceed to the next step.
 
-I then checked that the `sales` dataset looked like I expected. I didn't really expect it to be corrupted, since nothing in the app touches it, but best to be certain before continuing. `sales` looked ok, so it must be something to do with the selection condition. So I then looked at `input$territory`:
+I then checked that the `sales` dataset looked like I expected.
+I didn't really expect it to be corrupted, since nothing in the app touches it, but best to be certain before continuing.
+`sales` looked ok, so it must be something to do with the selection condition.
+So I then looked at `input$territory`:
 
 ```{r, eval = FALSE}
 input$territory
 #> [1] "NA"
 ```
 
-I stared at this for a while, because it also looked ok. Then it occurred to me! I was expecting it to be `NA`, but it's actually `"NA"`! Now I could recreate the problem outside of the Shiny app:
+I stared at this for a while, because it also looked ok.
+Then it occurred to me!
+I was expecting it to be `NA`, but it's actually `"NA"`!
+Now I could recreate the problem outside of the Shiny app:
 
 ```{r}
 subset(sales, TERRITORY %in% "NA")
@@ -347,9 +423,15 @@ server <- function(input, output, session) {
 }
 ```
 
-Hooray! The problem was fixed! But this felt pretty surprising to me --- Shiny had silently converted an `NA` to an `"NA"`, so I also filed a bug report: <https://github.com/rstudio/shiny/issues/2884>.
+Hooray!
+The problem was fixed!
+But this felt pretty surprising to me --- Shiny had silently converted an `NA` to an `"NA"`, so I also filed a bug report: <https://github.com/rstudio/shiny/issues/2884>.
 
-Several weeks later, I looked at this example again, and started thinking about the different territories. We have Europe, Middle-East, and Africa (EMEA) and Asia-Pacific (APAC). Where was North America? Then it dawned on me: the source data probably used the abbreviation NA, and R was reading it in as a missing value. So the real fix should happen during the data loading:
+Several weeks later, I looked at this example again, and started thinking about the different territories.
+We have Europe, Middle-East, and Africa (EMEA) and Asia-Pacific (APAC).
+Where was North America?
+Then it dawned on me: the source data probably used the abbreviation NA, and R was reading it in as a missing value.
+So the real fix should happen during the data loading:
 
 ```{r, message = FALSE}
 sales <- readr::read_csv("sales-dashboard/sales_data_sample.csv", na = "")
@@ -360,14 +442,19 @@ I think this is a pretty common pattern when it comes to debugging: you often ne
 
 ### Debugging reactivity
 
-The hardest type of problem to debug is when your reactives fire in an unexpected order. At this point in the book, we have relatively few tools to recommend to help you debug this issue. In the next section, you'll learn how to create a minimal reprex which is crucial for this type of problem, and later in the book, you'll learn more about the underlying theory, and about tools like the reactive log, <https://github.com/rstudio/reactlog>. But for now, we'll focus on a classic technique that's useful here: "print" debugging.
+The hardest type of problem to debug is when your reactives fire in an unexpected order.
+At this point in the book, we have relatively few tools to recommend to help you debug this issue.
+In the next section, you'll learn how to create a minimal reprex which is crucial for this type of problem, and later in the book, you'll learn more about the underlying theory, and about tools like the reactive log, <https://github.com/rstudio/reactlog>.
+But for now, we'll focus on a classic technique that's useful here: "print" debugging.
 
-The basic idea of print debugging is to call `print()` whenever you need to understand when a part of your code is evaluated, and to show the values of important variables. We call this "print" debugging (because in most languages you'd use a print function), but In R it makes more sense to use `message()` :
+The basic idea of print debugging is to call `print()` whenever you need to understand when a part of your code is evaluated, and to show the values of important variables.
+We call this "print" debugging (because in most languages you'd use a print function), but In R it makes more sense to use `message()` :
 
 -   `print()` is designed for displaying vectors of data so it puts quotes around strings and starts the first line with `[1]`.
 -   `message()` sends its result to "standard error", rather than "standard output". These are technical terms describing output streams, which you don't normally notice because they're both displayed in the same way when running interactively. But if your app is hosted elsewhere, then output sent to "standard error" will be recorded in the logs.
 
-I also recommend coupling `message()` with `glue::glue()`, which makes it easy to interleave text and values in a message. If you haven't seen [glue](http://glue.tidyverse.org/ "⌘+Click to follow link") before, the basic idea is that anything wrapped inside `{}` will be evaluated and inserted into the output:
+I also recommend coupling `message()` with `glue::glue()`, which makes it easy to interleave text and values in a message.
+If you haven't seen [glue](http://glue.tidyverse.org/ "⌘+Click to follow link") before, the basic idea is that anything wrapped inside `{}` will be evaluated and inserted into the output:
 
 ```{r}
 library(glue)
@@ -375,9 +462,11 @@ name <- "Hadley"
 message(glue("Hello {name}"))
 ```
 
-A final useful tool is `str()`, which prints the detailed structure of any object. This is particularly useful if you need to double check you have the type of object that you expect.
+A final useful tool is `str()`, which prints the detailed structure of any object.
+This is particularly useful if you need to double check you have the type of object that you expect.
 
-Here's a toy app that shows off some of the basic ideas. Note how I use `message()` inside a `reactive()`: I have to perform the computation, send the message, and then return the previously computed value.
+Here's a toy app that shows off some of the basic ideas.
+Note how I use `message()` inside a `reactive()`: I have to perform the computation, send the message, and then return the previously computed value.
 
 ```{r}
 ui <- fluidPage(
@@ -406,15 +495,21 @@ server <- function(input, output, session) {
 
 ## Getting help
 
-If you're still stuck after trying these techniques, it's probably time to ask someone else. A great place to get help is the [Shiny community site](https://community.rstudio.com/c/shiny). This site is read by many Shiny users, as well as the developers of the Shiny package itself. It's also a great place to visit if you want to improve your Shiny skills by helping others.
+If you're still stuck after trying these techniques, it's probably time to ask someone else.
+A great place to get help is the [Shiny community site](https://community.rstudio.com/c/shiny).
+This site is read by many Shiny users, as well as the developers of the Shiny package itself.
+It's also a great place to visit if you want to improve your Shiny skills by helping others.
 
-To get the most useful help as quickly as possible, you need to create a reprex, or **repr**oducible **ex**ample. The goal of a reprex is to provide the smallest possible snippet of R code that illustrates the problem and can easily be run on another computer. It's common courtesy (and in your own best interest) to create a reprex: if you want someone to help you, you should make it as easy as possible for them!
+To get the most useful help as quickly as possible, you need to create a reprex, or **repr**oducible **ex**ample.
+The goal of a reprex is to provide the smallest possible snippet of R code that illustrates the problem and can easily be run on another computer.
+It's common courtesy (and in your own best interest) to create a reprex: if you want someone to help you, you should make it as easy as possible for them!
 
 Making a reprex is polite because it captures the essential elements of the problem into a form that anyone else can run so that whoever attempts to help you can quickly see exactly what the problem is, and can easily experiment with possible solutions.
 
 ### Reprex basics
 
-A reprex is just some R code that works when you copy and paste it into a R session on another computer. Here's a simple Shiny app reprex:
+A reprex is just some R code that works when you copy and paste it into a R session on another computer.
+Here's a simple Shiny app reprex:
 
 ```{r, eval = FALSE}
 library(shiny)
@@ -433,15 +528,20 @@ shinyApp(ui, server)
 
 This code doesn't make any assumptions about the computer on which it's running (except that Shiny is installed!) so anyone can run this code and see the problem: the app throws an error saying "non-numeric argument to binary operator".
 
-Clearly illustrating the problem is the first step to getting help, and because anyone can reproduce the problem by just copying and pasting the code, they can easily explore your code and test possible solutions. (In this case, you need `as.numeric(input$n)` since `selectInput()` creates a string in `input$n`.)
+Clearly illustrating the problem is the first step to getting help, and because anyone can reproduce the problem by just copying and pasting the code, they can easily explore your code and test possible solutions.
+(In this case, you need `as.numeric(input$n)` since `selectInput()` creates a string in `input$n`.)
 
 ### Making a reprex
 
-The first step in making a reprex is to create a single self-contained file that contains everything needed to run your code. You should check it works by starting a fresh R session and then running the code. Make sure you haven't forgotten to load any packages[^4] that make your app work.
+The first step in making a reprex is to create a single self-contained file that contains everything needed to run your code.
+You should check it works by starting a fresh R session and then running the code.
+Make sure you haven't forgotten to load any packages[^action-workflow-4] that make your app work.
 
-[^4]: Regardless of how you normally load packages, I strongly recommend using multiple `library()` calls. This eliminates a source of potential confusion for people who might not be familiar with the tool that you're using.
+[^action-workflow-4]: Regardless of how you normally load packages, I strongly recommend using multiple `library()` calls.
+    This eliminates a source of potential confusion for people who might not be familiar with the tool that you're using.
 
-Typically, the most challenging part of making your app work on someone else's computer is eliminating the use of data that's only stored on your computer. There are three useful patterns:
+Typically, the most challenging part of making your app work on someone else's computer is eliminating the use of data that's only stored on your computer.
+There are three useful patterns:
 
 -   Often the data you're using is not directly related to the problem, and you can instead use a built-in data set like `mtcars` or `iris`.
 
@@ -451,7 +551,8 @@ Typically, the most challenging part of making your app work on someone else's c
     mydata <- data.frame(x = 1:5, y = c("a", "b", "c", "d", "e"))
     ```
 
--   If both of those techniques fail, you can turn your data into code with `dput()`. For example, `dput(mydata)` generates the code that will recreate `mydata`:
+-   If both of those techniques fail, you can turn your data into code with `dput()`.
+    For example, `dput(mydata)` generates the code that will recreate `mydata`:
 
     ```{r}
     dput(mydata)
@@ -465,37 +566,51 @@ Typically, the most challenging part of making your app work on someone else's c
     -5L))
     ```
 
-    Often, running `dput()` on your original data will generate a huge amount of code, so find a subset of your data that illustrates the problem. The smaller the dataset that you supply, the easier it will be for others to help you with your problem.
+    Often, running `dput()` on your original data will generate a huge amount of code, so find a subset of your data that illustrates the problem.
+    The smaller the dataset that you supply, the easier it will be for others to help you with your problem.
 
-If reading data from disk seems to be an irreducible part of the problem, a strategy of last resort is to provide a complete project containing both an `app.R` and the needed data files. The best way to provide this is as a RStudio project hosted on GitHub, but failing that, you can carefully make a zip file that can be run locally. Make sure that you use relative paths (i.e. `read.csv("my-data.csv"`) not `read.csv("c:\\my-user-name\\files\\my-data.csv")`) so that your code still works when run on a different computer.
+If reading data from disk seems to be an irreducible part of the problem, a strategy of last resort is to provide a complete project containing both an `app.R` and the needed data files.
+The best way to provide this is as a RStudio project hosted on GitHub, but failing that, you can carefully make a zip file that can be run locally.
+Make sure that you use relative paths (i.e. `read.csv("my-data.csv"`) not `read.csv("c:\\my-user-name\\files\\my-data.csv")`) so that your code still works when run on a different computer.
 
 ### Making a minimal reprex
 
-Creating a reproducible example is a great first step because it allows someone else to precisely recreate your problem. However, often the problematic code will often be buried amongst code that works just fine, so you can make the life of a helper much easier by trimming out the code that's ok.
+Creating a reproducible example is a great first step because it allows someone else to precisely recreate your problem.
+However, often the problematic code will often be buried amongst code that works just fine, so you can make the life of a helper much easier by trimming out the code that's ok.
 
-Creating the smallest possible reprex is particularly important for Shiny apps, which are often complicated. You will get faster, higher quality help, if you can extract out the exact piece of the app that you're struggling with, rather than forcing a potential helper to understand your entire app. As an added benefit, this process will often lead you to discover what the problem is, so you don't have to wait for help from someone else!
+Creating the smallest possible reprex is particularly important for Shiny apps, which are often complicated.
+You will get faster, higher quality help, if you can extract out the exact piece of the app that you're struggling with, rather than forcing a potential helper to understand your entire app.
+As an added benefit, this process will often lead you to discover what the problem is, so you don't have to wait for help from someone else!
 
-Reducing a bunch of code to the essential problem is a skill, and you probably won't be very good at it at first. That's ok! Even the smallest reduction in code complexity helps the person helping you, and over time your reprex shrinking skills will improve.
+Reducing a bunch of code to the essential problem is a skill, and you probably won't be very good at it at first.
+That's ok!
+Even the smallest reduction in code complexity helps the person helping you, and over time your reprex shrinking skills will improve.
 
-If you don't know what part of your code is triggering the problem, a good way to find it is to remove sections of code from your application, piece by piece, until the problem goes away. If removing a particular piece of code makes the problem stop, it's likely that that code is related to the problem. Alternatively, sometimes it's simpler to start with a fresh, empty, app and progressively build it up until you find the problem once more.
+If you don't know what part of your code is triggering the problem, a good way to find it is to remove sections of code from your application, piece by piece, until the problem goes away.
+If removing a particular piece of code makes the problem stop, it's likely that that code is related to the problem.
+Alternatively, sometimes it's simpler to start with a fresh, empty, app and progressively build it up until you find the problem once more.
 
 Once you've simplified your app to demonstrate the problem, it's worthwhile to take a final pass through and check:
 
 -   Is every input and output in `UI` related to the problem?
 
--   Does your app have a complex layout that you can simplify to help focus on the problem at hand? Have you removed all UI customisation that makes your app look good, but isn't related to the problem?
+-   Does your app have a complex layout that you can simplify to help focus on the problem at hand?
+    Have you removed all UI customisation that makes your app look good, but isn't related to the problem?
 
 -   Are there any reactives in `server()` that you can now remove?
 
 -   If you've tried multiple ways to solve the problem, have you removed all the vestiges of the attempts that didn't work?
 
--   Is every package that you load needed to illustrate the problem? Can you eliminate packages by replacing functions with dummy code?
+-   Is every package that you load needed to illustrate the problem?
+    Can you eliminate packages by replacing functions with dummy code?
 
 This can be a lot of work, but the pay off is big: often you'll discover the solution while you make the reprex, and if not, it's much much easier to get help.
 
 ### Case study
 
-To illustrate the process of making a top-notch reprex I'm going to use an example from [Scott Novogoratz](https://community.rstudio.com/u/sanovogo) posted on [RStudio community](https://community.rstudio.com/t/37982). The initial code was very close to being a reprex, but wasn't quite reproducible because it forgot to load a pair of packages. As a starting point, I:
+To illustrate the process of making a top-notch reprex I'm going to use an example from [Scott Novogoratz](https://community.rstudio.com/u/sanovogo) posted on [RStudio community](https://community.rstudio.com/t/37982).
+The initial code was very close to being a reprex, but wasn't quite reproducible because it forgot to load a pair of packages.
+As a starting point, I:
 
 -   Added missing `library(lubridate)` and `library(xts)`.
 -   Split apart `ui` and `server` into separate objects.
@@ -551,13 +666,20 @@ server <- function(input, output, session) {
 shinyApp(ui, server)
 ```
 
-If you run this reprex, you'll see the same problem in the initial post: an error stating "Type mismatch for min, max, and value. Each must be Date, POSIXt, or number". This is a solid reprex: I can easily run it on my computer, and it immediately illustrates the problem. However, it's a bit long, so it's not clear what's causing the problem.
+If you run this reprex, you'll see the same problem in the initial post: an error stating "Type mismatch for min, max, and value. Each must be Date, POSIXt, or number".
+This is a solid reprex: I can easily run it on my computer, and it immediately illustrates the problem.
+However, it's a bit long, so it's not clear what's causing the problem.
 
-To make this reprex simpler we can carefully work through each line of code and see if it's important. While doing this, I discovered:
+To make this reprex simpler we can carefully work through each line of code and see if it's important.
+While doing this, I discovered:
 
--   Removing the two lines starting with `print()` didn't affect the error. Those two lines used `lubridate::is.POSIXt()`, which was the only use of lubridate, so once I removed them, I no longer needed to load lubridate.
+-   Removing the two lines starting with `print()` didn't affect the error.
+    Those two lines used `lubridate::is.POSIXt()`, which was the only use of lubridate, so once I removed them, I no longer needed to load lubridate.
 
--   `df` is a data frame that's converted to an xts data frame called `timeSeries`. But the only way `timeSeries` is used is via `time(timeSeries)` which returns a date-time. So I created a new variable `datetime` that contained some dummy date-time data. This still yielded the same error, so I removed `timeSeres` and `df`, and since that was the only place xts was used, I also removed `library(xts)`
+-   `df` is a data frame that's converted to an xts data frame called `timeSeries`.
+    But the only way `timeSeries` is used is via `time(timeSeries)` which returns a date-time.
+    So I created a new variable `datetime` that contained some dummy date-time data.
+    This still yielded the same error, so I removed `timeSeres` and `df`, and since that was the only place xts was used, I also removed `library(xts)`
 
 Together, those changes yielded a new `server()` that looked like this:
 
@@ -584,7 +706,8 @@ server <- function(input, output, session) {
 }
 ```
 
-Next, I noticed that this example uses a relatively sophisticated Shiny technique where the UI is generated in the server function. But here `renderUI()` doesn't use any reactive inputs, so it should work the same way if moved out of the server function and into the UI.
+Next, I noticed that this example uses a relatively sophisticated Shiny technique where the UI is generated in the server function.
+But here `renderUI()` doesn't use any reactive inputs, so it should work the same way if moved out of the server function and into the UI.
 
 This yielded a particularly nice result, because now the error occurs much earlier, before we even start the app:
 
@@ -608,7 +731,8 @@ max(datetime)
 c(min, max)
 ```
 
-Now the problem is obvious: we haven't assigned `min` and `max` variables, so we're accidentally passing the `min()` and `max()` functions into `sliderInput()`. One way to solve that problem is to use `range()` instead:
+Now the problem is obvious: we haven't assigned `min` and `max` variables, so we're accidentally passing the `min()` and `max()` functions into `sliderInput()`.
+One way to solve that problem is to use `range()` instead:
 
 ```{r}
 ui <- fluidPage(
@@ -622,11 +746,15 @@ ui <- fluidPage(
 )
 ```
 
-This is fairly typical outcome from creating a reprex: once you've simplified the problem to its key components, the solution becomes obvious. Creating a good reprex is an incredibly powerful debugging technique.
+This is fairly typical outcome from creating a reprex: once you've simplified the problem to its key components, the solution becomes obvious.
+Creating a good reprex is an incredibly powerful debugging technique.
 
-To simplify this reprex, I had to do a bunch of experimenting and reading up on functions that I wasn't very familiar with[^5]. This is typically much easier if it's your own code, because you already understand what all the parts do. Still, you'll often need to do a bunch of experimentation to figure out where exactly the problem is coming from. That can be frustrating and feel time consuming, but it has a number of benefits:
+To simplify this reprex, I had to do a bunch of experimenting and reading up on functions that I wasn't very familiar with[^action-workflow-5].
+This is typically much easier if it's your own code, because you already understand what all the parts do.
+Still, you'll often need to do a bunch of experimentation to figure out where exactly the problem is coming from.
+That can be frustrating and feel time consuming, but it has a number of benefits:
 
-[^5]: For example, I had no idea that `is.POSIXt()` was part of the lubridate package!
+[^action-workflow-5]: For example, I had no idea that `is.POSIXt()` was part of the lubridate package!
 
 -   It enables you to create a description of the problem that is accessible to anyone who knows Shiny, not anyone who knows Shiny **and** the particular domain that you're working in.
 
@@ -634,4 +762,5 @@ To simplify this reprex, I had to do a bunch of experimenting and reading up on 
 
 -   Over time, you'll get faster and faster at creating reprexes, and this will become one of your go to techniques when debugging.
 
-When I try to help someone with their app on [RStudio community](https://community.rstudio.com/tag/shiny), creating a reprex is always the first thing I do. This isn't some make work exericse I use to fob off people I don't want to help: it's exactly where I start!
+When I try to help someone with their app on [RStudio community](https://community.rstudio.com/tag/shiny), creating a reprex is always the first thing I do.
+This isn't some make work exericse I use to fob off people I don't want to help: it's exactly where I start!
