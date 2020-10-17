@@ -453,7 +453,6 @@ server <- function(input, output, session) {
     </p>"))
   })
 }
-shinyApp(ui, server)
 ```
 
 `renderImage()` needs to return a list.

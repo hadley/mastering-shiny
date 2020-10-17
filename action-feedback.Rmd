@@ -234,7 +234,9 @@ The following code shows a simple example where we don't want to log or square-r
 ```{r}
 ui <- fluidPage(
   numericInput("x", "x", value = 0),
-  selectInput("trans", "transformation", choices = c("square", "log", "square-root")),
+  selectInput("trans", "transformation", 
+    choices = c("square", "log", "square-root")
+  ),
   textOutput("out")
 )
 

@@ -300,7 +300,10 @@ Here's what the data looks like:
 
 ```{r, message = FALSE}
 sales <- readr::read_csv("sales-dashboard/sales_data_sample.csv")
-sales <- sales[c("TERRITORY", "ORDERDATE", "ORDERNUMBER", "PRODUCTCODE", "QUANTITYORDERED", "PRICEEACH")]
+sales <- sales[c(
+  "TERRITORY", "ORDERDATE", "ORDERNUMBER", "PRODUCTCODE",
+  "QUANTITYORDERED", "PRICEEACH"
+)]
 sales
 ```
 
@@ -642,7 +645,9 @@ server <- function(input, output, session) {
     var3 = c(2, 11, 9, 7, 14, 1)
   )
 
-  timeSeries <- as.xts(df[, 2:4], order.by = strptime(df[, 1], format = "%Y-%m-%d %H:%M:%S"))
+  timeSeries <- as.xts(df[, 2:4], 
+    order.by = strptime(df[, 1], format = "%Y-%m-%d %H:%M:%S")
+  )
   print(paste(min(time(timeSeries)), is.POSIXt(min(time(timeSeries))), sep = " "))
   print(paste(max(time(timeSeries)), is.POSIXt(max(time(timeSeries))), sep = " "))
 
@@ -764,3 +769,4 @@ That can be frustrating and feel time consuming, but it has a number of benefits
 
 When I try to help someone with their app on [RStudio community](https://community.rstudio.com/tag/shiny), creating a reprex is always the first thing I do.
 This isn't some make work exericse I use to fob off people I don't want to help: it's exactly where I start!
+

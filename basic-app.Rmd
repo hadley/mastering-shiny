@@ -174,7 +174,7 @@ Each `render*` function is designed to work with a particular type of output tha
 
 Run the app again and play around, watching what happens to the output when you change an input. Figure \@ref(fig:basic-server) shows what you'll see when you open the app.
 
-```{r basic-server, echo = FALSE, out.width = NULL, fig.cap = "Now that we've provided a server function that connects outputs and inputs, we have a fully functional app", message = FALSE}
+```{r basic-server, echo = FALSE, out.width = "75%", fig.cap = "Now that we've provided a server function that connects outputs and inputs, we have a fully functional app", message = FALSE}
 demo <- demoApp$new("basic-app/server", ui, server)
 demo$takeScreenshot()
 ```

@@ -210,7 +210,12 @@ ui <- fluidPage(
 server <- function(input, output, session) {
   observeEvent(input$var, {
     rng <- range(mtcars[[input$var]])
-    updateSliderInput(session, "min", value = rng[[1]], min = rng[[1]], max = rng[[2]])
+    updateSliderInput(
+      session, "min", 
+      value = rng[[1]], 
+      min = rng[[1]], 
+      max = rng[[2]]
+    )
   })
   
   output$data <- renderTable({

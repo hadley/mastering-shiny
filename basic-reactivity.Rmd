@@ -763,7 +763,7 @@ server <- function(input, output, session) {
 }
 ```
 
-```{r sim-button, echo = FALSE, out.width = NULL, fig.cap = "App with action button.", message = FALSE}
+```{r sim-button, echo = FALSE, out.width = "100%", fig.cap = "App with action button.", message = FALSE}
 demo <- demoApp$new("basic-reactivity/action-button", ui, server, packages = "ggplot2")
 demo$resize(800)
 demo$takeScreenshot()

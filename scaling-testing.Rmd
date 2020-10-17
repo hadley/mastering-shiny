@@ -218,7 +218,7 @@ sliderInput01 <- function(id) {
   sliderInput(id, label = id, min = 0, max = 1, value = 0.5, step = 0.1)
 }
 
-as.character(sliderInput01("x"))
+cat(as.character(sliderInput01("x")))
 ```
 
 How would we test that this output is as we expect?

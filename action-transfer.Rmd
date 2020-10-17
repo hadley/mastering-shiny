@@ -228,7 +228,11 @@ server <- function(input, output, session) {
     content = function(file) {
       params <- list(n = input$n)
       
-      id <- showNotification("Rendering report...", duration = NULL, closeButton = FALSE)
+      id <- showNotification(
+        "Rendering report...", 
+        duration = NULL, 
+        closeButton = FALSE
+      )
       on.exit(removeNotification(id), add = TRUE)
 
       rmarkdown::render("report.Rmd", 
@@ -355,7 +359,7 @@ ui <- fluidPage(
   ui_download
 )
 ```
-```{r, echo = FALSE, out.width = NULL, message = FALSE}
+```{r, echo = FALSE, out.width = "75%", message = FALSE}
 demo <- demoApp$new("action-transfer/case-study", ui)
 demo$resize(800)
 demo$takeScreenshot()
