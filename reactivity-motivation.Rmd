@@ -24,9 +24,9 @@ In this part of the book, you'll dive into the theory of reactivity:
 
 -   In Chapter \@ref(reactive-graph), you'll learn exactly how and when reactive components are updated.
 
--   Chapter \@ref(reactivity-scoping) goes into the details of object lifetimes including how you can share data across users, and how and why you might create an app within a function.
+-   In Chapter \@ref(reactivity-objects), you'll learn more details of the underlying building blocks, particularly observers and outputs.
 
--   In Chapter \@ref(reactivity-components), , and how you can compose them to solve new problems.
+-   In Chapter \@ref(reactivity-components), you'll learn how to escape the constraints of the reactive graph using `reactiveVal()` and `observer()`.
 
 You certainly don't need to understand the details of the theory for routine development of Shiny apps.
 But understanding what's going on will help you create more complex apps and give you greater powers to extract out repeated patterns into reusable functions.

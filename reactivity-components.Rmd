@@ -111,7 +111,7 @@ server <- function(input, output, session) {
 ```
 
 It's worth taking a moment to draw the reactive graph for this app, as in Figure \@ref(fig:button-graph).
-As discussed in Section \@ref(invalidating-reactive-inputs), the graph is very simple because the reactive graph does not include the connection from the observers back to the reactive value `n`.
+Again, this graph is very simple because the reactive graph does not include the connection from the observers back to the reactive value `n`.
 In fact, ignoring the names of the inputs and output, this graph is the same as the first app.
 
 ```{r button-graph, echo = FALSE, out.width = NULL, fig.cap = "The reactive graph does not capture connections from observers to input values"}

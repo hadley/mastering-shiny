@@ -103,7 +103,6 @@ By default, outputs will reset to their initial blank state, but if you use `req
 
 ## Observers
 
-Along with reactive values and expressions, there is one more fundamental building block of reactivity: **observers**.
 An observer sets up a block of code that is run every time one of the reactive values or expressions it uses is updated:
 
 ```{r}
@@ -124,6 +123,8 @@ Observers differ from expressions in a couple of important ways:
 
 -   They are eager and forgetful --- they run as soon as possibly can and they don't remember their previous action.
     This eagerness is "infectious" because if they use a reactive expression, that reactive expression will also be evaluated immediately.
+
+### Isolate
 
 Observers are often coupled with reactive values in order to track state changes over time.
 But if you're not careful, you quickly hit a problem.
@@ -204,7 +205,35 @@ observe({
 })
 ```
 
-### Nested observers and outputs
+### Outputs
+
+If you've being paying close attention you might have noticed that I've explained `input`, reactive expressions, and observer, but I haven't said anything about `output`.
+How do they fit into the picture?
+For the purposes of discussion, take this simple output:
+
+```{r eval = FALSE}
+output$text <- renderText({
+  paste(up_to_x(), collapse = ", ")
+})
+```
+
+Is this an observer or a reactive expression?
+It looks like a reactive expression because we're assigning the result of `renderText()`.
+On the other hand, it feels like a observer, because it has a side-effect: updating the contents of a text box.
+It turns out that outputs are neither reactive expressions nor observers, and indeed aren't even a fundamental building block.
+In fact, they're a Shiny feature built on top of observers, that have some of the features of a reactive expression.
+
+While observers are eager and reactive expressions are lazy, and outputs are somewhere in between.
+When an output's UI element is visible in the browser, outputs execute eagerly; that is, once at startup, and once anytime their relevant inputs or reactive expressions change.
+However, if the UI element is hidden then Shiny will automatically suspend (pause) that output from reactively executing[^reactivity-objects-2].
+
+[^reactivity-objects-2]: In rare cases, you may prefer to process even outputs that aren't hidden.
+    You can use the `outputOptions()` function's `suspendWhenHidden` to opt out of the automatic suspension feature on an output-by-output basis.
+
+Outputs also have a somewhat complicated relationship with side-effects, particularly printing and plotting because `renderPrint()` and `renderPlot()` capture printing and plotting side-effects and convert them into special values that can be sent to the browser.
+Apart from these special side-effects handled by matching render functions, outputs should be free of side-effects, as you have no guarantee of when they'll be performed.
+
+### Nesting
 
 It's important to think of `observer()` and the render functions not as doing something, but creating something (which then takes action as needed).
 In other words, you might want to think of `observe()` as `newObserver()` and (e.g.) `renderText()` as `newTextRenderer()`.
@@ -230,6 +259,8 @@ observe({
 })
 ```
 
+Now outputs are only created on assignment, so this doesn't keep creating new observers, but it will create and delete outputs multiple times, which decreases performance for no gain.
+
 As a general rule, you should only ever create observers or outputs at the top-level of your server function.
 If you find yourself needing to nest them, sit down and sketch out the reactive graph that you're trying to create.
 In this example, we do the computation in a `reactive()` and then use it in `renderPlot()`:
@@ -242,32 +273,3 @@ output$plot <- renderPlot(plot(df()))
 If you make this mistake in a more complex app, you'll notice that the performance of your app steadily degrades as it duplicates observers or outputs again and again.
 Or since memory will be steadily sucked up, you might notice that your app runs out of memory after a few hours.
 In either case, the easiest way to to find the problem is to use the reactlog: just look for the number of observers or outputs growing a lot, then track back to what is creating them.
-
-### Outputs
-
-If you've being paying close attention you might have noticed that I've explained `input`, reactive expressions, and observer, but I haven't said anything about `output`.
-How do they fit into the picture?
-For the purposes of discussion, take this simple output:
-
-```{r eval = FALSE}
-output$text <- renderText({
-  paste(up_to_x(), collapse = ", ")
-})
-```
-
-Is this an observer or a reactive expression?
-It looks like a reactive expression because we're assigning the result of `renderText()`.
-On the other hand, it feels like a observer, because it has a side-effect: updating the contents of a text box.
-It turns out that outputs are neither reactive expressions nor observers, and indeed aren't even a fundamental building block.
-In fact, they're a Shiny feature built on top of the foundations that behave somewhat in between reactive expressions and observers.
-
-Reactive expressions, observers, and outputs are all reactive consumers.
-They differ primarily in their execution model: observers are eager, reactive expressions are lazy, and outputs are somewhere in between.
-When an output's UI element is visible in the browser, outputs execute eagerly; that is, once at startup, and once anytime their relevant inputs or reactive expressions change.
-However, if the UI element is hidden then Shiny will automatically suspend (pause) that output from reactively executing[^reactivity-objects-2].
-
-[^reactivity-objects-2]: In rare cases, you may prefer to process even outputs that aren't hidden.
-    You can use the `outputOptions()` function's `suspendWhenHidden` to opt out of the automatic suspension feature on an output-by-output basis.
-
-Outputs also have a somewhat complicated relationship with side-effects, particularly printing and plotting because `renderPrint()` and `renderPlot()` capture printing and plotting side-effects and convert them into special values that can be sent to the browser.
-Apart from these special side-effects handled by matching render functions, outputs should be free of side-effects, as you have no guarantee of when they'll be performed.
