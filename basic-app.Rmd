@@ -128,7 +128,7 @@ This example uses four new functions:
   moment). `verbatimTextOutput()` displays code  and `tableOutput` displays 
   tables. You'll learn more about outputs in Section \@ref(outputs).
 
-Layout functions, inputs, and outputs have different uses, but they are fundamentally the same under the covers: they're all just fancy ways to generate HTML, and if you call any of them outside of a Shiny app, you'll see HTML printed out at the console. Don't be afraid to poke around to see how these various layouts and controls work under the hood. You'll learn more of the details in Chapter \@ref(advanced-ui).
+Layout functions, inputs, and outputs have different uses, but they are fundamentally the same under the covers: they're all just fancy ways to generate HTML, and if you call any of them outside of a Shiny app, you'll see HTML printed out at the console. Don't be afraid to poke around to see how these various layouts and controls work under the hood. 
 
 Go ahead and run the app again. You'll now see Figure \@ref(fig:basic-ui), a page containing a select box. We only see the input, not the two outputs, because we haven't yet told Shiny how the input and outputs are related.
 

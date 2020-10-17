@@ -619,4 +619,4 @@ fluidPage(
 </div>
 ```
 
-Shiny is designed so that, as an R user, you don't need to learn about the details of HTML. However, if you already know HTML (or want to learn!) you can also work directly with HTML tags to achieve any level of customization you want. And these approaches are by no means exclusive: you can mix high-level functions with low-level HTML as much as you like. We'll come back to these ideas in Chapter \@ref(advanced-ui), where you'll learn more about the lower-level features for authoring HTML directly. 
+Shiny is designed so that, as an R user, you don't need to learn about the details of HTML. However, if you already know HTML (or want to learn!) you can also work directly with HTML tags to achieve any level of customization you want. And these approaches are by no means exclusive: you can mix high-level functions with low-level HTML as much as you like.
