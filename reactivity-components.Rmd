@@ -53,7 +53,7 @@ server <- function(input, output, session) {
 }
 ```
 
-```{r graph-mutation, echo = FALSE, out.width = NULL, fig.cap = "The reactive graph does not record the connection between the unnamed observer and `input$nm`. This dependency is outside of its scope."}
+```{r graph-mutation, echo = FALSE, out.width = NULL, fig.cap = "The reactive graph does not record the connection between the unnamed observer and the `nm` input; this dependency is outside of its scope."}
 knitr::include_graphics("diagrams/reactivity-tracking/invalidate-1.png", dpi = 300)
 ```
 
