@@ -62,14 +62,11 @@ The book is divided into five parts:
 
 2.  "Shiny in action" builds on the basics to help you solve common problems including giving feedback to the user, uploading and downloading data, generating UI with code, reducing code duplication, and using Shiny to program the tidyverse.
 
-3.  "Mastering UI" dives into the details of the user interface.
-    You'll learn packages that help you create other types of UI like dashboards and RStudio gadgets, then learn the basics of HTML and CSS so you can customise Shiny to precisely meet your needs.
-
-4.  In "Mastering reactivity", you'll go deep into the theory and practice of reactive programming, the programming paradigm that underlies Shiny.
+3.  In "Mastering reactivity", you'll go deep into the theory and practice of reactive programming, the programming paradigm that underlies Shiny.
     If you're an existing Shiny user, you'll get the most value out of this chapter as it will give you a solid theoretical underpinning that will allow you to create new tools specifically tailored for your problems.
 
-5.  Finally, in "Taming Shiny" we'll finish up with a survey of useful techniques for making your Shiny apps work well in production.
-    You'll learn how to measure and improve performance, debug problems when they go wrong, and manage your app's dependencies.
+4.  Finally, in "Best practices" we'll finish up with a survey of useful techniques for making your Shiny apps work well in production.
+    You'll learn how to decompose complex apps into functions and modules, how to use packages to organise your code, how to test your code to ensure it's correct, and how to measure and improve performance.
 
 ## What won't you learn?
 
