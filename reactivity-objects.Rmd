@@ -1,8 +1,17 @@
-# Reactive objects {#reactivity-objects}
+# Reactive building blocks {#reactivity-objects}
 
 ```{r setup, include=FALSE}
 source("common.R")
 ```
+
+Now that you've learn about why reactivity is useful, this chapter will cover more of the details of the underlying objects.
+By this point, you've hopefully used these objects many times in your apps, and now its time to firm up your mental model, and discuss some of the finer details.
+
+There are three fundamental building blocks of reactive programming: reactive values, reactive expressions, and observers.
+You've already seen most of the important part of reactive values and expression, so there are only a few more details to explain here.
+So far, however, we've mostly skimmed over the details of observers (and the closely related outputs) so in this chapter we'll dive into the details.
+
+This chapter will again use the reactive console so that we can experiment with reactivity directly in the console without having to launch a Shiny app each time.
 
 ```{r}
 library(shiny)
@@ -11,51 +20,68 @@ reactiveConsole(TRUE)
 
 ## Reactive values
 
-You might wonder why it's taken so long to mention `reactiveVal()` --- we've done 20+ chapters of Shiny programming without needing it more than a handful of places.
-That's because you most often work with a special `reactiveValues()` object:
+There are two ways to create reactive values:
+
+-   You can create a single reactive value with `reactiveVal()`.
+
+-   You can create a list of reactive values with `reactiveValues()`
+
+They have a slightly different syntax for getting and setting values:
 
 ```{r}
-vals <- reactiveValues(a = 1, b = 2)
-vals$a
-vals$a <- 100
-vals$a
+x <- reactiveVal(10)
+x() # get
+x(20) # set
+
+y <- reactiveValues(a = 1, b = 2)
+y$a # get
+y$b <- 20 # set
 ```
 
-From the outside `vals` appears to be a regular list.
-But if you refer to the values inside a reactive expression, it will automatically update when the values change:
+It's unfortunate that there are two different syntaxes, but given the constraints imposed by R as a programming language, there's no way standardise them.
+Fortunately there are no major differences in their behaviour, so you can choose which syntax you prefer.
+In this book, I almost exclusively use `reactiveVal()` because I see the unusual syntax as a benefit because it makes it more clear that you're creating a reactive dependencies.
+
+From the outside, a `reactVal()` acts like a function and a `reactiveVals()` acts like a list, but behind the scenes they track their usage in reactive consumers, so you can automatically trigger behaviour when they change.
+The details of the implementation is largely out of scope for this book, but you'll get some sense of what's going on behind the scenes in Section \@ref(how-it-works).
 
 ```{r}
-sum <- reactive({
-  message("Summing")
-  vals$a + vals$b
-})
-sum()
+observeEvent(x(), cat("x is ", x(), "\n", sep = ""))
+x(100)
 
-vals$a <- 10
-sum()
+observeEvent(y$a, cat("y$a is ", y$a, "\n", sep = ""))
+y$a <- 100
 ```
 
-This might look familiar --- ever app you've written works with `input` in this way.
-That's because `input` is a special type of read-only `reactiveValues()`.
-You're not allowed to modify the values because Shiny automatically updates them based on the users action in the browser.
+The most common source of reactive values is the `input` argument supplied to your server function.
+This is a special type of `reactiveValues()` that is read-only: you're not allowed to modify the values because Shiny automatically updates them based on the users actions in the browser.
 
-It's unfortunate that you have to use different syntax to get and set the value of a standalone reactive value and a reactive value in a list.
-Unfortunately there's no easy way to make them behave the same, and since you `inputs` frequently and `reactiveVal()` rarely, the decision was to make `input` as familiar as possible.
+```{r, eval = FALSE}
+ui <- fluidPage(
+  textInput("name", "name")
+)
+server <- function(input, output, session) {
+  input$name <- "Hadley"
+}
+shinyApp(ui, server)
+#> Error: Can't modify read-only reactivevalues.
+```
 
 ## Reactive expressions
 
-### Errors
+The most important properties of a reactive expression is that it is lazy and cached --- it does as little work as possible by only doing any work if it's actually used, and if it's called twice in a row, it'll return the previous result.
 
-What happens when a reactive throws an error?
-For example, take this reactive that immediately throws an error (you'll see why capturing the current time is important in a moment):
+The main detail we haven't covered is what happens when a reactive throws an error.
+For example, take this reactive that immediately throws an error:
 
 ```{r, error = TRUE}
 r <- reactive(stop("Error occured at ", Sys.time(), call. = FALSE))
 r()
 ```
 
-Normally we think of `reactive()` as caching values, but it also caches errors.
-So if we wait a second or two, we can see that we get the same error as before:
+You already know that `reactive()` caches values.
+It also caches errors.
+If we wait a second or two, we can see that we get the same error as before:
 
 ```{r, error = TRUE}
 Sys.sleep(2)
@@ -66,7 +92,7 @@ Errors are also treated the same way as values when it comes to the reactive gra
 The only difference is when it hits an output or observer:
 
 -   An error in an output will be displayed in the app.
--   An error in an observer will cause the app to terminate.
+-   An error in an observer will cause the current session to close. (If you don't want this to happen you can wrap the code in `try()` or `tryCatch()`.)
 
 This same system powers `req()`, which emits a special type of error[^reactivity-objects-1] with special behaviour.
 It causes observers and outputs to stop what they're doing but not otherwise fail.
@@ -166,8 +192,6 @@ observe({
 })
 ```
 
-### Reactive timer vs invalidate later
-
 ```{r, eval = FALSE}
 observe({
   invalidateLater(1000)
@@ -219,7 +243,7 @@ If you make this mistake in a more complex app, you'll notice that the performan
 Or since memory will be steadily sucked up, you might notice that your app runs out of memory after a few hours.
 In either case, the easiest way to to find the problem is to use the reactlog: just look for the number of observers or outputs growing a lot, then track back to what is creating them.
 
-## Outputs {#outputs-theory}
+### Outputs
 
 If you've being paying close attention you might have noticed that I've explained `input`, reactive expressions, and observer, but I haven't said anything about `output`.
 How do they fit into the picture?

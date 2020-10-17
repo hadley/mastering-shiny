@@ -22,6 +22,51 @@ I wouldn't recommend you use them in "real" apps, but reading the source code mi
 library(shiny)
 ```
 
+## What doesn't the reactive graph capture?
+
+In Section \@ref(input-changes) we discussed what happens when the user causes an input to be invalidated.
+There are two other important cases where you as the app author might invalidate an input:
+
+-   You call an `update` function setting the `value` argument.
+    This sends a message to the browser to changing the value of an input, which then notifies R that the invalid has been changed.
+
+-   You modify the value of a reactive value (created with `reactiveVal()` or `reactiveValues()`).
+
+It's important to understand that when an observer modifies a reactive value, a reactive dependency is *not* established between the reactive value and the observer.
+Likewise, an observer calling an update function for an input does not establish a relationship between the input and observer.
+While these actions affect the reactive graph through invalidation, they don't affect the connections in the reactive graph.
+
+To make this concrete, take the following simple app, with reactive graph shown in Figure \@ref(fig:graph-mutation).
+
+```{r}
+ui <- fluidPage(
+  textInput("nm", "name"),
+  actionButton("clr", "Clear"),
+  textOutput("hi")
+)
+server <- function(input, output, session) {
+  hi <- reactive(paste0("Hi ", input$nm))
+  output$hi <- renderText(hi())
+  observeEvent(input$clr, {
+    updateTextInput(session, "nm", value = "")
+  })
+}
+```
+
+```{r graph-mutation, echo = FALSE, out.width = NULL, fig.cap = "The reactive graph does not record the connection between the unnamed observer and `input$nm`. This dependency is outside of its scope."}
+knitr::include_graphics("diagrams/reactivity-tracking/invalidate-1.png", dpi = 300)
+```
+
+What happens when you press the clear button?
+
+1.  `input$clr` invalidates, which then invalidates the observer.
+2.  The observer recomputes, recreating the dependency on `input$clr`, and telling the browser to change the value of the input control.
+3.  The browser changes the value of `nm`.
+4.  `input$nm` invalidates, invalidating `hi()` then `output$hi`.
+5.  `output$hi` recomputes, forcing `hi()` to recompute.
+
+None of these actions change the reactive graph, so it remains as in Figure \@ref(fig:graph-mutation) and the graph does not capture the connection from the observer to `input$nm`.
+
 ## Case studies
 
 We'll begin with a few examples of how you might combine `reactiveVal()` and `observe()` to solve a variety of problems that are otherwise very challenging (if not impossible).

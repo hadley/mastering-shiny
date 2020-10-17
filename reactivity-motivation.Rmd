@@ -158,10 +158,10 @@ Unfortunately, this kind of programming is *simple*, not *easy*!
 As your application adds more features, it becomes very difficult to keep track of what inputs affect what calculations, and what calculations affect each other, and what input and calculations affect what outputs and actions.
 Before long, you start to trade off correctness (just update everything whenever anything changes) against performance (try to update only the necessary parts, and hope that you didn't miss any edge cases) because it's so difficult to do both.
 
-## Reactive programming
+### Reactive programming
 
 Reactive programming elegantly solves both problems by combining features of the solutions above.
-Now we can show you some real Shiny code, using a special Shiny mode, `reactiveConsole(TRUE)`, that enable reactivity in the console so you can experiment with it directly.
+Now we can show you some real Shiny code, using a special Shiny mode, `reactiveConsole(TRUE)`, that enables reactivity in the console so you can experiment with it directly.
 This mode isn't enabled by default because it makes a certain class of bugs harder to spot in an app, and its primary benefit is to help you understand reactivity.
 (It's only available in Shiny 1.6.0 so you may need to upgrade if it's not available for you.)
 
@@ -227,7 +227,8 @@ Spreadsheets are closely related to reactive programming: you declare the relati
 So the chances are that you've already done a bunch of reactive programming without knowing it!
 
 While the ideas of reactivity have been around for a long time, it wasn't until 1997 before they were seriously studied in academic computer science.
-Research in reactive programming was kicked off by FRAN [@fran], **f**unctional **r**eactive **an**imation, a novel system for incorporating changes over time and user input into a functional programming language. This spawned a rich literature [\@rp-survey], but had little impact on the practice of programming.
+Research in reactive programming was kicked off by FRAN [@fran], **f**unctional **r**eactive **an**imation, a novel system for incorporating changes over time and user input into a functional programming language.
+This spawned a rich literature [\@rp-survey], but had little impact on the practice of programming.
 
 It wasn't until the 2010s that reactive programming roared into the programming mainstream via the blisteringly fast-paced world of JavaScript UI frameworks.
 Pioneering frameworks like [Knockout](https://knockoutjs.com/), [Ember](https://emberjs.com/), and (Joe Cheng's personal inspiration) [Meteor](https://www.meteor.com) demonstrated that reactive programming could make UI programming dramatically easier.

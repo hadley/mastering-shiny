@@ -253,16 +253,7 @@ Tips and tricks:
     To make things easier to understand you may want to supply the `label` argument, which will then appear on the reactive graph.
     You may want to label particularly important reactives with emoji so that they stand out.
 
-## Consequences
-
-Now that you understand more of the details of the reactive graph and you have the tools to automatically draw the reactive graph for a live app, I want to walk through some of the less obvious consequences of the reactive graph.
-
-```{r}
-library(shiny)
-reactiveConsole(TRUE)
-```
-
-### Conditional dependency
+## Dynamism
 
 Consider the following simple app:
 
@@ -298,55 +289,6 @@ In this, if `input$choice` is set to "b", then the value of `input$a` doesn't af
 ```{r dynamic-right, echo = FALSE, out.width = NULL, fig.cap = "But Shiny's reactive graph is dynamic, so the graph either connects `out` to `choice` and `a` (left) or `choice` and `b` (right)."}
 knitr::include_graphics("diagrams/reactivity-tracking/dynamic2.png", dpi = 300)
 ```
-
-### Invalidating reactive inputs {#invalidating-reactive-inputs}
-
-In Section \@ref(input-changes) we discussed what happens when the user causes an input to be invalidated.
-There are two other important cases where you as the app author might invalidate an input:
-
--   You call an `update` function setting the `value` argument.
-    This sends a message to the browser to changing the value of an input, which then notifies R that the invalid has been changed.
-
--   You modify the value of a reactive value (created with `reactiveVal()` or `reactiveValues()`).
-
-It's important to understand these cases will invalidate the reactive input, but don't affect the connections in the reactive graph.
-To make this concrete, take the following simple app, with reactive graph shown in Figure \@ref(fig:graph-mutation).
-
-```{r}
-ui <- fluidPage(
-  textInput("nm", "name"),
-  actionButton("clr", "Clear"),
-  textOutput("hi")
-)
-server <- function(input, output, session) {
-  hi <- reactive(paste0("Hi ", input$nm))
-  output$hi <- renderText(hi())
-  observeEvent(input$clr, {
-    updateTextInput(session, "nm", value = "")
-  })
-}
-```
-
-```{r graph-mutation, echo = FALSE, out.width = NULL, fig.cap = "The reactive graph does not record the connection between the unnamed observer and `input$nm`. This dependency is outside of its scope."}
-knitr::include_graphics("diagrams/reactivity-tracking/invalidate-1.png", dpi = 300)
-```
-
-What happens when you press the clear button?
-
-1.  `input$clr` invalidates, which then invalidates the observer.
-2.  The observer recomputes, recreating the dependency on `input$clr`, and telling the browser to change the value of the input control.
-3.  The browser changes the value of `nm`.
-4.  `input$nm` invalidates, invalidating `hi()` then `output$hi`.
-5.  `output$hi` recomputes, forcing `hi()` to recompute.
-
-None of these actions change the reactive graph, so it remains as in Figure \@ref(fig:graph-mutation) and the graph does not capture the connection from the observer to `input$nm`.
-This means that you're now breaking free of the constraints of the reactive graph, which we'll discuss in more detail in Chapter \@ref(reactivity-components).
-
-### Exercises
-
-1.  Use the reactlog to confirm that the explanation of reactive flow in "Invalidating reactives" is correct.
-2.  Create an app that creates an observer inside an observer, and observe (HA HA) what happens using the reactlog.
-3.  Create an app with a moderately complicated reactive graph, and make one of the early reactives throw an error.
 
 ## How does it work? {#how-it-works}
 
