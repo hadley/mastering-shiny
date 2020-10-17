@@ -31,7 +31,9 @@ demoApp <- R6::R6Class("demoApp", public = list(
   },
 
   run = function() {
-    self$running <- !is_ci() && self$outdated()
+    self$running <- !is_ci() &&
+      self$outdated() &&
+      knitr::is_html_output(excludes = "markdowon")
     if (!self$running) {
       return()
     }
