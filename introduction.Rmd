@@ -19,7 +19,7 @@ In the past, creating web apps was hard for most R users because:
 
 Shiny makes it significantly easier for the R programmer to create web apps by:
 
--   Providing a carefully curated set of user interface (**UI** for short) functions that generate the HTML, CSS, and JavaScript that you need for common tasks.
+-   Providing a carefully curated set of user interface (**UI** for short) functions that generate the HTML, CSS, and JavaScript that needed for common tasks.
     This means that you don't need to know the details of HTML/CSS/JS until you want to go beyond the basics that Shiny provides for you.
 
 -   Introducing a new style of programming called **reactive programming** which automatically tracks the dependencies of a code chunk.
@@ -41,7 +41,7 @@ People use Shiny to:
 
 -   Create prototypes of web applications, as the development in R is often much faster but difficult to scale.
 
-In short, Shiny gives you the ability to pass on some of your R superpowers to anyone who can use a web browser.
+In short, Shiny gives you the ability to pass on some of your R superpowers to anyone who can use the web.
 
 ## Who should read this book?
 
@@ -71,15 +71,15 @@ The book is divided into five parts:
 ## What won't you learn?
 
 The focus of this book is making effective Shiny apps and understanding the underlying theory of reactivity.
-I'll do my best to showcase best practices for data science, R programming, and software engineering, but you'll need other references to master these important skillsets.
-If you enjoy my writing in this book, you might enjoy my other books on these topics: [R for data science](http://r4ds.had.co.nz/), [Advanced R](http://adv-r.hadley.nz/), and [R packages](http://r-pkgs.org/).
+I'll do my best to showcase best practices for data science, R programming, and software engineering, but you'll need other references to master these important skills.
+If you enjoy my writing in this book, you might enjoy my other books on these topics: [R for Data Science](http://r4ds.had.co.nz/), [Advanced R](http://adv-r.hadley.nz/), and [R packages](http://r-pkgs.org/).
 
 ## Prerequisites {#prerequisites}
 
 Before we continue, make sure you have all the software you need for this book:
 
 -   **R**: If you don't have R installed already, you may be reading the wrong book; I assume a basic familiarity with R throughout this book.
-    If you'd like to learn how to use R, I'd recommend my [*R for Data Science*](https://r4ds.had.co.nz/) which is designed to get you up and running with R with minimum of fuss.
+    If you'd like to learn how to use R, I'd recommend my [*R for Data Science*](https://r4ds.had.co.nz/) which is designed to get you up and running with R with a minimum of fuss.
 
 -   **RStudio**: RStudio is a free and open source integrated development environment (IDE) for R.
     While you can write and use Shiny apps with any R environment (including R GUI and [ESS](http://ess.r-project.org)), RStudio has some nice features specifically for authoring, debugging, and deploying Shiny apps.
