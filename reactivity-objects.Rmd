@@ -169,7 +169,7 @@ observeEvent(x(), {
 
 In Chapter \@ref(reactivity-components) we'll come back to the problem of managing state over time in much more detail.
 
-### Outputs
+### Outputs {#outputs-adv}
 
 If you've being paying close attention you might have noticed that I've explained `input`, reactive expressions, and observer, but I haven't said anything about `output`.
 How reactive outputs they fit into the picture?
