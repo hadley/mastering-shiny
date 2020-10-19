@@ -4,12 +4,12 @@
 source("common.R")
 ```
 
-Now that you've learn about why reactivity is useful, this chapter will cover more of the details of the underlying objects.
-By this point, you've hopefully used these objects many times in your apps, and now its time to firm up your mental model, and discuss some of the finer details.
+Now that you've learned how the reactive graph really works, it's a useful to come to back to some of the details of the underlying objects.
+By this point, you've used these objects many times in your apps, so now it a good time to discuss some of the finer details.
 
 There are three fundamental building blocks of reactive programming: reactive values, reactive expressions, and observers.
-You've already seen most of the important part of reactive values and expression, so there are only a few more details to explain here.
-So far, however, we've mostly skimmed over the details of observers (and the closely related outputs) so in this chapter we'll dive into the details.
+You've already seen most of the important parts of reactive values and expressions, so this chapter will spend most time on observers and the closely related outputs.
+We'll also discuss a final piece of the invalidation puzzle: timed invalidation.
 
 This chapter will again use the reactive console so that we can experiment with reactivity directly in the console without having to launch a Shiny app each time.
 
@@ -30,20 +30,19 @@ They have a slightly different syntax for getting and setting values:
 
 ```{r}
 x <- reactiveVal(10)
-x() # get
-x(20) # set
+x()       # get
+x(20)     # set
 
 y <- reactiveValues(a = 1, b = 2)
-y$a # get
+y$a       # get
 y$b <- 20 # set
 ```
 
 It's unfortunate that there are two different syntaxes, but given the constraints imposed by R as a programming language, there's no way standardise them.
 Fortunately there are no major differences in their behaviour, so you can choose which syntax you prefer.
-In this book, I almost exclusively use `reactiveVal()` because I see the unusual syntax as a benefit because it makes it more clear that you're creating a reactive dependencies.
+In this book, I prefer `reactiveVal()` because I like that the syntax makes it more clear that something unusual is going on.
 
-From the outside, a `reactVal()` acts like a function and a `reactiveVals()` acts like a list, but behind the scenes they track their usage in reactive consumers, so you can automatically trigger behaviour when they change.
-The details of the implementation is largely out of scope for this book, but you'll get some sense of what's going on behind the scenes in Section \@ref(how-it-works).
+From the outside, a `reactiveVal()` acts like a function and a `reactiveVals()` acts like a list, but behind the scenes they track their usage by reactive consumers, so they can automatically invalidate their dependencies.
 
 ```{r}
 observeEvent(x(), cat("x is ", x(), "\n", sep = ""))
@@ -53,8 +52,8 @@ observeEvent(y$a, cat("y$a is ", y$a, "\n", sep = ""))
 y$a <- 100
 ```
 
-The most common source of reactive values is the `input` argument supplied to your server function.
-This is a special type of `reactiveValues()` that is read-only: you're not allowed to modify the values because Shiny automatically updates them based on the users actions in the browser.
+The most common source of reactive values is the `input` argument passed to the server function.
+This is a special read-only `reactiveValues()`: you're not allowed to modify the values because Shiny automatically updates them based on the users actions in the browser.
 
 ```{r, eval = FALSE}
 ui <- fluidPage(
@@ -115,7 +114,7 @@ y(5)
 y(4)
 ```
 
-Observers differ from expressions in a couple of important ways:
+Observers differ from expressions in two important ways:
 
 -   They are designed to work with functions that change the world in some way, like `print()`, `plot()`, or `write.csv()`.
     In programming terminology, changing the world is called a **side-effect**.
@@ -170,45 +169,10 @@ observeEvent(x(), {
 
 In Chapter \@ref(reactivity-components) we'll come back to the problem of managing state over time in much more detail.
 
-### Timers
-
-Another related useful pattern.
-Extension of `reactiveTimer()` that we discussed in ...
-
-`reactivePoll()` how is it implemented.
-
-For accurate animation, you should record exactly how much time has elapsed.
-
-Retrying a buggy operation.
-Exponential variable back-off
-
-```{r, eval = FALSE}
-last_time <- proc.time()[[3]]
-observe({
-  # what happens if it takes more a complete interval? how to 
-  # decide when to run next
-  invalidateLater(round(last_time) - 1)
-  takes_a_variable_amount_time()
-  last_time <<- proc.time()[[1]]
-})
-```
-
-```{r, eval = FALSE}
-observe({
-  invalidateLater(1000)
-  takes_a_long_time()
-})
-
-observe({
-  on.exit(invalidateLater(1000))
-  takes_a_long_time()
-})
-```
-
 ### Outputs
 
 If you've being paying close attention you might have noticed that I've explained `input`, reactive expressions, and observer, but I haven't said anything about `output`.
-How do they fit into the picture?
+How reactive outputs they fit into the picture?
 For the purposes of discussion, take this simple output:
 
 ```{r eval = FALSE}
@@ -273,3 +237,131 @@ output$plot <- renderPlot(plot(df()))
 If you make this mistake in a more complex app, you'll notice that the performance of your app steadily degrades as it duplicates observers or outputs again and again.
 Or since memory will be steadily sucked up, you might notice that your app runs out of memory after a few hours.
 In either case, the easiest way to to find the problem is to use the reactlog: just look for the number of observers or outputs growing a lot, then track back to what is creating them.
+
+### `observeEvent()`
+
+Built on top of `observe()` `isolate()`.
+
+Additional arguments:
+
+-   `ignoreNULL` --- by default, ignores any `eventExpr` that yield `NULL`.
+    Use `ignoreNULL = FALSE` to pass them on.
+
+-   `ignoreInit` --- by default, always runs once when on creation.
+    Use `ignoreInit = TRUE` to skip this run.
+
+-   Use `once = TRUE` to run the handler only once.
+
+## Timed invalidation {#timed-invalidation-adv}
+
+There's one final building blocking that we need to discuss before we continue.
+It's a little different to the others we've discussed in this chapter as it's not a type of object, it's a special behaviour: timed invalidation.
+You saw an example of this in Section \@ref(timed-invalidation) using `reactiveTimer()`, but the time has come to discuss the underlying tool that powers it: `invalidateLater()`.
+
+`invalidateLater()` causes any reactive consumer to be invalidated in the future, after a set number of milliseconds specified by the first argument.
+It is useful for creating animations and connecting to data sources outside of Shiny's reactive framework that may be changing over time.
+For example, this reactive will automatically generate 10 fresh random normals every half a second:
+
+```{r}
+x <- reactive({
+  invalidateLater(500)
+  rnorm(10)
+})
+```
+
+### Polling
+
+This reactive will re-read a csv file every second:
+
+```{r}
+data <- reactive({
+  on.exit(invalidateLater(1000))
+  read.csv("data.csv")
+})
+```
+
+But it has a serious downside: when you invalidate the reactive, you're also invalidating all downstream reactives, so even if the data is same, all the downstream work has to be redone.
+To avoid this problem Shiny provides `reactivePoll()` which allows you to specify two functions: one that performs a relatively cheap check to see if the data has changed and another more expensive function that actually does the computation.
+
+We can use `reactivePoll()` to rewrite the previous reactive as follows.
+For a cheap check to see if the file has changed, we use `file.mtime()` which returns the last time the file was modified.
+
+```{r}
+server <- function(input, output, session) {
+  data <- reactivePoll(1000, session, 
+    function() file.mtime("data.csv"),
+    function() read.csv("data.csv")
+  )
+}
+```
+
+Reading a file when it changes is a common task, so Shiny provides an even specific helper that just needs a file name and a reading function:
+
+```{r}
+server <- function(input, output, session) {
+  data <- reactiveFileReader(1000, session, "data.csv", read.csv)
+}
+```
+
+### Long running reactives
+
+It's worth considering whether you should run `invalidateLater()` at the start or end of the block.
+In other words, is it better to use `on.exit()` to perform the invalidation, as in the code below?
+
+```{r}
+x <- reactive({
+  on.exit(invalidateLater(500), after = TRUE)
+  rnorm(10)
+})
+```
+
+It doesn't matter here, but if the contents of the reactive take longer to run, there's a potential problem that you need to be aware of.
+For example, take this reactive:
+
+```{r, eval = FALSE}
+x <- reactive({
+  invalidateLater(500)
+  Sys.sleep(1)
+  10
+})
+```
+
+It takes 1000ms to run, so it will be invalidated half way through, and then have to immediately run again, getting stuck in an infinite loop.
+
+On other hand, if you run `invalidateLater()` at the end, it will invalidate 500ms after completion, so the reactive will be re-run every 1500 ms.
+
+```{r, eval = FALSE}
+x <- reactive({
+  on.exit(invalidateLater(500), add = TRUE)
+  Sys.sleep(1)
+  10
+})
+```
+
+This is the main reason to prefer `invalidateLater()` to the simpler `reactiveTimer()` that we used earlier: it gives you greater control over exactly when the invalidation happens.
+
+### Timer accuracy
+
+The number of milliseconds that you specify in `invalidateLater()` is polite request, not a demand.
+R may be doing other things when you asked for invalidation, so your code will need to wait.
+This effectively means that the number is a minimum --- Shiny will do its best to run when you asked, but it might have other things going on so your code will run later than you expect.
+
+This generally doesn't matter because in most cases a few 100ms difference here and there won't affect the user's perception of your app.
+However, for situations where you're aggregating over time, and a many small errors will add up to a big one, you should record the exact elapsed time so you can adjust.
+For example, the following code computes distance based on velocity and elapsed time.
+Rather than assuming `invalidateLater(100)` causes the code to be run every 0.1s, I actually compute it so that I determine the additional distance more accurately.
+
+```{r, eval = FALSE}
+velocity <- 3
+distance <- reactiveVal(1)
+
+last <- proc.time()[[3]]
+observe({
+  cur <- proc.time()[[3]]
+  time <- last - cur
+  last <<- cur
+  
+  distance(isolate(distance()) + velocity * time)
+  invalidateLater(100)
+})
+```
