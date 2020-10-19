@@ -618,7 +618,7 @@ There are three key ideas in the server function:
 -   I create the text boxes by using `map()` to create one `textInput()` for input in `col_names()`.
     `output$col <- renderUI()` inserts these textboxes in the UI placeholder that I created earlier.
 
--   To generate the output, I need to use use a new trick.
+-   To generate the output, I need to use a new trick.
     So far we've always accessed the components of `input` with `$`, e.g. `input$col1`.
     But here we have the input names in a character vector, like `var <- "col1"`.
     `$` no longer works in this scenario, so we need to swich to `[[`, i.e. `input[[var]]`.
