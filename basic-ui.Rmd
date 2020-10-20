@@ -376,7 +376,7 @@ demo$takeScreenshot()
 
 By default, `plotOutput()` will take up the full width of its container (more on that shortly), and will be 400 pixels high. You can override these defaults with the `height` and `width` arguments. We recommend always setting `res = 96` as that will make your Shiny plots match what you see in RStudio as closely as possible.
 
-Plots are special because they are outputs that can also act as inputs. `plotOutput()` has a number of arguments like `click`, `dblclick`, and `hover`. If you pass these a string, like `click = "plot_click"`, they'll create a reactive input (`input$plot_click`) that you can use to handle user interaction on the plot. We'll come back to interactive plots in Shiny in Chapter XYZ.
+Plots are special because they are outputs that can also act as inputs. `plotOutput()` has a number of arguments like `click`, `dblclick`, and `hover`. If you pass these a string, like `click = "plot_click"`, they'll create a reactive input (`input$plot_click`) that you can use to handle user interaction on the plot. We'll come back to interactive plots in Shiny in  \@ref(action-graphics).
 
 ### Downloads
 
