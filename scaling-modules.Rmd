@@ -161,7 +161,7 @@ Note that, like all Shiny control, you need to use the same `id` in both UI and 
 ### Namespacing
 
 Now that we have a complete app, let's circle back and talk about namespacing some more.
-The key idea that makes modules work is that the the name of each control (i.e. its `id`) is now determined by two pieces:
+The key idea that makes modules work is that the name of each control (i.e. its `id`) is now determined by two pieces:
 
 -   The first piece comes from the module **user**.
 -   The second piece comes from the module **author**.
