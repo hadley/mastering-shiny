@@ -4,8 +4,8 @@
 source("common.R")
 ```
 
-Now that you've learned how the reactive graph really works, it's a useful to come to back to some of the details of the underlying objects.
-By this point, you've used these objects many times in your apps, so now it a good time to discuss some of the finer details.
+Now that you've learned how the reactive graph really works, it's useful to come back to some of the details of the underlying objects.
+By this point, you've used these objects many times in your apps, so now is a good time to discuss some of the finer details.
 
 There are three fundamental building blocks of reactive programming: reactive values, reactive expressions, and observers.
 You've already seen most of the important parts of reactive values and expressions, so this chapter will spend most time on observers and the closely related outputs.
@@ -38,11 +38,11 @@ y$a       # get
 y$b <- 20 # set
 ```
 
-It's unfortunate that there are two different syntaxes, but given the constraints imposed by R as a programming language, there's no way standardise them.
+It's unfortunate that there are two different syntaxes, but given the constraints imposed by R as a programming language, there's no way to standardise them.
 Fortunately there are no major differences in their behaviour, so you can choose which syntax you prefer.
 In this book, I prefer `reactiveVal()` because I like that the syntax makes it more clear that something unusual is going on.
 
-From the outside, a `reactiveVal()` acts like a function and a `reactiveVals()` acts like a list, but behind the scenes they track their usage by reactive consumers, so they can automatically invalidate their dependencies.
+From the outside, a `reactiveVal()` acts like a function and a `reactiveValues()` acts like a list, but behind the scenes they track their usage by reactive consumers, so they can automatically invalidate their dependencies.
 
 ```{r}
 observeEvent(x(), cat("x is ", x(), "\n", sep = ""))
@@ -68,7 +68,7 @@ shinyApp(ui, server)
 
 ## Reactive expressions
 
-The most important properties of a reactive expression is that it is lazy and cached --- it does as little work as possible by only doing any work if it's actually used, and if it's called twice in a row, it'll return the previous result.
+The most important properties of a reactive expression are that it is lazy and cached --- it does as little work as possible by only doing any work if it's actually used, and if it's called twice in a row, it'll return the previous result.
 
 The main detail we haven't covered is what happens when a reactive throws an error.
 For example, take this reactive that immediately throws an error:
@@ -120,7 +120,7 @@ Observers differ from expressions in two important ways:
     In programming terminology, changing the world is called a **side-effect**.
     Unlike pharmaceuticals where side effects are always unintentional and usually negative, we simply mean any effects apart from a function's return value.
 
--   They are eager and forgetful --- they run as soon as possibly can and they don't remember their previous action.
+-   They are eager and forgetful --- they run as soon as they possibly can and they don't remember their previous action.
     This eagerness is "infectious" because if they use a reactive expression, that reactive expression will also be evaluated immediately.
 
 ### Isolate
@@ -171,8 +171,8 @@ In Chapter \@ref(reactivity-components) we'll come back to the problem of managi
 
 ### Outputs
 
-If you've being paying close attention you might have noticed that I've explained `input`, reactive expressions, and observer, but I haven't said anything about `output`.
-How reactive outputs they fit into the picture?
+If you've been paying close attention you might have noticed that I've explained `input`, reactive expressions, and observer, but I haven't said anything about `output`.
+How do reactive outputs fit into the picture?
 For the purposes of discussion, take this simple output:
 
 ```{r eval = FALSE}
@@ -183,7 +183,7 @@ output$text <- renderText({
 
 Is this an observer or a reactive expression?
 It looks like a reactive expression because we're assigning the result of `renderText()`.
-On the other hand, it feels like a observer, because it has a side-effect: updating the contents of a text box.
+On the other hand, it feels like an observer, because it has a side-effect: updating the contents of a text box.
 It turns out that outputs are neither reactive expressions nor observers, and indeed aren't even a fundamental building block.
 In fact, they're a Shiny feature built on top of observers, that have some of the features of a reactive expression.
 
@@ -236,7 +236,7 @@ output$plot <- renderPlot(plot(df()))
 
 If you make this mistake in a more complex app, you'll notice that the performance of your app steadily degrades as it duplicates observers or outputs again and again.
 Or since memory will be steadily sucked up, you might notice that your app runs out of memory after a few hours.
-In either case, the easiest way to to find the problem is to use the reactlog: just look for the number of observers or outputs growing a lot, then track back to what is creating them.
+In either case, the easiest way to find the problem is to use the reactlog: just look for the number of observers or outputs growing a lot, then track back to what is creating them.
 
 ### `observeEvent()`
 
