@@ -74,6 +74,13 @@ The focus of this book is making effective Shiny apps and understanding the unde
 I'll do my best to showcase best practices for data science, R programming, and software engineering, but you'll need other references to master these important skills.
 If you enjoy my writing in this book, you might enjoy my other books on these topics: [R for Data Science](http://r4ds.had.co.nz/), [Advanced R](http://adv-r.hadley.nz/), and [R packages](http://r-pkgs.org/).
 
+There are also a number of important topics specific to Shiny that we don't cover:
+
+-   UI toolkits.
+
+-   Deployment Shiny apps.
+    <https://shiny.rstudio.com/articles/#deployment>
+
 ## Prerequisites {#prerequisites}
 
 Before we continue, make sure you have all the software you need for this book:

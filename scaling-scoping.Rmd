@@ -7,3 +7,5 @@ source("common.R")
 https://rstudio.com/resources/rstudioconf-2018/make-shiny-fast-by-doing-as-little-work-as-possible/
 
 https://shiny.rstudio.com/articles/scoping.html
+
+https://shiny.rstudio.com/articles/function.html

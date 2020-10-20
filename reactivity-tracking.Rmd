@@ -286,6 +286,8 @@ In this, if `input$choice` is set to "b", then the value of `input$a` doesn't af
 knitr::include_graphics("diagrams/reactivity-tracking/dynamic2.png", dpi = 300)
 ```
 
+<https://shinydata.wordpress.com/2015/02/02/a-few-things-i-learned-about-shiny-and-reactive-programming/>
+
 ## How does it work? {#how-it-works}
 
 Before we carry on, I wanted to give you a quick sense of how things work behind the scenes.
