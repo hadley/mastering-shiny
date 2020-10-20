@@ -70,7 +70,7 @@ As your app grows bigger, it's also worth remembering the keyboard shortcuts you
 
 -   When your cursor is on the name of function `F2` will jump to the function definition.
 
-If you do a lot of package development, we recommend making a couple of small additions to your `.Rprofile`. This file contains R code that's run whenever you start R, so it's create way to customise your interactive development environment. You can open it by running `usethis::edit_r_profile()`.
+If you do a lot of package development, we recommend making a couple of small additions to your `.Rprofile`. This file contains R code that's run whenever you start R, so it's a great way to customise your interactive development environment. You can open it by running `usethis::edit_r_profile()`.
 
 ``` {.r}
 if (interactive()) {
