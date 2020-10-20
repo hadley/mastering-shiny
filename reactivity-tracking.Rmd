@@ -286,7 +286,22 @@ In this, if `input$choice` is set to "b", then the value of `input$a` doesn't af
 knitr::include_graphics("diagrams/reactivity-tracking/dynamic2.png", dpi = 300)
 ```
 
-<https://shinydata.wordpress.com/2015/02/02/a-few-things-i-learned-about-shiny-and-reactive-programming/>
+It's worth noting (as Yindeng Jiang does in [their blog](https://shinydata.wordpress.com/2015/02/02/a-few-things-i-learned-about-shiny-and-reactive-programming/)) that a minor change will cause the output to always depend on both `a` and `b`:
+
+```{r}
+output$out <- renderText({
+  a <- input$a
+  b <- input$b
+
+  if (input$choice == "a") {
+    a
+  } else {
+    b
+  }
+}) 
+```
+
+This is because the reactive dependency is established as soon as you read from `input`.
 
 ## How does it work? {#how-it-works}
 
