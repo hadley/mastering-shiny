@@ -13,7 +13,7 @@ Shiny can support thousands or tens of thousands of users, if developed correctl
 
 One new challenge with Shiny apps that's a bit different than improving the performance of regular R code is that you need to be more conscious of memory usage. Typically, to get cost effective performance each R process will need to serve multiple people, which means that multiple copies of the app will be loaded at the same time. If you're working with large datasets, that means you need to think more carefully about how to ensure that the same data is shared across multiple users.
 
-If your app loads a large dataset and then filters it, you may instead want to consider putting the data in a database, and then only retrieving the data that the user specifically asks for. This will make individual apps slower (often only by a small amount), but will make each app take up much less memory so that you can more easily server multiple users.
+If your app loads a large dataset and then filters it, you may instead want to consider putting the data in a database, and then only retrieving the data that the user specifically asks for. This will make individual apps slower (often only by a small amount), but will make each app take up much less memory so that you can more easily serve multiple users.
 
 Focus is on increasing the performance for multiple users. If you're concerned about single user performance (i.e. it's just you using the app), it's very unlikely that Shiny is the bottleneck. Instead, improving the performance of your app is really about improving the performance of your R code. Many of the same techniques apply; in particular you'll still need to profile the performance of your app.
 
