@@ -5,9 +5,9 @@ source("common.R")
 options(tibble.print_min = 6, tibble.print_max = 6)
 ```
 
-For simple apps, its easy enough to remember how the app is supposed to work, so that when you make changes to add new features, you don't accidental break existing capabilities.
+For simple apps, its easy enough to remember how the app is supposed to work, so that when you make changes to add new features, you don't accidentally break existing capabilities.
 However, as your app gets more complicated it becomes impossible to hold it all in your head simultaneously.
-Testing is a way to capture the desired behaviour of your code to work, and turn it into an automated tool that allows you verify that your code keeps working the way that you expect.
+Testing is a way to capture the desired behaviour of your code to work, and turn it into an automated tool that allows you to verify that your code keeps working the way that you expect.
 Turning your existing informal tests into code is painful when you first do it, because you need to carefully turn every key press and mouse click into a line of code, but once done, it's tremendously faster to re-run your tests.
 
 We'll perform automated testing with the [testthat](http://testthat.r-lib.org/) package.
@@ -28,7 +28,7 @@ We'll work through levels of testing in this chapter:
 
 -   We'll start by testing non-reactive **functions**.
     This will help you learn the basic testing workflow, and allow you to verify the behaviour of code that you've extracted out of the server function or UI.
-    This is the exactly the same type of testing you'd do if you were writing a package, so you can find more details in the [testing chapter](https://r-pkgs.org/tests.html) of *R Packages*.
+    This is exactly the same type of testing you'd do if you were writing a package, so you can find more details in the [testing chapter](https://r-pkgs.org/tests.html) of *R Packages*.
 
 -   Next you'll learn how to test the flow of **reactivity** within your server function.
     You'll set the value of inputs and then verify that reactives and outputs have the values you expect.
@@ -60,7 +60,7 @@ local_edition(3)
 
 ## Testing functions
 
-The easiest part of your app is test is the part that has the least to do with Shiny: the functions extracted out of your UI and server code as described in Chapter \@ref(scaling-functions).
+The easiest part of your app to test is the part that has the least to do with Shiny: the functions extracted out of your UI and server code as described in Chapter \@ref(scaling-functions).
 We'll start by discussing how to test these non-reactive functions, showing you the basic structure of unit testing with testthat.
 
 ### Basic structure
@@ -77,11 +77,11 @@ Tests are organised into three levels:
     It's hard to describe exactly what this means, but a good heuristic is that you can easily describe the test in the first argument to `test_that()`.
 
 -   **Expectation**.
-    Each test contains one or more expectations, with a functions that start with `expect_`.
+    Each test contains one or more expectations, with functions that start with `expect_`.
     These define exactly what you expect code to do, whether its returning a specific value, throwing an error, or something else.
     In this chapter, I'll discuss the most important expectations for Shiny apps but you can see the full list on the [testthat website](https://testthat.r-lib.org/reference/index.html#section-expectations){.uri}.
 
-The art of testing is figuring out how to write tests that clearly defines the expected behaviour of your function, without depending on incidental details that might change in the future.
+The art of testing is figuring out how to write tests that clearly define the expected behaviour of your function, without depending on incidental details that might change in the future.
 
 ### Basic workflow
 
