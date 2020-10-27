@@ -15,10 +15,14 @@ Imports:
     tidyverse,
     vroom,
     waiter,
+    xml2,
     zeallot,
 Suggests:
+    bootstraplib,
+    downlit,
     bookdown,
     desc,
+    jsonlite,
     png,
     sessioninfo,
     shinytest,
@@ -31,4 +35,7 @@ Remotes:
     rstudio/htmltools,
     rstudio/bookdown,
     rstudio/shinytest,
-    r-lib/testthat
+    rstudio/bookdown#996,
+    r-lib/testthat,
+    rstudio/bootstraplib,
+    rstudio/rmarkdown
