@@ -1,6 +1,6 @@
 bookdown::bs4_book:
   theme:
-    primary: #447099
+    primary: "#447099"
   repo: https://github.com/hadley/mastering-shiny
 bookdown::gitbook:
   css: style.css
