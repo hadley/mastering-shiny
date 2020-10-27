@@ -245,9 +245,7 @@ Connections that are not active currently (but were in the past or will be in th
 
 Tips and tricks:
 
--   Reactive inputs and outputs have names, but `reactive()`s and `observe()`rs do not, so they're labelled with their contents.
-    To make things easier to understand you may want to supply the `label` argument, which will then appear on the reactive graph.
-    You may want to label particularly important reactives with emoji so that they stand out.
+-   Reactive inputs and outputs have names, but `reactive()`s and `observe()`rs do not, so they're labelled with their contents. To make things easier to understand you may want to supply the `label` argument, which will then appear on the reactive graph. You may want to label particularly important reactives with emoji so that they stand out.
 
 ## Dynamism
 
@@ -288,7 +286,7 @@ knitr::include_graphics("diagrams/reactivity-tracking/dynamic2.png", dpi = 300)
 
 It's worth noting (as Yindeng Jiang does in [their blog](https://shinydata.wordpress.com/2015/02/02/a-few-things-i-learned-about-shiny-and-reactive-programming/)) that a minor change will cause the output to always depend on both `a` and `b`:
 
-```{r}
+```{r, eval = FALSE}
 output$out <- renderText({
   a <- input$a
   b <- input$b

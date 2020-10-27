@@ -32,11 +32,10 @@ There are two other important cases where you as the app author might invalidate
 
 -   You modify the value of a reactive value (created with `reactiveVal()` or `reactiveValues()`).
 
-It's important to understand that when an observer modifies a reactive value, a reactive dependency is *not* established between the reactive value and the observer.
-Likewise, an observer calling an update function for an input does not establish a relationship between the input and observer.
-While these actions affect the reactive graph through invalidation, they don't affect the connections in the reactive graph.
+It's important to understand that in both of these cases a reactive dependency is *not* created between the reactive value and the observer.
+While these actions cause the graph to invalidate, they are not recorded through new connections.
 
-To make this concrete, take the following simple app, with reactive graph shown in Figure \@ref(fig:graph-mutation).
+To make this idea concrete, take the following simple app, with reactive graph shown in Figure \@ref(fig:graph-mutation).
 
 ```{r}
 ui <- fluidPage(
@@ -69,10 +68,10 @@ None of these actions change the reactive graph, so it remains as in Figure \@re
 
 ## Case studies
 
-We'll begin with a few examples of how you might combine `reactiveVal()` and `observe()` to solve a variety of problems that are otherwise very challenging (if not impossible).
+Next, lets take a look at a few useful cases where you might combine `reactiveVal()` and `observe()` to solve problems that are otherwise very challenging (if not impossible).
 These are useful templates for your own apps.
 
-### Getting started
+### One output modified by multiple inputs
 
 To get started we'll tackle a very simple problem: I want a common text box that's updated by multiple events (this is rather similar to the framework provided by notifications):
 
@@ -111,7 +110,7 @@ server <- function(input, output, session) {
 ```
 
 It's worth taking a moment to draw the reactive graph for this app, as in Figure \@ref(fig:button-graph).
-Again, this graph is very simple because the reactive graph does not include the connection from the observers back to the reactive value `n`.
+Again note that the reactive graph does not include any connection from the observers back to the reactive value `n`.
 In fact, ignoring the names of the inputs and output, this graph is the same as the first app.
 
 ```{r button-graph, echo = FALSE, out.width = NULL, fig.cap = "The reactive graph does not capture connections from observers to input values"}

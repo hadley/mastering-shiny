@@ -43,9 +43,9 @@ Fortunately there are no major differences in their behaviour, so you can choose
 In this book, I use `reactiveVal()` because I like that the syntax for setting values makes it more obvious that something unusual is going on.
 
 It's important to note that both types of reactive values have so called reference semantics.
-Most R objects have copy-on-modify[^reactivity-objects-1] semantics which means that if you assign the same value to two names, the connection is broken as soon as you modify one:
+Most R objects have copy-on-modify[^reactivity-foundations-1] semantics which means that if you assign the same value to two names, the connection is broken as soon as you modify one:
 
-[^reactivity-objects-1]: See more details at <https://adv-r.hadley.nz/names-values.html#copy-on-modify>
+[^reactivity-foundations-1]: See more details at <https://adv-r.hadley.nz/names-values.html#copy-on-modify>
 
 ```{r}
 a1 <- a2 <- 10
@@ -112,18 +112,18 @@ r()
 Errors are also treated the same way as values when it comes to the reactive graph: errors propagate through the reactive graph exactly the same way as regular values.
 The only difference is what happens when an error hits an output or observer:
 
--   An error in an output will be displayed in the app[^reactivity-objects-2].
+-   An error in an output will be displayed in the app[^reactivity-foundations-2].
 -   An error in an observer will cause the current session to close. (If you don't want this to happen you can wrap the code in `try()` or `tryCatch()`.)
 
-[^reactivity-objects-2]: By default, you'll see the whole error message.
+[^reactivity-foundations-2]: By default, you'll see the whole error message.
     You can show a generic error messages by turning error sanitising on.
     See <https://shiny.rstudio.com/articles/sanitize-errors.html> for details.
 
-This same system powers `req()`, which emits a special type of error[^reactivity-objects-3].
+This same system powers `req()`, which emits a special type of error[^reactivity-foundations-3].
 The error emitted by `req()` causes observers and outputs to stop what they're doing but not otherwise fail.
 By default, it will cause outputs to reset to their initial blank state, but if you use `req(..., cancelOutput = TRUE)` they'll preserve their current display.
 
-[^reactivity-objects-3]: Technically, a custom condition.
+[^reactivity-foundations-3]: Technically, a custom condition.
     See <https://adv-r.hadley.nz/conditions.html#custom-conditions> for more details.
 
 ### `on.exit()`
@@ -237,7 +237,7 @@ In Chapter \@ref(reactivity-components) we'll come back to the problem of managi
 
 -   Use `once = TRUE` to run the handler only once.
 
-### Outputs
+### Output {#outputs-adv}
 
 If you've paid close attention you might have noticed that I've explained `input`, reactive expressions, and observers, but I haven't said anything about outputs.
 How do reactive outputs fit into the picture?
@@ -253,9 +253,9 @@ They have two special properties:
 
 -   They are defined when you assign them into `output`, i.e. `output$text <- ...` creates the observer.
 
--   They have some limited ability to detect when they're not visible (i.e. they're in non-active tab) they don't recompute[^reactivity-objects-4].
+-   They have some limited ability to detect when they're not visible (i.e. they're in non-active tab) they don't recompute[^reactivity-foundations-4].
 
-[^reactivity-objects-4]: In rare cases, you may prefer to process even outputs that aren't hidden.
+[^reactivity-foundations-4]: In rare cases, you may prefer to process even outputs that aren't hidden.
     You can use the `outputOptions()` function's `suspendWhenHidden` to opt out of the automatic suspension feature on an output-by-output basis.
 
 Outputs are intimately connected to the browser, so there's no way to experiment with them on the console.
@@ -268,9 +268,9 @@ You saw an example of this in Section \@ref(timed-invalidation) with `reactiveTi
 
 `invalidateLater()` causes any reactive consumer to be invalidated in the future, after a set number of milliseconds specified by the first argument.
 It is useful for creating animations and connecting to data sources outside of Shiny's reactive framework that may be changing over time.
-For example, this reactive will automatically generate 10 fresh random normals every half a second[^reactivity-objects-5]:
+For example, this reactive will automatically generate 10 fresh random normals every half a second[^reactivity-foundations-5]:
 
-[^reactivity-objects-5]: Assuming that it's used by some output or observer; otherwise it will stay in its initial invalidated state forever.
+[^reactivity-foundations-5]: Assuming that it's used by some output or observer; otherwise it will stay in its initial invalidated state forever.
 
 ```{r}
 x <- reactive({
@@ -380,7 +380,8 @@ observe({
 
 ### Exercises
 
-1.  Why will this reactive never be executed? Your explanation should talk about the reactive graph and invalidation.
+1.  Why will this reactive never be executed?
+    Your explanation should talk about the reactive graph and invalidation.
 
     ```{r}
     server <- function(input, output, session) {
