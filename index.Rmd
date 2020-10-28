@@ -18,7 +18,7 @@ description: "The official guide to the Shiny web application framework for R."
 
 # Welcome {-}
 
-<img src="cover.png" width="250" height="328" alt="Cover image" align="right" style="margin: 0 1em 0 1em" />This is the online version of _Mastering Shiny_, a book **currently under early development** and intended for a late 2020 release by [O'Reilly Media](https://www.oreilly.com/).
+<img src="cover.png" class="cover" width="250" height="328" alt="Cover image" />This is the online version of _Mastering Shiny_, a book **currently under early development** and intended for a late 2020 release by [O'Reilly Media](https://www.oreilly.com/).
 
 [Shiny](https://shiny.rstudio.com/) is a framework for creating web applications using R code. It is designed primarily with data scientists in mind, and to that end, you can create pretty complicated Shiny apps with no knowledge of HTML, CSS, or JavaScript. On the other hand, Shiny doesn't limit you to creating trivial or prefabricated apps: its user interface components can be easily customized or extended, and its server uses reactive programming to let you create any type of backend logic you want. Shiny is designed to feel almost magically easy when you're getting started, and yet the deeper you get into how it works, the more you realize it's built out of general building blocks that have strong software engineering principles behind them.
 
