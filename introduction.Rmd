@@ -78,7 +78,7 @@ There are also a number of important topics specific to Shiny that we don't cove
 
 -   UI toolkits.
 
--   Deployment Shiny apps.
+-   Deployment of Shiny apps.
     <https://shiny.rstudio.com/articles/#deployment>
 
 ## Prerequisites {#prerequisites}
