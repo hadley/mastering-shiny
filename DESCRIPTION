@@ -38,5 +38,4 @@ Remotes:
     rstudio/bookdown#996,
     r-lib/testthat,
     rstudio/bootstraplib,
-    rstudio/rmarkdown,
-    r-lib/downlit
+    rstudio/rmarkdown
