@@ -33,8 +33,8 @@ jobs:
         uses: actions/cache@v1
         with:
           path: ${{ env.R_LIBS_USER }}
-          key: r-5-${{ hashFiles('DESCRIPTION') }}
-          restore-keys: r-5-
+          key: r-6-${{ hashFiles('DESCRIPTION') }}
+          restore-keys: r-6-
 
       - name: Install pak
         run: |
