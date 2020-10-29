@@ -568,7 +568,7 @@ Now, when you change the `binwidth` or `range`, only the plot changes, not the u
 knitr::include_graphics("diagrams/basic-reactivity/case-study-2.png", dpi = 300 / 0.75)
 ```
 
-To emphasise this modularity the Figure \@ref(fig:ttest-module) draws boxes around the independent components.
+To emphasise this modularity Figure \@ref(fig:ttest-module) draws boxes around the independent components.
 We'll come back to this idea in Chapter \@ref(scaling-modules), when we discuss modules.
 Modules allow you to extract out repeated code for reuse, while guaranteeing that it's isolated from everything else in the app.
 Modules are an extremely useful and powerful technique for more complex apps.
