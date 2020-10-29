@@ -338,7 +338,7 @@ server <- function(input, output, session) {
 }
 ```
 
-Generally, these sort of notifications will live in a reactive, because that ensures that the long-running comptutation is only re-run when needed.
+Generally, these sort of notifications will live in a reactive, because that ensures that the long-running computation is only re-run when needed.
 
 ### Progressive updates
 
