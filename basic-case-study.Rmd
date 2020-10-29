@@ -150,7 +150,7 @@ selected %>%
   pull(narrative)
 ```
 
-Having done this exploration for one product, it would be be very nice if we could easily do it for other products, without having to retype the code. So let's make a Shiny app!
+Having done this exploration for one product, it would be very nice if we could easily do it for other products, without having to retype the code. So let's make a Shiny app!
 
 ## Prototype
 
