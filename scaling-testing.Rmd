@@ -60,7 +60,7 @@ local_edition(3)
 
 ## Testing functions
 
-The easiest part of your app is test is the part that has the least to do with Shiny: the functions extracted out of your UI and server code as described in Chapter \@ref(scaling-functions).
+The easiest part of your app to test is the part that has the least to do with Shiny: the functions extracted out of your UI and server code as described in Chapter \@ref(scaling-functions).
 We'll start by discussing how to test these non-reactive functions, showing you the basic structure of unit testing with testthat.
 
 ### Basic structure
