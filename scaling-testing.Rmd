@@ -5,7 +5,7 @@ source("common.R")
 options(tibble.print_min = 6, tibble.print_max = 6)
 ```
 
-For simple apps, its easy enough to remember how the app is supposed to work, so that when you make changes to add new features, you don't accidental break existing capabilities.
+For simple apps, its easy enough to remember how the app is supposed to work, so that when you make changes to add new features, you don't accidentally break existing capabilities.
 However, as your app gets more complicated it becomes impossible to hold it all in your head simultaneously.
 Testing is a way to capture the desired behaviour of your code to work, and turn it into an automated tool that allows you verify that your code keeps working the way that you expect.
 Turning your existing informal tests into code is painful when you first do it, because you need to carefully turn every key press and mouse click into a line of code, but once done, it's tremendously faster to re-run your tests.
