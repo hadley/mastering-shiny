@@ -285,7 +285,7 @@ knitr::include_graphics("diagrams/basic-reactivity/graph-1a.png", dpi = 300)
 
 The reactive graph is a powerful tool for understanding how your app works.
 As your app gets more complicated, it's often useful to make a quick high-level sketch of the reactive graph to remind you how all the pieces fit together.
-Throughout this book we'll show you the reactive graph to help understand how the examples work, and later on, in Chapter XYZ, you'll learn how to use reactlog which will draw the graph for you.
+Throughout this book we'll show you the reactive graph to help understand how the examples work, and later on, in Chapter 14, you'll learn how to use reactlog which will draw the graph for you.
 
 ### Reactive expressions
 
