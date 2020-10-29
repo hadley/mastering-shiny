@@ -415,7 +415,7 @@ We recommend always setting `res = 96` as that will make your Shiny plots match 
 Plots are special because they are outputs that can also act as inputs.
 `plotOutput()` has a number of arguments like `click`, `dblclick`, and `hover`.
 If you pass these a string, like `click = "plot_click"`, they'll create a reactive input (`input$plot_click`) that you can use to handle user interaction on the plot.
-We'll come back to interactive plots in Shiny in Chapter 7.
+We'll come back to interactive plots in Shiny in Chapter \@ref(action-graphics).
 
 ### Downloads
 
