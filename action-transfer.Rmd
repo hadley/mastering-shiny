@@ -350,7 +350,7 @@ To make it easier to understand how to use the app, I've used `sidebarLayout()` 
     )
     ```
 
-Which get assembled into a single `fluidPage()`:
+which get assembled into a single `fluidPage()`:
 
 ```{r}
 ui <- fluidPage(
