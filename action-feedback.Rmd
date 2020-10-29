@@ -23,7 +23,7 @@ library(shiny)
 ## Validation {#validate}
 
 The first and most important feedback you can give to the user is that they've given you bad input.
-This analogous to writing good functions in R: user-friendly functions give clear error message describing what the expected input is and how you have violated those expectations.
+This analogous to writing good functions in R: user-friendly functions give clear error messages describing what the expected input is and how you have violated those expectations.
 Thinking through how the user might misuse your app allows you to provide informative messages in the UI, rather than allowing errors to trickle through into the R code and generate uninformative errors.
 
 ### Validating input
@@ -136,7 +136,7 @@ demo$takeScreenshot()
 ```
 
 We can fix this problem by using `req()`, as below.
-Now nothing will be displayed until the user has suppled values for both language and name, as shown in Figure \@ref(fig:require-simple2).
+Now nothing will be displayed until the user has supplied values for both language and name, as shown in Figure \@ref(fig:require-simple2).
 
 ```{r}
 server <- function(input, output, session) {
@@ -338,7 +338,7 @@ server <- function(input, output, session) {
 }
 ```
 
-Generally, these sort of notifications will live in a reactive, because that ensures that the long-running comptutation is only re-run when needed.
+Generally, these sort of notifications will live in a reactive, because that ensures that the long-running computation is only re-run when needed.
 
 ### Progressive updates
 
@@ -385,7 +385,7 @@ In this section, I'll show two techniques for displaying progress bars, one buil
 Both work roughly the same way, first creating an R6 object and then calling an update method after each step.
 
 Unfortunately both techniques suffer from the same major drawback: to use a progress bar you need to be able to divide the big task into a known number of small pieces that each take roughly the same amount of time.
-This is often hard, particularly since the underlying code is often written in C and it has no way to communicate progres updates to you.
+This is often hard, particularly since the underlying code is often written in C and it has no way to communicate progress updates to you.
 We are working on tools in the [progress package](https://github.com/r-lib/progress) so that packages like dplyr, readr, and vroom will generate progress bars that you can easily forward to Shiny.
 I'll update this chapter when that approach is mature enough to use.
 
@@ -443,7 +443,7 @@ Here I'm using `Sys.sleep()` to simulate a long running operation; in your code 
 ### Waiter
 
 The built-in progress bar is great for the basics, but if you want something that provides more visual options, you might try the [waiter](https://waiter.john-coene.com/ "⌘+Click to follow link") package.
-Adapating the above code to work with Waiter is straightforward.
+Adapting the above code to work with Waiter is straightforward.
 In the UI, we add `use_waitress()`:
 
 ```{r}
@@ -575,7 +575,7 @@ The easiest way is to use a dialog box which forces the user to pick from one of
 In Shiny, you create a dialog box with `modalDialog()`.
 This is called a "modal" dialog because it creates a new "mode" of interaction; you can't interact with the main application until you have dealt with the dialog.
 
-Imagine you have an Shiny app that deletes some files from a directory (or rows in a database etc).
+Imagine you have a Shiny app that deletes some files from a directory (or rows in a database etc).
 This is hard to undo so you want to make sure that the user is really sure.
 You could create a dialog box that requires an explicit confirmation as follows:
 
@@ -593,7 +593,7 @@ modal_confirm <- modalDialog(
 There are a few small, but important, details to consider when creating a dialog box:
 
 -   What should you call the buttons?
-    It's best to be descriptive, so avoid yes/no or continue/cancel in favour of recaptiulating the key verb.
+    It's best to be descriptive, so avoid yes/no or continue/cancel in favour of recapitulating the key verb.
 
 -   How should you order the buttons?
     Do you put cancel first (like the Mac), or continue first (like Windows)?

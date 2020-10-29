@@ -107,7 +107,7 @@ server <- function(input, output, session) {
 }
 ```
 
-Note that since `multiple = FALSE` (the default), `input$file` will be a single row data frame, and `input$file$name` and `input$file$datapath` will be a length-1 character vectors. 
+Note that since `multiple = FALSE` (the default), `input$file` will be a single row data frame, and `input$file$name` and `input$file$datapath` will be a length-1 character vector. 
 
 ## Download
 
@@ -159,7 +159,7 @@ Next we'll put these pieces together to show how to transfer data files or repor
 
 ### Downloading data
 
-The following app shows off the basics of data download by allowing you to download any dataset in the datasets package as a tab separated file. I recommend using `.tsv` (tab separated value) instead of `.csv` (comma separated values) because many European countries use commas to separate the whole and fractional parts of a number (e.g. `1,23` vs `1.23`). This means they can't use commas to separate fields and instead use semi-colons in so-called "c"sv files! You can avoid this complexity by using tab separated files which work the same way everywhere.
+The following app shows off the basics of data download by allowing you to download any dataset in the datasets package as a tab separated file. I recommend using `.tsv` (tab separated value) instead of `.csv` (comma separated values) because many European countries use commas to separate the whole and fractional parts of a number (e.g. `1,23` vs `1.23`). This means they can't use commas to separate fields and instead use semi-colons in so-called "c"sv files! You can avoid this complexity by using tab separated files, which work the same way everywhere.
 
 ```{r}
 ui <- fluidPage(
@@ -249,7 +249,7 @@ It'll generally take at least a few seconds to render a `.Rmd`, so this is a goo
 
 There are a couple of other tricks worth knowing about:
 
-*   RMarkdown works in the current working directory, which will fails in many 
+*   RMarkdown works in the current working directory, which will fail in many 
     deployment scenarios (e.g. on shinyapps.io). You can work around this by 
     copying the report to a temporary directory when your app starts (i.e. 
     outside of the server function):
@@ -350,7 +350,7 @@ To make it easier to understand how to use the app, I've used `sidebarLayout()` 
     )
     ```
 
-Which get assembled into a single `fluidPage()`:
+which get assembled into a single `fluidPage()`:
 
 ```{r}
 ui <- fluidPage(

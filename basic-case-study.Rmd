@@ -150,13 +150,13 @@ selected %>%
   pull(narrative)
 ```
 
-Having done this exploration for one product, it would be be very nice if we could easily do it for other products, without having to retype the code. So let's make a Shiny app!
+Having done this exploration for one product, it would be very nice if we could easily do it for other products, without having to retype the code. So let's make a Shiny app!
 
 ## Prototype
 
 When building a complex app, I strongly recommend starting as simple as possible, so that you can confirm the basic mechanics work before you start doing something more complicated. Here I'll start with one input (the product code), three tables, and one plot. 
 
-When making a first prototype, the challenge is the "as simple _as possible_". There's a tension between getting the basics working quickly and planning for the future of the app. Either extreme can be bad: if you design too narrowly, you'll spend a lot of time later on reworking your app; if you design too rigorously, you'll spend a bunch of time writing code that later ends up on the cutting floor. To help get the balance right, I often do a few pencil-and-paper sketches to rapidly explore the UI and reactive graph before committing to code.
+When designing a first prototype, the challenge is in making it "as simple _as possible_". There's a tension between getting the basics working quickly and planning for the future of the app. Either extreme can be bad: if you design too narrowly, you'll spend a lot of time later on reworking your app; if you design too rigorously, you'll spend a bunch of time writing code that later ends up on the cutting floor. To help get the balance right, I often do a few pencil-and-paper sketches to rapidly explore the UI and reactive graph before committing to code.
 
 Here I decided to have one row for the inputs (accepting that I'm probably going to add more inputs before this app is done), one row for all three tables (giving each table 4 columns, 1/3 of the 12 column width), and then one row for the plot:
 
@@ -233,7 +233,7 @@ case_study_screenshot("rate-vs-count")
 
 Finally, I want to provide some way to access the narratives because they are so interesting, and they give an informal way to cross-check the hypotheses you come up with when looking at the plots. In the R code, I sample multiple narratives at once, but there's no reason to do that in an app where you can explore interactively.
 
-There are two parts to the solution. First we add a new row to the bottom of UI. I use an action button to trigger a new story, and put the narrative in a `textOutput()`:
+There are two parts to the solution. First we add a new row to the bottom of the UI. I use an action button to trigger a new story, and put the narrative in a `textOutput()`:
 
 ```{r, code = section_get("neiss/narrative.R", "narrative-ui"), eval = FALSE}
 ```
@@ -267,4 +267,4 @@ case_study_screenshot("narrative")
 
 ## Summary
 
-Now that you have the basics of Shiny apps under your belt, the following sevens chapters will give you a grab bag on important techniques. I don't recommend reading these chapters deeply in sequence. Instead, skim them so you get a good sense of what they cover, and then dip your toes back in as you need the techniques in your app.
+Now that you have the basics of Shiny apps under your belt, the following seven chapters will give you a grab bag of important techniques. I don't recommend reading these chapters deeply in sequence. Instead, skim them so you get a good sense of what they cover, and then dip your toes back in as you need the techniques in your app.

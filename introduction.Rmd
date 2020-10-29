@@ -19,7 +19,7 @@ In the past, creating web apps was hard for most R users because:
 
 Shiny makes it significantly easier for the R programmer to create web apps by:
 
--   Providing a carefully curated set of user interface (**UI** for short) functions that generate the HTML, CSS, and JavaScript that needed for common tasks.
+-   Providing a carefully curated set of user interface (**UI** for short) functions that generate the HTML, CSS, and JavaScript needed for common tasks.
     This means that you don't need to know the details of HTML/CSS/JS until you want to go beyond the basics that Shiny provides for you.
 
 -   Introducing a new style of programming called **reactive programming** which automatically tracks the dependencies of a code chunk.
@@ -33,9 +33,9 @@ People use Shiny to:
 
 -   Communicate complex models to a non-technical audience with informative visualisations and interactive sensitivity analysis.
 
--   Provide self-service data analysis for common workflows where replacing email requests with a Shiny app that allows people to upload their own data and perform standard analyses.
+-   Provide self-service data analysis for common workflows such as replacing email requests with a Shiny app that allows people to upload their own data and perform standard analyses.
 
--   Create interactive demos for teaching statistics and data science concepts that allow learners to tweak inputs and observe the downstream effects of these changes in an analysis.
+-   Create interactive demos for teaching statistics and data science concepts that allow learners to tweak inputs and observe the downstream effects of those changes in an analysis.
 
 -   Leverage automation processes by making them usable by users with no programming skills.
 
@@ -78,7 +78,7 @@ There are also a number of important topics specific to Shiny that we don't cove
 
 -   UI toolkits.
 
--   Deployment Shiny apps.
+-   Deployment of Shiny apps.
     <https://shiny.rstudio.com/articles/#deployment>
 
 ## Prerequisites {#prerequisites}
