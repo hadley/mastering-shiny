@@ -76,7 +76,7 @@ ui <- fluidPage(
 )
 ```
 
-Then you can access the value of that input with `input$count`.
+then you can access the value of that input with `input$count`.
 It will initially contain the value `100`, and it will be automatically updated as the user changes the value in the browser.
 
 Unlike a typical list, `input` objects are read-only.
