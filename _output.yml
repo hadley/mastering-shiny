@@ -2,6 +2,8 @@ bookdown::bs4_book:
   theme:
     primary: "#4D6F8D"
   repo: https://github.com/hadley/mastering-shiny
+  includes:
+    in_header: [ga_script.html]
 bookdown::gitbook:
   css: style.css
   includes:
