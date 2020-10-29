@@ -391,8 +391,8 @@ You can let the user download a file with `downloadButton()` or `downloadLink()`
     that each plot takes up half the width of the app.
 
 1.  Update the options for `renderDataTable()` below so that the table is 
-    displayed, but nothing else, i.e. remove the search, ordering, and filtering
-    commands. You'll need to read `?renderDataTable` and review the options 
+    displayed, but nothing else (i.e. remove the search, ordering, and filtering
+    commands). You'll need to read `?renderDataTable` and review the options 
     at <https://datatables.net/reference/option/>.
 
     ```{r eval=FALSE}
