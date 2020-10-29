@@ -362,7 +362,7 @@ server <- function(input, output, session) {
 
 (If the `.data` syntax is unfamiliar to you, you can learn more in Chapter \@ref(action-tidy)).
 
-You'll notice one important difference between `renderPlot()` and `renderCachedPlot()`: a cached plot also needs a `cacheKeyExpr`, an expression that uniquely identifys each plot.
+You'll notice one important difference between `renderPlot()` and `renderCachedPlot()`: a cached plot also needs a `cacheKeyExpr`, an expression that uniquely identifies each plot.
 This is the most important argument to `renderCachedPlot()` and we'll discuss it in more detail below.
 We'll also cover two other important concepts:
 
