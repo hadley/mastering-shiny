@@ -424,11 +424,9 @@ These require new techniques in the server function, so we'll come back to that 
 
 ### Exercises
 
-1.  Re-create the Shiny app from the plots section, this time setting height to 300px and width to 700px.
+1.  Re-create the Shiny app from Section \@ref(plots), this time setting height to 300px and width to 700px.
 
-2.  Add an additional plot to the right of the existing plot, and size it so that each plot takes up half the width of the app.
-
-3.  Update the options for `renderDataTable()` below so that the table is displayed, but nothing else (i.e. remove the search, ordering, and filtering commands).
+2.  Update the options for `renderDataTable()` below so that the table is displayed, but nothing else (i.e. remove the search, ordering, and filtering commands).
     You'll need to read `?renderDataTable` and review the options at <https://datatables.net/reference/option/>.
 
     ```{r eval=FALSE}
@@ -641,9 +639,11 @@ You might also want to take a look at the [fresh](https://dreamrs.github.io/fres
 
 ### Exercises
 
-1.  Modify the Central Limit Theorem app so that the sidebar is on the right instead of the left.
+1.  Create an app with that contains two plots, each of which takes up half of the app (regardless of what size the whole app is).
 
-2.  Browse the themes available in the shinythemes package, pick an attractive theme, and apply it the Central Limit Theorem app.
+2.  Modify the Central Limit Theorem app so that the sidebar is on the right instead of the left.
+
+3.  Browse the themes available in the shinythemes package, pick an attractive theme, and apply it the Central Limit Theorem app.
 
 ```{=html}
 <!--
