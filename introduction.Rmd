@@ -76,7 +76,9 @@ If you enjoy my writing in this book, you might enjoy my other books on these to
 
 There are also a number of important topics specific to Shiny that we don't cover:
 
--   UI toolkits.
+-   This book only covers the built-in user interface toolkit.
+    There are a number of other packages that provide alternative front ends like [shinydashboard](https://rstudio.github.io/shinydashboard/), [shinymaterial](https://ericrayanderson.github.io/shinymaterial/), [shiny.semantic](https://appsilon.github.io/shiny.semantic/), or the collection of packages by [RinterRface](https://github.com/RinteRface).
+    Nan Xiao maintains a list of many extensions at <https://github.com/nanxstats/awesome-shiny-extensions>.
 
 -   Deployment of Shiny apps.
     <https://shiny.rstudio.com/articles/#deployment>
