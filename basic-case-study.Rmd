@@ -267,4 +267,4 @@ case_study_screenshot("narrative")
 
 ## Summary
 
-Now that you have the basics of Shiny apps under your belt, the following seven chapters will give you a grab bag on important techniques. I don't recommend reading these chapters deeply in sequence. Instead, skim them so you get a good sense of what they cover, and then dip your toes back in as you need the techniques in your app.
+Now that you have the basics of Shiny apps under your belt, the following seven chapters will give you a grab bag of important techniques. I don't recommend reading these chapters deeply in sequence. Instead, skim them so you get a good sense of what they cover, and then dip your toes back in as you need the techniques in your app.
