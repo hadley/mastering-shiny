@@ -4,7 +4,7 @@
 source("common.R")
 ```
 
-By default, Shiny apps have one major drawback compared to most web sites: you can't bookmark the app to return to the same place the future or share your work someone else with a link an email. That's because, by default, Shiny does not expose the current state of the app in its URL. Fortunately, however, you can change this behaviour with a little extra work and this chapter will show you how.
+By default, Shiny apps have one major drawback compared to most web sites: you can't bookmark the app to return to the same place in the future or share your work with someone else with a link in an email. That's because, by default, Shiny does not expose the current state of the app in its URL. Fortunately, however, you can change this behaviour with a little extra work and this chapter will show you how.
 
 ```{r setup}
 library(shiny)
