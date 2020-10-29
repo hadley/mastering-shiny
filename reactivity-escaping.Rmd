@@ -7,10 +7,10 @@ source("common.R")
 ## Introduction
 
 Shiny's reactive programming framework is incredibly useful because it automatically determines the minimal set of computations needed to update all outputs when an input changes.
-But this framework is deliberately constraining, and sometimes you need break free in order to do something dangerous but necessary.
+But this framework is deliberately constraining, and sometimes you need to break free in order to do something dangerous but necessary.
 
-In this chapter you learn how you an break free of many of the constraints of reactive programming by using `reactiveVal()` and `observe()` to connect the right hand side of the graph back to the left hand side.
-The techniques that you will learn about powerful because they give you manual control over parts of the graph.
+In this chapter you learn how you can break free of many of the constraints of reactive programming by using `reactiveVal()` and `observe()` to connect the right hand side of the graph back to the left hand side.
+The techniques that you will learn about are powerful because they give you manual control over parts of the graph.
 At the same time, they are dangerous because they allow your app to do unnecessary work.
 Most importantly, you can now create infinite loops where your app gets stuck in a cycle of updates that never end.
 
