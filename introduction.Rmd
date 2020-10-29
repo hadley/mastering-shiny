@@ -81,7 +81,10 @@ There are also a number of important topics specific to Shiny that we don't cove
     Nan Xiao maintains a list of many extensions at <https://github.com/nanxstats/awesome-shiny-extensions>.
 
 -   Deployment of Shiny apps.
-    <https://shiny.rstudio.com/articles/#deployment>
+    Putting Shiny "into production" is outside the scope of this book because it hugely varies from company to company, and much of it is unrelated to R (the majority of challenges tend to be cultural or organisational, not technical).
+    If you're new to Shiny in production, I recommend by starting with Joe Cheng's 2019 rstudio::conf keynote: <https://rstudio.com/resources/rstudioconf-2019/shiny-in-production-principles-practices-and-tools/>.
+    That will give you the lay of the land, discussing broadly what putting Shiny into production entails and how to overcome some of the challenges that you're likely to face.
+    Once you've done that, see [the Shiny website](https://shiny.rstudio.com/articles/#deployment) for more details of specific deployment scenarios.
 
 ## Prerequisites {#prerequisites}
 
