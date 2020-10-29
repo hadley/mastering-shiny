@@ -107,7 +107,7 @@ server <- function(input, output, session) {
 }
 ```
 
-Note that since `multiple = FALSE` (the default), `input$file` will be a single row data frame, and `input$file$name` and `input$file$datapath` will be a length-1 character vectors. 
+Note that since `multiple = FALSE` (the default), `input$file` will be a single row data frame, and `input$file$name` and `input$file$datapath` will be a length-1 character vector. 
 
 ## Download
 
