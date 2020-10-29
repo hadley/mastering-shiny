@@ -385,7 +385,7 @@ In this section, I'll show two techniques for displaying progress bars, one buil
 Both work roughly the same way, first creating an R6 object and then calling an update method after each step.
 
 Unfortunately both techniques suffer from the same major drawback: to use a progress bar you need to be able to divide the big task into a known number of small pieces that each take roughly the same amount of time.
-This is often hard, particularly since the underlying code is often written in C and it has no way to communicate progres updates to you.
+This is often hard, particularly since the underlying code is often written in C and it has no way to communicate progress updates to you.
 We are working on tools in the [progress package](https://github.com/r-lib/progress) so that packages like dplyr, readr, and vroom will generate progress bars that you can easily forward to Shiny.
 I'll update this chapter when that approach is mature enough to use.
 
