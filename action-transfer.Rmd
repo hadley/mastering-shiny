@@ -249,7 +249,7 @@ It'll generally take at least a few seconds to render a `.Rmd`, so this is a goo
 
 There are a couple of other tricks worth knowing about:
 
-*   RMarkdown works in the current working directory, which will fails in many 
+*   RMarkdown works in the current working directory, which will fail in many 
     deployment scenarios (e.g. on shinyapps.io). You can work around this by 
     copying the report to a temporary directory when your app starts (i.e. 
     outside of the server function):
