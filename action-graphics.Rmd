@@ -418,7 +418,7 @@ See <https://shiny.rstudio.com/articles/plot-caching.html> for more details.
 ## Images
 
 You can use `renderImage()` if you want to display existing images (not plots).
-For example, you might have a directory of photographs that you want show to the user.
+For example, you might have a directory of photographs that you want shown to the user.
 The following app illustrates the basics of `renderImage()` by showing cute puppy photos.
 The photos come from <https://unsplash.com>, my favourite source of royalty free stock photographs.
 
