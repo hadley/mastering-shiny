@@ -136,7 +136,7 @@ demo$takeScreenshot()
 ```
 
 We can fix this problem by using `req()`, as below.
-Now nothing will be displayed until the user has suppled values for both language and name, as shown in Figure \@ref(fig:require-simple2).
+Now nothing will be displayed until the user has supplied values for both language and name, as shown in Figure \@ref(fig:require-simple2).
 
 ```{r}
 server <- function(input, output, session) {
