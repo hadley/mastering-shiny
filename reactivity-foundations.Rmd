@@ -4,8 +4,8 @@
 source("common.R")
 ```
 
-Now that you've learned how the reactive graph really works, it's a useful to come to back to some of the details of the underlying objects.
-By this point, you've used these objects many times in your apps, so now it a good time to discuss some of the finer details.
+Now that you've learned how the reactive graph really works, it's useful to come back to some of the details of the underlying objects.
+By this point, you've used these objects many times in your apps, so now is a good time to discuss some of the finer details.
 
 There are three fundamental building blocks of reactive programming: reactive values, reactive expressions, and observers.
 You've already seen most of the important parts of reactive values and expressions, so this chapter will spend most time on observers and the closely related outputs.
@@ -153,7 +153,7 @@ Observers differ from expressions in two important ways:
 
 -   The value returned by an observer is ignored because they are designed to work with functions called for their side-effects, like `cat()` or `write.csv()`.
 
--   They are eager and forgetful --- they run as soon as possibly can and they don't remember their previous action.
+-   They are eager and forgetful --- they run as soon as they possibly can and they don't remember their previous action.
     This eagerness is "infectious" because if they use a reactive expression, that reactive expression will also be evaluated.
 
 ### Nesting observers
@@ -239,7 +239,7 @@ In Chapter \@ref(reactivity-components) we'll come back to the problem of managi
 
 ### Output {#outputs-adv}
 
-If you've paid close attention you might have noticed that I've explained `input`, reactive expressions, and observers, but I haven't said anything about outputs.
+If you've paid close attention you might have noticed that I've explained `input`, reactive expressions, and observers, but I haven't said anything about `output`.
 How do reactive outputs fit into the picture?
 Take this simple output:
 
