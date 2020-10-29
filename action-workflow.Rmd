@@ -218,7 +218,7 @@ There are three basic parts to the call stack:
     Here the file is `source()`d, then `print.shiny.appobj()` calls `runApp()` to start the app.
     In general, you can ignore anything before the first `runApp()`; this is just the setup code to get the app running.
 
--   Next, you'll see some internal shiny code in charge of calling the reactive expression:
+-   Next, you'll see some internal Shiny code in charge of calling the reactive expression:
 
          85: output$plot
          86: origRenderFunc
@@ -249,7 +249,7 @@ The debugger pauses execution and gives you an interactive R console where you c
 There are two ways to launch the debugger:
 
 -   Add a call to `browser()` in your source code.
-    This is the standard R way of lauching the interactive debugger, and will work however you're running shiny.
+    This is the standard R way of lauching the interactive debugger, and will work however you're running Shiny.
     The other advantage of `browser()` is that because it's R code, you can make it conditional by combining it with an `if` statement:
 
     ```{r, eval = FALSE}
