@@ -233,7 +233,7 @@ case_study_screenshot("rate-vs-count")
 
 Finally, I want to provide some way to access the narratives because they are so interesting, and they give an informal way to cross-check the hypotheses you come up with when looking at the plots. In the R code, I sample multiple narratives at once, but there's no reason to do that in an app where you can explore interactively.
 
-There are two parts to the solution. First we add a new row to the bottom of UI. I use an action button to trigger a new story, and put the narrative in a `textOutput()`:
+There are two parts to the solution. First we add a new row to the bottom of the UI. I use an action button to trigger a new story, and put the narrative in a `textOutput()`:
 
 ```{r, code = section_get("neiss/narrative.R", "narrative-ui"), eval = FALSE}
 ```
