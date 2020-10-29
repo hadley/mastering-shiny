@@ -15,7 +15,7 @@ Reactive programming is an elegant and powerful programming paradigm, but it can
 The key idea of reactive programming is to specify a graph of dependencies so that when an input changes, all related outputs are automatically updated.
 This makes the flow of an app considerably simpler, but it takes a while to get your head around how it all fits together.
 
-This chapter will provide a gentle introduction to reactive programming, teaching you the basics of the most basic reactive constructs you'll use in Shiny apps.
+This chapter will provide a gentle introduction to reactive programming, teaching you the basics of the most common reactive constructs you'll use in Shiny apps.
 We'll start with a survey of the server function, discussing in more detail how the `input` and `output` arguments work.
 Next we'll review the simplest form of reactivity (where inputs are directly connected to outputs), and then discuss how reactive expressions allow you to eliminate duplicated work.
 We'll finish by reviewing some common roadblocks encountered by newer Shiny users.
