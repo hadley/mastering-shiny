@@ -575,7 +575,7 @@ The easiest way is to use a dialog box which forces the user to pick from one of
 In Shiny, you create a dialog box with `modalDialog()`.
 This is called a "modal" dialog because it creates a new "mode" of interaction; you can't interact with the main application until you have dealt with the dialog.
 
-Imagine you have an Shiny app that deletes some files from a directory (or rows in a database etc).
+Imagine you have a Shiny app that deletes some files from a directory (or rows in a database etc).
 This is hard to undo so you want to make sure that the user is really sure.
 You could create a dialog box that requires an explicit confirmation as follows:
 
