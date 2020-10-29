@@ -122,7 +122,7 @@ diamonds %>% filter(.data[[var]] > min)
 ```
 
 Let's wrap this up into a simple Shiny app.
-The UI will have a input to select the variable, an input for the minimum value, and a output to show the data, and the server function will wrap the `filter()` call in a reactive and render the first few rows.
+The UI will have an input to select the variable, an input for the minimum value, and an output to show the data, and the server function will wrap the `filter()` call in a reactive and render the first few rows.
 
 ```{r}
 ui <- fluidPage(
@@ -297,7 +297,7 @@ input <- list(var = "x", min = 0)
 df %>% filter(.data[[input$var]] > input$min)
 ```
 
-If you experiment with this code, you'll find that it appears to work just fine for vast majority of data frames.
+If you experiment with this code, you'll find that it appears to work just fine for the vast majority of data frames.
 However, there's a subtle issue: what happens if the data frame contains a variable called `input`?
 
 ```{r, error = TRUE}
