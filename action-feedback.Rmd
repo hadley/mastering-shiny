@@ -593,7 +593,7 @@ modal_confirm <- modalDialog(
 There are a few small, but important, details to consider when creating a dialog box:
 
 -   What should you call the buttons?
-    It's best to be descriptive, so avoid yes/no or continue/cancel in favour of recaptiulating the key verb.
+    It's best to be descriptive, so avoid yes/no or continue/cancel in favour of recapitulating the key verb.
 
 -   How should you order the buttons?
     Do you put cancel first (like the Mac), or continue first (like Windows)?
