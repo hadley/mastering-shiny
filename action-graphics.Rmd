@@ -412,7 +412,7 @@ If needed, you can override these defaults with:
 -   `cache = diskCache(...)`: shares across multiple users, multiple processes, and app restarts.
     Beware that restarting the app will no longer clear the cache, so if you change the plotting code, you'll also need to manually reset the cache by deleting the directory.
 
-It's also possible to store in a database, or write your own backend.
+It's also possible to store in a database, or write your own back end.
 See <https://shiny.rstudio.com/articles/plot-caching.html> for more details.
 
 ## Images

@@ -220,7 +220,7 @@ This spawned a rich literature [@rp-survey], but had little impact on the practi
 
 It wasn't until the 2010s that reactive programming roared into the programming mainstream through the fast-paced world of JavaScript UI frameworks.
 Pioneering frameworks like [Knockout](https://knockoutjs.com/), [Ember](https://emberjs.com/), and (Joe Cheng's personal inspiration) [Meteor](https://www.meteor.com) demonstrated that reactive programming could make UI programming dramatically easier.
-Within a few short years, reactive programming has come to dominate web programming through hugely popular frameworks like [React](https://reactjs.org), [Vue.js](https://vuejs.org), and [Angular](https://angularjs.org), which are all either inherently reactive or designed to work hand-in-hand with reactive backends.
+Within a few short years, reactive programming has come to dominate web programming through hugely popular frameworks like [React](https://reactjs.org), [Vue.js](https://vuejs.org), and [Angular](https://angularjs.org), which are all either inherently reactive or designed to work hand-in-hand with reactive back ends.
 
 It's worth bearing in mind that "reactive programming" is a fairly general term.
 While all reactive programming libraries, frameworks, and languages are broadly concerned with writing programs that respond to changing values, they vary enormously in their terminology, designs, and implementations.

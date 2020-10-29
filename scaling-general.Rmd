@@ -40,7 +40,7 @@ There's no silver bullet to address all of these points---and many times they in
 
 -   **Functions**, the topic of Chapter \@ref(scaling-functions), allow you to reduce duplication in your UI code, make your server functions easier to understand and test, and allow you to more flexibly organise your app code.
 
--   **Shiny modules**, the topic of Chapter \@ref(scaling-modules), make it possible to write isolated, re-usable code, that coordinates front-end and back-end behaviour. Modules allow you to gracefully separate concerns so that (e.g.) individual pages in your application can operate independently, or repeated components no longer need to be copied and pasted.
+-   **Shiny modules**, the topic of Chapter \@ref(scaling-modules), make it possible to write isolated, re-usable code, that coordinates front end and back end behaviour. Modules allow you to gracefully separate concerns so that (e.g.) individual pages in your application can operate independently, or repeated components no longer need to be copied and pasted.
 
 ## Testing
 

@@ -8,11 +8,11 @@ source("demo.R")
 ## Introduction
 
 Now that you've got a basic app under your belt, we're going to explore the details that make it tick.
-As you saw in the previous chapter, Shiny encourages separation of the code that generates your user interface (the front end) from the code that drives your app's behaviour (the backend).
+As you saw in the previous chapter, Shiny encourages separation of the code that generates your user interface (the front end) from the code that drives your app's behaviour (the back end).
 In this chapter, we'll dive deeper into the front end and explore the HTML inputs, outputs, and layouts provided by Shiny.
 
-Learning more about frontend will allow you to generate visually compelling, but simple apps.
-In the next chapter, you'll learn more about the reactivity that powers Shiny's backend, allowing you to create richer responses to interaction.
+Learning more about the front end will allow you to generate visually compelling, but simple apps.
+In the next chapter, you'll learn more about the reactivity that powers Shiny's back end, allowing you to create richer responses to interaction.
 
 As usual, we'll begin by loading the shiny package:
 
