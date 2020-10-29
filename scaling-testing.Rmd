@@ -5,7 +5,7 @@ source("common.R")
 options(tibble.print_min = 6, tibble.print_max = 6)
 ```
 
-For simple apps, its easy enough to remember how the app is supposed to work, so that when you make changes to add new features, you don't accidentally break existing capabilities.
+For simple apps, it's easy enough to remember how the app is supposed to work, so that when you make changes to add new features, you don't accidentally break existing capabilities.
 However, as your app gets more complicated it becomes impossible to hold it all in your head simultaneously.
 Testing is a way to capture the desired behaviour of your code to work, and turn it into an automated tool that allows you to verify that your code keeps working the way that you expect.
 Turning your existing informal tests into code is painful when you first do it, because you need to carefully turn every key press and mouse click into a line of code, but once done, it's tremendously faster to re-run your tests.
@@ -33,7 +33,7 @@ We'll work through levels of testing in this chapter:
 -   Next you'll learn how to test the flow of **reactivity** within your server function.
     You'll set the value of inputs and then verify that reactives and outputs have the values you expect.
 
--   Then we'll test parts of Shiny that use **javascript** (e.g. the `update*` functions) by running the app in a background web browser.
+-   Then we'll test parts of Shiny that use **JavaScript** (e.g. the `update*` functions) by running the app in a background web browser.
     This is a high fidelity simulation because it runs a real browser, but on the downside, the tests are slower to run and you can no longer so easily peek inside the app.
 
 -   Finally, we'll test **app visuals** by saving screenshots of selected elements.
@@ -267,7 +267,7 @@ You can learn more about snapshot tests at <https://testthat.r-lib.org/articles/
 
 ## Workflow
 
-Before we talk about testing functions that use reactivity or javascript, we'll take a brief digression to work on your workflow.
+Before we talk about testing functions that use reactivity or JavaScript, we'll take a brief digression to work on your workflow.
 
 ### Code coverage
 
@@ -289,7 +289,7 @@ Code coverage supports a slightly different workflow:
 3.  Repeat until all important lines of code are tested.
     (Getting to 100% test coverage often isn't worth it, but you should check that you are hitting the most critical parts of your app)
 
-Code coverage also works with the tools for testing reactivity and (to some extend) javascript, so it's a useful foundational skill.
+Code coverage also works with the tools for testing reactivity and (to some extend) JavaScript, so it's a useful foundational skill.
 
 ### Keyboard shortcuts
 
@@ -377,7 +377,7 @@ testServer(server, {
 
 Note that we're only testing the server function; the `ui` component of the app is completely ignored.
 You can see this most clearly by inspecting the inputs: unlike a real Shiny app, all inputs start as `NULL`, because the initial value is recorded in the `ui`.
-We'll come back to UI testing in Section \@ref(testing-javascript).
+We'll come back to UI testing in Section \@ref(testing-JavaScript).
 
 ```{r}
 testServer(server, {
@@ -493,11 +493,11 @@ The simulation is useful because it lets you quickly test reactive code, but it 
     So if you want to test code that relies on `reactiveTimer()` or `invalidateLater()`, you'll need to manually advance time by calling `session$elapse(millis = 300)`.
 
 -   `testServer()` ignores UI.
-    That means inputs don't get default values, and no javascript works.
-    Most importantly this means that you can't test the `update*` functions, because they work by sending javascript to the browser to simulates user interactions.
+    That means inputs don't get default values, and no JavaScript works.
+    Most importantly this means that you can't test the `update*` functions, because they work by sending JavaScript to the browser to simulates user interactions.
     You'll require the next technique to test such code.
 
-## Testing javascript
+## Testing JavaScript
 
 `testServer()` only a limited simulation of the full Shiny app, so that any code that relies of a "real" browser running will not work.
 Most importantly, this means that no JavaScript will be run.
