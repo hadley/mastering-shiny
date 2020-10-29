@@ -443,7 +443,7 @@ Here I'm using `Sys.sleep()` to simulate a long running operation; in your code 
 ### Waiter
 
 The built-in progress bar is great for the basics, but if you want something that provides more visual options, you might try the [waiter](https://waiter.john-coene.com/ "⌘+Click to follow link") package.
-Adapating the above code to work with Waiter is straightforward.
+Adapting the above code to work with Waiter is straightforward.
 In the UI, we add `use_waitress()`:
 
 ```{r}
