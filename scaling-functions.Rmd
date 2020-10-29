@@ -233,7 +233,7 @@ load_file <- function(name, path) {
 When extracting out such helpers, avoid taking reactives as input or returning outputs.
 Instead, pass them in through the arguments, and assume the caller will turn into a reactive.
 This isn't a hard and fast rule; sometimes it will make sense for your functions to input or output reactives.
-But generally, I think it's better to keep the reactive and non-reactive parts of your app as separate a possible.
+But generally, I think it's better to keep the reactive and non-reactive parts of your app as separate as possible.
 In this case, I'm still using `validate()`; that works because outside of Shiny `validate()` works similarly to `stop()`.
 But I keep the `req()` in the server, because it shouldn't be the responsibility of the file parsing code to know when it's run.
 
