@@ -24,7 +24,7 @@ description: "The official guide to the Shiny web application framework for R."
 
 Today, Shiny is used in almost as many niches and industries as R itself is. It's used in academia as a teaching tool for statistical concepts, a way to get undergrads excited about learning to write code, a splashy medium for showing off novel statistical methods or models. It's used by big pharma companies to speed collaboration between scientists and analysts during drug development. It's used by Silicon Valley tech companies to set up realtime metrics dashboards that incorporate advanced analytics.
 
-This book complements [Shiny's online documentation](https://shiny.rstudio.com/) and is intended to help app authors develop a deeper understanding of Shiny. After reading this book, you'll be able to write apps that have more customized UI, more maintainable code, and better performance and scalability.
+This book complements [Shiny's online documentation](https://shiny.rstudio.com/articles/) and is intended to help app authors develop a deeper understanding of Shiny. After reading this book, you'll be able to write apps that have more customized UI, more maintainable code, and better performance and scalability.
 
 ### License {-}
 
