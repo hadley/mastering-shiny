@@ -501,7 +501,7 @@ The simulation is useful because it lets you quickly test reactive code, but it 
 
 `testServer()` only a limited simulation of the full Shiny app, so that any code that relies of a "real" browser running will not work.
 Most importantly, this means that no JavaScript will be run.
-This might not seem important because we haven't talked at JavasSript in this book, but there are a number of important Shiny functions that use it behind the scenes:
+This might not seem important because we haven't talked at JavaScript in this book, but there are a number of important Shiny functions that use it behind the scenes:
 
 -   All `update*()` functions, Section \@ref(updating-inputs).
 
@@ -717,7 +717,7 @@ But you'll soon get the mechanics under your belt and your questions will become
 
 I think it's useful to think about false positives and false negatives: it's possible to write tests that don't fail when they should, and do fail when they shouldn't.
 I think when you start testing your biggest struggles are with false positives: how do you make sure your tests are actually catching bad behaviour.
-But I think you move past this fairly quickl
+But I think you move past this fairly quickly.
 
 ### When should you write tests?
 
