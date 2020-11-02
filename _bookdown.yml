@@ -40,7 +40,6 @@ rmd_files:
     "scaling-testing.Rmd",
     "scaling-safety.Rmd",
     "scaling-performance.Rmd",
-    "scaling-scoping.Rmd",
   ]
 
 

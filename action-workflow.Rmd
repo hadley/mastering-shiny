@@ -769,4 +769,3 @@ That can be frustrating and feel time consuming, but it has a number of benefits
 
 When I try to help someone with their app on [RStudio community](https://community.rstudio.com/tag/shiny), creating a reprex is always the first thing I do.
 This isn't some make work exericse I use to fob off people I don't want to help: it's exactly where I start!
-
