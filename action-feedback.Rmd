@@ -15,7 +15,7 @@ We'll then continue on to **notification**, sending general messages to the user
 We'll finish up by discussing dangerous actions, and how you give your users peace of mind with **confirmation** dialogs or the ability to **undo** an action.
 
 In this chapter we'll use [shinyFeedback](https://github.com/merlinoa/shinyFeedback), by Andy Merlino, and [waiter](http://waiter.john-coene.com/), by John Coene.
-You should also keep your eyes open for [shinyvalidate](https://rstudio.github.io/shinyvalidate/), a package by Joe Chen, that is currently under development.
+You should also keep your eyes open for [shinyvalidate](https://rstudio.github.io/shinyvalidate/), a package by Joe Cheng, that is currently under development.
 
 ```{r setup}
 library(shiny)
