@@ -161,7 +161,7 @@ library(shiny)
 reactiveConsole(TRUE)
 ```
 
-As with event-driven programming, we need some way to indicate that we have a special special type of variable.
+As with event-driven programming, we need some way to indicate that we have a special type of variable.
 In Shiny, we use a **reactive value**, which has a special syntax for getting and setting its value.
 We create the object with `reactiveVal()`, get its value by calling it like a zero-argument function, and set its value by calling it like a one-argument function[^reactivity-motivation-1].
 
