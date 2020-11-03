@@ -337,7 +337,7 @@ For example, if you're using a faceted plot in ggplot2, you might use it to incr
 
 ## Cached plots
 
-If you have an app with complicated plots that take a while to draw, you can get some major performance improvement with plot caching.
+If you have an app with complicated plots that take a while to draw, you can get some major performance improvements with plot caching.
 This is mostly a matter of changing `renderPlot()` to `renderCachedPlot()` then thinking carefully about the "cache key" which determines when the cache is used.
 
 The following app uses `renderCachedPlot()` to speed up the rendering of a scatterplot of the diamonds dataset.
@@ -409,7 +409,7 @@ If needed, you can override these defaults with:
 -   `cache = "session"`: the cache lifetime will be tied to a single user.
     It will be created when the session starts (i.e. when someone first visits your app), and deleted when the session ends.
 
--   `cache = diskCache(...)`: shares across multiple users, multiple processes, and app restarts.
+-   `cache = cachem::disk_cache()`: shares across multiple users, multiple processes, and app restarts.
     Beware that restarting the app will no longer clear the cache, so if you change the plotting code, you'll also need to manually reset the cache by deleting the directory.
 
 It's also possible to store in a database, or write your own back end.
