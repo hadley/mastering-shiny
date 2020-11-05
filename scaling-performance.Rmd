@@ -54,7 +54,7 @@ We won't talk more about scaling out in this chapter (because while the details 
 
 [\<https://rstudio.com/resources/rstudioconf-2018/scaling-shiny/\>](https://rstudio.com/resources/rstudioconf-2018/scaling-shiny/){.uri}
 
-(R is single threaded which means the chef is very focussed --- the can only cook one thing at a time. This is fine if they're doing something quick, but if you ask them to make a stew, all the other customers have to wait for a couple of hours until they're done. While you can work around this problem by adding more single track chefs, a better way is to teach the chef how to work on multiple dishes simultaneously. This is the idea of promises: <https://rstudio.github.io/promises/>)
+(R is single threaded which means the chef is very focussed --- they can only cook one thing at a time. This is fine if they're doing something quick, but if you ask them to make a stew, all the other customers have to wait for a couple of hours until they're done. While you can work around this problem by adding more single track chefs, a better way is to teach the chef how to work on multiple dishes simultaneously. This is the idea of promises: <https://rstudio.github.io/promises/>)
 
 ## Benchmark
 
