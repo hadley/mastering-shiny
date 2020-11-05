@@ -28,7 +28,7 @@ rmd_files:
 
     "reactivity.Rmd",
     "reactivity-motivation.Rmd",
-    "reactivity-tracking.Rmd",
+    "reactivity-graph.Rmd",
     "reactivity-foundations.Rmd",
     "reactivity-escaping.Rmd",
 
