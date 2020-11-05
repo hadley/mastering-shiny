@@ -6,6 +6,51 @@ options(tibble.print_min = 6, tibble.print_max = 6)
 ```
 
 Shiny can support thousands or tens of thousands of users, if developed correctly.
+But most Shiny apps were quickly thrown together to solve a pressing analytic need, and often start with pretty terrible performance.
+In some ways, this is a feature of Shiny --- it allows you to quickly prototype a proof of concept that works for you, before figuring out how to make it fast so that it can be used by a bunch of people simultaneously.
+But if you don't realise that app is likely because you've optimised for human iteration speed), making a Shiny app available to many people will be frustrating.
+
+Fortunately, however, Shiny comes with a bunch of tools to help improve performance.
+In this chapter you'll learn:
+
+-   How to use shinyloadtest to simulate the use of your app by many people.
+    This allows you to figure out if you have a problem, and to measure the impact of your performance improvement.
+
+-   To use profvis to identify performance bottlenecks.
+    It is extremely difficult to develop a good intuition for what parts of your app are likely to be slow.
+    Fortunately there's no need because we can measure and visualise.
+
+-   A grab bag of useful techniques to improve performance, particularly focussing on techniques that allow you to take advantage of multiple users.
+
+-   We'll finish up with a little applied psychology to give a few techniques that can help your app *feel* as fast as possible.
+
+But to get started, lets build up your mental model of Shiny performance with a restaurant analogy.
+
+```{r setup}
+library(shiny)
+```
+
+Particularly thanks go to my RStudio colleagues Joe Cheng, Sean Lopp, and Alan Dipert, whose RStudio::conf() talks were particularly helpful when writing this chapter.
+
+## Dining at restaurant Shiny
+
+(Thanks to Sean Lopp for this analogy from his rstudio::conf(2018) talk [Scaling Shiny to 10,000 users](https://rstudio.com/resources/rstudioconf-2018/scaling-shiny/){.uri}.
+I highly recommend watching it if you have any doubt that Shiny apps can handle thousands of users.)
+
+To help improve your mental model of app serving, it's useful to think of a Shiny app like a restaurant.
+Each customer (user) comes in and makes an order which is prepared and served by a chef (the R process).
+One chef can make a sandwich for customer A, then a soup for customer B, ... Unlike chefs, however, R is single-process, which means that it can only do one thing at a time --- if Shiny is making an omelette, it can't start some pancakes cooking.
+This is fine if all the recipe are quick to cook, but if you asked a R-Chef to make a two hour stew, they couldn't do anything else in the meantime.
+(Unless you learn about async programming, which basically lets R work on multiple things at the same time [\<[https://rstudio.github.io/promises/\>](https://rstudio.github.io/promises/>)](https://rstudio.github.io/promises/){.uri}).
+
+One chef can serve multiple customers, but as you get more customers, you're likely to want to hire more chefs.
+But at some point there's so many that they get in each others' way --- there's still only one oven, one grill, one refrigerator, etc.
+So at some point, you're going to need to add a new restaurant (server).
+
+(R is single threaded which means the chef is very focussed --- they can only cook one thing at a time. This is fine if they're doing something quick, but if you ask them to make a stew, all the other customers have to wait for a couple of hours until they're done. While you can work around this problem by adding more single track chefs, a better way is to )
+
+Just like you can serve a customer meal made in multiple restaurants with a new restaurant, there's no way to serve one user from multiple servers, so this also needs to be coupled with a load balancer which automatically sends customers to the emptiest restaurant.
+We won't talk more about scaling out in this chapter (because while the details are straightforward, they depend entirely on your deployment infrastructure), but it's good to know this option exists, and allows you app to scale to any number of users.
 
 There are three main ways to make your app faster:
 
@@ -14,7 +59,7 @@ There are three main ways to make your app faster:
     If you're concerned about single user performance (i.e. it's just you using the app), it's very unlikely that Shiny is the bottleneck.
     Instead, improving the performance of your app is really about improving the performance of your R code.
     Many of the same techniques apply; in particular you'll still need to profile the performance of your app.
-    Some advice in [\<https://adv-r.hadley.nz/perf-measure.html\>](https://adv-r.hadley.nz/perf-measure.html){.uri} and [\<https://adv-r.hadley.nz/perf-improve.html\>](https://adv-r.hadley.nz/perf-improve.html){.uri}.
+    Some advice in [\<[https://adv-r.hadley.nz/perf-measure.html\>](https://adv-r.hadley.nz/perf-measure.html\>)](https://adv-r.hadley.nz/perf-measure.html){.uri} and [\<[https://adv-r.hadley.nz/perf-improve.html\>](https://adv-r.hadley.nz/perf-improve.html\>)](https://adv-r.hadley.nz/perf-improve.html){.uri}.
 
 -   Make it faster for multiple users on the same server.
 
@@ -22,87 +67,79 @@ There are three main ways to make your app faster:
     Shiny is horizontally scalable, which means that you can always make it faster by providing more servers.
     Shiny and R scale linearly per processor --- if you need to support more users you can just use more processors.
 
-Here we'll focus mostly on the unique challenge of speeding up Shiny apps, mixed in with some practical strategies that we've seen to be useful for many.
-Focus is on increasing the performance for multiple users.
-
-Performance issues typically arise in high-stress situations.
-So good to have a process to follow.
-Benchmark (is it too slow?) -\> analyse (why is it slow?) -\> recommend (how can I make it faster?) -\> optimise (does it work) -\> repeat.
-
-```{r setup}
-library(shiny)
-```
-
-Particularly thanks go to my RStudio colleagues Joe Cheng, Sean Lopp, and Alan Dipert, whose RStudio::conf() talks were particularly helpful when writing this chapter.
-
--   <https://rstudio.com/resources/rstudioconf-2019/shiny-in-production-principles-practices-and-tools/>
-
--   <https://rstudio.com/resources/rstudioconf-2018/scaling-shiny/>
-
--   <https://rstudio.com/resources/rstudioconf-2018/make-shiny-fast-by-doing-as-little-work-as-possible/>
-
-## Dining at the Shiny restaurant
-
-To help improve your mental model of app serving, it's useful to think of a Shiny app like a restaurant.
-Each customer (user) comes in and makes an order which is prepared and served by a chef (the R process).
-One chef can server multiple customers, but as you get more customers, you're likely to want to hire more chefs.
-But at some point there's so many that they get in each others' way --- there's still only one oven, one grill, one refrigerator, etc.
-So at some point, you're going to need to add a new restaurant (server).
-
-Just like you can serve a customer meal made in multiple restaurants with a new restaurant, there's no way to serve one user from multiple servers, so this also needs to be coupled with a load balancer which automatically sends customers to the emptiest restaurant.
-We won't talk more about scaling out in this chapter (because while the details are straightforward, they depend entirely on your deployment infrastructure), but it's good to know this option exists, and allows you app to scale to any number of users.
-
-[\<https://rstudio.com/resources/rstudioconf-2018/scaling-shiny/\>](https://rstudio.com/resources/rstudioconf-2018/scaling-shiny/){.uri}
-
-(R is single threaded which means the chef is very focussed --- they can only cook one thing at a time. This is fine if they're doing something quick, but if you ask them to make a stew, all the other customers have to wait for a couple of hours until they're done. While you can work around this problem by adding more single track chefs, a better way is to teach the chef how to work on multiple dishes simultaneously. This is the idea of promises: <https://rstudio.github.io/promises/>)
-
-## Benchmark
-
-To begin, it's important to figure out how many customers each chef can serve (how many users per R process) and how many chefs can fit in a kitchen (how many processes per server).
-
-Not is it fast: you can always make it faster.
-Most important question is: Is it fast **enough**?
-
-Start with a plan:
-
--   How many people?
-    How many people at the same time?
-
--   What's the computing budget?
-    i.e. how many cores, how many machines?
-
--   What's the time budget?
-
-Benchmark is a model of what user does.
-What exactly do you care about?
-Then use that to generate some metrics that actually recorded.
-Then figure what "good" means.
+-   Hire a prep cook
 
 Question becomes whether it's cheaper to pay for more computing, or to pay for your time to fit more users on one computer.
 Typically it's going to be combination, because there are often many big easy wins because you've worked on the app on your own computer as a solo user.
 
-### Load testing
+## Benchmark
 
-shinyloadtest + shinycannon
+The first step is always to identify if you have a problem.
+How can you tell if your app is going to be slow for multiple users without deploying it and have a bunch of your friends try it out at the same time?
 
--   Run or deploy your app.
+The is the problem that the [shinyloadtest](https://rstudio.github.io/shinyloadtest/) package is designed to solve.
+It has four basic steps:
 
--   Record an archetypal app session: `shinyloadtest::record_session()`.
-    Need to make as realistic as possible
+1.  Run your app locally and use `shinyloadtest::record_session()` to record an prototypical user session.
+2.  Replay the script with multiple users using shinycannon (a command line tool included with shinyload test)
+3.  Analyse the results using `shinyloadtest::load_runs()` and `shinyloadtest::report()`.
 
--   Replay with multiple users using shinycannon on the terminal.
+For a demo of the whole process from benchmarking to profiling to improvement and back, I recommend Joe Cheng's rstudio::conf(2019) keynote [Shiny in production: principles, best practices, and tools](https://rstudio.com/resources/rstudioconf-2019/shiny-in-production-principles-practices-and-tools/){.uri} where he works through the whole process with a realistic app.
+This is also written in the [scaling an app case study](https://rstudio.github.io/shinyloadtest/articles/case-study-scaling.html) on the shinyloadtest website.
 
--   Then analyse: `shinyloadtest::load_runs()` `shinyloadtest::report()`.
+### Recording
 
-[\<https://rstudio.github.io/shinyloadtest/\>](https://rstudio.github.io/shinyloadtest/){.uri}
+Start your app then run `shinyloadtest::record_session`.
+If you're doing this all locally you'll need to use two different R session --- one for Shiny, and one for shinyloadtest.
+You'll need to copy and paste the url that `runApp()` gives you:
 
-Each row of plot is a simulated work.
-x axis is time.
-red = time to load.
-Blue = reactive computation.
-Gray = user thinking.
+```{r, eval = FALSE}
+runApp("myapp.R")
+#> Listening on http://127.0.0.1:7716
+```
 
-## Measure
+Then in another R session, run `shinyloadtest::record_session(http://127.0.0.1:7716)`.
+
+I recommend making a written script for yourself to guide your actions.
+Your measurements will only be as good as your script.
+Try to capture all of the most important actions in a realistic way, adding pauses to reflect the thinking time that a real user would take
+
+Note that while you can do everything on your own laptop, you're best off simulating the actual deployment as closely as possible.
+For example, if you're going to deploy the app publicly using Shiny Server pro, make sure to replay the user session against your live app.
+And the server that you record on must match the server you replay on.
+
+### Replay
+
+To replay your script you need a separate command line tool called shinycannon.
+Unfortunately this is a bit more work to install because it's written in Java rather than R.
+Java is particularly well suited to this problem of running tens or hundreds of web requests in parallel, using as few computational resources as possible (so it's possible for your laptop to both run the app and simulate many users if needed).
+
+So start by following the instructions at <https://rstudio.github.io/shinyloadtest/#shinycannon>
+
+Then you'll run shinycannon from the terminal like:
+
+```{shinycannon recording.log {app_url} --workers 10 --loaded-duration-minutes 5 --output-dir run1}
+```
+
+You'll need to choose how many workers to run (based on how many people you expect will use your app simultaneously) and how long to run for.
+If the run time is longer than your script, shinycannon will just re-run it from the beginning.
+If you're load testing for the first time, you should pick a small number of workers and short time, as it's likely the problems will be obvious.
+
+### Analysis
+
+```{r, eval = FALSE}
+library(shinyloadtest)
+df <- load_runs(demo = "~/Downloads/scaling_case_study_run5/")
+slt_session_duration(df)
+```
+
+Full details in <https://rstudio.github.io/shinyloadtest/articles/analyzing-load-test-logs.html>
+
+Red line shows the time that the original recording took.
+If you are thinking about scaling horizontally, you will want to increase the number of workers until you see this be far away.
+this process will also help you to understand how many how many customers each chef can serve (how many users per R process) and how many chefs can fit in a kitchen (how many processes per server), and hence how many kitchens you need to build.
+
+## Profiling
 
 If you want a chef to serve more customers, you need to do some time and motion studies to figure out what's slowing them down.
 The equivalent in R is profiling, which basically regularly inspects the running code and records the call stack at each instant.
@@ -136,6 +173,8 @@ Also recommend testing it, because it at least in my experience the easiest way 
 Most techniques are general --- follow advice in Advanced R. But there's some particular techniques unique to Shiny because of the multiple users.
 Often you can save time by sharing work across users.
 Don't repeat yourself.
+
+For more, I highly recommend watching Alan Dipert's rstudio::conf(2018) talk [Making Shiny fast by doing as little as possible](https://rstudio.com/resources/rstudioconf-2018/make-shiny-fast-by-doing-as-little-work-as-possible/){.uri}.
 
 ### Data import
 
