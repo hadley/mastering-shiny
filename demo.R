@@ -65,7 +65,13 @@ demoApp <- R6::R6Class("demoApp", public = list(
     }
     data_old <- readRDS(self$path("rds"))
 
-    diff <- waldo::compare(data_old, self$data, x_arg = "old", y_arg = "new")
+    diff <- waldo::compare(
+      data_old,
+      self$data,
+      x_arg = "old",
+      y_arg = "new",
+      ignore_function_env = TRUE # ignore varying env from theme function
+    )
     if (length(diff) == 0) {
       FALSE
     } else {
