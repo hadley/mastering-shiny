@@ -391,3 +391,61 @@ observe({
       })  
     }
     ```
+
+## The reactive graph {#how-it-works}
+
+Before we carry on, I wanted to give you a quick sense of how things work behind the scenes.
+This knowledge isn't likely to help you build better apps, but it might resolve some lingering questions.
+Take this simple example:
+
+```{r eval = FALSE}
+output$plot <- renderPlot({
+  plot(head(cars, input$rows))
+})
+```
+
+How does Shiny know that `output$plot` reads `input$rows`?
+Your first guess might be that `renderPlot()` parses its code looking for references to `input`.
+This is a natural guess because it's how you build up a reactive graph when reading code.
+Unfortunately, however, this technique is very fragile because even simple change would break things:
+
+```{r eval = FALSE}
+output$plot <- renderPlot({
+  x <- input
+  plot(head(cars, x$rows))
+})
+```
+
+In computer science this approach is called **static analysis**, because it looks at the code without running it (i.e. it's not moving, it's static).
+Shiny instead uses **dynamic analysis**, where it collects additional information about what's going on as the code is run.
+
+The basic process is something like this.
+`renderPlot()` starts by creating a **reactive context**.
+A reactive context is an internal object that's used to coordinate reactive consumers and producers.
+You'll never see one of these objects as an app author, but they're a crucial piece of infrastructure behind the scenes.
+The reactive context is then stored in a special place that's accessible to other Shiny functions.
+Then once `renderPlot()` is done, it restores the previous context, using something like this imaginary code:
+
+```{r eval=FALSE}
+# renderPlot() creates and activate new context 
+context <- ReactiveContext$new()
+old <- setReactiveContext(context)
+
+# Then we run the user code
+plot(head(cars, input$rows))
+
+# And finally restore the previous context
+setReactiveContext(old)
+```
+
+Now, while a reactive consumer is running, reactive producers can grab the active context with something like `getReactiveContext()`.
+Then producers can return the requested value and register the current reactive context.
+When the reactive producer is later invalidated, it can consult its registry of contexts, and tell each of them to also invalidate.
+
+So Shiny "magically" establishes the connections between producer and consumer with these two simple mechanisms:
+
+-   Each reactive consumer creates a context object and "activates" it during execution.
+
+-   Each reactive producer augments every read operation by saving the context object so it can be later invalidated.
+
+This process ensures that there's no way that Shiny can either accidentally overlook a reactive dependency relationship or erroneously establish a dependency that doesn't exist.
