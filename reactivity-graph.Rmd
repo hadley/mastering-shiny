@@ -252,7 +252,7 @@ The neat thing about this process is that Shiny has done the minimum amount of w
 
 3.  What happens if you attempt to create a reactive graph with cycles?
 
-    ```{r}
+    ```{r, eval = FALSE}
     x <- reactiveVal(1)
     y <- reactive(x + y())
     y()
@@ -328,12 +328,15 @@ You then have two options:
 
 reactlog uses the same graphical conventions as this chapter, so it should feel instantly familiar.
 The biggest difference is that reactlog draws every dependency, even if it's not currently used, in order to keep the automated layout stable.
-Connections that are not active currently (but were in the past or will be in the future) are drawn as thin dotted lines.
+Connections that are not currently active (but were in the past or will be in the future) are drawn as thin dotted lines.
 
-TODO: Add screenshot
+```{r reactlog, echo = FALSE, out.width = NULL, fig.cap = "The reactive graph of our hypothetic app as drawn by reactlog"}
+knitr::include_graphics("images/reactivity-graph/reactlog.png", dpi = 300)
+```
 
-There's a surprise in this screenshot compared to the graph we drew earlier --- there are three additional reactive inputs (`clientData$output_x_height`, `clientData$output_x_width`, and `clientData$pixelratio`) that don't appear in the source code for our graph.
-These exist because the plot must be redrawn whenever the output changes size.
+Figure \@ref(fig:reactlog) shows the reactive graph that reactlog draws for the app we used above.
+There's a surprise in this screenshot: there are three additional reactive inputs (`clientData$output_x_height`, `clientData$output_x_width`, and `clientData$pixelratio`) that don't appear in the source code.
+These exist because plots have an implicit dependency on the size of the output; whenever the output changes size the plot needs be redrawn.
 
 Note that while reactive inputs and outputs have names, reactive expressions and observers do not, so they're labelled with their contents.
 To make things easier to understand you may want use the `label` argument to `reactive()` and `observer()`, which will then appear in the reactlog.
