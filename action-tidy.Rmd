@@ -168,7 +168,7 @@ server <- function(input, output, session) {
 
 Here I've used `ggforce::position_auto()` so that `geom_point()` works nicely regardless of whether the x and y variables are continuous or discrete.
 Alternatively, we could allow the user to pick the geom.
-The following app uses a `switch()` statement to genereate a reactive geom that is later added to the plot.
+The following app uses a `switch()` statement to generate a reactive geom that is later added to the plot.
 
 ```{r}
 ui <- fluidPage(

@@ -116,7 +116,7 @@ Here, the `id` and `class` values have had no discernible effect. But we could, 
 
 ### Parents and children
 
-In the example above, we have a `<p>` tag that contains some text that contains `<strong>` and `<a>` tag.s We can refer to `<p>` as the _parent_ of `<strong>`/`<a>`, and `<strong>`/`<a>` as the _children_ of `<p>`. And naturally, `<strong>` and `<a>` are called _siblings_.
+In the example above, we have a `<p>` tag that contains some text that contains `<strong>` and `<a>` tags. We can refer to `<p>` as the _parent_ of `<strong>`/`<a>`, and `<strong>`/`<a>` as the _children_ of `<p>`. And naturally, `<strong>` and `<a>` are called _siblings_.
 
 It's often helpful to think of tags and text as forming a tree structure:
 
@@ -435,7 +435,7 @@ The parts of the rule inside the curly braces are _properties_. This particular 
 
 #### CSS selectors
 
-The particular selector we used in these cases (`h3` and `footer div.alert`) are very simple, but selectors can be quite complex. You can select tags that match a specific `id` or `class`, select tags based on their parents, select tags based on whether they have sibling tags. You can combine such critieria together using "and", "or", and "not" semantics.
+The particular selector we used in these cases (`h3` and `footer div.alert`) are very simple, but selectors can be quite complex. You can select tags that match a specific `id` or `class`, select tags based on their parents, select tags based on whether they have sibling tags. You can combine such criteria together using "and", "or", and "not" semantics.
 
 Here are some extremely common selector patterns:
 
