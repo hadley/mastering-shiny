@@ -193,7 +193,7 @@ It's less obvious why we erase the arrows coming *in* to an invalidated node, ev
 While those arrows represent notifications that haven't fired, the invalidated node no longer cares about them: reactive consumers only care about notifications in order to invalidate themselves and that that has already happened.
 
 It may seem perverse that we put so much value on those relationships, and now we've thrown them away!
-But this is an key part of Shiny's reactive programming model: though these particular arrows *were* important, they are now out of date.
+But this is a key part of Shiny's reactive programming model: though these particular arrows *were* important, they are now out of date.
 The only way to ensure that our graph stays accurate is to erase arrows when they become stale, and let Shiny rediscover the relationships around these nodes as they re-execute.
 
 ### Re-execution
@@ -310,7 +310,7 @@ output$out <- renderText({
 }) 
 ```
 
-This would have no impact on the output of normal R code, but it makes a difference here because the reactive dependency is established when you read exact a value from the `input` with `$`.s
+This would have no impact on the output of normal R code, but it makes a difference here because the reactive dependency is established when you read a value from the `input` with `$`.s
 
 ## The reactlog package
 
@@ -322,7 +322,7 @@ This is the job of the [reactlog](https://rstudio.github.io/reactlog/) package, 
 To see the reactlog, you'll need to first install the reactlog package, turn it on with `reactlog::reactlog_enable()`, then start your app.
 You then have two options:
 
--   While the app is running, press Cmd + F3 (Ctrl + F3 on Windows), to show the reactlog generated up to the that point.
+-   While the app is running, press Cmd + F3 (Ctrl + F3 on Windows), to show the reactlog generated up to that point.
 
 -   After the app has closed, run `shiny::reactlogShow()` to see the log for the complete session.
 
