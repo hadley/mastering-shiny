@@ -16,5 +16,3 @@ AutoAppendNewline: Yes
 StripTrailingWhitespace: Yes
 
 BuildType: Website
-
-MarkdownWrap: Sentence

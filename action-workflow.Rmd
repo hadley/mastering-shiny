@@ -41,7 +41,7 @@ You'll likely quickly get sick of typing that code in, so RStudio provides a cou
 
 -   If you already have your future `app.R` open, type `shinyapp` then press `Shift` + `Tab` to insert the Shiny app snippet.[^action-workflow-1]
 
--   If you want to start a new project[^action-workflow-2], go to the File menu, select "New Project" then select "Shiny Web Aplication":
+-   If you want to start a new project[^action-workflow-2], go to the File menu, select "New Project" then select "Shiny Web Application":
 
     ```{r, echo = FALSE, out.width = NULL}
     knitr::include_graphics("images/action-workflow/new-project.png", dpi = 300)
@@ -153,7 +153,7 @@ The call stack is the sequence of calls that lead to the problem:
     3: h(x)
 
 You might already be familiar with `traceback()`.
-You can run this function interactively to see the sequence of calls that lead to an error, *after* the error has occured.
+You can run this function interactively to see the sequence of calls that lead to an error, *after* the error has occurred.
 Unfortunately, you can't use this function in Shiny because you can't interactively run code while an app is running.
 Instead, Shiny will automatically print the traceback for you.
 
@@ -768,4 +768,4 @@ That can be frustrating and feel time consuming, but it has a number of benefits
 -   Over time, you'll get faster and faster at creating reprexes, and this will become one of your go to techniques when debugging.
 
 When I try to help someone with their app on [RStudio community](https://community.rstudio.com/tag/shiny), creating a reprex is always the first thing I do.
-This isn't some make work exericse I use to fob off people I don't want to help: it's exactly where I start!
+This isn't some make work exercise I use to fob off people I don't want to help: it's exactly where I start!

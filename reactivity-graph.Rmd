@@ -78,7 +78,7 @@ You might wonder how Shiny decides which of the invalidated outputs to execute.
 In short, you should act as if it's random: your observers and outputs shouldn't care what order they execute in, because they've been designed to function independently[^reactivity-graph-2].
 
 [^reactivity-graph-2]: If you have observers whose side effects must happen in a certain order, you're generally better off re-designing your system.
-    Failing that, you can control the relative order of observers with the the `priority` argument to `observe()`.
+    Failing that, you can control the relative order of observers with the `priority` argument to `observe()`.
 
 ```{r graph-execute, echo = FALSE, out.width = NULL, fig.cap = "Shiny starts executing an arbitrary observer/output, coloured orange."}
 knitr::include_graphics("diagrams/reactivity-tracking/02.png", dpi = 300)
