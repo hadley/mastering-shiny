@@ -345,7 +345,7 @@ You can use emojis to make particularly important reactives stand out visually.
 ### Summary
 
 In this chapter, you've learned precisely how the reactive graph operates.
-In particular, you've learned for the first time about the invalidation phase, which doesn't immediately cause recomputation, but instead makes reactive consumers as invalid, so that they will be recomputed when need.
+In particular, you've learned for the first time about the invalidation phase, which doesn't immediately cause recomputation, but instead marks reactive consumers as invalid, so that they will be recomputed when need.
 The invalidation cycle is also important because it clears out previously discovered dependencies so that they can be automatically rediscovered, making the reactive graphic dynamic.
 
 Now that you've got the big picture under your belt, the next chapter will give some additional details about the underlying data structures that power reactive values, expressions, and output, and we'll discuss the related concept of timed invalidation.
