@@ -310,7 +310,7 @@ output$out <- renderText({
 }) 
 ```
 
-This would have no impact on the output of normal R code, but it makes a difference here because the reactive dependency is established when you read exact a value from the `input` with `$`.s
+This would have no impact on the output of normal R code, but it makes a difference here because the reactive dependency is established when you read a value from the `input` with `$`.s
 
 ## The reactlog package
 
