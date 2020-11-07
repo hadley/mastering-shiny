@@ -171,7 +171,7 @@ x(2)
 x(3)
 ```
 
-Every time the observer is triggered, it creates another observer, so each time `x` changes, one it's value is printed one more time.
+Every time the observer is triggered, it creates another observer, so each time `x` changes, it's value is printed one more time.
 As a general rule, you should only ever create observers or outputs at the top-level of your server function.
 If you find yourself needing to nest them, sit down and sketch out the reactive graph that you're trying to create.
 
@@ -247,7 +247,7 @@ Take this simple output:
 output$text <- renderText(paste("Hi ", input$name, "!"))
 ```
 
-It looks like a reactive expression because because we're assigning the result of `renderText()`, but it feels like a observer, because it has a side-effect: updating the contents of a text box in the browser.
+It looks like a reactive expression because we're assigning the result of `renderText()`, but it feels like a observer, because it has a side-effect: updating the contents of a text box in the browser.
 It turns out that outputs are a special type of observer.
 They have two special properties:
 
@@ -300,7 +300,7 @@ data <- reactive({
 })
 ```
 
-But it has a serious downside: when you invalidate the reactive, you're also invalidating all downstream reactives, so even if the data is same, all downstream work has to be redone.
+But it has a serious downside: when you invalidate the reactive, you're also invalidating all downstream reactives, so even if the data is the same, all downstream work has to be redone.
 To avoid this problem Shiny provides `reactivePoll()` which allows you to specify two functions: one that performs a relatively cheap check to see if the data has changed and another more expensive function that actually does the computation.
 
 We can use `reactivePoll()` to rewrite the previous reactive as follows.
