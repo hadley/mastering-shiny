@@ -7,9 +7,12 @@ output:
   - rmarkdown::md_document
 documentclass: scrbook
 classoption: oneside
+
 bibliography: [book.bib, packages.bib]
 biblio-style: apalike
 link-citations: yes
+csl: chicago-fullnote-bibliography.csl
+
 github-repo: hadley/mastering-shiny
 description: "The official guide to the Shiny web application framework for R."
 ---
