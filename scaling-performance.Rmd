@@ -41,7 +41,7 @@ To help improve your mental model of app serving, it's useful to think of a Shin
 Each customer (user) comes in and makes an order which is prepared and served by a chef (the R process).
 One chef can make a sandwich for customer A, then a soup for customer B, ... Unlike chefs, however, R is single-process, which means that it can only do one thing at a time --- if Shiny is making an omelette, it can't start some pancakes cooking.
 This is fine if all the recipe are quick to cook, but if you asked a R-Chef to make a two hour stew, they couldn't do anything else in the meantime.
-(Unless you learn about async programming, which basically lets R work on multiple things at the same time [\<[https://rstudio.github.io/promises/\>](https://rstudio.github.io/promises/>)](https://rstudio.github.io/promises/){.uri}).
+(Unless you learn about async programming, which basically lets R work on multiple things at the same time <https://rstudio.github.io/promises/>).
 
 One chef can serve multiple customers, but as you get more customers, you're likely to want to hire more chefs.
 But at some point there's so many that they get in each others' way --- there's still only one oven, one grill, one refrigerator, etc.
@@ -59,7 +59,7 @@ There are three main ways to make your app faster:
     If you're concerned about single user performance (i.e. it's just you using the app), it's very unlikely that Shiny is the bottleneck.
     Instead, improving the performance of your app is really about improving the performance of your R code.
     Many of the same techniques apply; in particular you'll still need to profile the performance of your app.
-    Some advice in [\<[https://adv-r.hadley.nz/perf-measure.html\>](https://adv-r.hadley.nz/perf-measure.html\>)](https://adv-r.hadley.nz/perf-measure.html){.uri} and [\<[https://adv-r.hadley.nz/perf-improve.html\>](https://adv-r.hadley.nz/perf-improve.html\>)](https://adv-r.hadley.nz/perf-improve.html){.uri}.
+    Some advice in <https://adv-r.hadley.nz/perf-measure.html> and <https://adv-r.hadley.nz/perf-improve.html>.
 
 -   Make it faster for multiple users on the same server.
 
@@ -118,8 +118,7 @@ So start by following the instructions at <https://rstudio.github.io/shinyloadte
 
 Then you'll run shinycannon from the terminal like:
 
-```{shinycannon recording.log {app_url} --workers 10 --loaded-duration-minutes 5 --output-dir run1}
-```
+    shinycannon recording.log {app_url} --workers 10 --loaded-duration-minutes 5 --output-dir run1
 
 You'll need to choose how many workers to run (based on how many people you expect will use your app simultaneously) and how long to run for.
 If the run time is longer than your script, shinycannon will just re-run it from the beginning.
