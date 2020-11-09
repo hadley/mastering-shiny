@@ -356,8 +356,14 @@ This concept is very important and different to most other R code, so I'll say i
     }
     ```
 
-2.  Can the reactive graph contain a cycle?
-    Why/why not?
+2.  Why will this code fail?
+
+    ```{r}
+    var <- reactive(df[input$var])
+    range <- reactive(range(var(), na.rm = TRUE))
+    ```
+
+    Why is `var()` a bad name for a reactive?
 
 ## Reactive expressions
 
@@ -846,3 +852,4 @@ knitr::include_graphics("diagrams/basic-reactivity/graph-3.png", dpi = 300)
 
 This concludes our whirlwind tour of reactivity.
 The next chapter will help you practice all the material you've seen so far by creating a bigger Shiny app that supports data analysis.
+
