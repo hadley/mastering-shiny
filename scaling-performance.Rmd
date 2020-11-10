@@ -24,6 +24,9 @@ In this chapter you'll learn:
 
 -   We'll finish up with a little applied psychology to give a few techniques that can help your app *feel* as fast as possible.
 
+For a demo of the whole process, I recommend Joe Cheng's rstudio::conf(2019) keynote [Shiny in production: principles, best practices, and tools](https://rstudio.com/resources/rstudioconf-2019/shiny-in-production-principles-practices-and-tools/){.uri} where he works through the whole process with a realistic app.
+This is also written in the [scaling an app case study](https://rstudio.github.io/shinyloadtest/articles/case-study-scaling.html) on the shinyloadtest website.
+
 But to get started, we'll build up your mental model of Shiny performance with a restaurant metaphor.
 We'll use this metaphor throughout the rest of the chapter.
 
@@ -73,71 +76,110 @@ Unfortunately, that's a complex topic and beyond the scope of this book, but you
 
 ## Benchmark
 
-The first step is always to identify if you have a problem.
-Currently your restaurant only servers one customer (you), and while you're happy with performance you worry what will happen if 20 people come in for lunch at the same time.
+You almost always start by developing an app for yourself.
+You have a personal chef who only ever has to serve one customer at a time (you!).
+While you might be happy with performance, you might worry that your chef isn't going to be able to handle the 10 simultaneous users who will need to use your app.
+So you want to check the performance of your app with multiple users, without actually exposing real people to a potentially slow app.
 
-How can you tell if your app is going to be slow for multiple users without deploying it and have a bunch of your friends try it out at the same time?
+If you want to serve very large numbers of customers, benchmarking will also help you determine the maximum number of chefs you can fit in each kitchen (processes per server), and hence how many restaurants you need to build to serve a given number of users.
 
-The is the problem that the [shinyloadtest](https://rstudio.github.io/shinyloadtest/) package is designed to solve.
-It has four basic steps:
+This is the process of benchmarking, first figuring out where your app is now, and then thinking about whether or not that's good enough.
+The benchmarking process is supported by the [shinyloadtest](https://rstudio.github.io/shinyloadtest/) package and has three basic steps:
 
-1.  Run your app locally and use `shinyloadtest::record_session()` to record an prototypical user session.
-2.  Replay the script with multiple users using shinycannon (a command line tool included with shinyload test)
+1.  Record a script that simulates a user interacting with your app.
+    You can do this by running `shinyloadtest::record_session()` then interacting with your app like a user might.
+
+2.  Replay the script with multiple simultaneous users with the shinycannon command-line app.
+
 3.  Analyse the results using `shinyloadtest::load_runs()` and `shinyloadtest::report()`.
 
-For a demo of the whole process from benchmarking to profiling to improvement and back, I recommend Joe Cheng's rstudio::conf(2019) keynote [Shiny in production: principles, best practices, and tools](https://rstudio.com/resources/rstudioconf-2019/shiny-in-production-principles-practices-and-tools/){.uri} where he works through the whole process with a realistic app.
-This is also written in the [scaling an app case study](https://rstudio.github.io/shinyloadtest/articles/case-study-scaling.html) on the shinyloadtest website.
+Here I'll give an overview of how each of the steps work; if you need more details, check out shinyloadtest's documentation and vignettes.
 
 ### Recording
 
-Start your app then run `shinyloadtest::record_session`.
-If you're doing this all locally you'll need to use two different R session --- one for Shiny, and one for shinyloadtest.
-You'll need to copy and paste the url that `runApp()` gives you:
+If you're doing benchmarking on your laptop, you'll need to use two different R processes[^scaling-performance-5] --- one for Shiny, and one for shinyloadtest.
 
-```{r, eval = FALSE}
-runApp("myapp.R")
-#> Listening on http://127.0.0.1:7716
-```
+[^scaling-performance-5]: The easiest way to do this in RStudio, is just to open another RStudio instance.
 
-Then in another R session, run `shinyloadtest::record_session(http://127.0.0.1:7716)`.
+-   In the first process, start your app and copy the url that it gives you:
 
-I recommend making a written script for yourself to guide your actions.
-Your measurements will only be as good as your script.
-Try to capture all of the most important actions in a realistic way, adding pauses to reflect the thinking time that a real user would take
+    ```{r, eval = FALSE}
+    runApp("myapp.R")
+    #> Listening on http://127.0.0.1:7716
+    ```
 
-Note that while you can do everything on your own laptop, you're best off simulating the actual deployment as closely as possible.
-For example, if you're going to deploy the app publicly using Shiny Server pro, make sure to replay the user session against your live app.
-And the server that you record on must match the server you replay on.
+-   In the second process, paste the url into a `record_session()` call:
+
+    ```{r, eval = FALSE}
+    shinyloadtest::record_session("http://127.0.0.1:7716")
+    ```
+
+`record_session()` will open a new window containing a version of your app that records everything you do with it.
+Now you need to interact with the app to simulate a "typical" user.
+I recommend starting with a written script to guide your actions --- this will make it easier to repeat in the future, if you discover there's some important piece missing.
+Your benchmarking will only be as good as your simulation, so you'll need to spend some time thinking about how to simulate a realistic interaction with the app.
+For example, don't forget to add some pauses to reflect the thinking time that a real user would need.
+
+Once you're done, close the app and shinyloadtest will save `recording.log` to your working directory.
+This records every step you took in a way that can easily be replayed.
+Keep a hold of it as you'll need it for the next step.
+
+(While benchmarking works great on your laptop, you likely want to simulate the eventual deployment as closely as possible in order to get the most accurate results. So if your company has a special way of serving Shiny apps, talk to your IT folks about setting up a staging environment that you can use for load testing.)
 
 ### Replay
 
-To replay your script you need a separate command line tool called shinycannon.
-Unfortunately this is a bit more work to install because it's written in Java rather than R.
-Java is particularly well suited to this problem of running tens or hundreds of web requests in parallel, using as few computational resources as possible (so it's possible for your laptop to both run the app and simulate many users if needed).
+Now you have a script that represents the actions of a single user.
+To simulate many people using your app, we're going to replay that script repeatedly using a special tool called shinycannon.
+Unfortunately shinycannon is a bit of extra work to install because it's not an R package.
+shinycannon is written in Java because the Java language is particularly well suited to the problem of performing tens or hundreds of web requests in parallel, using as few computational resources as possible.
+This makes it possible for your laptop to both run the app and simulate many users.
 
-So start by following the instructions at <https://rstudio.github.io/shinyloadtest/#shinycannon>
+Start by installing shinycannon by following the instructions at <https://rstudio.github.io/shinyloadtest/#shinycannon>
 
-Then you'll run shinycannon from the terminal like:
+Then then shinycannon from the terminal like:
 
-    shinycannon recording.log {app_url} --workers 10 --loaded-duration-minutes 5 --output-dir run1
+    shinycannon recording.log http://127.0.0.1:7716 \ 
+      --workers 10 \
+      --loaded-duration-minutes 5 \
+      --output-dir run1
 
-You'll need to choose how many workers to run (based on how many people you expect will use your app simultaneously) and how long to run for.
-If the run time is longer than your script, shinycannon will just re-run it from the beginning.
-If you're load testing for the first time, you should pick a small number of workers and short time, as it's likely the problems will be obvious.
+There are six arguments to `shinycannon`:
+
+-   The first argument is a path to the recording that you created in the previous step.
+
+-   The second argument is the url to your Shiny app (which you copied and pasted in the previous step).
+
+-   `--workers` sets the number of parallel users to simulate.
+    The above command will simulate the performance of your app as if 10 people were using it simultaneously.
+
+-   `--loaded-duration-minutes` determines how long to run the test for.
+    If this is longer than your script takes, shinycannon will just start the script again from the beginning.
+
+-   `--output-dir` gives the name of the directory to save the output.
+    You're likely to run the load test multiple times as you experiment with performance improvements, so strive to give these informative names.
+
+When load testing for the first time, it's a good idea to start with a small number of workers and a short duration in order to quickly spot any major problems.
 
 ### Analysis
+
+Now that you've simulated multi-user use of your app.
+It's time to look at the results with
 
 ```{r, eval = FALSE}
 library(shinyloadtest)
 df <- load_runs(demo = "~/Downloads/scaling_case_study_run5/")
+df
+shinyloadtest_report(df, "report.html")
 slt_session_duration(df)
 ```
 
-Full details in <https://rstudio.github.io/shinyloadtest/articles/analyzing-load-test-logs.html>
+Here I'll focus on the session duration plot, because that gives you the most insight into user experience.
+To learn more about the other plots, you can read the [Analyzing Load Test Logs](https://rstudio.github.io/shinyloadtest/articles/analyzing-load-test-logs.html){.uri} article.
 
 Red line shows the time that the original recording took.
-If you are thinking about scaling horizontally, you will want to increase the number of workers until you see this be far away.
-this process will also help you to understand how many how many customers each chef can serve (how many users per R process) and how many chefs can fit in a kitchen (how many processes per server), and hence how many kitchens you need to build.
+
+If you're lucky, you might be able to stop here --- your app is fast enough for the number of users you expect.
+In most cases, however, you'll need to do a little optimisation, which starts by finding where the bottleneck is.
 
 ## Profiling
 
@@ -147,9 +189,12 @@ The equivalent in R is profiling, which basically regularly inspects the running
 Note that it only records when the R is active; not when it's waiting (e.g. in `Sys.sleep()` or when downloading data over http), or when C code is being called.
 This can be misleading, but does serve to concentrate your attention on what you can actually control within R.
 
+<https://rstudio.github.io/profvis/examples.html>
+
 What is call stack.
 Section \@ref(reading-tracebacks).
 Call stacks grow and shrink over time.
+Show simple example.
 
 ```{r, eval = FALSE}
 library(profvis)
@@ -164,21 +209,21 @@ Call stack diagram --- show code, then draw tree, then collapse into rectangles,
 Goal is to find the one slowest thing, because that has the highest payoff.
 Once you've found it, brainstormed possible improvements and then tried them out, you look for the next slower thing.
 
-Once you've isolated a slow part, if it's not already in a function, I highly recommend pulling it out as in Chapter \@ref(scaling-functions).
-That will make it much easier to optimise.
-Also recommend testing it, because it at least in my experience the easiest way to make code faster is to make it incorrect 😆.
+Once you've isolated a slow part, if it's not already in a function, I highly recommend pulling it out as described in Chapter \@ref(scaling-functions).
+Then make a minimal snippet of code that recreates the slowness you see in the app, so you can easily re-run it.
+I also recommend writing a few tests, as in Chapter \@ref(scaling-testing), because in my experience the easiest way to make code faster is to make it incorrect 😆.
 
-## Do less work
+## Improve performance
 
-Most techniques are general --- follow advice in Advanced R. But there's some particular techniques unique to Shiny because of the multiple users.
-Often you can save time by sharing work across users.
-Don't repeat yourself.
+Most techniques for speeding up your Shiny app are general; they're exactly what you'd do to speed up any R code.
+If you want advice on how to speed up R code a couple of good places to start at the [Improving performance](https://adv-r.hadley.nz/perf-improve.html) of Advanced R and [Efficient R programming](https://csgillespie.github.io/efficientR/) by Colin Gillespie and Robin Lovelace.
+I'm not going to repeat that advice here: instead, I'll focus on the topics that are most likely to affect your Shiny.
 
-For more, I highly recommend watching Alan Dipert's rstudio::conf(2018) talk [Making Shiny fast by doing as little as possible](https://rstudio.com/resources/rstudioconf-2018/make-shiny-fast-by-doing-as-little-work-as-possible/){.uri}.
+For more Shiny specific advice, I highly recommend watching Alan Dipert's rstudio::conf(2018) talk [Making Shiny fast by doing as little as possible](https://rstudio.com/resources/rstudioconf-2018/make-shiny-fast-by-doing-as-little-work-as-possible/){.uri}.
 
 ### Data import
 
-First, make sure that any common data is loaded outside of the server function, in the body of the `app.R`.
+First, make sure that any data is loaded outside of the server function, in the body of the `app.R`.
 That ensures that the data is once per process, rather than once per user, which saves both time and memory.
 
 Next, check that you're using the most efficient way to load your data:
@@ -196,8 +241,8 @@ Then you can easily retrieve only the data that the user specifically asks for.
 ### Data processing
 
 After loading data from disk, it's common to do some basic cleaning and aggregation.
-If this is expensive, you should consider using cron job (or scheduled RMarkdown reports) or similar to save the precomputed results.
-To continue the restaurant analogy --- this is like hiring a prep chef who comes in at 3am (when there are no customers) and does a bunch of work so that that chefs can be as efficient as possible.
+If this is expensive, you should consider using a cron job, scheduled RMarkdown report, or similar to perform the expensive operations and save the results.
+This is like hiring a prep chef who comes in at 3am (when there are no customers) and does a bunch of work so that that chefs can be as efficient as possible.
 
 ### Share work across users
 
@@ -236,21 +281,11 @@ The more aggressively you cache, you more care you'll need to take to manually c
 ## Manage user expectations
 
 As well as making your app faster, you can also make it seem faster.
+There are three main useful techniques:
 
-<https://www.nngroup.com/articles/progress-indicators/>
+-   Require a button press before starting known slow tasks.
 
-Require confirmation before known slow interaction.
-Show a Progress bar.
-Techniques of Chapter \@ref(action-feedback)
+-   Notify the user when a slow operation starts, and when it ends, using the techniques of Section \@ref(notifications).
 
-```{r, eval = FALSE}
-r <- reactive({
-  id <- showNotification("Reading data...", duration = NULL, closeButton = FALSE)
-  on.exit(removeNotification(id), add = TRUE)
-  
-  read.csv(input$path)
-}) %>% 
-  withCache(input$x, input$y) %>% 
-  withEvent(input$go)
-```
-
+-   If possible, figure out how to draw progress bar, Section \@ref(progress-bars).
+    There's good evidence that progress indicators make operations feel faster: <https://www.nngroup.com/articles/progress-indicators/>
