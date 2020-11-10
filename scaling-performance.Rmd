@@ -24,7 +24,8 @@ In this chapter you'll learn:
 
 -   We'll finish up with a little applied psychology to give a few techniques that can help your app *feel* as fast as possible.
 
-But to get started, lets build up your mental model of Shiny performance with a restaurant analogy.
+But to get started, we'll build up your mental model of Shiny performance with a restaurant metaphor.
+We'll use this metaphor throughout the rest of the chapter.
 
 ```{r setup}
 library(shiny)
@@ -34,47 +35,47 @@ Particularly thanks go to my RStudio colleagues Joe Cheng, Sean Lopp, and Alan D
 
 ## Dining at restaurant Shiny
 
-(Thanks to Sean Lopp for this analogy from his rstudio::conf(2018) talk [Scaling Shiny to 10,000 users](https://rstudio.com/resources/rstudioconf-2018/scaling-shiny/){.uri}.
-I highly recommend watching it if you have any doubt that Shiny apps can handle thousands of users.)
+When considering performance, it's useful to think of a Shiny app as a restaurant[^scaling-performance-1].
+Each customer (user) comes into the restaurant (the server) and makes an order (a request), which is then prepared by a chef (the R process).
+This metaphor is useful because like a restaurant, one R process can serve multiple users at the same time, and there similar ways to dealing with increased demand.
 
-To help improve your mental model of app serving, it's useful to think of a Shiny app like a restaurant.
-Each customer (user) comes in and makes an order which is prepared and served by a chef (the R process).
-One chef can make a sandwich for customer A, then a soup for customer B, ... Unlike chefs, however, R is single-process, which means that it can only do one thing at a time --- if Shiny is making an omelette, it can't start some pancakes cooking.
-This is fine if all the recipe are quick to cook, but if you asked a R-Chef to make a two hour stew, they couldn't do anything else in the meantime.
-(Unless you learn about async programming, which basically lets R work on multiple things at the same time <https://rstudio.github.io/promises/>).
+[^scaling-performance-1]: Thanks to Sean Lopp for this analogy from his rstudio::conf(2018) talk [Scaling Shiny to 10,000 users](https://rstudio.com/resources/rstudioconf-2018/scaling-shiny/){.uri}.
+    I highly recommend watching it if you have any doubt that Shiny apps can handle thousands of users.
 
-One chef can serve multiple customers, but as you get more customers, you're likely to want to hire more chefs.
-But at some point there's so many that they get in each others' way --- there's still only one oven, one grill, one refrigerator, etc.
-So at some point, you're going to need to add a new restaurant (server).
+To begin, you might investigate ways to make your current chef more efficient (optimise your R code).
+To do so, you'd first spend some time watching to find the bottlenecks in their method (profiling) and then brainstorming ways to make it faster (optimising).
+For example, maybe you hire a prep cook who can come in before the first customer and chop some vegetables (prepares the data), or you could invest in a time-saving gadget (a faster R package).
 
-(R is single threaded which means the chef is very focussed --- they can only cook one thing at a time. This is fine if they're doing something quick, but if you ask them to make a stew, all the other customers have to wait for a couple of hours until they're done. While you can work around this problem by adding more single track chefs, a better way is to )
+Or you might think about adding more chefs (processes) to the kitchen (server).
+Fortunately, it's much easier[^scaling-performance-2] to add more processes than hire trained chefs.
+If you keep hiring more chefs, eventually the kitchen will get too full and you'll need to add more equipment.
+This is called scaling **up**[^scaling-performance-3], adding more resources (memory or cores) to an existing server to allow it to run more processes
+.
 
-Just like you can serve a customer meal made in multiple restaurants with a new restaurant, there's no way to serve one user from multiple servers, so this also needs to be coupled with a load balancer which automatically sends customers to the emptiest restaurant.
-We won't talk more about scaling out in this chapter (because while the details are straightforward, they depend entirely on your deployment infrastructure), but it's good to know this option exists, and allows you app to scale to any number of users.
+[^scaling-performance-2]: Again, this depends on exactly how your app is deployed, but it's typically a prominently labelled setting.
 
-There are three main ways to make your app faster:
+[^scaling-performance-3]: Or vertical scaling
 
--   Make it faster for a single user.
-    Not necessarily easy, but also not directly related to shiny.
-    If you're concerned about single user performance (i.e. it's just you using the app), it's very unlikely that Shiny is the bottleneck.
-    Instead, improving the performance of your app is really about improving the performance of your R code.
-    Many of the same techniques apply; in particular you'll still need to profile the performance of your app.
-    Some advice in <https://adv-r.hadley.nz/perf-measure.html> and <https://adv-r.hadley.nz/perf-improve.html>.
+At some point, you'll have crammed as many chefs into your restaurant as you possibly can and its still not enough.
+At that point, you'll need to building more restaurants.
+This is called scaling **out**[^scaling-performance-4], and means using multiple servers.
+This allows you to scale to any number of customers, but there's no way to serve one customer from multiple restaurants, so you need some way to direct customers to the least busy restaurant (a load balancer).
+I won't talk more about scaling out in this chapter, because while the details are straightforward, they depend entirely on your deployment infrastructure.
+It's good to know this option exists, and allows you app to scale to any number of users.
 
--   Make it faster for multiple users on the same server.
+[^scaling-performance-4]: Or horizontal scaling
 
--   Make it faster by running more servers.
-    Shiny is horizontally scalable, which means that you can always make it faster by providing more servers.
-    Shiny and R scale linearly per processor --- if you need to support more users you can just use more processors.
-
--   Hire a prep cook
-
-Question becomes whether it's cheaper to pay for more computing, or to pay for your time to fit more users on one computer.
-Typically it's going to be combination, because there are often many big easy wins because you've worked on the app on your own computer as a solo user.
+There's one major place where the metaphor breaks down: a normal chef can make multiple dishes at the same time, carefully interweaving the steps to do as much as possible in parallel.
+Unfortunately, R can't do multiple things at the same because it's single threaded, i.e. each process can only do one thing at a time.
+This is fine if all of the meals are fast to cook, but if someone requests 24-hour sous vide pork belly, everyone else has to wait until it's done.
+Fortunately, you can work around this limitation using async programming.
+Unfortunately, that's a complex topic and beyond the scope of this book, but you can learn more at <https://rstudio.github.io/promises/>.
 
 ## Benchmark
 
 The first step is always to identify if you have a problem.
+Currently your restaurant only servers one customer (you), and while you're happy with performance you worry what will happen if 20 people come in for lunch at the same time.
+
 How can you tell if your app is going to be slow for multiple users without deploying it and have a bunch of your friends try it out at the same time?
 
 The is the problem that the [shinyloadtest](https://rstudio.github.io/shinyloadtest/) package is designed to solve.
@@ -252,3 +253,4 @@ r <- reactive({
   withCache(input$x, input$y) %>% 
   withEvent(input$go)
 ```
+
