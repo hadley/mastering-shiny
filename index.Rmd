@@ -34,4 +34,3 @@ This book is licensed to you under [Creative Commons Attribution-NonCommercial-N
 The code samples in this book are licensed under [Creative Commons CC0 1.0 Universal (CC0 1.0)](https://creativecommons.org/publicdomain/zero/1.0/), i.e. public domain.
 
 `r if (knitr::is_latex_output()) '-->'`
-
