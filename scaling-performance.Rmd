@@ -138,7 +138,7 @@ Start by installing shinycannon by following the instructions at <https://rstudi
 
 Then then shinycannon from the terminal like:
 
-    shinycannon recording.log http://127.0.0.1:7716 \ 
+    shinycannon recording.log http://127.0.0.1:7911 \
       --workers 10 \
       --loaded-duration-minutes 5 \
       --output-dir run1
@@ -162,55 +162,157 @@ When load testing for the first time, it's a good idea to start with a small num
 
 ### Analysis
 
-Now that you've simulated multi-user use of your app.
-It's time to look at the results with
+Now that you've simulated multiple people using your app simultaneously, it's time to look at the results.
+First, load the data into R using `load_runs()`:
+
+```{r}
+library(shinyloadtest)
+df <- load_runs("scaling-testing/run1")
+df
+```
+
+This produces a tidy tibble that you can analyse by hand, if you want.
+But typically you'll run the standard shinyloadtest report which produces a standalone HTML file containing the most important results.
 
 ```{r, eval = FALSE}
-library(shinyloadtest)
-df <- load_runs(demo = "~/Downloads/scaling_case_study_run5/")
-df
 shinyloadtest_report(df, "report.html")
+```
+
+I'm not going to discuss all the pages here, and instead I'll just focus on what I think is the most important plot: the session duration.
+To learn more about the other pages, I highly recommend reading the [Analyzing Load Test Logs](https://rstudio.github.io/shinyloadtest/articles/analyzing-load-test-logs.html){.uri} article.
+
+```{r, echo = FALSE}
 slt_session_duration(df)
 ```
 
-Here I'll focus on the session duration plot, because that gives you the most insight into user experience.
-To learn more about the other plots, you can read the [Analyzing Load Test Logs](https://rstudio.github.io/shinyloadtest/articles/analyzing-load-test-logs.html){.uri} article.
+The **session duration** plot displays each simulated user session as row.
+Each event is a rectangle with width proportion to time taken, and the colour is given by the event type.
+The red line shows the time that the original recording took; a useful reference.
 
-Red line shows the time that the original recording took.
+-   Does the app perform equivalently under load as it does for a single user?
+    If so, you're done.
+    Your app is fast enough for your use case.
 
-If you're lucky, you might be able to stop here --- your app is fast enough for the number of users you expect.
-In most cases, however, you'll need to do a little optimisation, which starts by finding where the bottleneck is.
+-   Is the slowness in homepage, css/js, or start session?
+    If so, you'll need to:
+
+-   Otherwise, and most typically, the slowness will be in the calculation, and you'll need to use the techniques in the following two sections to find and fix slow operations.
 
 ## Profiling
 
-If you want a chef to serve more customers, you need to do some time and motion studies to figure out what's slowing them down.
-The equivalent in R is profiling, which basically regularly inspects the running code and records the call stack at each instant.
+Once you've confirmed that your restaurant can't perform under the number of customers you expect, you're going to need to do some research to figure out what's wrong.
+In a restaurant, you might do a time and motion study, following your chefs around to figure where they're spending their time, and how you might be able to help them to be more efficient.
+For a Shiny app, you're going to perform **profiling**: tracking down how long each function call takes so that you can find the slowest and make it faster.
 
-Note that it only records when the R is active; not when it's waiting (e.g. in `Sys.sleep()` or when downloading data over http), or when C code is being called.
-This can be misleading, but does serve to concentrate your attention on what you can actually control within R.
+To perform profiling, we're going to turn the [profvis](https://rstudio.github.io/profvis) package, which provides an interactive visualisation of the profiling data collected by R's `RProf()` function.
+To understand what profiling does, you need to understand a little bit about the call stack.
+We discussed calls stacks previously in Section \@ref(reading-tracebacks) in the context of debugging.
 
-<https://rstudio.github.io/profvis/examples.html>
+### Flame graphs
 
-What is call stack.
-Section \@ref(reading-tracebacks).
-Call stacks grow and shrink over time.
-Show simple example.
+The most common form of profiling visualisation is the flame graph, and is used by profvis so.
+I'll start by explaining it, step-by-step.
+To make it concrete, take the following code:
 
-```{r, eval = FALSE}
-library(profvis)
-profvis(runApp())
-# perform the operation that's slow
-# close the app
-# look at the visualisation
+```{r}
+f <- function() {
+  pause(0.2)
+  g()
+  h()
+}
+g <- function() {
+  pause(0.1)
+  h()
+}
+h <- function() {
+  pause(0.3)
+}
 ```
 
-Call stack diagram --- show code, then draw tree, then collapse into rectangles, then make width proportional to time.
+If I asked to to mentally run this code, and record the call stacks at each step you might right something like this:
+
+-   f
+
+-   f \> g
+
+-   f \> g \> h
+
+-   f \> h
+
+Which we could draw like:
+
+```{r echo = FALSE, out.width = NULL, fig.align = "center"}
+knitr::include_graphics("diagrams/scaling-performance/vertical.png", dpi = 300)
+```
+
+I think it's easiest to understand when you think about time flowing from top-to-bottom, but by convention these diagrams are usually drawn from left to right, so we rotate it 90 degrees:
+
+```{r echo = FALSE, out.width = NULL, fig.align = "center"}
+knitr::include_graphics("diagrams/scaling-performance/horizontal.png", dpi = 300)
+```
+
+We can make this diagram more informative by making the width of each call proportional to the amount of time it takes:
+
+```{r echo = FALSE, out.width = NULL, fig.align = "center"}
+knitr::include_graphics("diagrams/scaling-performance/proportional.png", dpi = 300)
+```
+
+And make this a little clearer by collapsing adjacent calls:
+
+```{r echo = FALSE, out.width = NULL, fig.align = "center"}
+knitr::include_graphics("diagrams/scaling-performance/collapsed.png", dpi = 300)
+```
+
+This is a flame graph!
+You might wonder why it's a called a flame graph.
+That's answered by applying the most common colour scheme found in the wild:
+
+```{r echo = FALSE, out.width = NULL, fig.align = "center"}
+knitr::include_graphics("diagrams/scaling-performance/flame.png", dpi = 300)
+```
+
+However, since the colours are random "warm" colours (meant evoke the computer running "hot") we usually omit them and stick with black and white.
+You can learn more about the history of flame graph in <https://queue.acm.org/detail.cfm?id=2927301>.
+
+### profvis
+
+Running profvis itself is easy.
+Just wrap the code you want to profile in `profvis::profvis()`:
+
+```{r, eval = FALSE}
+profvis::profvis(f())
+```
+
+That gives a result that's very similar to graphs that I drew by hand:
+
+```{r echo = FALSE, out.width = NULL, fig.align = "center"}
+knitr::include_graphics("images/scaling-performance/profvis.png", dpi = 300)
+```
+
+There are a couple of important differences to note:
+
+-   R's profiler works by stopping execution every 10ms and recording the call stack.
+    It's not possible to stop exactly every 10ms (R might be in the middle of something that can't be interrupted) so the results are subject to a small amount of random variation.
+
+-   The profile can only record time when R code is running.
+    It can't currently capture time in various special calls the R has no insight into (e.g. Sys.sleep, reading from the internet).
+    This can be misleading, but does serve to concentrate your attention on what you can actually control within R.
+
+### Using profiling data
+
+Works similarly for Shiny apps:
+
+```{r, eval = FALSE}
+profvis::profvis(runApp("path/to/app"))
+```
+
+And there's a case study of a Shiny app at <https://rstudio.github.io/profvis/examples.html>.
 
 Goal is to find the one slowest thing, because that has the highest payoff.
-Once you've found it, brainstormed possible improvements and then tried them out, you look for the next slower thing.
-
 Once you've isolated a slow part, if it's not already in a function, I highly recommend pulling it out as described in Chapter \@ref(scaling-functions).
 Then make a minimal snippet of code that recreates the slowness you see in the app, so you can easily re-run it.
+You'll need to do that many times as you try out possible improvements as suggested in the next section.
+
 I also recommend writing a few tests, as in Chapter \@ref(scaling-testing), because in my experience the easiest way to make code faster is to make it incorrect 😆.
 
 ## Improve performance
@@ -280,12 +382,23 @@ The more aggressively you cache, you more care you'll need to take to manually c
 
 ## Manage user expectations
 
-As well as making your app faster, you can also make it seem faster.
-There are three main useful techniques:
+Finally, there are a few design considerations worth considering when you know that parts of your app are slow.
+These don't make your app any faster, but they can make it feel faster, and they can certainly improve the overall user experience of your app.
 
--   Require a button press before starting known slow tasks.
+-   Split your app up into tabs, using `tabsetPanel()`.
+    Only outputs on the current tab are recomputed, so you can use this to focus computation on what the user is currently looking at.
 
--   Notify the user when a slow operation starts, and when it ends, using the techniques of Section \@ref(notifications).
+-   Use a button press to initiate a slow operation.
+    An action button combined with `eventReactive()` allows the user to explicitly request a slow operation, which is less frustrating.
+    Once the operation starts, make sure to use the notification techniques from Section \@ref(notifications) to let the user know what's happen.
+    If possible, display an incremental progress bar, Section \@ref(progress-bars), because there's good evidence that progress bars make operations feel faster: <https://www.nngroup.com/articles/progress-indicators/>.
 
--   If possible, figure out how to draw progress bar, Section \@ref(progress-bars).
-    There's good evidence that progress indicators make operations feel faster: <https://www.nngroup.com/articles/progress-indicators/>
+-   If the app requires significant work to happen on startup (and you can't reduce it with preprocessing), make sure to design your app so that the HTML appears, and you can let the user know that they'll need to wait.
+
+-   Finally, if you want to keep the app responsive while some expensive operation happens in the background, it's time to learn about async programming: [https://rstudio.github.io/promises](https://rstudio.github.io/promises/index.html).
+
+## Summary
+
+This chapter has given you the tools to precise measure and improve the performance of any shiny app.
+You learned about shinyloadtest to measure the performance, using shinycannon to simulate multiple users working with your app the at same time.
+Then you learned how to use profvis to find the single most expensive operation, and a grab-bag of techniques that you can use to improve it.
