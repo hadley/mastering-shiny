@@ -25,6 +25,7 @@ Suggests:
     jsonlite,
     png,
     sessioninfo,
+    shinyloadtest,
     shinytest,
     waldo,
     webshot (>= 0.5.0.9000)
@@ -33,6 +34,7 @@ Remotes:
     rstudio/shiny,
     rstudio/thematic,
     rstudio/htmltools,
+    rstudio/shinyloadtest,
     rstudio/shinytest,
     r-lib/testthat,
     rstudio/bookdown,
