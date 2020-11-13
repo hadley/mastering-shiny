@@ -165,10 +165,19 @@ When load testing for the first time, it's a good idea to start with a small num
 Now that you've simulated multiple people using your app simultaneously, it's time to look at the results.
 First, load the data into R using `load_runs()`:
 
-```{r}
+```{r, eval = FALSE}
 library(shinyloadtest)
 df <- load_runs("scaling-testing/run1")
-df
+```
+
+```{r, echo = FALSE}
+library(shinyloadtest)
+if (file.exists("scaling-testing.rds")) {
+  df <- readRDS("scaling-testing.rds")
+} else {
+  df <- load_runs("scaling-testing/run1")  
+  saveRDS(df, "scaling-testing.rds")
+}
 ```
 
 This produces a tidy tibble that you can analyse by hand, if you want.
