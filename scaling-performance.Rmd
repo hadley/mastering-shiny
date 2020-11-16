@@ -10,6 +10,8 @@ But most Shiny apps were quickly thrown together to solve a pressing analytic ne
 In some ways, this is a feature of Shiny --- it allows you to quickly prototype a proof of concept that works for you, before figuring out how to make it fast so that it can be used by a bunch of people simultaneously.
 But if you don't realise that app is likely because you've optimised for human iteration speed), making a Shiny app available to many people will be frustrating.
 
+Generally easy to get 10-100x performance with a few simple tweaks.
+
 Fortunately, however, Shiny comes with a bunch of tools to help improve performance.
 In this chapter you'll learn:
 
@@ -199,11 +201,17 @@ Each event is a rectangle with width proportion to time taken, and the colour is
 The red line shows the time that the original recording took; a useful reference.
 
 -   Does the app perform equivalently under load as it does for a single user?
-    If so, you're done.
-    Your app is fast enough for your use case.
+    If so, congratulations!
+    Your app is already fast enough and you can stop reading this chapter 😄.
 
--   Is the slowness in homepage, css/js, or start session?
-    If so, you'll need to:
+-   Is the slowness in the "Homepage"?
+    That suggests that you're doing too much work in `ui.R`.
+    Usually the `ui.R` just defines the HTML structure of the page, which should be very fast, so check that you haven't accidentally included UI specification.
+
+-   Is the slowness in "Start session"?
+    That suggests that executing your server function for the first time is slow.
+    Generally, it should be fast because all you're doing is defining the reactive graph (which is run in the next step).
+    If this is slow, move expensive code either outside of `server()` or into a reactive.
 
 -   Otherwise, and most typically, the slowness will be in the calculation, and you'll need to use the techniques in the following two sections to find and fix slow operations.
 
@@ -221,13 +229,14 @@ We discussed calls stacks previously in Section \@ref(reading-tracebacks) in the
 
 The most common form of profiling visualisation is the flame graph, and is used by profvis so.
 I'll start by explaining it, step-by-step.
-To make it concrete, take the following code:
+To make it concrete, take the following code where I use `profivs::pause()` (more on that shortly) to indicate work being done:
 
 ```{r}
 f <- function() {
   pause(0.2)
   g()
   h()
+  10
 }
 g <- function() {
   pause(0.1)
@@ -238,29 +247,28 @@ h <- function() {
 }
 ```
 
-If I asked to to mentally run this code, and record the call stacks at each step you might right something like this:
+If I asked to to mentally run this code and record the call stacks at each step you might right something like this:
 
 -   f
-
 -   f \> g
-
 -   f \> g \> h
-
 -   f \> h
 
-Which we could draw like:
+You could convert that to a diagram just by drawing a rectangular around each function name and stacking them all up:
 
 ```{r echo = FALSE, out.width = NULL, fig.align = "center"}
 knitr::include_graphics("diagrams/scaling-performance/vertical.png", dpi = 300)
 ```
 
-I think it's easiest to understand when you think about time flowing from top-to-bottom, but by convention these diagrams are usually drawn from left to right, so we rotate it 90 degrees:
+I think it's most natural to think about time flowing downwards, from top-to-bottom, in the same way you think about code running.
+But by convention profiling diagrams are usually drawn with time flowing from left-to-right, so we rotate it 90 degrees:
 
 ```{r echo = FALSE, out.width = NULL, fig.align = "center"}
 knitr::include_graphics("diagrams/scaling-performance/horizontal.png", dpi = 300)
 ```
 
-We can make this diagram more informative by making the width of each call proportional to the amount of time it takes:
+We can make this diagram more informative by making the width of each call proportional to the amount of time it takes.
+I also added some grid lines in the background to make it easier to check my work.
 
 ```{r echo = FALSE, out.width = NULL, fig.align = "center"}
 knitr::include_graphics("diagrams/scaling-performance/proportional.png", dpi = 300)
@@ -273,15 +281,16 @@ knitr::include_graphics("diagrams/scaling-performance/collapsed.png", dpi = 300)
 ```
 
 This is a flame graph!
+It's easy to see both how long `f()` takes to run, and why it takes that long, i.e. where its time is spend.
+
 You might wonder why it's a called a flame graph.
-That's answered by applying the most common colour scheme found in the wild:
+Most flame graphs in the wild, are randomly coloured with "warm" colours, meant evoke the computer running "hot".
+However, since those colours don't add any additional information, we usually omit them and stick to black and white.
+You can learn more about this colour scheme, alternatives, and the history of flame graph in "[The Flame Graph](https://queue.acm.org/detail.cfm?id=2927301){.uri}".
 
 ```{r echo = FALSE, out.width = NULL, fig.align = "center"}
 knitr::include_graphics("diagrams/scaling-performance/flame.png", dpi = 300)
 ```
-
-However, since the colours are random "warm" colours (meant evoke the computer running "hot") we usually omit them and stick with black and white.
-You can learn more about the history of flame graph in <https://queue.acm.org/detail.cfm?id=2927301>.
 
 ### profvis
 
@@ -289,10 +298,11 @@ Running profvis itself is easy.
 Just wrap the code you want to profile in `profvis::profvis()`:
 
 ```{r, eval = FALSE}
-profvis::profvis(f())
+library(profvis)
+profvis(f())
 ```
 
-That gives a result that's very similar to graphs that I drew by hand:
+That gives a result very similar to the graphs that I drew by hand:
 
 ```{r echo = FALSE, out.width = NULL, fig.align = "center"}
 knitr::include_graphics("images/scaling-performance/profvis.png", dpi = 300)
@@ -307,13 +317,40 @@ There are a couple of important differences to note:
     It can't currently capture time in various special calls the R has no insight into (e.g. Sys.sleep, reading from the internet).
     This can be misleading, but does serve to concentrate your attention on what you can actually control within R.
 
+As well as a flame graph, profvis also does it's best to show the underlying source code.
+So that when you click on a function in the flame graph, you can easily jump to the code that is run.
+
 ### Using profiling data
 
-Works similarly for Shiny apps:
+Works similarly for Shiny apps.
+To get the basic idea, let's make a very simple app that wraps up the `f()` we used above:
 
 ```{r, eval = FALSE}
-profvis::profvis(runApp("path/to/app"))
+ui <- fluidPage(
+  actionButton("x", "Push me"),
+  textOutput("y")
+)
+server <- function(input, output, session) {
+  output$y <- eventReactive(input$x, f())
+}
+
+profvis::profvis(runApp(shinyApp(ui, server)))
 ```
+
+```{r echo = FALSE, out.width = NULL, fig.align = "center"}
+knitr::include_graphics("images/scaling-performance/in-app.png", dpi = 300)
+```
+
+You can see that the output looks very similar.
+There are a couple of differences:
+
+-   `f()` is not longer at the bottom of the call stack.
+    Instead we can see that it's called by `eventReactiveHandler()` (the internal function that powers `eventReactive()`), which is triggered by `output$y`, which is wrapped inside `runApp()`.
+
+-   There are two very tall towers.
+    Generally, these can be ignored because they don't take up much time and will vary from run to run, because of the stochastic nature of the sampler.
+    If you do want to learn more about them, you can hover over them to find out the function calls.
+    In this case the short tower on the left is the setup of the `eventReactive()` call, and the tall tower on the right is R's byte code compiler being triggered.
 
 And there's a case study of a Shiny app at <https://rstudio.github.io/profvis/examples.html>.
 
