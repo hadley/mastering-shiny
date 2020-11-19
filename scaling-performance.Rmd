@@ -48,7 +48,8 @@ Fortunately, it's much easier to add more processes[^scaling-performance-2] than
 If you keep hiring more chefs, eventually the kitchen (server) will get too full and you'll need to add more equipment (memory of cores).
 Adding more resources allow a server to run more processes is called scaling **up**[^scaling-performance-3].
 
-[^scaling-performance-2]: Again, this depends on exactly how your app is deployed, but it's typically a prominently labelled setting in the tool that runs your Shiny apps.
+[^scaling-performance-2]: Again, this depends on exactly how your app is deployed, but typically you can dynamically control the number of processes based on the number of users.
+    See <https://shiny.rstudio.com/articles/scaling-and-tuning-ssp-rsc.html> for advice on RStudio's deployment offerings.
 
 [^scaling-performance-3]: Or vertical scaling
 
@@ -60,38 +61,35 @@ I won't talk more about scaling out in this chapter, because while the details a
 
 [^scaling-performance-4]: Or horizontal scaling
 
-There's one major place where the metaphor breaks down: a normal chef can make multiple dishes at the same time, carefully interweaving the steps to do as much as possible in parallel.
-Unfortunately, R is single-threaded, which means that can't do multiple things at the same.
-This is fine if all of the meals are fast to cook, but if someone requests a 24-hour sous vide pork belly, all customers will have to wait 24 hours before the chef can start on their meal.
+There's one major place where the metaphor breaks down: a normal chef can make multiple dishes at the same time, carefully interweaving the steps to take advantage of downtime in one recipe to work on another.
+R, however, is single-threaded, which means that can't do multiple things at the same time.
+This is fine if all of the meals are fast to cook, but if someone requests a 24-hour sous vide pork belly, all later customers will have to wait 24 hours before the chef can start on their meal.
 Fortunately, you can work around this limitation using async programming.
 Async is a complex topic and beyond the scope of this book, but you can learn more at <https://rstudio.github.io/promises/>.
 
 ## Benchmark
 
-You almost always start by developing an app for yourself.
-You have a personal chef who only ever has to serve one customer at a time (you!).
-While you might be happy with performance, you might worry that your chef isn't going to be able to handle the 10 simultaneous users who will need to use your app.
-So you want to check the performance of your app with multiple users, without actually exposing real people to a potentially slow app.
+You almost always start by developing an app for yourself: your app is a personal chef who only ever has to serve one customer at a time (you!).
+While you might be happy with their performance right now, you might also worry that they won't be able to handle the 10 folks who need to use your app at the same time.
+Benchmarking lets you check the performance of your app with multiple users, without actually exposing real people to a potentially slow app.
+Or if you want to serve 100s or 1000s of users, benchmarking will help you figure out just how many users each process can handle, and hence how many servers you'll need to use.
 
-If you want to serve very large numbers of customers, benchmarking will also help you determine the maximum number of chefs you can fit in each kitchen (processes per server), and hence how many restaurants you need to build to serve a given number of users.
-
-This is the process of benchmarking, first figuring out where your app is now, and then thinking about whether or not that's good enough.
 The benchmarking process is supported by the [shinyloadtest](https://rstudio.github.io/shinyloadtest/) package and has three basic steps:
 
-1.  Record a script that simulates a user interacting with your app.
-    You can do this by running `shinyloadtest::record_session()` then interacting with your app like a user might.
+1.  Record a script simulating a typical user with `shinyloadtest::record_session()`.
 
-2.  Replay the script with multiple simultaneous users with the shinycannon command-line app.
+2.  Replay the script with multiple simultaneous users with the shinycannon command-line tool.
 
-3.  Analyse the results using `shinyloadtest::load_runs()` and `shinyloadtest::report()`.
+3.  Analyse the results using `shinyloadtest::report()`.
 
 Here I'll give an overview of how each of the steps work; if you need more details, check out shinyloadtest's documentation and vignettes.
 
 ### Recording
 
-If you're doing benchmarking on your laptop, you'll need to use two different R processes[^scaling-performance-5] --- one for Shiny, and one for shinyloadtest.
+If you're benchmarking on your laptop, you'll need to use two different R processes[^scaling-performance-5] --- one for Shiny, and one for shinyloadtest.
 
-[^scaling-performance-5]: The easiest way to do this in RStudio, is just to open another RStudio instance.
+[^scaling-performance-5]: The easiest way to do this with RStudio is to open another RStudio instance.
+    Alternatively, open a terminal and type `R`.
 
 -   In the first process, start your app and copy the url that it gives you:
 
@@ -110,25 +108,23 @@ If you're doing benchmarking on your laptop, you'll need to use two different R 
 Now you need to interact with the app to simulate a "typical" user.
 I recommend starting with a written script to guide your actions --- this will make it easier to repeat in the future, if you discover there's some important piece missing.
 Your benchmarking will only be as good as your simulation, so you'll need to spend some time thinking about how to simulate a realistic interaction with the app.
-For example, don't forget to add some pauses to reflect the thinking time that a real user would need.
+For example, don't forget to add pauses to reflect the thinking time that a real user would need.
 
-Once you're done, close the app and shinyloadtest will save `recording.log` to your working directory.
-This records every step you took in a way that can easily be replayed.
+Once you're done, close the app, and shinyloadtest will save `recording.log` to your working directory.
+This records every action in a way that can easily be replayed.
 Keep a hold of it as you'll need it for the next step.
 
-(While benchmarking works great on your laptop, you likely want to simulate the eventual deployment as closely as possible in order to get the most accurate results. So if your company has a special way of serving Shiny apps, talk to your IT folks about setting up a staging environment that you can use for load testing.)
+(While benchmarking works great on your laptop, you likely want to simulate the eventual deployment as closely as possible in order to get the most accurate results. So if your company has a special way of serving Shiny apps, talk to your IT folks about setting up an environment that you can use for load testing.)
 
 ### Replay
 
-Now you have a script that represents the actions of a single user.
-To simulate many people using your app, we're going to replay that script repeatedly using a special tool called shinycannon.
-Unfortunately shinycannon is a bit of extra work to install because it's not an R package.
-shinycannon is written in Java because the Java language is particularly well suited to the problem of performing tens or hundreds of web requests in parallel, using as few computational resources as possible.
+Now you have a script that represents the actions of a single user, and we'll next use it to simulate many people using a special tool called shinycannon.
+shinycannon is a bit of extra work to install because it's not an R package.
+It's written in Java because the Java language is particularly well suited to the problem of performing tens or hundreds of web requests in parallel, using as few computational resources as possible.
 This makes it possible for your laptop to both run the app and simulate many users.
+So start by installing shinycannon, following the instructions at <https://rstudio.github.io/shinyloadtest/#shinycannon>
 
-Start by installing shinycannon by following the instructions at <https://rstudio.github.io/shinyloadtest/#shinycannon>
-
-Then then shinycannon from the terminal like:
+Then run shinycannon from the terminal with a command like this:
 
     shinycannon recording.log http://127.0.0.1:7911 \
       --workers 10 \
@@ -145,16 +141,16 @@ There are six arguments to `shinycannon`:
     The above command will simulate the performance of your app as if 10 people were using it simultaneously.
 
 -   `--loaded-duration-minutes` determines how long to run the test for.
-    If this is longer than your script takes, shinycannon will just start the script again from the beginning.
+    If this is longer than your script takes, shinycannon will start the script again from the beginning.
 
 -   `--output-dir` gives the name of the directory to save the output.
-    You're likely to run the load test multiple times as you experiment with performance improvements, so strive to give these informative names.
+    You're likely to run the load test multiple times as you experiment with performance improvements, so strive to give informative names to these directories.
 
 When load testing for the first time, it's a good idea to start with a small number of workers and a short duration in order to quickly spot any major problems.
 
 ### Analysis
 
-Now that you've simulated multiple people using your app simultaneously, it's time to look at the results.
+Now that you've simulated your app with multiple users, it's time to look at the results.
 First, load the data into R using `load_runs()`:
 
 ```{r, eval = FALSE}
@@ -174,7 +170,7 @@ if (file.exists("scaling-testing.rds")) {
 
 This produces a tidy tibble that you can analyse by hand if you want.
 But typically you'll create the standard shinyloadtest report.
-This is a standalone HTML file that contains graphical summaries that the Shiny team has found to be most useful.
+This is an HTML report that contains the graphical summaries that the Shiny team has found to be most useful.
 
 ```{r, eval = FALSE}
 shinyloadtest_report(df, "report.html")
@@ -189,7 +185,7 @@ slt_session_duration(df)
 ```
 
 The **session duration** plot displays each simulated user session as row.
-Each event is a rectangle with width proportion to time taken, and the colour is given by the event type.
+Each event is a rectangle with width proportional to time taken, coloured by the event type.
 The red line shows the time that the original recording took.
 
 When looking at this plot:
@@ -210,16 +206,16 @@ When looking at this plot:
 
 ## Profiling
 
-If your app doesn't perform will under the desired load, you need to first **profile** your app to figure what takes so while.
+If your app is spending a lot of time calculating, you next need to figure out which calculation is slow, i.e. you need to **profile** your code to find the bottleneck.
 We're going to do profiling with the [profvis](https://rstudio.github.io/profvis) package, which provides an interactive visualisation of the profiling data collected by `utils::Rprof()`.
-I'll start with a discussion of the flame graph, the most common visualisation used to show profiling data, and a key part of the profvis output.
-Then I'll show you how to use profvis to profile R code and Shiny apps.
+I'll start by introducing the flame graph, the visualisation used for profiling, then show you how to use profvis to profile R code and Shiny apps.
 
 ### The flame graph
 
-Across programming languages, the most common tool used for visualise profiling data is the **flame graph**.
-To help you understand it, I'm going to start with the basics, and progressively build our way up.
-To make it concrete, take the following code where I use `profivs::pause()` (more on that shortly) to indicate work being done:
+Across programming languages, the most common tool used to visualise profiling data is the **flame graph**.
+To help you understand it, I'm going to start by revisiting the basics of code execution, then build up progressively to the final visualisation.
+
+To make the process concrete, we'll work with following code where I use `profivs::pause()` (more on that shortly) to indicate work being done:
 
 ```{r}
 f <- function() {
@@ -237,23 +233,24 @@ h <- function() {
 }
 ```
 
-If I asked to to mentally run `f()` and explain what functions are called, you might say something like this:
+If I asked you to mentally run `f()` then explain what functions were called, you might say something like this:
 
--   We start with `f()`
--   Then `f()` calls `g()`, which calls `h()`
--   Then `f()` calls `h()`
+-   We start with `f()`.
+-   Then `f()` calls `g()`,
+-   Then `g()` calls `h()`.
+-   Then `f()` calls `h()`.
 
-Which we could write something like this:
+This is a bit hard to follow because we can't see exactly how the calls are nested, so instead you might adopt a more conceptual description:
 
 -   f
 -   f \> g
 -   f \> g \> h
 -   f \> h
 
-What we've basically done is record a list of of call stacks, which you might remember from Section \@ref(reading-tracebacks), when we talked about debugging.
-The call stack just records the complete sequence of calls leading up to a function.
+Here we've recorded a list of of call stacks, which you might remember from Section \@ref(reading-tracebacks), when we talked about debugging.
+The call stack is just the complete sequence of calls leading up to a function.
 
-You could convert that list to a diagram just by drawing a rectangle around each function name:
+We could convert that list to a diagram by drawing a rectangle around each function name:
 
 ```{r echo = FALSE, out.width = NULL, fig.align = "center"}
 knitr::include_graphics("diagrams/scaling-performance/vertical.png", dpi = 300)
@@ -273,7 +270,7 @@ I also added some grid lines in the background to make it easier to check my wor
 knitr::include_graphics("diagrams/scaling-performance/proportional.png", dpi = 300)
 ```
 
-Finally, we can clean it up a little by collapsing adjacent calls to the same function:
+Finally, we can clean it up a little by combining adjacent calls to the same function:
 
 ```{r echo = FALSE, out.width = NULL, fig.align = "center"}
 knitr::include_graphics("diagrams/scaling-performance/collapsed.png", dpi = 300)
@@ -285,7 +282,7 @@ It's easy to see both how long `f()` takes to run, and why it takes that long, i
 You might wonder why it's a called a flame graph.
 Most flame graphs in the wild are randomly coloured with "warm" colours, meant evoke the idea of the computer running "hot".
 However, since those colours don't add any additional information, we usually omit them and stick to black and white.
-You can learn more about this colour scheme, alternatives, and the history of flame graph in "[The Flame Graph](https://queue.acm.org/detail.cfm?id=2927301){.uri}"[@flame-graph].
+You can learn more about this colour scheme, alternatives, and the history of flame graphs in "[The Flame Graph](https://queue.acm.org/detail.cfm?id=2927301){.uri}[@flame-graph]".
 
 ```{r echo = FALSE, out.width = NULL, fig.align = "center"}
 knitr::include_graphics("diagrams/scaling-performance/flame.png", dpi = 300)
@@ -293,31 +290,31 @@ knitr::include_graphics("diagrams/scaling-performance/flame.png", dpi = 300)
 
 ### Profiling R code
 
-Now you understand the flame graph, let's apply it to real code.
-Just wrap the code you want to profile in `profvis::profvis()`:
+Now you understand the flame graph, let's apply it to real code with the profvis package.
+It's easy to use: just wrap the code you want to profile in `profvis::profvis()`:
 
 ```{r, eval = FALSE}
 library(profvis)
 profvis(f())
 ```
 
-After the code has completed, profvis will pop up an interactive visualisation that looks very similar to the graphs that I drew by hand:
+After the code has completed, profvis will pop up an interactive visualisation, Figure \@ref(fig:profvis-raw).
+You'll notice that it looks very similar to the graphs that I drew by hand, but the timings aren't exactly the same.
+That's because R's profiler works by stopping execution every 10ms and recording the call stack.
+Unfortunately, we can't always stop at exactly the we want because R might be in the middle of something that can't be interrupted.
+This means that the results are subject to a small amount of random variation; if you re-profiled this code, you'd get another slightly different result.
 
-```{r echo = FALSE, out.width = NULL, fig.align = "center"}
+```{r profvis-raw, echo = FALSE, out.width = NULL, fig.align = "center", fig.cap="Results of profiling `f()` with profvis. X-axis shows elapsed time in ms, y-axis shows depth of call stack."}
 knitr::include_graphics("images/scaling-performance/profvis.png", dpi = 300)
 ```
 
-(As well as a flame graph, profvis also does it's best to find the underlying source code so that you can click on a function in the flame graph to see what's actually being run.)
-
-You'll notice that the timings are not exactly the same as my hand drawn diagram.
-That's because R's profiler works by stopping execution every 10ms and recording the call stack.
-Unfortunately, we can't always stop exactly every 10ms because R might be in the middle of something that can't be interrupted.
-This means that the results are subject to a small amount of random variation; if you re-profiled this code, you'd get another slightly different result.
+As well as a flame graph, profvis also does its best to find and display the underlying source code so that you can click on a function in the flame graph to see exactly what's run.
 
 ### Profiling a Shiny app
 
 Not much changes when profiling a Shiny app.
-Let's make a very simple app that wraps up the `f()` we used above and then profile it:
+To see the difference, I'll make a very simple app that wraps around `f()`.
+The results are shown in Figure \@ref(fig:profvis-shiny).
 
 ```{r, eval = FALSE}
 ui <- fluidPage(
@@ -331,19 +328,19 @@ server <- function(input, output, session) {
 profvis::profvis(runApp(shinyApp(ui, server)))
 ```
 
-```{r echo = FALSE, out.width = NULL, fig.align = "center"}
+```{r profvis-shiny, echo = FALSE, out.width = NULL, fig.align = "center", fig.cap = "Results of profiling a Shiny app that uses `f()`. Note that the call stack is deeper and we have a couple of tall towers."}
 knitr::include_graphics("images/scaling-performance/in-app.png", dpi = 300)
 ```
 
-You can see that the output looks very similar.
+The output looks very similar to the last run.
 There are a couple of differences:
 
--   `f()` is not longer at the bottom of the call stack.
-    Instead we can see that `f()` is called by `eventReactiveHandler()` (the internal function that powers `eventReactive()`), which is triggered by `output$y`, which is wrapped inside `runApp()`.
+-   `f()` is no longer at the bottom of the call stack.
+    Instead it is called by `eventReactiveHandler()` (the internal function that powers `eventReactive()`), which is triggered by `output$y`, which is wrapped inside `runApp()`.
 
 -   There are two very tall towers.
     Generally, these can be ignored because they don't take up much time and will vary from run to run, because of the stochastic nature of the sampler.
-    If you do want to learn more about them, you can hover over them to find out the function calls.
+    If you do want to learn more about them, you can hover to find out the function calls.
     In this case the short tower on the left is the setup of the `eventReactive()` call, and the tall tower on the right is R's byte code compiler being triggered.
 
 For more details, I recommend the profvis documentation, particular it's [FAQs](https://rstudio.github.io/profvis/faq.html).
@@ -361,24 +358,23 @@ There are a few places where this doesn't happen:
 -   `Sys.sleep()` asks the operating system to "park" the process for some amount of time, so R is not actually running.
     This is why we had to use `profvis::pause()` above.
 
-<!-- -->
-
--   Accessing data from the internet is usually done in a different process, so won't be tracked by R.
+-   Downloading data from the internet is usually done in a different process, so won't be tracked by R.
 
 ## Improve performance
 
-Most techniques for speeding up your Shiny app are general; they're exactly what you'd do to speed up any R code.
-If you want advice on how to speed up R code a couple of good places to start at the [Improving performance](https://adv-r.hadley.nz/perf-improve.html) of Advanced R and [Efficient R programming](https://csgillespie.github.io/efficientR/) by Colin Gillespie and Robin Lovelace.
-I'm not going to repeat that advice here: instead, I'll focus on the topics that are most likely to affect your Shiny.
+The most efficient way to improve performance is to find the slowest thing in the profile, and try to speed it up.
+Once you've isolated a slow part, make sure it's in a stand alone function (Chapter \@ref(scaling-functions)).
+Then make a minimal snippet of code that recreates the slowness, re-profiling it to check that you captured it correctly.
+You'll re-run this snippet multiple time as you try out possible improvements.
+I also recommend writing a few tests (Chapter \@ref(scaling-testing)) because in my experience the easiest way to make code faster is to make it incorrect 😆.
 
-Goal is to find the one slowest thing, because that has the highest payoff.
-Once you've isolated a slow part, if it's not already in a function, I highly recommend pulling it out as described in Chapter \@ref(scaling-functions).
-Then make a minimal snippet of code that recreates the slowness you see in the app, so you can easily re-run it.
-You'll need to do that many times as you try out possible improvements as suggested in the next section.
+Shiny code is just R code, so most techniques for improving performance are general.
+Two good places to start are the [Improving performance](https://adv-r.hadley.nz/perf-improve.html) section of Advanced R and [Efficient R programming](https://csgillespie.github.io/efficientR/) by Colin Gillespie and Robin Lovelace.
+I'm not going to repeat their advice here: instead, I'll focus on the techniques that are most likely to affect your Shiny app.
+I also highly recommend Alan Dipert's rstudio::conf(2018) talk: [Making Shiny fast by doing as little as possible](https://rstudio.com/resources/rstudioconf-2018/make-shiny-fast-by-doing-as-little-work-as-possible/){.uri}.
 
-I also recommend writing a few tests, as in Chapter \@ref(scaling-testing), because in my experience the easiest way to make code faster is to make it incorrect 😆.
-
-For more Shiny specific advice, I highly recommend watching Alan Dipert's rstudio::conf(2018) talk [Making Shiny fast by doing as little as possible](https://rstudio.com/resources/rstudioconf-2018/make-shiny-fast-by-doing-as-little-work-as-possible/){.uri}.
+There are four techniques that seem to help many Shiny apps seen in the wild: considering data import, pulling out expensive preprocessing into a separate step, sharing work across users with caching, and carefully managing user expectations.
+I discuss each in turn below.
 
 ### Data import
 
@@ -389,68 +385,76 @@ Next, check that you're using the most efficient way to load your data:
 
 -   If you have a flat file, try `data.table::fread()` or `vroom::vroom()` instead of `read.csv()` or `read.table()`.
 
--   If you have a data frame, saving with `arrow::write_feather()` and reading, try `arrow::read_feather()`.
-    (<https://ursalabs.org/blog/2020-feather-v2/>)
+-   If you have a data frame, try saving with `arrow::write_feather()` and reading with `arrow::read_feather()`.
+    Feather is a binary file format that can be considerably faster[^scaling-performance-6] to read and write.
 
--   Complex non-data frame, try `qs::qread()`/`qs::qsave()` instead of `readRDS()`/`saveRDS()`.
+-   If you have objects that aren't data frames, try using `qs::qread()`/`qs::qsave()` instead of `readRDS()`/`saveRDS()`.
 
-If that's still too slow, and each user only tends to use a small part of the full dataset, consider loading the data in a database.
-Then you can easily retrieve only the data that the user specifically asks for.
+[^scaling-performance-6]: See [<https://ursalabs.org/blog/2020-feather-v2/>](https://ursalabs.org/blog/2020-feather-v2/){.uri} for some benchmarks.
+
+If switching to a faster function doesn't help, you might consider loading the data into a database.
+That makes it faster and easier to retrieve just the data needed for a specific task.
 
 ### Data processing
 
 After loading data from disk, it's common to do some basic cleaning and aggregation.
-If this is expensive, you should consider using a cron job, scheduled RMarkdown report, or similar to perform the expensive operations and save the results.
+If this is expensive, you should consider using a cron job, scheduled RMarkdown report, or similar, to perform the expensive operations and save the results.
 This is like hiring a prep chef who comes in at 3am (when there are no customers) and does a bunch of work so that that chefs can be as efficient as possible.
 
 ### Share work across users
 
 We discussed a specific type of caching for graphics in Section \@ref(cached-plots).
-Shiny 1.6.0 introduces a general tool that works with any reactive: `withCache()`.
-By default, reactives are already cached, but they only cache the previous value.
-`withCache()` allows you to cache more values and to share those values across users.
+Shiny 1.6.0 introduces a general tool that works with any reactive expression or render function: `bindCache()`.
+Reactive expression already cache the most recently computed value; `bindCache()` allows you to cache any number of values and to share those values across users.
+Here I'll give you the highlights, and you can see the documentation for full details.
 
-To use the cache effectively, you'll need to have identified that a specific reactive is a bottleneck and done some thinking to make sure that the reactive is used multiple times or by multiple users.
-(Also note that the impact of caching on your load tests is likely to be an over estimated because every simulated user does exactly the same thing, making it a perfect use case for caching).
-Then:
-
-`withCache()` is easy to use.
-Just pipe the reactive into `withCache()`:
+`bindCache()` is easy to use:
 
 ```{r, eval = FALSE}
 r <- reactive(slow_function(input$x, input$y)) %>% 
-  withCache(input$x, input$y)
+  bindCache(input$x, input$y)
 ```
 
-The extra arguments to `withCache()` are the cache keys --- these are the values used to determine if a computation has occurred before and hence can be retrieved from the cache.
+The first argument (here the `reactive()` on the left hand side of the pipe) is the reactive to cache.
+The other arguments are are the cache keys --- these are the values used to determine if a computation has occurred before and hence can be retrieved from the cache.
+The best cache keys are small and fast to compute.
 
-`withCache()` is usually paired with `withEvent()` because if a computation takes long enough that it's worth caching it, it's likely that you'll want to user to manually trigger with an action button or similar.
+To use the cache effectively, you'll need to have identified a specific reactive as a bottleneck and done some thinking to make sure that it's used multiple times (so replaying previous results will save some time).
+
+#### Cache scope
+
+Like `renderCachedPlot()`, `bindCache()` has a `cache` argument that controls the scope of the cache.
+It defaults to `"app"`, giving an in-memory cache that is shared across all users of the app.
+You can restrict the scope by setting `cache = "session"` so that each user session gets its own cache.
+Or you can expand the scope with `cache = cachem::disk_cache()` so that it is shared across users, processes, and app restarts.
+Just note the broader the scope, the more care you'll need to take to clear the cache when you change behaviour (e.g. the computation in a reactive) that's not captured by the cache key.
+
+#### `bindEvent()`
+
+`bindCache()` is often paired with `bindEvent()` because if a computation takes long enough that it's worth caching it, it's likely that you'll want to user to manually trigger with an action button or similar.
+`bindEvent()` is similar to `eventReactive()`, but feels a little more natural when used in a pipe with `bindCache()`:
 
 ```{r, eval = FALSE}
-r <- reactive() %>% 
-  withCache(input$x, input$y) %>% 
-  withEvent(input$go)
+r <- reactive(slow_function(input$x, input$y)) %>% 
+  bindCache(input$x, input$y) %>% 
+  bindEvent(input$go)
 ```
 
-Like `renderCachedPlot()`, `withCache()` has a scope setting.
-It defaults to `app` so that you get an in memory cache shared across all users of the app.
-But you can `scope = "session"` so that each user session gets its own cache, or to `cachem::disk_cache()` to share across users, processes, and app restarts.
-The more aggressively you cache, you more care you'll need to take to manually clear the cache when you change behaviour (e.g. the computation in a reactive) that's not captured by the cache key.
+The arguments to `bindEvent()` are very similar to the arguments to `bindCache()`: the first argument is the reactive to modify, and additional unnamed arguments are reactive values that will trigger computation.
 
 ### Manage user expectations
 
-Finally, there are a few design considerations worth considering when you know that parts of your app are slow.
-These don't make your app any faster, but they can make it feel faster, and they can certainly improve the overall user experience of your app.
+Finally, there a few tweaks you can make to your app design to make it feel faster, and improve the overall user experience of your app.
+Here are four tips that can be used in many apps:
 
 -   Split your app up into tabs, using `tabsetPanel()`.
     Only outputs on the current tab are recomputed, so you can use this to focus computation on what the user is currently looking at.
 
--   Use a button press to initiate a slow operation.
-    An action button combined with `eventReactive()` allows the user to explicitly request a slow operation, which is less frustrating.
-    Once the operation starts, make sure to use the notification techniques from Section \@ref(notifications) to let the user know what's happen.
-    If possible, display an incremental progress bar, Section \@ref(progress-bars), because there's good evidence that progress bars make operations feel faster: <https://www.nngroup.com/articles/progress-indicators/>.
+-   Require a button press to start a long-running operation.
+    Once the operation starts, let the user know what's happening using the techniques of Section \@ref(notifications).
+    If possible, display an incremental progress bar (Section \@ref(progress-bars)) because there's good evidence that progress bars make operations feel faster: <https://www.nngroup.com/articles/progress-indicators/>.
 
--   If the app requires significant work to happen on startup (and you can't reduce it with preprocessing), make sure to design your app so that the HTML appears, and you can let the user know that they'll need to wait.
+-   If the app requires significant work to happen on startup (and you can't reduce it with preprocessing), make sure to design your app so that the UI can still appear, so that you can let the user know that they'll need to wait.
 
 -   Finally, if you want to keep the app responsive while some expensive operation happens in the background, it's time to learn about async programming: [https://rstudio.github.io/promises](https://rstudio.github.io/promises/index.html).
 
