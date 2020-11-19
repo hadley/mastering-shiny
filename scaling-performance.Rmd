@@ -5,76 +5,66 @@ source("common.R")
 options(tibble.print_min = 6, tibble.print_max = 6)
 ```
 
-Shiny can support thousands or tens of thousands of users, if developed correctly.
-But most Shiny apps were quickly thrown together to solve a pressing analytic need, and often start with pretty terrible performance.
-In some ways, this is a feature of Shiny --- it allows you to quickly prototype a proof of concept that works for you, before figuring out how to make it fast so that it can be used by a bunch of people simultaneously.
-But if you don't realise that app is likely because you've optimised for human iteration speed), making a Shiny app available to many people will be frustrating.
+A Shiny app can support thousands or tens of thousands of users, if developed the right way.
+But most Shiny apps are quickly thrown together to solve a pressing analytic need, and typically begin life with poor performance.
+This is a feature of Shiny: its allows you to quickly prototype a proof of concept that works for you, before figuring out how to make it fast so many people can use it simultaneously.
+Fortunately, it's generally straightforward to get 10-100x performance with a few simple tweaks.
+This chapter will show you how.
 
-Generally easy to get 10-100x performance with a few simple tweaks.
+We'll begin with a metaphor: thinking about a Shiny app like a restaurant.
+Next, you'll learn how to **benchmark** your app, using the shinyloadtest package to simulates many people using your app at the same time.
+This is the place to start, because it lets you figure you have a problem and helps measure the impact of any changes that you make.
 
-Fortunately, however, Shiny comes with a bunch of tools to help improve performance.
-In this chapter you'll learn:
+Then you'll learn how to **profile** your app using the profvis package to identify slow parts of your R code.
+Profiling lets you see exactly where your code is spending its time, so you can focus your efforts where they're most impactful.
 
--   How to use shinyloadtest to simulate the use of your app by many people.
-    This allows you to figure out if you have a problem, and to measure the impact of your performance improvement.
+Finally, you'll learn a grab bag of useful techniques to **optimise** your code, improving the performance where needed.
+You'll learn about some common gotchas, a technique to take advantage of having multiple users, and a little applied psychology to help you app *feel* as fast as possible.
 
--   To use profvis to identify performance bottlenecks.
-    It is extremely difficult to develop a good intuition for what parts of your app are likely to be slow.
-    Fortunately there's no need because we can measure and visualise.
-
--   A grab bag of useful techniques to improve performance, particularly focussing on techniques that allow you to take advantage of multiple users.
-
--   We'll finish up with a little applied psychology to give a few techniques that can help your app *feel* as fast as possible.
-
-For a demo of the whole process, I recommend Joe Cheng's rstudio::conf(2019) keynote [Shiny in production: principles, best practices, and tools](https://rstudio.com/resources/rstudioconf-2019/shiny-in-production-principles-practices-and-tools/){.uri} where he works through the whole process with a realistic app.
-This is also written in the [scaling an app case study](https://rstudio.github.io/shinyloadtest/articles/case-study-scaling.html) on the shinyloadtest website.
-
-But to get started, we'll build up your mental model of Shiny performance with a restaurant metaphor.
-We'll use this metaphor throughout the rest of the chapter.
+For a demo of the whole process of benchmarking, profiling, and optimising, I recommend watching Joe Cheng's rstudio::conf(2019) keynote: [Shiny in production: principles, best practices, and tools](https://rstudio.com/resources/rstudioconf-2019/shiny-in-production-principles-practices-and-tools/){.uri}.
+In that talk (and accompanying [case study](https://rstudio.github.io/shinyloadtest/articles/case-study-scaling.html)), Joe walks through the complete process with a realistic app.
 
 ```{r setup}
 library(shiny)
 ```
 
-Particularly thanks go to my RStudio colleagues Joe Cheng, Sean Lopp, and Alan Dipert, whose RStudio::conf() talks were particularly helpful when writing this chapter.
+Special thanks to my RStudio colleagues Joe Cheng, Sean Lopp, and Alan Dipert, whose RStudio::conf() talks were particularly helpful when writing this chapter.
 
 ## Dining at restaurant Shiny
 
 When considering performance, it's useful to think of a Shiny app as a restaurant[^scaling-performance-1].
 Each customer (user) comes into the restaurant (the server) and makes an order (a request), which is then prepared by a chef (the R process).
-This metaphor is useful because like a restaurant, one R process can serve multiple users at the same time, and there similar ways to dealing with increased demand.
+This metaphor is useful because like a restaurant, one R process can serve multiple users at the same time, and there similar ways to dealing with increasing demand.
 
 [^scaling-performance-1]: Thanks to Sean Lopp for this analogy from his rstudio::conf(2018) talk [Scaling Shiny to 10,000 users](https://rstudio.com/resources/rstudioconf-2018/scaling-shiny/){.uri}.
     I highly recommend watching it if you have any doubt that Shiny apps can handle thousands of users.
 
 To begin, you might investigate ways to make your current chef more efficient (optimise your R code).
-To do so, you'd first spend some time watching to find the bottlenecks in their method (profiling) and then brainstorming ways to make it faster (optimising).
-For example, maybe you hire a prep cook who can come in before the first customer and chop some vegetables (prepares the data), or you could invest in a time-saving gadget (a faster R package).
+To do so, you'd first spend some time watching your chef work to find the bottlenecks in their method (profiling) and then brainstorming ways to help them work faster (optimising).
+For example, maybe you could hire a prep cook who can come in before the first customer and chop some vegetables (prepares the data), or you could invest in a time-saving gadget (a faster R package).
 
-Or you might think about adding more chefs (processes) to the kitchen (server).
-Fortunately, it's much easier[^scaling-performance-2] to add more processes than hire trained chefs.
-If you keep hiring more chefs, eventually the kitchen will get too full and you'll need to add more equipment.
-This is called scaling **up**[^scaling-performance-3], adding more resources (memory or cores) to an existing server to allow it to run more processes
-.
+Or you might think about adding more chefs (processes) to the restaurant (server).
+Fortunately, it's much easier to add more processes[^scaling-performance-2] than hire trained chefs.
+If you keep hiring more chefs, eventually the kitchen (server) will get too full and you'll need to add more equipment (memory of cores).
+Adding more resources allow a server to run more processes is called scaling **up**[^scaling-performance-3].
 
-[^scaling-performance-2]: Again, this depends on exactly how your app is deployed, but it's typically a prominently labelled setting.
+[^scaling-performance-2]: Again, this depends on exactly how your app is deployed, but it's typically a prominently labelled setting in the tool that runs your Shiny apps.
 
 [^scaling-performance-3]: Or vertical scaling
 
-At some point, you'll have crammed as many chefs into your restaurant as you possibly can and its still not enough.
-At that point, you'll need to building more restaurants.
-This is called scaling **out**[^scaling-performance-4], and means using multiple servers.
-This allows you to scale to any number of customers, but there's no way to serve one customer from multiple restaurants, so you need some way to direct customers to the least busy restaurant (a load balancer).
+At some point, you'll have crammed as many chefs into your restaurant as you possibly can and its still not enough to meet demand.
+At that point, you'll need to build more restaurants.
+This is called scaling **out**[^scaling-performance-4], and for Shiny it means using multiple servers.
+Scaling out allows you to handle any number of customers, as long as you can pay the infrastructure costs.
 I won't talk more about scaling out in this chapter, because while the details are straightforward, they depend entirely on your deployment infrastructure.
-It's good to know this option exists, and allows you app to scale to any number of users.
 
 [^scaling-performance-4]: Or horizontal scaling
 
 There's one major place where the metaphor breaks down: a normal chef can make multiple dishes at the same time, carefully interweaving the steps to do as much as possible in parallel.
-Unfortunately, R can't do multiple things at the same because it's single threaded, i.e. each process can only do one thing at a time.
-This is fine if all of the meals are fast to cook, but if someone requests 24-hour sous vide pork belly, everyone else has to wait until it's done.
+Unfortunately, R is single-threaded, which means that can't do multiple things at the same.
+This is fine if all of the meals are fast to cook, but if someone requests a 24-hour sous vide pork belly, all customers will have to wait 24 hours before the chef can start on their meal.
 Fortunately, you can work around this limitation using async programming.
-Unfortunately, that's a complex topic and beyond the scope of this book, but you can learn more at <https://rstudio.github.io/promises/>.
+Async is a complex topic and beyond the scope of this book, but you can learn more at <https://rstudio.github.io/promises/>.
 
 ## Benchmark
 
@@ -371,9 +361,8 @@ There are a few places where this doesn't happen:
 -   `Sys.sleep()` asks the operating system to "park" the process for some amount of time, so R is not actually running.
     This is why we had to use `profvis::pause()` above.
 
-```{=html}
 <!-- -->
-```
+
 -   Accessing data from the internet is usually done in a different process, so won't be tracked by R.
 
 ## Improve performance
@@ -448,7 +437,7 @@ It defaults to `app` so that you get an in memory cache shared across all users 
 But you can `scope = "session"` so that each user session gets its own cache, or to `cachem::disk_cache()` to share across users, processes, and app restarts.
 The more aggressively you cache, you more care you'll need to take to manually clear the cache when you change behaviour (e.g. the computation in a reactive) that's not captured by the cache key.
 
-## Manage user expectations
+### Manage user expectations
 
 Finally, there are a few design considerations worth considering when you know that parts of your app are slow.
 These don't make your app any faster, but they can make it feel faster, and they can certainly improve the overall user experience of your app.
