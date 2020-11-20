@@ -1,30 +1,118 @@
-# Safety {#scaling-safety}
+# Security {#scaling-security}
 
-Part of scaling is exposing your app to more people, including people that you don't fully trust.
-This chapter discusses some of the things you need to think about if you're going to create a public facing app.
-(If you're only using your app inside your company this chapter isn't so important as you can generally assume that your own colleagues won't deliberately attempt to hack your code).
+Most Shiny apps are deployed within a company firewall, and you can generally assume that your colleagues aren't going to try and hack your app[^scaling-safety-1].
+If, however, you want to expose an app to the public, you will need to put a little more thought about security.
+This is a discussion that you should have with your IT folks, since they will have security professionals who can help you ensure that your app is secure.
+But they're unlikely to be familiar with the details of R, so here
 
-Key idea is what you can trust.
-Never trust anything supplied by the user - constant variables, not code.
+[^scaling-safety-1]: If you can't assume that, you have bigger problems!
 
-Places where that might surprise you:
+Defence in depth.
 
--   Creating glue strings
--   Reading yaml
--   Allowing the user to supply transformation expressions for dplyr or ggplot2.
--   SQL
+Greatest risk is accessing data that they shouldn't be able to.
+And the easiest way this might happen is via an **injection attack**, where you accidentally allow the user to run arbitrary R code.
 
-Also note that Shiny input controls provide client-side validation - a malicious user can avoid this by running code in their browser console.
-For untrusted input, always do client side validation too.
-`Shiny.setInputValue(id, value);`; if that was prevented could still craft a custom websocket message.
-Each change would make it harder for a lay person to break Shiny's security, but would provide little barrier for an experienced attacker.
+```{r setup}
+library(shiny)
+```
 
-Other topics:
+## Deployment
 
--   Don't put passwords in code.
-    Instead use `config.yml` or env vars.
+The first layer of defence is your deployment environment.
+It should be designed so that apps are isolated --- most importantly it shouldn't be possible for one app to access the data of another app.
+But it should also be designed so that one app can't steal all the resources from a server.
 
--   If implementing bookmarkable state, make sure you're not putting any\
-    confidential data in the URL.
+## Injection attacks
 
--   Cached plots shared across users by default.
+It's hopefully obvious that allowing the user to run arbitrary code is dangerous:
+
+```{r}
+ui <- fluidPage(
+  textInput("code", "Enter code here"),
+  textOutput("results")
+)
+server <- function(input, output, session) {
+  output$results <- renderText({
+    eval(parse(text = input$code))
+  })
+}
+```
+
+In general, any use of `parse()`[^scaling-safety-2] or `eval()` in your Shiny app is a warning sign.
+(They can be ok, but only as long as they don't involve user input.)
+
+[^scaling-safety-2]: Or any rlang `parse_` function.
+
+But there are a few less obvious places that might surprise you:
+
+-   Modelling functions (including model argument to `ggplot2::geom_smooth()`)
+
+-   If you allow a user to supply a [glue](http://glue.tidyverse.org/) string to label output data, you might expect them to write something like `{title}-{number}`.
+    But anything inside `{}` is evaluated by glue, so they can now execute any R code that they like.
+
+-   You can't generally allow a user to supply arbitrary transformations to dplyr or ggplot2.
+    You might expect they'll write `log10(x)` but they could also write something dangerous.
+    (In particularly, this means that you shouldn't use the older `aes_string()` with user supplied input).
+    You'll be safe if you use the techniques in Chapter \@ref(action-tidy).
+
+-   If you allow the user to upload an Rmd, and you `render()` it, obviously can run arbitrary code.
+
+Also note that Shiny input controls use client-side validation, i.e. the checks are performed in the browser, not by R.
+This means it's possible for someone who understands how Shiny works to send values that you don't expect.
+For example, you might expect the only possible values that a `selectInput()` could return are those listed in `choices`, but it's actually possible for them to be anything.
+So avoid code like this:
+
+```{r, eval = FALSE}
+confidential <- read_csv("secrets.csv")
+
+server <- function(input, output, session) {
+  mine <- reactive(filter(confidential, user %in% input$user_id))
+}
+
+```
+
+In general, if different users need access to different data, you should work with your IT team to design a secure mechanism so that people can't see data that .
+<https://solutions.rstudio.com/auth/kerberos/>
+
+<https://db.rstudio.com/best-practices/deployment/>
+
+## SQL injection attack
+
+Another common vector for injection attacks is SQL.
+Don't generate SQL strings that include user input by pasting them together.
+Instead use a system that escapes user input, e.g. generate the SQL with dbplyr, or use `glue::glue_sql()`.
+
+<https://xkcd.com/327/>
+
+For example, if you construct SQL like this:
+
+```{r}
+find_student <- function(name) {
+  paste0("SELECT * FROM Students WHERE name = ('", name, "');")
+}
+find_student("Hadley")
+```
+
+Then "Little Bobby tables" still generates a valid SQL query:
+
+```{r}
+find_student("Robert'); DROP TABLE Students; --")
+```
+
+This query has three components components:
+
+-   `SELECT * FROM Students WHERE name = ('Robert');` --- finds a student with name Robert
+
+-   `DROP TABLE Students;` --- drops the `Students` table
+
+-   `--'` --- is a comment needed to prevent the extra `'` from creating a syntax error.
+
+## Security grab bag
+
+-   Never put passwords in code.
+    Instead either put them in environment variables, or if you have many use the [config](https://github.com/rstudio/config) package and ensure that your `config.yml` is included in `.gitignore`.
+
+-   If you implement bookmarking (Chapter \@ref(action-bookmark)), check that you're not putting any confidential data in the URL.
+
+-   If you use on disk caching (Section XYZ), be aware that it's shared between users.
+    This can also introduce a subtle timing attack, where you can tell if someone else has (e.g.) looked at a plot by noticing how long it takes it to load for you.
