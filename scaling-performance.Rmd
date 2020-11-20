@@ -373,12 +373,15 @@ Two good places to start are the [Improving performance](https://adv-r.hadley.nz
 I'm not going to repeat their advice here: instead, I'll focus on the techniques that are most likely to affect your Shiny app.
 I also highly recommend Alan Dipert's rstudio::conf(2018) talk: [Making Shiny fast by doing as little as possible](https://rstudio.com/resources/rstudioconf-2018/make-shiny-fast-by-doing-as-little-work-as-possible/){.uri}.
 
-There are four techniques that seem to help many Shiny apps seen in the wild: considering data import, pulling out expensive preprocessing into a separate step, sharing work across users with caching, and carefully managing user expectations.
+First resolve any issues where existing code is run more often than you expect --- make sure you're not repeating the same work in multiple reactives and that the reactive graph isn't updating more often than you expect (Section \@ref(the-reactlog-package).
+Next, there are four techniques that seem to help many Shiny apps seen in the wild: considering data import, pulling out expensive preprocessing into a separate step, sharing work across users with caching, and carefully managing user expectations.
 I discuss each in turn below.
 
 ### Data import
 
-First, make sure that any data is loaded outside of the server function, in the body of the `app.R`.
+<!--# Combine import and processing and show an example of moving import code out of server() -->
+
+First, make sure that any static data is loaded outside of the server function, in the body of the `app.R`.
 That ensures that the data is once per process, rather than once per user, which saves both time and memory.
 
 Next, check that you're using the most efficient way to load your data:
@@ -390,7 +393,7 @@ Next, check that you're using the most efficient way to load your data:
 
 -   If you have objects that aren't data frames, try using `qs::qread()`/`qs::qsave()` instead of `readRDS()`/`saveRDS()`.
 
-[^scaling-performance-6]: See [<https://ursalabs.org/blog/2020-feather-v2/>](https://ursalabs.org/blog/2020-feather-v2/){.uri} for some benchmarks.
+[^scaling-performance-6]: See <https://ursalabs.org/blog/2020-feather-v2/> for some benchmarks.
 
 If switching to a faster function doesn't help, you might consider loading the data into a database.
 That makes it faster and easier to retrieve just the data needed for a specific task.

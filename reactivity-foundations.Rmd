@@ -133,7 +133,7 @@ This means that you can use functions that only work inside functions.
 The most useful of these is `on.exit()` which allows you to run code when a reactive expression finishes, regardless of whether the reactive successfully returns an error or fails with an error.
 You can learn more about `on.exit()` at <https://withr.r-lib.org/articles/changing-and-restoring-state.html>.
 
-## Observers
+## Observers {#observers-details}
 
 An observer sets up a block of code that is run every time one of the reactive values or expressions it uses is updated:
 

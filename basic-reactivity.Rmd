@@ -56,7 +56,7 @@ This is why almost all of the reactive programming you'll do in Shiny will be in
 
 [^basic-reactivity-2]: The primary exception is where there's some work that can be shared across multiple users.
     For example, all users might be looking at the same large csv file, so you might as well load it once and share it between users.
-    We'll come back to that idea in Chapter XYZ.
+    We'll come back to that idea in Section \@ref(data-import).
 
 Server functions take three parameters: `input`, `output`, and `session`[^basic-reactivity-3].
 Because you never call the server function yourself, you'll never create these objects yourself.
@@ -646,7 +646,7 @@ While variables calculate the value only once (the porridge is too cold), and fu
 ## Controlling timing of evaluation
 
 Now that you're familiar with the basic ideas of reactivity, we'll discuss two more advanced techniques that allow you to either increase or decrease how often a reactive expression is executed.
-Here I'll show how to use the basic techniques; in Chapter XYZ, we'll come back to their underlying implementations.
+Here I'll show how to use the basic techniques; in Chapter \@ref(reactivity-objects), we'll come back to their underlying implementations.
 
 To explore the basic ideas, I'm going to simplify my simulation app.
 I'll use a distribution with only one parameter, and force both samples to share the same `n`.
@@ -818,7 +818,8 @@ This might be saving a file to a shared network drive, sending data to a web API
 These actions don't affect how your app looks, so you can't use an output and a `render` function.
 Instead you need to use an **observer**.
 
-There are multiple ways to create an observer, and we'll come back to them later in Chapter XYZ. For now, I wanted to show you how to use `observeEvent()`, because it gives you an important debugging tool when you're first learning Shiny.
+There are multiple ways to create an observer, and we'll come back to them later in Section \@ref(observers-details).
+For now, I wanted to show you how to use `observeEvent()`, because it gives you an important debugging tool when you're first learning Shiny.
 
 `observeEvent()` is very similar to `eventReactive()`.
 It has two important arguments: `eventExpr` and `handlerExpr`.
@@ -852,4 +853,3 @@ knitr::include_graphics("diagrams/basic-reactivity/graph-3.png", dpi = 300)
 
 This concludes our whirlwind tour of reactivity.
 The next chapter will help you practice all the material you've seen so far by creating a bigger Shiny app that supports data analysis.
-
