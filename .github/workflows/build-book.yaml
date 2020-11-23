@@ -24,6 +24,7 @@ jobs:
         uses: actions/checkout@master
 
       - name: Setup R
+        id: install-r
         uses: r-lib/actions/setup-r@master
 
       - name: Setup pandoc
