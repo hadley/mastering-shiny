@@ -24,22 +24,24 @@ jobs:
         uses: actions/checkout@master
 
       - name: Setup R
+        id: install-r
         uses: r-lib/actions/setup-r@master
 
       - name: Setup pandoc
         uses: r-lib/actions/setup-pandoc@master
 
-      - name: Cache R packages
-        uses: actions/cache@v1
-        with:
-          path: ${{ env.R_LIBS_USER }}
-          key: r-6-${{ hashFiles('DESCRIPTION') }}
-          restore-keys: r-6-
-
-      - name: Install pak
+      - name: Install pak and query dependencies
         run: |
           install.packages("pak", repos = "https://r-lib.github.io/p/pak/dev/")
+          saveRDS(pak::local_dev_deps_tree(), ".github/r-depends.rds")
         shell: Rscript {0}
+
+      - name: Cache R packages
+        uses: actions/cache@v2
+        with:
+          path: ${{ env.R_LIBS_USER }}
+          key: ${{ runner.os }}-${{ steps.install-r.outputs.installed-r-version }}-1-${{ hashFiles('.github/r-depends.rds') }}
+          restore-keys: ${{ runner.os }}-${{ steps.install-r.outputs.installed-r-version }}-1-
 
       - name: Install dependencies
         run: |
