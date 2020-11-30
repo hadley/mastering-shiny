@@ -957,7 +957,7 @@ filterApp <- function() {
       sidebarPanel(
         datasetInput("data", is.data.frame),
         textOutput("n"),
-        filterUi("filter"),
+        filterUI("filter"),
       ),
       mainPanel(
         tableOutput("table")    
