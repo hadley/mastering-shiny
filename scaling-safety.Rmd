@@ -2,27 +2,103 @@
 
 Most Shiny apps are deployed within a company firewall, and you can generally assume that your colleagues aren't going to try and hack your app[^scaling-safety-1].
 If, however, you want to expose an app to the public, you will need to put a little more thought about security.
-This is a discussion that you should have with your IT folks, since they will have security professionals who can help you ensure that your app is secure.
-But they're unlikely to be familiar with the details of R, so here
 
 [^scaling-safety-1]: If you can't assume that, you have bigger problems!
+    That said, some companies do have a "zero-trust" model, so you should double check with your IT team.
 
-Defence in depth.
+(These are forward looking actions --- as far as I know, no Shiny app has ever been attacked in this way. But it's a certainty that it will happen in the future as Shiny gets more popular and the value of attacking an app increases).
 
-Greatest risk is accessing data that they shouldn't be able to.
-And the easiest way this might happen is via an **injection attack**, where you accidentally allow the user to run arbitrary R code.
+For a house to be secure, you have to lock every door and window.
+And the same is true with securing an app --- it doesn't matter if you spend a bunch of time making the front door super secure if you leave the back door wide open.
+This means that the security of an Shiny app is a fundamentally a team sport --- it's your job to ensure that your R code is secure, while your colleagues in IT ensure that the rest of the stack is secure.
+
+There are two main things you want to protect:
+
+-   If you have any sensitive data, obviously you want to make sure that only the appropriate people can see it.
+
+-   More generally, This allows the attacker to (e.g.) mine bitcoin or use your server as part of a spam network.
+    Or just make your Shiny apps so slow.
+
+Steal your data or steal your compute resources.
+There are two main threats to R code that you should be aware of:
+
+-   Injection attacks, which allows the user to run arbitrary code.
+
+-   Data revealing, which allows the user to access data that they shouldn't be able to.
+
+General rule of thumb is to close of as many avenues of attack as possible.
+If your app connects to a database and only needs to read data, make sure that the credentials it uses only has read access.
+Generally, apps should be run in some sort of "container", which keeps them isolated from all other apps.
+
+Argument of economics --- if someone really wants to hack your app, they can.
+Your job is to make it sufficiently expensive that it's not worth their while.
+
+If you're interested in learning a little more about security and R in general, I highly recommend Colin Gillespie's entertaining and educational useR!
+2019 talk, "[R and Security](https://www.youtube.com/watch?v=5odJxZj9LE4)".
 
 ```{r setup}
 library(shiny)
 ```
 
-## Deployment
+## Sharing sensitive data
 
-The first layer of defence is your deployment environment.
-It should be designed so that apps are isolated --- most importantly it shouldn't be possible for one app to access the data of another app.
-But it should also be designed so that one app can't steal all the resources from a server.
+The most sensitive data is stuff like personally identifying information (PII), credit card data, health data, or anything else that would be a legal nightmare for your company if was made public.
+Fortunately, most Shiny apps don't deal with those types of data[^scaling-safety-2], but there is an important type of data you do need to worry about: passwords.
+You should never include passwords in the source code of your app.
+Instead either put them in environment variables, or if you have many use the [config](https://github.com/rstudio/config) package.
+Either way, make sure that they are never included in your source code control by adding the appropriate files to `.gitignore`. I also recommend documenting how a new developer can get the appropriate credentials.
+
+[^scaling-safety-2]: If your app does work these types of data, it's imperative that you partner with a software engineer with security expertise.
+
+Alternatively, you may have data that is user-specific.
+If you need to **authenticate** users, i.e. identify them through a user name and password, never attempt to roll a solution yourself.
+There are just too many things that might go wrong.
+Instead, you'll need to work with your IT team to design a secure access mechanism.
+You can see some best practices at <https://solutions.rstudio.com/auth/kerberos/> and <https://db.rstudio.com/best-practices/deployment/>.
+
+Finally, note that Shiny inputs use client-side validation, i.e. the checks for valid input are performed by javascript in the browser, not by R.
+This means it's possible for a knowledgeable attacker to send values that you don't expect.
+For example, take this simple app:
+
+```{r, eval = FALSE}
+secrets <- list(
+  a = "my name",
+  b = "my birthday",
+  c = "my social security number", 
+  d = "my credit card"
+)
+
+allowed <- c("a", "b")
+ui <- fluidPage(
+  selectInput("x", "x", choices = allowed),
+  textOutput("secret")
+)
+server <- function(input, output, session) {
+  output$secret <- renderText({
+    secrets[[input$x]]
+  })
+}
+```
+
+You might expect that a user could access my name and birthday, but not my social security number or credit card details.
+But a knowledgeable attacker can open up a javascript console in their browser and run `Shiny.setInputValue("x", "c")` to see my SSN.
+So to be safe, you need to check all user inputs from your R code:
+
+```{r}
+server <- function(input, output, session) {
+  output$y <- renderText({
+    req(secrets$x %in% allowed)
+    secrets$y[[secrets$x == input$x]]
+  })
+}
+```
+
+I deliberately didn't create a user friendly error message --- the only time you'd see it was if you're trying to break the app, and we don't need to help out an attacker.
 
 ## Injection attacks
+
+The most common form of attack is the **injection** attack, which allows a malicious user to "inject" arbitrary code into your app and run it.
+This obviously means that they can access any sensitive data, but it also means that if your app can has access to the underlying data, it means that it can now change that data.
 
 It's hopefully obvious that allowing the user to run arbitrary code is dangerous:
 
@@ -38,52 +114,42 @@ server <- function(input, output, session) {
 }
 ```
 
-In general, any use of `parse()`[^scaling-safety-2] or `eval()` in your Shiny app is a warning sign.
-(They can be ok, but only as long as they don't involve user input.)
+In general, the combination of `parse()`[^scaling-safety-3] and `eval()` is a big warning sign[^scaling-safety-4]
+. The same applies if you `source()` an upload `.R` file, or `rmarkdown::render()` an uploaded `.Rmd`.
 
-[^scaling-safety-2]: Or any rlang `parse_` function.
+[^scaling-safety-3]: Or any rlang `parse_` function.
 
-But there are a few less obvious places that might surprise you:
+[^scaling-safety-4]: The only exception is if they don't involve user-supplied data in any way.
 
--   Modelling functions (including model argument to `ggplot2::geom_smooth()`)
+As long as you don't use these functions together, you might think that you're safe.
+But there are a number of functions that do either `parse()` or `eval()` or both behind the scenes that might catch you out.
+Here are the most common:
+
+-   Model formulas --- you might think it's safe to allow a user to supply a formula like `y ~ x`.
+    But you can insert arbitrary code in a model formula and it still works
+
+    ```{r}
+    df <- data.frame(x = 1:5, y = runif(5))
+    mod <- lm(y ~ {print("Hi!"); x}, data = df)
+    ```
 
 -   If you allow a user to supply a [glue](http://glue.tidyverse.org/) string to label output data, you might expect them to write something like `{title}-{number}`.
     But anything inside `{}` is evaluated by glue, so they can now execute any R code that they like.
 
--   You can't generally allow a user to supply arbitrary transformations to dplyr or ggplot2.
+    ```{r}
+    title <- "foo"
+    number <- 1
+    glue::glue("{title}-{number}")
+
+    glue::glue("{title}-{print('Hi'); number}")
+    ```
+
+-   You can't allow a user to supply arbitrary transformations to dplyr or ggplot2.
     You might expect they'll write `log10(x)` but they could also write something dangerous.
-    (In particularly, this means that you shouldn't use the older `aes_string()` with user supplied input).
+    (In particularly, this means that you shouldn't use the older `ggplot2::aes_string()` with user supplied input).
     You'll be safe if you use the techniques in Chapter \@ref(action-tidy).
 
--   If you allow the user to upload an Rmd, and you `render()` it, obviously can run arbitrary code.
-
-Also note that Shiny input controls use client-side validation, i.e. the checks are performed in the browser, not by R.
-This means it's possible for someone who understands how Shiny works to send values that you don't expect.
-For example, you might expect the only possible values that a `selectInput()` could return are those listed in `choices`, but it's actually possible for them to be anything.
-So avoid code like this:
-
-```{r, eval = FALSE}
-confidential <- read_csv("secrets.csv")
-
-server <- function(input, output, session) {
-  mine <- reactive(filter(confidential, user %in% input$user_id))
-}
-
-```
-
-In general, if different users need access to different data, you should work with your IT team to design a secure mechanism so that people can't see data that .
-<https://solutions.rstudio.com/auth/kerberos/>
-
-<https://db.rstudio.com/best-practices/deployment/>
-
-## SQL injection attack
-
-Another common vector for injection attacks is SQL.
-Don't generate SQL strings that include user input by pasting them together.
-Instead use a system that escapes user input, e.g. generate the SQL with dbplyr, or use `glue::glue_sql()`.
-
-<https://xkcd.com/327/>
-
+The same problems can occur with SQL.
 For example, if you construct SQL like this:
 
 ```{r}
@@ -93,26 +159,31 @@ find_student <- function(name) {
 find_student("Hadley")
 ```
 
-Then "Little Bobby tables" still generates a valid SQL query:
+A maliciously named user[^scaling-safety-5] still generates a valid SQL query:
+
+[^scaling-safety-5]: [<https://xkcd.com/327/>](https://xkcd.com/327/){.uri}
 
 ```{r}
 find_student("Robert'); DROP TABLE Students; --")
 ```
 
-This query has three components components:
+This query looks a bit odd, but it's a valid query made up of three components:
 
--   `SELECT * FROM Students WHERE name = ('Robert');` --- finds a student with name Robert
+-   `SELECT * FROM Students WHERE name = ('Robert');` finds a student with name Robert.
 
--   `DROP TABLE Students;` --- drops the `Students` table
+-   `DROP TABLE Students;` this deletes the `Students` table (!!).
 
--   `--'` --- is a comment needed to prevent the extra `'` from creating a syntax error.
+-   `--'` is a comment needed to prevent the extra `'` from turning into a syntax error.
 
-## Security grab bag
+Never generate SQL strings with paste.
+A system that automatically escapes user input, e.g.dbplyr, or use `glue::glue_sql()`:
 
--   Never put passwords in code.
-    Instead either put them in environment variables, or if you have many use the [config](https://github.com/rstudio/config) package and ensure that your `config.yml` is included in `.gitignore`.
+```{r}
+con <- DBI::dbConnect(RSQLite::SQLite(), ":memory:")
+find_student <- function(name) {
+  glue::glue_sql("SELECT * FROM Students WHERE name = ({name});", .con = con)
+}
+find_student("Robert'); DROP TABLE Students; --")
+```
 
--   If you implement bookmarking (Chapter \@ref(action-bookmark)), check that you're not putting any confidential data in the URL.
-
--   If you use on disk caching (Section XYZ), be aware that it's shared between users.
-    This can also introduce a subtle timing attack, where you can tell if someone else has (e.g.) looked at a plot by noticing how long it takes it to load for you.
+It's a little hard to tell at first glance but this is safe, because SQL's equivalent of `\'` is `''`.
