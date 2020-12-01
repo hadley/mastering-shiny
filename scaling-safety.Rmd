@@ -1,5 +1,9 @@
 # Security {#scaling-security}
 
+```{r, include = FALSE}
+source("common.R")
+```
+
 Most Shiny apps are deployed within a company firewall, and you can generally assume that your colleagues aren't going to try and hack your app[^scaling-safety-1].
 If, however, you want to expose an app to the public, you will need to put a little more thought about security.
 
