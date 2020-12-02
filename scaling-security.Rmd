@@ -165,7 +165,7 @@ find_student("Hadley")
 
 A maliciously named user[^scaling-safety-5] still generates a valid SQL query:
 
-[^scaling-safety-5]: [<https://xkcd.com/327/>](https://xkcd.com/327/){.uri}
+[^scaling-safety-5]: [\<https://xkcd.com/327/\>](https://xkcd.com/327/){.uri}
 
 ```{r}
 find_student("Robert'); DROP TABLE Students; --")

@@ -38,7 +38,7 @@ rmd_files:
     "scaling-modules.Rmd",
     "scaling-packages.Rmd",
     "scaling-testing.Rmd",
-    "scaling-safety.Rmd",
+    "scaling-security.Rmd",
     "scaling-performance.Rmd",
   ]
 
