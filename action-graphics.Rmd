@@ -154,7 +154,7 @@ Use `brushOpts()` to control the colour (`fill` and `stroke`), or restrict brush
 
 So far we've displayed the results of the interaction in another output.
 But the true beauty of interactivity comes when you display the changes in the same plot you're interacting with.
-Unfortunately this requires an advanced reactivity technique that you have yet learned about: `reactiveVal()`.
+Unfortunately this requires an advanced reactivity technique that you have not yet learned about: `reactiveVal()`.
 We'll come back to `reactiveVal()` in Chapter \@ref(reactivity-components), but I wanted to show it here because it's such a useful technique.
 You'll probably need to re-read this section after you've read that chapter, but hopefully even without all the theory you'll get a sense of the potential applications.
 
