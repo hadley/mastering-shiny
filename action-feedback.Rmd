@@ -719,7 +719,7 @@ When you delete a file, it isn't permanently deleted but instead is moved to a h
 This is like the "undo" option on steroids; you have a lot of time to regret your action.
 It's also a bit like the confirmation; you have to do two separate actions to make deletion permanent.
 
-The primary downside of this technique is that it is substantially more complicated to implement (you have to have a separate "holding cell" that stores the information need to undo the action), and requires regular intervention from the user to avoid accumulating.
+The primary downside of this technique is that it is substantially more complicated to implement (you have to have a separate "holding cell" that stores the information needed to undo the action), and requires regular intervention from the user to avoid accumulating.
 For that reason, I think it's beyond the scope of all but the most complicated Shiny apps, so I'm not going to show an implementation here.
 
 ## Exercises
