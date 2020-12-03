@@ -158,7 +158,9 @@ You can learn more about `on.exit()` at <https://withr.r-lib.org/articles/changi
     }
     ```
 
-2.  Modify the above app to instead use `req()` instead of `stop()`. Verify that events still propagate the same way. What happens when you use the `cancelOutput` argument?
+2.  Modify the above app to instead use `req()` instead of `stop()`.
+    Verify that events still propagate the same way.
+    What happens when you use the `cancelOutput` argument?
 
 ## Observers {#observers-details}
 
@@ -248,7 +250,7 @@ count()
     ui <- fluidPage(
       numericInput("x", "x", value = 50, min = 0, max = 100),
       actionButton("capture", "capture"),
-      textOuput("out")
+      textOutput("out")
     )
     ```
 
