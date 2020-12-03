@@ -7,15 +7,15 @@ source("common.R")
 ## Introduction
 
 Shiny's reactive programming framework is incredibly useful because it automatically determines the minimal set of computations needed to update all outputs when an input changes.
-But this framework is deliberately constraining, and sometimes you need to break free in order to do something dangerous but necessary.
+But this framework is deliberately constraining, and sometimes you need to break free to do something risky but necessary.
 
-In this chapter you learn how you can break free of many of the constraints of reactive programming by using `reactiveVal()` and `observe()` to connect the right hand side of the graph back to the left hand side.
-The techniques that you will learn about are powerful because they give you manual control over parts of the graph.
-At the same time, they are dangerous because they allow your app to do unnecessary work.
-Most importantly, you can now create infinite loops where your app gets stuck in a cycle of updates that never end.
+In this chapter you'll learn how you can combine `reactiveVal()` and `observe()` to connect the right hand side of the reactive graph back to the left hand side.
+These techniques are powerful because they give you manual control over parts of the graph.
+But they're also dangerous because they allow your app to do unnecessary work.
+Most importantly, you can now create infinite loops where your app gets stuck in a cycle of updates that never ends.
 
 If you find the ideas explored in this chapter to be interesting, you might also want to look at the [shinySignals](https://github.com/hadley/shinySignals/) and [rxtools](https://github.com/jcheng5/rxtools) packages.
-These are both experimental packages, designed to explore what tools might make it easier to program with reactivity.
+These are both experimental packages, designed to explore "higher order" reactivity, reactives that are created programmatically from other reactives.
 I wouldn't recommend you use them in "real" apps, but reading the source code might be illuminating.
 
 ```{r}
@@ -73,7 +73,9 @@ These are useful templates for your own apps.
 
 ### One output modified by multiple inputs
 
-To get started we'll tackle a very simple problem: I want a common text box that's updated by multiple events (this is rather similar to the framework provided by notifications):
+To get started we'll tackle a very simple problem: I want a common text box that's updated by multiple events[^reactivity-escaping-1]:
+
+[^reactivity-escaping-1]: This is rather similar to a notification, as seen in Section \@ref(notifications).
 
 ```{r, eval = FALSE}
 ui <- fluidPage(
@@ -109,9 +111,8 @@ server <- function(input, output, session) {
 }
 ```
 
-It's worth taking a moment to draw the reactive graph for this app, as in Figure \@ref(fig:button-graph).
+Figure \@ref(fig:button-graph) shows the reactive graph for this example.
 Again note that the reactive graph does not include any connection from the observers back to the reactive value `n`.
-In fact, ignoring the names of the inputs and output, this graph is the same as the first app.
 
 ```{r button-graph, echo = FALSE, out.width = NULL, fig.cap = "The reactive graph does not capture connections from observers to input values"}
 knitr::include_graphics("diagrams/reactivity-components.png", dpi = 300)
@@ -119,7 +120,7 @@ knitr::include_graphics("diagrams/reactivity-components.png", dpi = 300)
 
 ### Accumulating inputs
 
-It's a similar pattern if you want to accumulate a list of names as the user does data entry.
+It's a similar pattern if you want to accumulate data in order to support data entry.
 Here the main difference is that we use `updateTextInput()` to reset the text box after the user clicks the add button.
 
 ```{r}
@@ -165,7 +166,7 @@ server <- function(input, output, session) {
 
 ### Pausing animations
 
-Another common pattern is to provide a start and stop button that allows you to control some recurring event.
+Another common use case is to provide a start and stop button that lets you control some recurring event.
 This example uses a `running` reactive value to control whether or not the number increments, and `invalidateLater()` to ensure that the observer is invalidated every 250 ms when running.
 
 ```{r}
@@ -190,8 +191,8 @@ server <- function(input, output, session) {
 }
 ```
 
-Notice in this case we can't easily use `observeEvent()` because we want to condition on whether or not `running()` is `TRUE`.
-This means that we also **must** use `isolate()` --- if we don't this observer would also take a reactive dependency on `n`, which it updates, so it would get stuck in an infinite loop.
+Notice in this case we can't easily use `observeEvent()` because we perform different actions depending on whether `running()` is `TRUE` or `FALSE`.
+Since we can't use `observeEvent()`, we must use `isolate()` --- if we don't this observer would also take a reactive dependency on `n`, which it updates, so it would get stuck in an infinite loop.
 
 Hopefully these examples start to give you a flavour of what programming with `reactiveVal()` and `observer()` feels like.
 It's very imperative: when this happens, do that; when that happens, do the other thing.
@@ -272,3 +273,12 @@ knitr::include_graphics("diagrams/reactivity-components/danger.png", dpi = 300)
 ```{r pattern, echo = FALSE, out.width = NULL, fig.cap = "Using a reactives makes the dependencies between the components very clear."}
 knitr::include_graphics("diagrams/reactivity-components/danger-2.png", dpi = 300)
 ```
+
+## Summary
+
+In the last four chapters, you have learned much more about the reactive programming model used by Shiny.
+You've learned why reactive programming is important (it allows Shiny to do just as much work as is required and no more), and the details of the reactive graph.
+You've also learned a bit about how the fundamental building blocks work under the hood, and how you can use them to escape the constraints of the reactive graph when needed.
+
+The remainder of the book discusses Shiny through the lens of software engineering.
+In the next seven chapters, you'll learn how to keep you Shiny apps maintainable, performant, and safe as they continue to grow in size and impact.
