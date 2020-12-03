@@ -248,9 +248,9 @@ server <- function(input, output, server) {
     }
     
     switch(input$trans,
-      square = input$x ^ 2,
+      "square" = input$x ^ 2,
       "square-root" = sqrt(input$x),
-      log = log(input$x)
+      "log" = log(input$x)
     )
   })
 }
