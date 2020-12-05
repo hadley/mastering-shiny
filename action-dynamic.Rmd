@@ -532,10 +532,10 @@ The resulting app is shown in Figure \@ref(fig:render-simple).
 ui <- fluidPage(
   textInput("label", "label"),
   selectInput("type", "type", c("slider", "numeric")),
-  uiOutput("numeric")
+  uiOutput("ui")
 )
 server <- function(input, output, session) {
-  output$numeric <- renderUI({
+  output$ui <- renderUI({
     if (input$type == "slider") {
       sliderInput("dynamic", input$label, value = 0, min = 0, max = 10)
     } else {
