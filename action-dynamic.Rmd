@@ -569,7 +569,7 @@ However, in many cases, we can fix the problem by setting the `value` of the new
 
 ```{r}
 server <- function(input, output, session) {
-  output$numeric <- renderUI({
+  output$ui <- renderUI({
     if (input$type == "slider") {
       sliderInput("dynamic", input$label, value = isolate(input$dynamic))
     } else {
