@@ -396,10 +396,10 @@ You can display any type of R graphic (base, ggplot2, or otherwise) with `plotOu
 
 ```{r}
 ui <- fluidPage(
-  plotOutput("plot", width = "400px")
+  plotOutput("plotname", width = "400px")
 )
 server <- function(input, output, session) {
-  output$plot <- renderPlot(plot(1:5), res = 96)
+  output$plotname <- renderPlot(plot(1:5), res = 96)
 }
 ```
 
