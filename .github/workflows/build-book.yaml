@@ -51,13 +51,6 @@ jobs:
       - name: Install PhantomJS
         run: R -e 'webshot::install_phantomjs()'
 
-      - name: Cache bookdown results
-        uses: actions/cache@v1
-        with:
-          path: _bookdown_files
-          key: bookdown-2-${{ hashFiles('**/*Rmd') }}
-          restore-keys: bookdown-2-
-
       - name: Build book
         run: Rscript -e 'bookdown::render_book("index.Rmd", quiet = TRUE)'
 
