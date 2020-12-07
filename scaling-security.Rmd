@@ -42,6 +42,7 @@ If you need to **authenticate** users, i.e. identify them through a user name an
 There are just too many things that might go wrong.
 Instead, you'll need to work with your IT team to design a secure access mechanism.
 You can see some best practices at <https://solutions.rstudio.com/auth/kerberos/> and <https://db.rstudio.com/best-practices/deployment/>.
+Note that code within `server()` is isolated so there's no way for one user session to see data from another.
 
 Finally, note that Shiny inputs use client-side validation, i.e. the checks for valid input are performed by javascript in the browser, not by R.
 This means it's possible for a knowledgeable attacker to send values that you don't expect.
