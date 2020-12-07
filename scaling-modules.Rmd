@@ -374,7 +374,7 @@ stopifnot(!is.reactive(filter))
 
 If you expect the module to be used many times by many people, you might also consider hand crafting an error message with an `if` statement and a call to `stop()`.
 
-:::rmdnote
+::: {.rmdnote}
 You might also apply this strategy to `find_vars()`.
 It's not quite as important here, but because debugging Shiny apps is a little harder than debugging regular R code, I think it does make sense to invest a little more time in checking inputs so that you get clearer error messages when something goes wrong.
 
@@ -490,7 +490,7 @@ histogramApp <- function() {
 # histogramApp()
 ```
 
-:::rmdnote
+::: {.rmdnote}
 Note that if you wanted to allow the module user to place the breaks control and histogram in different places of the app, you could use multiple UI functions.
 It's not terribly useful here, but it's useful to see the basic approach.
 
