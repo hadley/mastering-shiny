@@ -29,7 +29,7 @@ library(shiny)
 
 ## Data
 
-The most sensitive data is stuff like personally identifying information (PII), credit card data, health data, or anything else that would be a legal nightmare for your company if was made public.
+The most sensitive data is stuff like personally identifying information (PII), regulated data, credit card data, health data, or anything else that would be a legal nightmare for your company if was made public.
 Fortunately, most Shiny apps don't deal with those types of data[^scaling-security-2], but there is an important type of data you do need to worry about: passwords.
 You should never include passwords in the source code of your app.
 Instead either put them in environment variables, or if you have many use the [config](https://github.com/rstudio/config) package.
