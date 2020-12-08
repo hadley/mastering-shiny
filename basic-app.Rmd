@@ -64,11 +64,7 @@ Looking closely at the code above, our `app.R` does four things:
 
 There are a few ways you can run this app:
 
--   Click the **Run App** button in the document toolbar.
-
-    ```{r, echo = FALSE, out.width = NULL, fig.align = "left"}
-    knitr::include_graphics("images/basic-app/run-app.png", dpi = 300)
-    ```
+-   Click the **Run App** (![](images/basic-app/run-app.png){width="71" height="20"}) button in the document toolbar.
 
 -   Use a keyboard shortcut: `Cmd/Ctrl` + `Shift` + `Enter`.
 
@@ -240,12 +236,14 @@ server <- function(input, output, session) {
 
 We'll come back to reactive programming multiple times, but even armed with a cursory knowledge of inputs, outputs, and reactive expressions, it's possible to build quite useful Shiny apps!
 
-## Cheat sheet
+## Summary
 
-Before you continue on to read more about user interfaces and reactive programming, now is a great time to grab a copy of the Shiny cheatsheet from <https://www.rstudio.com/resources/cheatsheets/>.
+In this chapter you've created a simple app --- it's not very exciting or useful, but seen how easy it is to construct a web app using your existing R knowledge.
+In the next two chapters, you'll learn more about user interfaces and reactive programming, the two basic building blocks of Shiny.
+Now is a great time to grab a copy of the [Shiny cheatsheet](https://github.com/rstudio/cheatsheets/raw/master/shiny.pdf).
 This is a great resource to help jog your memory of the main components of a Shiny app.
 
-```{r, echo = FALSE, out.width = NULL}
+```{r cheatsheet, echo = FALSE, out.width = NULL, fig.cap = "Shiny cheatsheet, available from https://www.rstudio.com/resources/cheatsheets/"}
 knitr::include_graphics("images/basic-app/cheatsheet.png", dpi = 300)
 ```
 
