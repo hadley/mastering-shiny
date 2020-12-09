@@ -176,6 +176,9 @@ ui <- fluidPage(
 knitr::include_graphics("images/basic-ui/multi-select.png", dpi = 300)
 ```
 
+If you have a very large set of possible options, you may want to use "server-side" `selectInput()` so that the complete set of possible options are not embedded in the UI (which can make it slow to load), but instead sent as needed by the server.
+You can learn more about this advanced topic at <https://shiny.rstudio.com/articles/selectize.html#server-side-selectize>.
+
 There's no way to select multiple values with radio buttons, but there's an alternative that's conceptually similar: `checkboxGroupInput()`.
 
 ```{r}
