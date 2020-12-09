@@ -293,8 +293,8 @@ We don't need a reactive expression in our very simple app, but I'll add one any
 
 ```{r}
 server <- function(input, output, session) {
-  text <- reactive(paste0("Hello ", input$name, "!"))
-  output$greeting <- renderText(text())
+  string <- reactive(paste0("Hello ", input$name, "!"))
+  output$greeting <- renderText(string())
 }
 ```
 
@@ -313,8 +313,8 @@ For example, we could flip the order of the two lines in our simple server funct
 
 ```{r}
 server <- function(input, output, session) {
-  output$greeting <- renderText(text())
-  text <- reactive(paste0("Hello ", input$name, "!"))
+  output$greeting <- renderText(string())
+  string <- reactive(paste0("Hello ", input$name, "!"))
 }
 ```
 
@@ -825,9 +825,9 @@ For example, the following modification to `server()` means that every time that
 
 ```{r}
 server <- function(input, output, session) {
-  text <- reactive(paste0("Hello ", input$name, "!"))
+  string <- reactive(paste0("Hello ", input$name, "!"))
   
-  output$greeting <- renderText(text())
+  output$greeting <- renderText(string())
   observeEvent(input$name, {
     message("Greeting performed")
   })
