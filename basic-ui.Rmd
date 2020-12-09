@@ -7,7 +7,7 @@ source("demo.R")
 
 ## Introduction
 
-Now that you've got a basic app under your belt, we're going to explore the details that make it tick.
+Now that you've got a basic app under your belt, we're going to explore the details that make Shiny tick.
 As you saw in the previous chapter, Shiny encourages separation of the code that generates your user interface (the front end) from the code that drives your app's behaviour (the back end).
 In this chapter, we'll dive deeper into the front end and explore the HTML inputs, outputs, and layouts provided by Shiny.
 
@@ -488,8 +488,9 @@ You might imagine that this code will generate a classic app design: a title bar
 The most important, but least interesting, layout function is `fluidPage()`.
 You've seen it in every example above, because we use it to put multiple inputs or outputs into a single app.
 What happens if you use `fluidPage()` by itself?
+Figure \@ref(fig:ui-fluid-page) shows the results.
 
-```{r, echo = FALSE}
+```{r ui-fluid-page, fig.cap = "An UI consisting only of `fluid_page()`", echo = FALSE}
 knitr::include_graphics("images/basic-app/fluid-page.png", dpi = 300)
 ```
 
@@ -684,3 +685,11 @@ fluidPage(
 Shiny is designed so that, as an R user, you don't need to learn about the details of HTML.
 However, if you already know HTML (or want to learn!) you can also work directly with HTML tags to achieve any level of customization you want.
 And these approaches are by no means exclusive: you can mix high-level functions with low-level HTML as much as you like.
+
+## Summary
+
+This chapter has introduced you to the major user interface components that make up a Shiny app: the input, output, and layout functions.
+This was a big info dump, so don't expect to remember everything after a single read.
+Instead, come back to this chapter when you're looking for a specific component: you can quickly scan the figures, and then find the code you need.
+
+In the next chapter, we'll move on to the server side of Shiny which provides the R code that makes your user interface come to life and respond to user actions.
