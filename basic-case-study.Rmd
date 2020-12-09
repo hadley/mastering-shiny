@@ -82,31 +82,32 @@ population
 ## Exploration
 
 Before we create the app, let's explore the data a little.
-We'll start by looking at the product associated with the most injuries: 1842, "stairs or steps".
+We'll start by looking at a product with an interesting story: 649, "toilets".
 First we'll pull out the injuries associated with this product:
 
 ```{r}
-selected <- injuries %>% filter(prod_code == 1842)
+selected <- injuries %>% filter(prod_code == 649)
 nrow(selected)
 ```
 
-Next we'll perform some basic summaries looking at the diagnosis, body part, and location where the injury occurred.
+Next we'll perform some basic summaries looking at the location, body part, and diagnosis of toilet related injuries.
 Note that I weight by the `weight` variable so that the counts can be interpreted as estimated total injuries across the whole US.
 
 ```{r}
-selected %>% count(diag, wt = weight, sort = TRUE)
+selected %>% count(location, wt = weight, sort = TRUE)
 
 selected %>% count(body_part, wt = weight, sort = TRUE)
 
-selected %>% count(location, wt = weight, sort = TRUE)
+selected %>% count(diag, wt = weight, sort = TRUE)
 ```
 
-As you might expect, steps are most often associated with sprains, strains and fractures, of the ankle, occurring at home.
+As you might expect, injuries involving toilets most often occur at home.
+The most common body parts involved possibly suggest that these are falls (since the head and face and not usually involved in routine toilet usage), and the diagnoses seem rather varied.
 
 We can also explore the pattern across age and sex.
-We have enough data here that a table is not that useful, and so I make a plot, Figure \@ref(fig:stairs-raw), that makes the patterns more obvious.
+We have enough data here that a table is not that useful, and so I make a plot, Figure \@ref(fig:toilets-raw), that makes the patterns more obvious.
 
-```{r stairs-raw, out.width = "100%", fig.asp = 1/2, fig.cap = "Estimated number of injuries caused by stairs, broken down by age and sex"}
+```{r toilets-raw, out.width = "100%", fig.asp = 1/2, fig.cap = "Estimated number of injuries caused by toilets, broken down by age and sex"}
 summary <- selected %>% 
   count(age, sex, wt = weight)
 summary
@@ -117,9 +118,8 @@ summary %>%
   labs(y = "Estimated number of injuries")
 ```
 
-We see a big spike when children are learning to walk, a flattening off over middle age, and then a gradual decline after age 50.
-Interestingly, the number of injuries is much higher for women.
-This could because women use stairs more often (maybe because they do more housework which tends to involve more stairs?) or because they are more likely to injure themselves on stairs (maybe due to high-heeled shoes?).
+We see a spike for young boys peaking at age 3, and then an increase (particularly for women) starting around middle age, and a gradual decline after age 80.
+I suspect the peak is because boys usually use the toilet standing up, and the increase for women is due to osteoporosis (i.e. I suspect women and men have injuries at the same rate, but more women end up in the ER because they are at higher risk of fractures).
 
 One problem with interpreting this pattern is that we know that there are fewer older people than younger people, so the population available to be injured is smaller.
 We can control for this by comparing the number of people injured with the total population and calculating an injury rate.
@@ -134,9 +134,10 @@ summary <- selected %>%
 summary
 ```
 
-Plotting the rate, Figure \@ref(fig:stairs-rate), yields a strikingly different trend after age 50: while the number of injuries decreases, the *rate* of injuries continues to increase.
+Plotting the rate, Figure \@ref(fig:toilets-rate), yields a strikingly different trend after age 50: the difference between men and women is much smaller, and we no longer see a decrease.
+This is because women tend to live longer than men, so at older ages there are simple more women alive to be injured by toilets.
 
-```{r stairs-rate, out.width = "100%", fig.asp = 1/2, fig.cap = "Estimated rate of injuries per 10,000 people, broken down by age and sex"}
+```{r toilets-rate, out.width = "100%", fig.asp = 1/2, fig.cap = "Estimated rate of injuries per 10,000 people, broken down by age and sex"}
 summary %>% 
   ggplot(aes(age, rate, colour = sex)) + 
   geom_line(na.rm = TRUE) + 
