@@ -164,7 +164,7 @@ As with event-driven programming, we need some way to indicate that we have a sp
 In Shiny, we create a **reactive value** with `reactiveVal()`.
 A reactive value has special syntax[^reactivity-motivation-2] for getting its value (calling it like a zero-argument function) and setting its value (set its value by calling it like a one-argument function).
 
-[^reactivity-motivation-2]: If you happen to have ever used R's active bindings, you might notice that the syntax is the very similar.
+[^reactivity-motivation-2]: If you happen to have ever used R's active bindings, you might notice that the syntax is very similar.
     This is not a coincidence.
 
 ```{r}
