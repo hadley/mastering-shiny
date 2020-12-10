@@ -11,7 +11,7 @@ In this chapter, we'll dive in to the details of the graph, paying more attentio
 In particular, you'll learn about the importance of invalidation, the process which is key to ensuring that Shiny does the minimum amount of work.
 You'll also learn about the reactlog package which can automatically draw the reactive graph for real apps.
 
-If it's been a while since you looked at Chapter \@ref(basic-reactivity), I highly recommend that you re-familiarise yourself it with before continuing.
+If it's been a while since you looked at Chapter \@ref(basic-reactivity), I highly recommend that you re-familiarise yourself with it before continuing.
 It lays the groundwork for the concepts that we'll explore in more detail here.
 
 ## A step-by-step tour of reactive execution {#step-through}
