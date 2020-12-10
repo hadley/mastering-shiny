@@ -236,4 +236,4 @@ For readers who do have some experience with other reactive programming framewor
 ## Summary
 
 Now that you understand why reactive programming is needed and have learned a little bit of history, the next chapter will discuss more details of the underlying theory.
-Most importantly, you'll solidify your understand of the reactive graph, which connects reactive values, reactive expressions, and observers, and controls exactly what is run when.
+Most importantly, you'll solidify your understanding of the reactive graph, which connects reactive values, reactive expressions, and observers, and controls exactly what is run when.
