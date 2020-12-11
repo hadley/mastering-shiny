@@ -152,7 +152,7 @@ ui <- fluidPage(
 server <- function(input, output, session) {
   names <- reactiveVal()
   observeEvent(input$add, {
-    names(unnion(names(), input$name))
+    names(union(names(), input$name))
     updateTextInput(session, "name", value = "")
   })
   observeEvent(input$del, {
