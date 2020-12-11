@@ -32,7 +32,7 @@ The connections between the components are directional, with the arrows indicati
 The direction might surprise you, as it's easy to think of a consumer taking dependencies on one or more producers.
 Shortly, however, you'll see that the flow of reactivity is more accurately modelled in the opposite direction.
 
-The underlying app is not important, but if if it helps you to have something concrete, you could pretend that it was derived from this not-very-useful app.
+The underlying app is not important, but if it helps you to have something concrete, you could pretend that it was derived from this not-very-useful app.
 
 ```{r}
 ui <- fluidPage(
