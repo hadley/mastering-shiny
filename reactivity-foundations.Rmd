@@ -118,7 +118,7 @@ The only difference is what happens when an error hits an output or observer:
 -   An error in an observer will cause the current session to close. (If you don't want this to happen you can wrap the code in `try()` or `tryCatch()`.)
 
 [^reactivity-foundations-2]: By default, you'll see the whole error message.
-    You can show a generic error messages by turning error sanitising on.
+    You can show a generic error message by turning error sanitising on.
     See <https://shiny.rstudio.com/articles/sanitize-errors.html> for details.
 
 This same system powers `req()`, which emits a special type of error[^reactivity-foundations-3].
