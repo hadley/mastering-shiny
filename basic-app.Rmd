@@ -131,7 +131,7 @@ This example uses four new functions:
     You'll learn more about inputs in Section \@ref(inputs).
 
 -   `verbatimTextOutput()` and `tableOutput()` are **output controls** that tell Shiny *where* to put rendered output (we'll get into the *how* in a moment).
-    `verbatimTextOutput()` displays code and `tableOutput` displays tables.
+    `verbatimTextOutput()` displays code and `tableOutput()` displays tables.
     You'll learn more about outputs in Section \@ref(outputs).
 
 Layout functions, inputs, and outputs have different uses, but they are fundamentally the same under the covers: they're all just fancy ways to generate HTML, and if you call any of them outside of a Shiny app, you'll see HTML printed out at the console.
