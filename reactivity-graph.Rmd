@@ -281,7 +281,7 @@ server <- function(input, output, session) {
 }
 ```
 
-You might expect the reactive to look like Figure \@ref(fig:dynamic-wrong).
+You might expect the reactive graph to look like Figure \@ref(fig:dynamic-wrong).
 
 ```{r dynamic-wrong, echo = FALSE, out.width = NULL, fig.cap = "If Shiny analysed reactivity statically, the reactive graph would always connect `choice`, `a`, and `b` to `out`."}
 knitr::include_graphics("diagrams/reactivity-tracking/dynamic.png", dpi = 300)
