@@ -222,7 +222,7 @@ observe({
 
 If you were to run it, you'd immediately get stuck in an infinite loop because the observer will take a reactive dependency on `x` **and** `count`; and since the observer modifies `count`, it will immediately re-run.
 
-Fortunately, Shiny provides `isolate()` resolve this problem.
+Fortunately, Shiny provides `isolate()` to resolve this problem.
 This function allows you to access the current value of a reactive value or expression **without** taking a dependency on it:
 
 ```{r}
