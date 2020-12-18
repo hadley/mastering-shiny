@@ -202,7 +202,7 @@ x(3)
 
 Every time the observer is triggered, it creates another observer, so each time `x` changes, its value is printed one more time.
 As a general rule, you should only ever create observers or outputs at the top-level of your server function.
-If you find yourself trying to nest them, sit down and sketch out the reactive graph that you're trying to create --- there's almost a certainly a better approach.
+If you find yourself trying to nest them, sit down and sketch out the reactive graph that you're trying to create --- there's almost certainly a better approach.
 
 It can be harder to spot this mistake directly in a more complex app, but you can always use the reactlog: just look for unexpected churn in observers (or outputs), then track back to what is creating them.
 
