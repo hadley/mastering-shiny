@@ -394,7 +394,7 @@ This is the main reason to prefer `invalidateLater()` to the simpler `reactiveTi
 
 ### Timer accuracy
 
-The number of milliseconds specified in `invalidateLater()` is polite request, not a demand.
+The number of milliseconds specified in `invalidateLater()` is a polite request, not a demand.
 R may be doing other things when you asked for invalidation to occur, so your request has to wait.
 This effectively means that the number is a minimum and invalidation might take longer than you expect.
 In most cases, this doesn't matter because small differences are unlikely to affect user perception of your app.
