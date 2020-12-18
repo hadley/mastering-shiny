@@ -366,7 +366,7 @@ server <- function(input, output, session) {
 
 ### Long running reactives
 
-If you're performing a long running computation, there's an important question you need to be consider: when should you execute `invalidateLater()`?
+If you're performing a long running computation, there's an important question you need to consider: when should you execute `invalidateLater()`?
 For example, take this reactive:
 
 ```{r, eval = FALSE}
