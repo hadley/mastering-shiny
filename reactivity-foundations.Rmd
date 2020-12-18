@@ -303,7 +303,8 @@ Outputs are intimately connected to the browser, so there's no way to experiment
 
 ## Timed invalidation {#timed-invalidation-adv}
 
-There's one last building block to discuss. It's a little different to the others in this chapter because it's not a type of object, but is instead a special behaviour: timed invalidation.
+There's one last building block to discuss.
+It's a little different to the others in this chapter because it's not a type of object, but is instead a special behaviour: timed invalidation.
 You saw an example of this in Section \@ref(timed-invalidation) with `reactiveTimer()`, but the time has come to discuss the underlying tool that powers it: `invalidateLater()`.
 
 `invalidateLater(ms)` causes any reactive consumer to be invalidated in the future, after `ms` milliseconds.
