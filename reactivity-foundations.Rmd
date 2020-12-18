@@ -296,7 +296,7 @@ They have two special properties:
 
 -   They have some limited ability to detect when they're not visible (i.e. they're in non-active tab) so they don't have to recompute[^reactivity-foundations-4].
 
-[^reactivity-foundations-4]: In rare cases, you may prefer to process even outputs that aren't hidden.
+[^reactivity-foundations-4]: In rare cases, you may prefer to process even outputs that aren hidden.
     You can use the `outputOptions()` function's `suspendWhenHidden` to opt out of the automatic suspension feature on an output-by-output basis.
 
 Outputs are intimately connected to the browser, so there's no way to experiment with them on the console.
