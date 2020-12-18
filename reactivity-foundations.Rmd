@@ -438,4 +438,4 @@ observe({
 ## Summary {#how-it-works}
 
 In this chapter you've learned more about the building blocks that make Shiny work: reactive values, reactive expressions, observers, and timed evaluation.
-Now we'll turn out attention to a specific combination of reactive values and observers that allows us to escape some of the constraints (for better and worse) of the reactive graph.
+Now we'll turn our attention to a specific combination of reactive values and observers that allows us to escape some of the constraints (for better and worse) of the reactive graph.
