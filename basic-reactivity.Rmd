@@ -17,7 +17,7 @@ We'll start with a survey of the server function, discussing in more detail how 
 Next we'll review the simplest form of reactivity (where inputs are directly connected to outputs), and then discuss how reactive expressions allow you to eliminate duplicated work.
 We'll finish by reviewing some common roadblocks encountered by newer Shiny users.
 
-```{r setup}
+```{r setup, echo = FALSE}
 library(shiny)
 ```
 
