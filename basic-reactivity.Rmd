@@ -153,7 +153,7 @@ You'll get an error if:
       message("The greeting is ", output$greeting)
     }
     shinyApp(ui, server)
-    #> Error: Reading objects from shinyoutput object not allowed.
+    #> Error: Reading from shinyoutput object is not allowed.
     ```
 
 ## Reactive programming
