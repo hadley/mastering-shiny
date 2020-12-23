@@ -318,8 +318,8 @@ server <- function(input, output, session) {
 }
 ```
 
-You might think that this would yield an error because `output$greeting` refers to a reactive expression, `text`, that hasn't been created yet.
-But remember Shiny is lazy, so that code is only run when the session starts, after `text` has been created.
+You might think that this would yield an error because `output$greeting` refers to a reactive expression, `string`, that hasn't been created yet.
+But remember Shiny is lazy, so that code is only run when the session starts, after `string` has been created.
 
 Instead, this code yields the same reactive graph as above, so the order in which the code is run is exactly the same.
 Organising your code like this is confusing for humans, and best avoided.
