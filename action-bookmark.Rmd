@@ -200,5 +200,5 @@ This section briefly covers some of the cases which need a little extra care:
 
 ## Exercises
 
-1.  Generate app for visualising the results of [noise::ambient_simplex()](https://ambient.data-imaginist.com/reference/noise_simplex.html). Your app should allow the user to control the frequency, fractal, lacunarity, and gain, and be bookmarkable. How can you ensure the image looks exactly the same when reloaded from the bookmark? (Think about what the `seed` argument implies).
+1.  Generate app for visualising the results of [ambient::noise_simplex()](https://ambient.data-imaginist.com/reference/noise_simplex.html). Your app should allow the user to control the frequency, fractal, lacunarity, and gain, and be bookmarkable. How can you ensure the image looks exactly the same when reloaded from the bookmark? (Think about what the `seed` argument implies).
 2.  Make a simple app that lets you upload a csv file and then bookmark it. Upload a few files and then look in `shiny_bookmarks`. How do the files correspond to the bookmarks? (Hint: you can use `readRDS()` to look inside the cache files that Shiny is generating).
