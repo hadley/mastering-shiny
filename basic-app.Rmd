@@ -96,6 +96,12 @@ Also notice that R is busy: the R prompt isn't visible, and the console toolbar 
 While a Shiny app is running, it "blocks" the R console.
 This means that you can't run new commands at the R console until the Shiny app stops.
 
+::: {.rmdnote}
+When you make some modifications on the app, you can instantly view the results by hitting the `Reload the Shiny Application` button on RStudio 
+or by refreshing your web page (in a browser).
+:::
+
+
 You can stop the app and return access to the console using any one of these options:
 
 -   Click the stop sign icon on the R console toolbar.
