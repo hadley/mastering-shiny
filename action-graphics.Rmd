@@ -231,7 +231,7 @@ ui <- fluidPage(
   tableOutput("data")
 )
 server <- function(input, output, session) {
-  selected <- reactiveVal(rep(TRUE, nrow(mtcars)))
+  selected <- reactiveVal(rep(FALSE, nrow(mtcars)))
 
   observeEvent(input$plot_brush, {
     brushed <- brushedPoints(mtcars, input$plot_brush, allRows = TRUE)$selected_
