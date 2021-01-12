@@ -885,7 +885,7 @@ As usual, we'll start with the module UI.
 It's very simple here, because we're just generating a "hole" that the server functions will fill in dynamically.
 
 ```{r}
-filterUi <- function(id) {
+filterUI <- function(id) {
   uiOutput(NS(id, "controls"))
 }
 ```
