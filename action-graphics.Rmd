@@ -227,8 +227,7 @@ To make this work, I initialise the `reactiveVal()` to a vector of `FALSE`s, the
 
 ```{r}
 ui <- fluidPage(
-  plotOutput("plot", brush = "plot_brush"),
-  tableOutput("data")
+  plotOutput("plot", brush = "plot_brush")
 )
 server <- function(input, output, session) {
   selected <- reactiveVal(rep(FALSE, nrow(mtcars)))
@@ -244,7 +243,6 @@ server <- function(input, output, session) {
       geom_point(aes(colour = sel)) +
       scale_colour_discrete(limits = c("TRUE", "FALSE"))
   }, res = 96)
- 
 }
 ```
 
