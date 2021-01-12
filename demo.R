@@ -208,7 +208,7 @@ demoApp <- R6::R6Class("demoApp", public = list(
   },
 
   link = function() {
-    paste0("<https://hadley.shinyapps.io/ms-", self$name, ">")
+    paste0("<https://hadley.shinyapps.io/ms-", fs::path_file(self$name), ">")
   },
 
   figure = function() {
