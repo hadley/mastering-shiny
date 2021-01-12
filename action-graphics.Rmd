@@ -223,7 +223,7 @@ There are two important ggplot2 techniques to note here:
 Here's a more complicated idea.
 I want to use a brush to select (and deselect) points on a plot.
 Here I display the selection using different colours, but you could imagine many other applications.
-To make this work, I initialise the `reactiveVal()` to a vector of `FALSE`s, then use `brushedPoints()` and `ifelse()` toggle their values: if they were previously excluded they'll be included; if they were previously included, they'll be excluded.
+To make this work, I initialise the `reactiveVal()` to a vector of `FALSE`s, then use `brushedPoints()` and `ifelse()` to toggle their values: if they were previously excluded they'll be included; if they were previously included, they'll be excluded.
 
 ```{r}
 ui <- fluidPage(
