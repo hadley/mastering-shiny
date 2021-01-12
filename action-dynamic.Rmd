@@ -508,7 +508,7 @@ We'll come back to this idea in Chapter \@ref(scaling-functions), and then creat
 ### Exercises
 
 1.  Use a hidden tabset to show additional controls only if the user checks an "advanced" check box.
-2.  Create that allows the user to select from `geom_smooth()`, `geom_histogram()`, or `geom_point()`. Use a hidden tabset to allow the user to select different options depending on the geom. `geom_smooth()` should have a text both for the model, and checkbox for whether or not to add standard errors. `geom_histogram()` should have a numeric input for the bin width, and `geom_point()` doesn't need any additional options.
+2.  Create an app that allows the user to select from `geom_smooth()`, `geom_histogram()`, or `geom_point()`. Use a hidden tabset to allow the user to select different options depending on the geom. `geom_smooth()` should have a text both for the model, and checkbox for whether or not to add standard errors. `geom_histogram()` should have a numeric input for the bin width, and `geom_point()` doesn't need any additional options.
 3.  Create a wizard interface that steers the user along the path ...
 
 ## Creating UI with code {#programming-ui}
