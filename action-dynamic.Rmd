@@ -931,7 +931,7 @@ This is a useful technique to have in your back pocket if you want to force the 
 
 4.  (Advanced) If you know the [S3 OOP](http://adv-r.hadley.nz/S3.html) system, consider how you could replace the `if` blocks in `make_ui()` and `filter_var()` with generic functions.
 
-5.  (Hard) Make a wizard that allows the user to upload their own dataset.\
+5.  (Hard) Make a wizard that allows the user to upload their own dataset.
     The first page should handle the upload.
     The second should handle reading it, providing one drop down for each variable that lets the user select the column type.
     The third page should display a summary of the dataset so the user can check that everything looks ok.
