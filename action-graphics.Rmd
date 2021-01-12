@@ -70,7 +70,7 @@ Here's a simple example of `nearPoints()` in action, showing a table of data abo
 
 ```{r}
 ui <- fluidPage(
-  plotOutput("plot", click = "click"),
+  plotOutput("plot", click = "plot_click"),
   tableOutput("data")
 )
 server <- function(input, output, session) {
@@ -79,7 +79,7 @@ server <- function(input, output, session) {
   }, res = 96)
   
   output$data <- renderTable({
-    nearPoints(mtcars, input$click, xvar = "wt", yvar = "mpg")
+    nearPoints(mtcars, input$plot_click, xvar = "wt", yvar = "mpg")
   })
 }
 ```
