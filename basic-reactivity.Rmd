@@ -393,19 +393,21 @@ First, we'll set the stage by defining some regular R functions that we'll use t
 ### The motivation
 
 Imagine I want to compare two simulated datasets with a plot and a hypothesis test.
-I've done a little experimentation and come up with the functions below: `histogram()` visualises the two distributions with a histogram, and `t_test()` uses a t-test to compare means and summarises the results with a string:
+I've done a little experimentation and come up with the functions below: `freqpoly()` visualises the two distributions with frequency polygons[^basic-reactivity-9], and `t_test()` uses a t-test to compare means and summarises the results with a string:
+
+[^basic-reactivity-9]: If you haven't heard of a frequency polygon before, it's just a histogram that's drawn with a line, instead of bars, which makes it easier to compare multiple data sets on the same plot.
 
 ```{r}
 library(ggplot2)
 
-histogram <- function(x1, x2, binwidth = 0.1, xlim = c(-3, 3)) {
+freqpoly <- function(x1, x2, binwidth = 0.1, xlim = c(-3, 3)) {
   df <- data.frame(
     x = c(x1, x2),
     g = c(rep("x1", length(x1)), rep("x2", length(x2)))
   )
 
-  ggplot(df, aes(x, fill = g)) +
-    geom_histogram(binwidth = binwidth) +
+  ggplot(df, aes(x, colour = g)) +
+    geom_freqpoly(binwidth = binwidth, size = 1) +
     coord_cartesian(xlim = xlim)
 }
 
@@ -425,7 +427,7 @@ If I have some simulated data, I can use these functions to compare two variable
 x1 <- rnorm(100, mean = 0, sd = 0.5)
 x2 <- rnorm(200, mean = 0.15, sd = 0.9)
 
-histogram(x1, x2)
+freqpoly(x1, x2)
 cat(t_test(x1, x2))
 ```
 
@@ -460,7 +462,7 @@ ui <- fluidPage(
       numericInput("sd2", label = "σ", value = 0.5, min = 0.1, step = 0.1)
     ),
     column(4,
-      "Histogram",
+      "Frequency polygon",
       numericInput("binwidth", label = "Bin width", value = 0.1, step = 0.1),
       sliderInput("range", label = "range", value = c(-3, 3), min = -5, max = 5)
     )
@@ -472,7 +474,7 @@ ui <- fluidPage(
 )
 ```
 
-The server function combines calls to `histogram()` and `t_test()` functions after drawing from the specified distributions:
+The server function combines calls to `freqpoly()` and `t_test()` functions after drawing from the specified distributions:
 
 ```{r}
 server <- function(input, output, session) {
@@ -480,7 +482,7 @@ server <- function(input, output, session) {
     x1 <- rnorm(input$n1, input$mean1, input$sd1)
     x2 <- rnorm(input$n2, input$mean2, input$sd2)
     
-    histogram(x1, x2, binwidth = input$binwidth, xlim = input$range)
+    freqpoly(x1, x2, binwidth = input$binwidth, xlim = input$range)
   }, res = 96)
 
   output$ttest <- renderText({
@@ -492,7 +494,7 @@ server <- function(input, output, session) {
 }
 ```
 
-```{r ttest, echo = FALSE, out.width = "100%", fig.cap="A Shiny app that lets you compare two simulated distributions with a t-test and a histogram", message = FALSE}
+```{r ttest, echo = FALSE, out.width = "100%", fig.cap="A Shiny app that lets you compare two simulated distributions with a t-test and a frequency polygon", message = FALSE}
 demo <- demoApp$new("basic-reactivity/case-study-1", ui, server, packages = "ggplot2")
 demo$resize(width = 800)
 demo$takeScreenshot()
@@ -536,7 +538,7 @@ This creates two problems:
 -   The app is inefficient because it does more work than necessary.
     For example, if you change the breaks of the plot, the data is recalculated; if you change the value of `n1`, `x2` is updated (in two places!).
 
-There's one other major flaw in the app: the histogram and t-test use separate random draws.
+There's one other major flaw in the app: the frequency polygon and t-test use separate random draws.
 This is rather misleading, as you'd expect them to be working on the same underlying data.
 
 Fortunately, we can fix all these problems by using reactive expressions to pull out repeated computation.
@@ -553,7 +555,7 @@ server <- function(input, output, session) {
   x2 <- reactive(rnorm(input$n2, input$mean2, input$sd2))
 
   output$hist <- renderPlot({
-    histogram(x1(), x2(), binwidth = input$binwidth, xlim = input$range)
+    freqpoly(x1(), x2(), binwidth = input$binwidth, xlim = input$range)
   }, res = 96)
 
   output$ttest <- renderText({
@@ -600,7 +602,7 @@ server <- function(input, output, session) {
   x2 <- rnorm(input$n2, input$mean2, input$sd2)
 
   output$hist <- renderPlot({
-    histogram(x1, x2, binwidth = input$binwidth, xlim = input$range)
+    freqpoly(x1, x2, binwidth = input$binwidth, xlim = input$range)
   }, res = 96)
 
   output$ttest <- renderText({
@@ -620,7 +622,7 @@ server <- function(input, output, session) {
   x2 <- function() rnorm(input$n2, input$mean2, input$sd2)
 
   output$hist <- renderPlot({
-    histogram(x1(), x2(), binwidth = input$binwidth, xlim = input$range)
+    freqpoly(x1(), x2(), binwidth = input$binwidth, xlim = input$range)
   }, res = 96)
 
   output$ttest <- renderText({
@@ -629,10 +631,10 @@ server <- function(input, output, session) {
 }
 ```
 
-But it has the same problem as the original code: any input will cause all outputs to be recomputed, and the t-test and the histogram will be run on separate samples.
-Reactive expressions automatically cache their results, and only update when their inputs change[^basic-reactivity-9].
+But it has the same problem as the original code: any input will cause all outputs to be recomputed, and the t-test and the frequency polygon will be run on separate samples.
+Reactive expressions automatically cache their results, and only update when their inputs change[^basic-reactivity-10].
 
-[^basic-reactivity-9]: If you're familiar with memoisation, this is a similar idea.
+[^basic-reactivity-10]: If you're familiar with memoisation, this is a similar idea.
 
 While variables calculate the value only once (the porridge is too cold), and functions calculate the value every time they're called (the porridge is too hot), reactive expressions calculate the value only when it might have changed (the porridge is just right!).
 
@@ -655,7 +657,7 @@ ui <- fluidPage(
   fluidRow(
     column(3, 
       numericInput("lambda1", label = "lambda1", value = 3),
-      numericInput("lambda2", label = "lambda2", value = 3),
+      numericInput("lambda2", label = "lambda2", value = 5),
       numericInput("n", label = "n", value = 1e4, min = 0)
     ),
     column(9, plotOutput("hist"))
@@ -665,14 +667,14 @@ server <- function(input, output, session) {
   x1 <- reactive(rpois(input$n, input$lambda1))
   x2 <- reactive(rpois(input$n, input$lambda2))
   output$hist <- renderPlot({
-    histogram(x1(), x2(), binwidth = 1, xlim = c(0, 40))
+    freqpoly(x1(), x2(), binwidth = 1, xlim = c(0, 40))
   }, res = 96)
 }
 ```
 
 This generates the app shown in Figure \@ref(fig:sim) and reactive graph shown in Figure \@ref(fig:sim-react).
 
-```{r sim, echo = FALSE, out.width = "100%", fig.cap = "A simpler app that displays a histogram of random numbers drawn from two Poisson distributions." , message = FALSE}
+```{r sim, echo = FALSE, out.width = "100%", fig.cap = "A simpler app that displays a frequency polygon of random numbers drawn from two Poisson distributions." , message = FALSE}
 demo <- demoApp$new("basic-reactivity/simulation-2", ui, server, packages = "ggplot2")
 demo$resize(800)
 demo$takeScreenshot()
@@ -684,10 +686,10 @@ knitr::include_graphics("diagrams/basic-reactivity/timing.png", dpi = 300)
 
 ### Timed invalidation
 
-Imagine you wanted to reinforce the fact that this is for simulated data by constantly resimulating the data, so that you see an animation rather than a static plot[^basic-reactivity-10].
+Imagine you wanted to reinforce the fact that this is for simulated data by constantly resimulating the data, so that you see an animation rather than a static plot[^basic-reactivity-11].
 We can increase the frequency of updates with a new function: `reactiveTimer()`.
 
-[^basic-reactivity-10]: The New York Times used this technique particularly effectively in their article discussing how to interpret the jobs report: <https://www.nytimes.com/2014/05/02/upshot/how-not-to-be-misled-by-the-jobs-report.html>
+[^basic-reactivity-11]: The New York Times used this technique particularly effectively in their article discussing how to interpret the jobs report: <https://www.nytimes.com/2014/05/02/upshot/how-not-to-be-misled-by-the-jobs-report.html>
 
 `reactiveTimer()` is a reactive expression that has a dependency on a hidden input: the current time.
 You can use a `reactiveTimer()` when you want a reactive expression to invalidate itself more often than it otherwise would.
@@ -709,7 +711,7 @@ server <- function(input, output, session) {
   })
   
   output$hist <- renderPlot({
-    histogram(x1(), x2(), binwidth = 1, xlim = c(0, 40))
+    freqpoly(x1(), x2(), binwidth = 1, xlim = c(0, 40))
   }, res = 96)
 }
 ```
@@ -737,7 +739,7 @@ ui <- fluidPage(
   fluidRow(
     column(3, 
       numericInput("lambda1", label = "lambda1", value = 3),
-      numericInput("lambda2", label = "lambda2", value = 3),
+      numericInput("lambda2", label = "lambda2", value = 5),
       numericInput("n", label = "n", value = 1e4, min = 0),
       actionButton("simulate", "Simulate!")
     ),
@@ -761,7 +763,7 @@ server <- function(input, output, session) {
     rpois(input$n, input$lambda2)
   })
   output$hist <- renderPlot({
-    histogram(x1(), x2(), binwidth = 1, xlim = c(0, 40))
+    freqpoly(x1(), x2(), binwidth = 1, xlim = c(0, 40))
   }, res = 96)
 }
 ```
@@ -794,7 +796,7 @@ server <- function(input, output, session) {
   })
 
   output$hist <- renderPlot({
-    histogram(x1(), x2(), binwidth = 1, xlim = c(0, 40))
+    freqpoly(x1(), x2(), binwidth = 1, xlim = c(0, 40))
   }, res = 96)
 }
 ```
