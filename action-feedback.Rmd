@@ -421,9 +421,7 @@ ui <- fluidPage(
 )
 
 server <- function(input, output, session) {
-  data <- reactive({
-    req(input$go)
-    
+  data <- eventReactive(input$go, {
     progress <- Progress$new(max = input$steps)
     on.exit(progress$close())
     
@@ -440,6 +438,9 @@ server <- function(input, output, session) {
 ```
 
 Here I'm using `Sys.sleep()` to simulate a long running operation; in your code this would be a moderately expensive operation.
+
+Note that I paired a button with `eventReactive()` to allow the user to control when the long running event is launched.
+This is good practice for any task that requires a progress bar.
 
 ### Waiter
 
@@ -461,8 +462,7 @@ We skip the `$set()` call because waiter's progress bars don't have labels.
 
 ```{r}
 server <- function(input, output, session) {
-  data <- reactive({
-    req(input$go)
+  data <- eventReactive(input$go, {
     waitress <- waiter::Waitress$new(max = input$steps)
     on.exit(waitress$close())
     
@@ -505,8 +505,7 @@ ui <- fluidPage(
 )
 
 server <- function(input, output, session) {
-  data <- reactive({
-    req(input$go)
+  data <- eventReactive(input$go, {
     waiter <- waiter::Waiter$new()
     waiter$show()
     on.exit(waiter$hide())
@@ -529,8 +528,7 @@ ui <- fluidPage(
 )
 
 server <- function(input, output, session) {
-  data <- reactive({
-    req(input$go)
+  data <- eventReactive(input$go, {
     waiter::Waiter$new(id = "plot")$show()
     
     Sys.sleep(3)
@@ -554,8 +552,7 @@ ui <- fluidPage(
   withSpinner(plotOutput("plot")),
 )
 server <- function(input, output, session) {
-  data <- reactive({
-    req(input$go)
+  data <- eventReactive(input$go, {
     Sys.sleep(3)
     data.frame(x = runif(50), y = runif(50))
   })
