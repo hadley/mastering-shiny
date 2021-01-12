@@ -1072,7 +1072,7 @@ Writing modules as separate functions reflects that reality: they're distinct fu
     The app function should take a data frame as input, and use `numericVarSelectInput()` to pick the variable to summarise.
 
     ```{r}
-    summaryOuput <- function(id) {
+    summaryOutput <- function(id) {
       tags$ul(
         tags$li("Min: ", textOutput(NS(id, "min"), inline = TRUE)),
         tags$li("Max: ", textOutput(NS(id, "max"), inline = TRUE)),

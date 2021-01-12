@@ -23,7 +23,7 @@ reactiveConsole(TRUE)
 
 There are two types of reactive values:
 
--   A singe reactive value, created by `reactiveVal()`.
+-   A single reactive value, created by `reactiveVal()`.
 
 -   A list of reactive values, created by `reactiveValues()`.
 
@@ -262,7 +262,7 @@ It decouples listening for an event from the action to handle that event, so you
 
 ```{r, eval = FALSE}
 observeEvent(x(), {
-  count(count() + 1))
+  count(count() + 1)
 })
 ```
 

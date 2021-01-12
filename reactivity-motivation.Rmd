@@ -51,7 +51,7 @@ temp_f <- (temp_c * 9 / 5) + 32
 temp_f
 ```
 
-So far so good: the `temp_c` variable has the value `10`, the `temp_f` variable has the value 75.6, and we can change `temp_c`:
+So far so good: the `temp_c` variable has the value `r temp_c`, the `temp_f` variable has the value `r temp_f`, and we can change `temp_c`:
 
 ```{r}
 temp_c <- 30
@@ -212,8 +212,7 @@ We'll come back to these important properties in Chapter \@ref(reactive-graph).
 If you want to learn more about reactive programming in other languages, a little history might be helpful.
 You can see the genesis of reactive programming over 40 years ago in [VisiCalc](https://en.wikipedia.org/wiki/VisiCalc), the first spreadsheet:
 
-> I imagined a magic blackboard that if you erased one number and wrote a new thing in, all of the other numbers would automatically change, like word processing with numbers.
-> \
+> I imagined a magic blackboard that if you erased one number and wrote a new thing in, all of the other numbers would automatically change, like word processing with numbers.\
 > --- [Dan Bricklin](https://youtu.be/YDvbDiJZpy0)
 
 Spreadsheets are closely related to reactive programming: you declare the relationship between cells using formulas, and when one cell changes, all of its dependencies automatically update.
