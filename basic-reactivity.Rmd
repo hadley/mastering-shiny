@@ -826,6 +826,11 @@ The first argument is the input or expression to take a dependency on; the secon
 For example, the following modification to `server()` means that every time that `name` is updated, a message will be sent to the console:
 
 ```{r}
+ui <- fluidPage(
+  textInput("name", "What's your name?"),
+  textOutput("greeting")
+)
+
 server <- function(input, output, session) {
   string <- reactive(paste0("Hello ", input$name, "!"))
   
@@ -852,3 +857,4 @@ knitr::include_graphics("diagrams/basic-reactivity/graph-3.png", dpi = 300)
 
 This concludes our whirlwind tour of reactivity.
 The next chapter will help you practice all the material you've seen so far by creating a bigger Shiny app that supports data analysis.
+
