@@ -623,6 +623,9 @@ theme_demo <- function(theme) {
     )
   )
 }
+
+# To see these themes in your own Shiny app, set:
+# ui <- theme_demo(...)
 theme_demo("darkly")
 theme_demo("flatly")
 theme_demo("sandstone")
