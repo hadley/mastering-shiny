@@ -583,7 +583,7 @@ server <- function(input, output, session) {
 
 The use of `isolate()` is important.
 We'll come back to exactly why it's needed in Chapter XYZ, but it ensures that we don't create a reactive dependency that would mean this code is re-run every time `input$dynamic` changes.
-We only want it to change when `input$type` or `inpu$label` changes.
+We only want it to change when `input$type` or `input$label` changes.
 
 Dynamic UI is most useful when you are generating an arbitrary number or type of controls.
 That means that you'll be generating UI with code, and I recommend using functional programming for this sort of task.
