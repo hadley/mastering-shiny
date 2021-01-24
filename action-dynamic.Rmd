@@ -237,7 +237,7 @@ This means that you are now stepping outside of the bounds of pure reactive prog
     For example, if you modify the `choices` for `selectInput()`, or `min` and `max` for `sliderInput()`, the current `value` will be modified if it's no longer in the allowed set of values.
 
 For example, take the following simple app.
-It contains a single input control and a observer that increments its value by one.
+It contains a single input control and an observer that increments its value by one.
 Every time `updateNumericInput()` runs, it changes `input$n`, causing `updateNumericInput()` to run again, so the app gets stuck in an infinite loop constantly increasing the value of `input$n`.
 
 ```{r}
@@ -338,7 +338,7 @@ The next step up in complexity is to selectively show and hide parts of the UI.
 You'll learn a number of sophisticated approaches later, once you've learned a little JS and CSS, but there's a useful technique that you can use now: concealing optional UI with a tabset.
 This is a clever hack that allows you to show and hide UI as needed, without having to re-generate it from scratch (as you'll learn in the next section).
 
-(You'll need shiny Shiny 1.5.0 for this to work.)
+(You'll need at least Shiny 1.5.0 for this to work.)
 
 ```{r}
 ui <- fluidPage(
@@ -464,7 +464,7 @@ demo$deploy()
 
 ### Wizard interface {#dynamic-wizard}
 
-You can also use this idea to a "wizard", a type of interface that makes it easier to collect a bunch of information by spreading it across multiple pages.
+You can also use this idea to create a "wizard", a type of interface that makes it easier to collect a bunch of information by spreading it across multiple pages.
 Here we embed action buttons within each "page", making it easy to go forward and back.
 
 ```{r}
@@ -508,7 +508,7 @@ We'll come back to this idea in Chapter \@ref(scaling-functions), and then creat
 ### Exercises
 
 1.  Use a hidden tabset to show additional controls only if the user checks an "advanced" check box.
-2.  Create an app that allows the user to select from `geom_smooth()`, `geom_histogram()`, or `geom_point()`. Use a hidden tabset to allow the user to select different options depending on the geom. `geom_smooth()` should have a text both for the model, and checkbox for whether or not to add standard errors. `geom_histogram()` should have a numeric input for the bin width, and `geom_point()` doesn't need any additional options.
+2.  Create an app that allows the user to select from `geom_smooth()`, `geom_histogram()`, or `geom_point()`. Use a hidden tabset to allow the user to select different options depending on the geom. `geom_smooth()` should have a text both for the model and checkbox for whether or not to add standard errors. `geom_histogram()` should have a numeric input for the bin width, and `geom_point()` doesn't need any additional options.
 3.  Create a wizard interface that steers the user along the path ...
 
 ## Creating UI with code {#programming-ui}
@@ -520,12 +520,12 @@ You've always created your UI with code; this technique gives you the ability to
 This technique has two components:
 
 -   You use `uiOutput()` to insert a placeholder in your user interface.
-    This code is run when your app launches and it leaves a "hole" that your server code can later fill in.
+    This code is run when your app launches and it leaves a placeholder that your server code can later fill in.
 
 -   You use `renderUI()` to fill in the placeholder with UI generated in the server function.
 
 Here's a simple example to illustrate the basic idea.
-It dynamically creates a different type of input control depending on an input.
+It dynamically creates a different type of input control depending on another input.
 The resulting app is shown in Figure \@ref(fig:render-simple).
 
 ```{r}
@@ -564,7 +564,7 @@ For good performance, strive to keep fixed as much of the user interface as poss
 
 There's one other problem with this approach: when you change controls, you lose the currently selected value.
 Maintaining existing state is one of the big challenges of creating UI with code.
-This is one reason that selectively showing and hiding UI is a better approach if works for you --- because you're not destroying and recreating the controls, you don't need to do anything to preserve the values.
+This is one reason that selectively showing and hiding UI is a better approach if it works for you --- because you're not destroying and recreating the controls, you don't need to do anything to preserve the values.
 However, in many cases, we can fix the problem by setting the `value` of the new input to the current value of the existing control:
 
 ```{r}
