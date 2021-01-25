@@ -10,13 +10,15 @@ source("demo.R")
 In this chapter, we'll create a simple Shiny app.
 I'll start by showing you the minimum boilerplate needed for a Shiny app, and then you'll learn how to start and stop it.
 Next you'll learn the two key components of every Shiny app: the **UI** (short for user interface) which defines how your app *looks*, and the **server function** which defines how your app *works*.
-Shiny uses reactive programming to automatically update outputs when inputs change so we'll finish off the chapter by learning the third important component of Shiny apps: reactive expressions.
+Shiny uses **reactive programming** to automatically update outputs when inputs change so we'll finish off the chapter by learning the third important component of Shiny apps: reactive expressions.
 
 If you haven't already installed Shiny, install it now with:
 
 ```{r, eval = FALSE}
 install.packages("shiny")
 ```
+
+If you've already installed Shiny, use `packageVersion("shiny")` to check that you have version 1.5.0 or greater.
 
 Then load in your current R session:
 
@@ -42,11 +44,6 @@ server <- function(input, output, session) {
 shinyApp(ui, server)
 ```
 
-::: {.rmdnote}
-**RStudio Tip**: You can easily create a new directory and an `app.R` file containing a basic shiny app in one step by clicking **File \| New Project**, then selecting **New Directory** and **Shiny Web Application**.
-Or, if you've already created the `app.R` file, you can quickly add the app boilerplate by typing "shinyapp" and pressing Shift+Tab.
-:::
-
 This is a complete, if trivial, Shiny app!
 Looking closely at the code above, our `app.R` does four things:
 
@@ -60,15 +57,30 @@ Looking closely at the code above, our `app.R` does four things:
 
 4.  It executes `shinyApp(ui, server)` to construct and start a Shiny application from UI and server.
 
+::: {.rmdnote}
+**RStudio Tip**: There are two convenient ways to create a new app in RStudio:
+
+-   Create a new directory and an `app.R` file containing a basic app in one step by clicking **File \| New Project**, then selecting **New Directory** and **Shiny Web Application**.
+
+-   If you've already created the `app.R` file, you can quickly add the app boilerplate by typing "shinyapp" and pressing Shift+Tab.
+:::
+
 ## Running and stopping {#running}
 
 There are a few ways you can run this app:
 
--   Click the **Run App** (![](images/basic-app/run-app.png){width="71" height="20"}) button in the document toolbar.
+-   Click the **Run App** (Figure \@ref(fig:run-app)) button in the document toolbar.
 
 -   Use a keyboard shortcut: `Cmd/Ctrl` + `Shift` + `Enter`.
 
--   If you're not using RStudio, you can `source()` the whole document, or call `shiny::runApp()` with the path to the directory containing `app.R`.
+-   If you're not using RStudio, you can `(source())`[^basic-app-1] the whole document, or call `shiny::runApp()` with the path to the directory containing `app.R`.
+
+[^basic-app-1]: The extra `()` on the outside are important.
+    `shinyApp()` only creates an app when printed, and `()` forces the printing of the last result in the file being source, which is otherwise returned invisibly.
+
+```{r run-app, out.width = NULL, echo = FALSE, fig.cap = "The Run App button can be found at the top-right of the source pane."}
+knitr::include_graphics("images/basic-app/run-app.png")
+```
 
 Pick one of these options, and check that you see the same app as in Figure \@ref(fig:hello-world).
 Congratulations!
@@ -86,9 +98,9 @@ You'll notice that it says something like:
 ```
 
 This tells you the URL where your app can be found: 127.0.0.1 is a standard address that means "this computer" and 3827 is a randomly assigned port number.
-You can enter that URL into any compatible[^basic-app-1] web browser to open another copy of your app.
+You can enter that URL into any compatible[^basic-app-2] web browser to open another copy of your app.
 
-[^basic-app-1]: Shiny strives to support all modern browsers, and you can see the set currently supported at <https://www.rstudio.com/about/platform-support/>.
+[^basic-app-2]: Shiny strives to support all modern browsers, and you can see the set currently supported at <https://www.rstudio.com/about/platform-support/>.
     Note that Internet Explorer versions prior to IE11 are not compatible when running Shiny directly from your R session.
     However, Shiny apps deployed on Shiny Server or ShinyApps.io can work with IE10 (earlier versions of IE are no longer supported).
 
@@ -156,7 +168,7 @@ Shiny uses reactive programming to make apps interactive.
 You'll learn more about reactive programming in Chapter \@ref(basic-reactivity), but for now, just be aware that it involves telling Shiny *how* to perform a computation, not ordering Shiny to actually go *do it*.
 It's like the difference between giving someone a recipe versus demanding that they go make you a sandwich.
 
-In this simple case, we're going to tell Shiny how to fill in the `summary` and `table` outputs---we're providing the "recipes" for those outputs.
+We'll tell Shiny how to fill in the `summary` and `table` outputs in the sample app by providing the "recipes" for those outputs.
 Replace your empty `server` function with this:
 
 ```{r}
@@ -173,32 +185,23 @@ server <- function(input, output, session) {
 }
 ```
 
-Almost every output you'll write in Shiny will follow this same pattern:
-
-```{r, eval = FALSE}
-output$ID <- renderTYPE({
-  # Expression that generates whatever kind of output
-  # renderTYPE expects
-})
-```
-
-The left-hand side of the assignment operator (`<-`), `output$ID`, indicates that you're providing the recipe for the Shiny output with the matching ID.
-The right-hand side of the assignment uses a specific **render function** to wrap some code that you provide; in the example above, we use `renderPrint()` and `renderTable()` to wrap our app-specific logic.
-
-Each `render*` function is designed to work with a particular type of output that's passed to an `*Output` function.
-In this case, we're using `renderPrint()` to capture and display a statistical summary of the data with fixed-width (verbatim) text, and `renderTable()` to display the actual data frame in a table.
+The left-hand side of the assignment operator (`<-`), `output$ID`, indicates that you're providing the recipe for the Shiny output with that ID.
+The right-hand side of the assignment uses a specific **render function** to wrap some code that you provide.
+Each `render{Type}` function is designed to produce a particular type of output (e.g. text, tables, and plots), and is often paired with a `{type}Output` function.
+For example, in this app, `renderPrint()` is paired with `verbatimTextOutput()` to display a statistical summary with fixed-width (verbatim) text, and `renderTable()` is paired with `tableOutput()` to show the input data in a table.
 
 Run the app again and play around, watching what happens to the output when you change an input.
-Figure \@ref(fig:basic-server) shows what you'll see when you open the app.
+Figure \@ref(fig:basic-server) shows what you should see when you open the app.
 
 ```{r basic-server, echo = FALSE, out.width = "75%", fig.cap = "Now that we've provided a server function that connects outputs and inputs, we have a fully functional app", message = FALSE}
 demo <- demoApp$new("basic-app/server", ui, server)
 demo$takeScreenshot()
 ```
 
-Notice that I haven't written any code that checks for changes to `input$dataset` and explicitly updates the two outputs.
-That's because outputs are **reactive**: they automatically recalculate when their inputs change.
-Because both of the rendering code blocks I wrote used `input$dataset`, whenever the value of `input$dataset` changes (i.e. the user changes their selection in the UI), both outputs will recalculate and update in the browser.
+Notice that the summary and table update whenever you change the input dataset.
+This dependency is created implicitly because we've referred to `input$dataset` within the output functions.
+`input$dataset` is populated with the current value of the UI component with id `dataset`, and will cause the outputs to automatically update whenever that value changes.
+This is the essence of **reactivity**: outputs automatically *react* (recalculate) when their inputs change.
 
 ## Reducing duplication with reactive expressions {#reactive-expr}
 
@@ -222,11 +225,13 @@ The app behaves identically, but works a little more efficiently because it only
 
 ```{r, eval = FALSE}
 server <- function(input, output, session) {
+  # Create a reactive expression
   dataset <- reactive({
     get(input$dataset, "package:datasets")
   })
 
   output$summary <- renderPrint({
+    # Use a reactive expression by calling it like a function
     summary(dataset())
   })
   
@@ -256,14 +261,14 @@ knitr::include_graphics("images/basic-app/cheatsheet.png", dpi = 300)
     Figure out which lines you'll use and then copy and paste them into the right place in a Shiny app.
 
     ```{r, eval = FALSE}
-    textInput("name", "What's your name?")
-    renderText({
+    tableOutput("mortgage")
+    output$greeting <- renderText({
       paste0("Hello ", input$name)
     })
     numericInput("age", "How old are you?")
+    textInput("name", "What's your name?")
     textOutput("greeting")
-    tableOutput("mortgage")
-    renderPlot("histogram", {
+    output$histogram <- renderPlot({
       hist(rnorm(1000))
     }, res = 96)
     ```
@@ -272,6 +277,8 @@ knitr::include_graphics("images/basic-app/cheatsheet.png", dpi = 300)
     This is their first attempt:
 
     ```{r, echo = TRUE, out.width = NULL}
+    library(shiny)
+
     ui <- fluidPage(
       sliderInput("x", label = "If x is", min = 1, max = 50, value = 30),
       "then x times 5 is",
@@ -283,6 +290,8 @@ knitr::include_graphics("images/basic-app/cheatsheet.png", dpi = 300)
         x * 5
       })
     }
+
+    shinyApp(ui, server)
     ```
 
     But unfortunately it has an error:
@@ -318,6 +327,8 @@ knitr::include_graphics("images/basic-app/cheatsheet.png", dpi = 300)
     Then reduce the duplication in the app by using a reactive expression.
 
     ```{r}
+    library(shiny)
+
     ui <- fluidPage(
       sliderInput("x", "If x is", min = 1, max = 50, value = 30),
       sliderInput("y", "and y is", min = 1, max = 50, value = 5),
@@ -340,6 +351,8 @@ knitr::include_graphics("images/basic-app/cheatsheet.png", dpi = 300)
         product + 10
       })
     }
+
+    shinyApp(ui, server)
     ```
 
 5.  The following app is very similar to one you've seen earlier in the chapter: you select a dataset from a package (this time we're using the **ggplot2** package) and the app prints out a summary and plot of the data.
@@ -348,6 +361,7 @@ knitr::include_graphics("images/basic-app/cheatsheet.png", dpi = 300)
     Can you find and fix them?
 
     ```{r}
+    library(shiny)
     library(ggplot2)
     datasets <- data(package = "ggplot2")$results[c(2, 4, 10), "Item"]
 
@@ -368,4 +382,6 @@ knitr::include_graphics("images/basic-app/cheatsheet.png", dpi = 300)
         plot(dataset)
       }, res = 96)
     }
+
+    shinyApp(ui, server)
     ```
