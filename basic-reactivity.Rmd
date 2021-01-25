@@ -857,4 +857,3 @@ knitr::include_graphics("diagrams/basic-reactivity/graph-3.png", dpi = 300)
 
 This concludes our whirlwind tour of reactivity.
 The next chapter will help you practice all the material you've seen so far by creating a bigger Shiny app that supports data analysis.
-
