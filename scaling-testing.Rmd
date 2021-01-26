@@ -542,7 +542,7 @@ server <- function(input, output, session) {
 
 To use shinytest you start an app with `app <- ShinyDriver$new()`, interact with it using `app$setInputs()` and friends, then get values returned by `app$getValue()`:
 
-```{r}
+```{r, eval = FALSE}
 app <- shinytest::ShinyDriver$new(shinyApp(ui, server))
 app$setInputs(name = "Hadley")
 app$getValue("greeting")
