@@ -7,12 +7,12 @@ Imports:
     globals,
     openintro,
     RSQLite,
-    shiny,
+    shiny (>= 1.6.0),
     shinycssloaders,
     shinyFeedback,
     shinythemes,
     testthat,
-    thematic (>= 0.0.1),
+    thematic (>= 0.1.1),
     tidyverse,
     vroom,
     waiter,
@@ -27,15 +27,10 @@ Suggests:
     png,
     sessioninfo,
     shinyloadtest,
-    shinytest,
+    shinytest (>= 1.5.0),
     waldo,
     webshot (>= 0.5.0.9000)
 Remotes: 
     rstudio/bookdown,
-    rstudio/bslib,
-    rstudio/rmarkdown,
-    rstudio/shiny,
-    rstudio/shinyloadtest,
-    rstudio/shinytest,
-    rstudio/thematic
+    rstudio/rmarkdown
 Encoding: UTF-8
