@@ -55,12 +55,10 @@ This is why almost all of the reactive programming you'll do in Shiny will be in
     For example, all users might be looking at the same large csv file, so you might as well load it once and share it between users.
     We'll come back to that idea in Section \@ref(data-import).
 
-Server functions take three parameters: `input`, `output`, and `session`[^basic-reactivity-3].
+Server functions take three parameters: `input`, `output`, and `session`.
 Because you never call the server function yourself, you'll never create these objects yourself.
 Instead, they're created by Shiny when the session begins, connecting back to a specific session.
 For the moment, we'll focus on the `input` and `output` arguments, and leave `session` for later chapters.
-
-[^basic-reactivity-3]: For legacy reasons, `session` is optional, but you should always include it.
 
 ### Input {#input}
 
@@ -85,7 +83,7 @@ server <- function(input, output, session) {
 }
 
 shinyApp(ui, server)
-#> Error: Attempted to assign value to a read-only reactivevalues object
+#> Error: Can't modify read-only reactive value 'count'
 ```
 
 This error occurs because `input` reflects what's happening in the browser, and the browser is Shiny's "single source of truth".
@@ -104,9 +102,8 @@ server <- function(input, output, session) {
 }
 
 shinyApp(ui, server)
-#> Error: Operation not allowed without an active reactive context. 
-#> (You tried to do something that can only be done from inside 
-#> a reactive expression or observer.)
+#> Error: Can't access reactive value 'count' outside of reactive consumer.
+#> ℹ Do you need to wrap inside reactive() or observer()?
 ```
 
 ### Output {#output}
@@ -143,7 +140,8 @@ You'll get an error if:
       output$greeting <- "Hello human"
     }
     shinyApp(ui, server)
-    #> Error: Unexpected character output for greeting
+    #> Error: Unexpected character object for output$greeting
+    #> ℹ Did you forget to use a render function?
     ```
 
 -   You attempt to read from an output.
@@ -175,9 +173,9 @@ server <- function(input, output, session) {
 }
 ```
 
-It's hard to show exactly how this works in a book, but if you run the app, and type in the name box, you'll notice that the greeting updates automatically as you type[^basic-reactivity-4]:
+It's hard to show exactly how this works in a book, but if you run the app, and type in the name box, you'll notice that the greeting updates automatically as you type[^basic-reactivity-3]:
 
-[^basic-reactivity-4]: If you're running the live app, notice that you have to type fairly slowly for the output to update one letter at a time.
+[^basic-reactivity-3]: If you're running the live app, notice that you have to type fairly slowly for the output to update one letter at a time.
     That's because Shiny uses a technique called **debouncing**, which means that it waits for a few ms before sending an update.
     That considerably reduces the amount of work that Shiny needs to do, without appreciably reducing the response time of the app.
 
@@ -221,26 +219,26 @@ This difference between commands and recipes is one of the key differences betwe
 -   In **declarative** programming, you express higher-level goals or describe important constraints, and rely on someone else to decide how and/or when to translate that into action.
     This is the style of programming you use in Shiny.
 
-With imperative code you say "Make me a sandwich"[^basic-reactivity-5].
+With imperative code you say "Make me a sandwich"[^basic-reactivity-4].
 With declarative code you say "Ensure there is a sandwich in the refrigerator whenever I look inside of it".
 Imperative code is assertive; declarative code is passive-aggressive.
 
-[^basic-reactivity-5]: <https://xkcd.com/149/>
+[^basic-reactivity-4]: <https://xkcd.com/149/>
 
 Most of the time, declarative programming is tremendously freeing: you describe your overall goals, and the software figures out how to achieve them without further intervention.
-The downside is the occasional time where you know exactly what you want, but you can't figure out how to frame it in a way that the declarative system understands[^basic-reactivity-6].
+The downside is the occasional time where you know exactly what you want, but you can't figure out how to frame it in a way that the declarative system understands[^basic-reactivity-5].
 The goal of this book is to help you develop your understanding of the underlying theory so that happens as infrequently as possible.
 
-[^basic-reactivity-6]: If you've ever struggled to get a ggplot2 legend to look exactly the way you want, you've encountered this problem!
+[^basic-reactivity-5]: If you've ever struggled to get a ggplot2 legend to look exactly the way you want, you've encountered this problem!
 
 ### Laziness
 
 One of the strengths of declarative programming in Shiny is that it allows apps to be extremely lazy.
-A Shiny app will only ever do the minimal amount of work needed to update the output controls that you can currently see[^basic-reactivity-7].
+A Shiny app will only ever do the minimal amount of work needed to update the output controls that you can currently see[^basic-reactivity-6].
 This laziness, however, comes with an important downside that you should be aware of.
 Can you spot what's wrong with the server function below?
 
-[^basic-reactivity-7]: Yes, Shiny doesn't update the output if you can't see it in your browser!
+[^basic-reactivity-6]: Yes, Shiny doesn't update the output if you can't see it in your browser!
     Shiny is so lazy that it doesn't do the work unless you can actually see the results.
 
 ```{r}
@@ -323,10 +321,10 @@ But remember Shiny is lazy, so that code is only run when the session starts, af
 
 Instead, this code yields the same reactive graph as above, so the order in which the code is run is exactly the same.
 Organising your code like this is confusing for humans, and best avoided.
-Instead, make sure that reactive expressions and outputs only refer to things defined above, not below[^basic-reactivity-8].
+Instead, make sure that reactive expressions and outputs only refer to things defined above, not below[^basic-reactivity-7].
 This will make your code easier to understand.
 
-[^basic-reactivity-8]: The technical term for this ordering is a "topological sort".
+[^basic-reactivity-7]: The technical term for this ordering is a "topological sort".
 
 This concept is very important and different to most other R code, so I'll say it again: the order in which reactive code is run is determined only by the reactive graph, not by its layout in the server function.
 
@@ -367,20 +365,14 @@ This concept is very important and different to most other R code, so I'll say i
 We've quickly skimmed over reactive expressions a couple of times, so you're hopefully getting a sense for what they might do.
 Now we'll dive into more of the details, and show why they are so important when constructing real apps.
 
-Reactive expressions are important for two reasons:
-
--   They give Shiny more information so that it can do less recomputation when inputs change, making apps more efficient.
-
--   They make it easier for humans to understand the app by simplifying the reactive graph.
-
+Reactive expressions are important because they give *Shiny* more information so that it can do less recomputation when inputs change, making apps more efficient, and they make it easier for *humans* to understand the app by simplifying the reactive graph.
 Reactive expressions have a flavour of both inputs and outputs:
 
 -   Like inputs, you can use the results of a reactive expression in an output.
 
 -   Like outputs, reactive expressions depend on inputs and automatically know when they need updating.
 
-Because of this duality, some functions work with either reactive inputs or expressions, and some functions work with either reactive expressions or reactive outputs.
-We'll use **producers** to refer to either reactive inputs or expressions, and **consumers** to refer to either reactive expressions or outputs.
+This duality means we need some new vocab: I'll use **producers** to refer to reactive inputs and expressions, and **consumers** to refer to reactive expressions and outputs.
 Figure \@ref(fig:prod-consumer) shows this relationship with a Venn diagram.
 
 ```{r prod-consumer, echo = FALSE, out.width = NULL, fig.cap = "Inputs and expressions are reactive producers; expressions and outputs are reactive consumers"}
@@ -393,9 +385,9 @@ First, we'll set the stage by defining some regular R functions that we'll use t
 ### The motivation
 
 Imagine I want to compare two simulated datasets with a plot and a hypothesis test.
-I've done a little experimentation and come up with the functions below: `freqpoly()` visualises the two distributions with frequency polygons[^basic-reactivity-9], and `t_test()` uses a t-test to compare means and summarises the results with a string:
+I've done a little experimentation and come up with the functions below: `freqpoly()` visualises the two distributions with frequency polygons[^basic-reactivity-8], and `t_test()` uses a t-test to compare means and summarises the results with a string:
 
-[^basic-reactivity-9]: If you haven't heard of a frequency polygon before, it's just a histogram that's drawn with a line, instead of bars, which makes it easier to compare multiple data sets on the same plot.
+[^basic-reactivity-8]: If you haven't heard of a frequency polygon before, it's just a histogram that's drawn with a line, instead of bars, which makes it easier to compare multiple data sets on the same plot.
 
 ```{r}
 library(ggplot2)
@@ -414,6 +406,7 @@ freqpoly <- function(x1, x2, binwidth = 0.1, xlim = c(-3, 3)) {
 t_test <- function(x1, x2) {
   test <- t.test(x1, x2)
   
+  # use sprintf() to format t.test() results compactly
   sprintf(
     "p value: %0.3f\n[%0.2f, %0.2f]",
     test$p.value, test$conf.int[1], test$conf.int[2]
@@ -632,15 +625,11 @@ server <- function(input, output, session) {
 ```
 
 But it has the same problem as the original code: any input will cause all outputs to be recomputed, and the t-test and the frequency polygon will be run on separate samples.
-Reactive expressions automatically cache their results, and only update when their inputs change[^basic-reactivity-10].
+Reactive expressions automatically cache their results, and only update when their inputs change[^basic-reactivity-9].
 
-[^basic-reactivity-10]: If you're familiar with memoisation, this is a similar idea.
+[^basic-reactivity-9]: If you're familiar with memoisation, this is a similar idea.
 
 While variables calculate the value only once (the porridge is too cold), and functions calculate the value every time they're called (the porridge is too hot), reactive expressions calculate the value only when it might have changed (the porridge is just right!).
-
-### Exercise
-
-1.  Use reactive expressions to reduce the duplicated code in the following simple apps.
 
 ## Controlling timing of evaluation
 
@@ -686,10 +675,10 @@ knitr::include_graphics("diagrams/basic-reactivity/timing.png", dpi = 300)
 
 ### Timed invalidation
 
-Imagine you wanted to reinforce the fact that this is for simulated data by constantly resimulating the data, so that you see an animation rather than a static plot[^basic-reactivity-11].
+Imagine you wanted to reinforce the fact that this is for simulated data by constantly resimulating the data, so that you see an animation rather than a static plot[^basic-reactivity-10].
 We can increase the frequency of updates with a new function: `reactiveTimer()`.
 
-[^basic-reactivity-11]: The New York Times used this technique particularly effectively in their article discussing how to interpret the jobs report: <https://www.nytimes.com/2014/05/02/upshot/how-not-to-be-misled-by-the-jobs-report.html>
+[^basic-reactivity-10]: The New York Times used this technique particularly effectively in their article discussing how to interpret the jobs report: <https://www.nytimes.com/2014/05/02/upshot/how-not-to-be-misled-by-the-jobs-report.html>
 
 `reactiveTimer()` is a reactive expression that has a dependency on a hidden input: the current time.
 You can use a `reactiveTimer()` when you want a reactive expression to invalidate itself more often than it otherwise would.
@@ -814,7 +803,7 @@ knitr::include_graphics("diagrams/basic-reactivity/timing-button-2.png", dpi = 3
 So far, we've focused on what's happening inside the app.
 But sometimes you need to reach outside of the app and cause side-effects to happen elsewhere in the world.
 This might be saving a file to a shared network drive, sending data to a web API, updating a database, or (most commonly) printing a debugging message to the console.
-These actions don't affect how your app looks, so you can't use an output and a `render` function.
+These actions don't affect how your app looks, so you shouldn't use an output and a `render` function.
 Instead you need to use an **observer**.
 
 There are multiple ways to create an observer, and we'll come back to them later in Section \@ref(observers-details).
@@ -855,5 +844,5 @@ This yields the following reactive graph shown in Figure \@ref(fig:observer).
 knitr::include_graphics("diagrams/basic-reactivity/graph-3.png", dpi = 300)
 ```
 
-This concludes our whirlwind tour of reactivity.
+This concludes our overview of reactivity.
 The next chapter will help you practice all the material you've seen so far by creating a bigger Shiny app that supports data analysis.
