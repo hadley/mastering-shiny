@@ -721,7 +721,7 @@ But other packages expose complete different design systems:
 
 -   [shinydashboard](https://rstudio.github.io/shinydashboard/), also by RStudio, provides a layout system designed to create dashboards.
 
-You can find fuller, and up-to-date, list maintained by [Nan Xiao](https://nanx.me/) at [<https://github.com/nanxstats/awesome-shiny-extensions>](https://github.com/nanxstats/awesome-shiny-extensions){.uri}.
+You can find fuller, and up-to-date, list maintained by [Nan Xiao](https://nanx.me/) at <https://github.com/nanxstats/awesome-shiny-extensions>.
 
 ## Summary
 
