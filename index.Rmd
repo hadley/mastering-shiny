@@ -24,8 +24,8 @@ It's used in academia as a teaching tool for statistical concepts, a way to get 
 It's used by big pharma companies to speed collaboration between scientists and analysts during drug development.
 It's used by Silicon Valley tech companies to set up realtime metrics dashboards that incorporate advanced analytics.
 
-This book complements [Shiny's online documentation](https://shiny.rstudio.com/articles/) and is intended to help app authors develop a deeper understanding of Shiny.
-After reading this book, you'll be able to write apps that have more customized UI, more maintainable code, and better performance and scalability.
+This book is designed to take you from knowing nothing about Shiny to being an expert developer who can write large complex apps that are still maintainable and performant.
+You'll gain a deep understanding of the reactive programming model that underlies Shiny, as well as building a tool box of useful techniques to solve common app challenges.
 
 ## License {.unnumbered}
 

@@ -7,12 +7,12 @@ source("demo.R")
 
 ## Introduction
 
-Now that you've got a basic app under your belt, we're going to explore the details that make Shiny tick.
+Now that you have a basic app under your belt, we can start to explore the details that make Shiny tick.
 As you saw in the previous chapter, Shiny encourages separation of the code that generates your user interface (the front end) from the code that drives your app's behaviour (the back end).
-In this chapter, we'll dive deeper into the front end and explore the HTML inputs, outputs, and layouts provided by Shiny.
 
-Learning more about the front end will allow you to generate visually compelling, but simple apps.
-In the next chapter, you'll learn more about the reactivity that powers Shiny's back end, allowing you to create richer responses to interaction.
+In this chapter, we'll focus on the front end, and give you a whirlwind tour of the HTML inputs, outputs, and layouts that Shiny provides.
+This gives you the ability to create visually compelling, but simple apps.
+In the next chapter, you'll learn more about the Shiny's back end, building your reactivity skills so that you can create richer responses to interaction.
 
 As usual, we'll begin by loading the shiny package:
 
@@ -78,7 +78,7 @@ If you want to ensure that the text has certain properties you can use `validate
 
 ### Numeric inputs
 
-To collect numeric values, create a slider with `sliderInput()` or a constrained textbox with `numericInput()`.
+To collect numeric values, create a constrained text box with `numericInput()` or a slider with `sliderInput()`.
 If you supply a length-2 numeric vector for the default value of `sliderInput()`, you get a "range" slider with two ends.
 
 ```{r}
@@ -139,6 +139,7 @@ demo$takeScreenshot()
 ```
 
 Radio buttons have two nice features: they show all possible options, making them suitable for short lists, and via the `choiceNames`/`choiceValues` arguments, they can display options other than plain text.
+`choiceNames` determines what is shown to the user; `choiceValues` determines what is returned in your server function.
 
 ```{r}
 ui <- fluidPage(
@@ -225,8 +226,7 @@ demo$takeScreenshot()
 
 ### Action buttons {#action-buttons}
 
-Let the user perform an action with `actionButton()` or `actionLink()`.
-These are most naturally paired with `observeEvent()` or `eventReactive()` in the server function; I haven't discussed these functions yet, but we'll come back to them in the next chapter.
+Let the user perform an action with `actionButton()` or `actionLink()`:
 
 ```{r}
 ui <- fluidPage(
@@ -241,10 +241,12 @@ demo$takeScreenshot()
 resourcePathReset()
 ```
 
+Actions links and buttons are most naturally paired with `observeEvent()` or `eventReactive()` in your server function.
+You haven't learned about these important functions yet, but we'll come back to them in Section \@ref(controlling-timing-of-evaluation).
+
 You can customise the appearance using the `class` argument by using one of `"btn-primary"`, `"btn-success"`, `"btn-info"`, `"btn-warning"`, or `"btn-danger"`.
 You can also change the size with `"btn-lg"`, `"btn-sm"`, `"btn-xs"`.
 Finally, you can make buttons span the entire width of the element they are embedded within using `"btn-block"`.
-See the detail of the underlying CSS classes at <http://bootstrapdocs.com/v3.3.6/docs/css/#buttons>.
 
 ```{r}
 ui <- fluidPage(
@@ -262,6 +264,9 @@ ui <- fluidPage(
 demo <- demoApp$new("basic-ui/action-css", ui)
 demo$takeScreenshot()
 ```
+
+The `class` argument works by setting the `class` attribute of the underlying HTML, which affects how the element is styled.
+To see other options, you can read the documentation for Bootstrap, the CSS design system used by Shiny: [\<http://bootstrapdocs.com/v3.3.6/docs/css/\#buttons\>](http://bootstrapdocs.com/v3.3.6/docs/css/#buttons){.uri}.
 
 ### Exercises
 
@@ -310,7 +315,10 @@ demo$takeScreenshot()
 ## Outputs {#outputs}
 
 Outputs in the UI create placeholders that are later filled by the server function.
-Like inputs, outputs take a unique ID as their first argument: if your UI specification creates an output with ID `"plot"`, you'll access it in the server function with `output$plot`.
+Like inputs, outputs take a unique ID as their first argument[^basic-ui-2]: if your UI specification creates an output with ID `"plot"`, you'll access it in the server function with `output$plot`.
+
+[^basic-ui-2]: Note that the name of that argument is different for inputs (`inputId`) and outputs (`outputId`).
+    I don't use the name of the first argument because it's so important and I expect you to remember what it does without an additional hint.
 
 Each `output` function on the front end is coupled with a `render` function in the back end.
 There are three main types of output, corresponding to the three things you usually include in a report: text, tables, and plots.
@@ -340,9 +348,9 @@ demo <- demoApp$new("basic-ui/output-text", ui, server)
 demo$takeScreenshot()
 ```
 
-Note that the `{}` are not required in render functions, unless you need to run multiple lines of code.
-You could also write the server function more compactly.
-I think this is generally good style as you should do as little computation in your render functions as possible.
+Note that the `{}` are only required in render functions if need to run multiple lines of code.
+As you'll learn shortly, you should do as little computation in your render functions as possible, which means you can often omit them.
+Here's what the server function above would look like if written more compactly::
 
 ```{r}
 server <- function(input, output, session) {
@@ -351,16 +359,27 @@ server <- function(input, output, session) {
 }
 ```
 
-Note that there are two render functions that can be used with either of the text outputs:
+Note that there are two render functions which behave slightly differently:
 
--   `renderText()` combines the result into a single string.
--   `renderPrint()` *prints* the result.
+-   `renderText()` combines the result into a single string, and is usually paired with `textOutput()`
+-   `renderPrint()` *prints* the result, as if you were in an R console, and is usually paired with `verbatimTextOutput()`.
 
-We can see the difference by taking advantage of a hidden feature of the render functions:
+We can see the difference with a toy app:
 
 ```{r}
-renderText("foo")()
-renderPrint("foo")()
+ui <- fluidPage(
+  textOutput("text"),
+  verbatimTextOutput("print")
+)
+server <- function(input, output, session) {
+  output$text <- renderText("hello!")
+  output$print <- renderPrint("hello!")
+}
+```
+
+```{r, echo = FALSE, out.width = NULL, message = FALSE}
+demo <- demoApp$new("basic-ui/text-vs-print", ui, server)
+demo$takeScreenshot()
 ```
 
 This is equivalent to the difference between `cat()` and `print()` in base R.
@@ -417,7 +436,7 @@ We recommend always setting `res = 96` as that will make your Shiny plots match 
 
 Plots are special because they are outputs that can also act as inputs.
 `plotOutput()` has a number of arguments like `click`, `dblclick`, and `hover`.
-If you pass these a string, like `click = "plot_click"`, they'll create a reactive input (`input$plot_click`) that you can use to handle user interaction on the plot.
+If you pass these a string, like `click = "plot_click"`, they'll create a reactive input (`input$plot_click`) that you can use to handle user interaction on the plot, e.g. clicking on the plot.
 We'll come back to interactive plots in Shiny in Chapter \@ref(action-graphics).
 
 ### Downloads
@@ -441,16 +460,17 @@ These require new techniques in the server function, so we'll come back to that 
     }
     ```
 
+3.  Convert the above app to use [reactable](https://glin.github.io/reactable).
+
 ## Layouts {#layout}
 
 Now that you know how to create a full range of inputs and outputs, you need to be able to arrange them on the page.
 That's the job of the layout functions, which provide the high-level visual structure of an app.
 Here we'll focus on `fluidPage()`, which provides the layout style used by most apps.
-In future chapters you'll learn about other layout families like dashboards and dialog boxes.
 
 ### Overview
 
-Layouts are created by a hierarchy of function calls, where the hierarchy in R matches the hierarchy in the output.
+Layouts are created by a hierarchy of function calls, where the hierarchy in R matches the hierarchy in the generated HTML.
 When you see complex layout code like this:
 
 ```{r, eval = FALSE}
@@ -499,16 +519,13 @@ knitr::include_graphics("images/basic-app/fluid-page.png", dpi = 300)
 
 It looks very boring because there's no content, but behind the scenes, `fluidPage()` is doing a lot of work.
 The page function sets up all the HTML, CSS, and JS that Shiny needs.
-`fluidPage()` uses a layout system called **Bootstrap**, <https://getbootstrap.com>, that provides attractive defaults[^basic-ui-2].
-Later on, in Chapter XYZ, we'll talk about how you can use a little knowledge of Bootstrap to gain greater control of the visual appearance of your app in order to make your app look more polished or match your corporate style guide.
+`fluidPage()` uses a layout system called **Bootstrap**, <https://getbootstrap.com>, that provides attractive defaults[^basic-ui-3].
 
-[^basic-ui-2]: Currently Shiny uses Bootstrap 3.3.7, <https://getbootstrap.com/docs/3.3/>, but the Shiny team is planning to update to 4.0.0, the latest version, in the near future.
+[^basic-ui-3]: Currently Shiny uses Bootstrap 3.3.7, <https://getbootstrap.com/docs/3.3/>, but the Shiny team is planning to update to 4.0.0, the latest version, in the near future.
 
 Technically, `fluidPage()` is all you need for an app, because you can put inputs and outputs directly inside of it.
 But while this is fine for learning the basics of Shiny, dumping all the inputs and outputs in one place doesn't look very good, so you need to learn more layout functions.
 Here I'll introduce you to two common structures, a page with sidebar and a multirow app, and then we'll finish off with a quick discussion of themes.
-
-<!-- When to used fixedPage()? Probably most of the time, because it constrains the width. If you want you app to be full page, use fluidPage() -->
 
 ### Page with sidebar
 
@@ -663,9 +680,9 @@ Exercise ideas
 
 In the previous example you might have been surprised to see that I create a Shiny app using a function, `theme_demo()`.
 This works because Shiny code **is** R code, and you can use all of your existing tools for reducing duplication.
-Remember the rule of three: if you copy and paste code more than three times, you should consider writing a function or using a for loop[^basic-ui-3].
+Remember the rule of three: if you copy and paste code more than three times, you should consider writing a function or using a for loop[^basic-ui-4].
 
-[^basic-ui-3]: Or using `lapply()` or `purrr::map()` if you know a little about functional programming.
+[^basic-ui-4]: Or using `lapply()` or `purrr::map()` if you know a little about functional programming.
 
 All input, output, and layout functions return HTML, the descriptive language that underpins every website.
 You can see that HTML by executing UI functions directly in the console:
@@ -688,6 +705,23 @@ fluidPage(
 Shiny is designed so that, as an R user, you don't need to learn about the details of HTML.
 However, if you already know HTML (or want to learn!) you can also work directly with HTML tags to achieve any level of customization you want.
 And these approaches are by no means exclusive: you can mix high-level functions with low-level HTML as much as you like.
+
+## Other tools
+
+Here I have focussed on the UI functions built into Shiny itself.
+However, there is a rich and vibrant developer community building extension packages.
+These include packages like [shinyWidgets](https://github.com/dreamRs/shinyWidgets), by [dreamRs](https://www.dreamrs.fr), that provides a collection of handy widgets.
+But other packages expose complete different design systems:
+
+-   [shiny.semantic](https://appsilon.github.io/shiny.semantic/), by [Appsilon](https://appsilon.com/), builds on top of [formantic UI](https://fomantic-ui.com).
+
+-   [shinyMobile](https://github.com/RinteRface/shinyMobile), by [RInterface](https://rinterface.com), builds on top of [framework 7](https://framework7.io), and is specifically designed for mobile apps.
+
+-   [shinymaterial](https://ericrayanderson.github.io/shinymaterial/), by [Eric Anderson](https://github.com/ericrayanderson), is built on top of Google's [Material design](https://material.io/design) framework.
+
+-   [shinydashboard](https://rstudio.github.io/shinydashboard/), also by RStudio, provides a layout system designed to create dashboards.
+
+You can find fuller, and up-to-date, list maintained by [Nan Xiao](https://nanx.me/) at [<https://github.com/nanxstats/awesome-shiny-extensions>](https://github.com/nanxstats/awesome-shiny-extensions){.uri}.
 
 ## Summary
 
