@@ -76,10 +76,11 @@ server <- function(input, output, session) {
   #>>
 
   #<< narrative-server
-  output$narrative <- renderText({
-    input$story
+  narrative_sample <- eventReactive(
+    list(input$story, selected()),
     selected() %>% pull(narrative) %>% sample(1)
-  })
+  )
+  output$narrative <- renderText(narrative_sample())
   #>>
 }
 

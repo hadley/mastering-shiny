@@ -43,7 +43,7 @@ It's an interesting dataset to explore because every one is already familiar wit
 You can find out more about this dataset at <https://github.com/hadley/neiss>.
 
 In this chapter, I'm going to focus on just the data from 2017.
-This keeps the data small enough (\~10 meg) that it's easy to store in git (along with the rest of the book), which means we don't need to think about sophisticated strategies for importing the data quickly (we'll come back to those later in the book).
+This keeps the data small enough (\~10 MB) that it's easy to store in git (along with the rest of the book), which means we don't need to think about sophisticated strategies for importing the data quickly (we'll come back to those later in the book).
 You can see the code I used to create the extract for this chapter at <https://github.com/hadley/mastering-shiny/blob/master/neiss/data.R>.
 
 The main dataset we'll use is `injuries`, which contains around 250,000 observations:
@@ -185,7 +185,7 @@ Here I decided to have one row for the inputs (accepting that I'm probably going
 Note the use of `setNames()` in the `selectInput()` `choices`: this shows the product name in the UI and returns the product code to the server.
 
 The server function is relatively straightforward.
-I first convert the `selected` and `summary` variables (defined above) to reactive expressions.
+I first convert the `selected` and `summary` variables created in the previous section to reactive expressions.
 This is a reasonable general pattern: you create variables in your data analysis to decompose the analysis into steps, and to avoid recomputing things multiple times, and reactive expressions play the same role in Shiny apps.
 
 Often it's a good idea to spend a little time cleaning up your analysis code before you start your Shiny app, so you can think about these problems in regular R code, before you add the additional complexity of reactivity.
@@ -218,7 +218,8 @@ injuries %>%
 ```
 
 Because I knew how to do it, I wrote a little function to automate this for any variable.
-The details aren't really important here; and don't worry if this looks totally foreign: you could also solve the problem via copy and paste.
+The details aren't really important here, but we'll come back to them in Chapter \@ref(action-tidy).
+You could also solve the problem with copy and paste, so don't worry if the code looks totally foreign.
 
 ```{r, code = section_get("neiss/polish-tables.R", "count_top")}
 ```
@@ -273,8 +274,7 @@ I use an action button to trigger a new story, and put the narrative in a `textO
 ```{r, code = section_get("neiss/narrative.R", "narrative-ui"), eval = FALSE}
 ```
 
-The result of an action button is an integer that increments each time it's clicked.
-Here I just use it to trigger a re-execution of the random selection:
+I then use `eventReactive()` to create a reactive that only updates when the button is clicked or the underlying data changes.
 
 ```{r, code = section_get("neiss/narrative.R", "narrative-server"), eval = FALSE}
 ```

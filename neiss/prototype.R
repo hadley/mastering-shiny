@@ -9,10 +9,12 @@ if (!exists("injuries")) {
 }
 
 #<< ui
+prod_codes <- setNames(products$prod_code, products$title)
+
 ui <- fluidPage(
   fluidRow(
     column(6,
-      selectInput("code", "Product", setNames(products$prod_code, products$title))
+      selectInput("code", "Product", choices = prod_codes)
     )
   ),
   fluidRow(
