@@ -34,7 +34,7 @@ People use Shiny to:
 -   Communicate complex models to a non-technical audience with informative visualisations and interactive sensitivity analysis.
 
 -   Provide self-service data analysis for common workflows, replacing email requests with a Shiny app that allows people to upload their own data and perform standard analyses.
-    You can make sophistic R analyses available to users with with no programming skills.
+    You can make sophistic R analyses available to users with no programming skills.
 
 -   Create interactive demos for teaching statistics and data science concepts that allow learners to tweak inputs and observe the downstream effects of those changes in an analysis.
 
