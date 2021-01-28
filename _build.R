@@ -13,14 +13,17 @@ chapters <- setdiff(yaml::read_yaml("_bookdown.yml")$rmd_files, "index.Rmd")
 format <- rmarkdown::md_document(variant = "markdown-fenced_code_attributes-raw_attribute", ext = ".asciidoc")
 format$pandoc$args <- c(format$pandoc$args, "--wrap=none")
 
-
-# TODO: use callr::r() to run in clean session
-chapters[[3]] %>% walk(
-  rmarkdown::render,
-  format,
-  output_dir = "_oreilly",
-  quiet = TRUE
+render_clean <- function(path, ...) {
+  message("Rendering ", path)
+  callr::r(function(...) rmarkdown::render(...), list(path, ...), spinner = TRUE)
+}
+chapters %>% walk(
+  render_clean,
+  output_format = format,
+  output_dir = "_oreilly"
 )
+
+# Convert from md to asciidoc ---------------------------------------------
 
 regexp <- googlesheets4::read_sheet("1b3j_fgnN19uvIG7XhSS7zepBTZO5vhbuEOXB5a_oT4Q")
 regexp$Pattern <- gsub("\\\\n", "\n", regexp$Pattern)
