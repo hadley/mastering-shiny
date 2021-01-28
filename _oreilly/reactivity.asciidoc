@@ -1,2 +1,2 @@
-[[part-mastering-reactivity .unnumbered]]
-== (PART\*) Mastering reactivity 
+[part]
+==  Mastering reactivity

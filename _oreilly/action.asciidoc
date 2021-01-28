@@ -1,2 +1,2 @@
-[[part-shiny-in-action .unnumbered]]
-== (PART\*) Shiny in action 
+[part]
+==  Shiny in action

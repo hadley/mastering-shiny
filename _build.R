@@ -3,6 +3,8 @@ library(tidyverse)
 library(fs)
 
 chapters <- setdiff(yaml::read_yaml("_bookdown.yml")$rmd_files, "index.Rmd")
+chapters_md <- path("_oreilly", path_ext_set(chapters, ".md"))
+names(chapters_md) <- path_ext_remove(path_file(chapters_md))
 
 # Build book --------------------------------------------------------------
 
@@ -22,15 +24,23 @@ chapters %>% walk(
 )
 
 # Convert from md to asciidoc ---------------------------------------------
-replace_lines <- function(file, pattern, replacement) {
-  str_replace_all(file, regex(pattern, multiline = TRUE), replacement)
+
+replace_lines <- function(file, pattern, replacement, comments = FALSE) {
+  str_replace_all(file, regex(pattern, multiline = TRUE, comments = comments), replacement)
 }
 
 # Regular expressions mostly contributed by Nicholas Adams, O'Reilly
-md2asciidoc <- function(path) {
-  file <- read_file(path)
-
+md2asciidoc <- function(file) {
   # Headings with and without ids
+  file <- replace_lines(file, r"(
+    ^\#\ \(PART\\\*\) # standard part marker
+    (.*?)\            # title
+    \{\#
+      ([-a-zA-Z]+)         # id
+      (\ .unnumbered)?
+    \}
+    )", "[part]\n== \\1", comments = TRUE)
+  file <- replace_lines(file, '(^# )(.*?)(\\{#)(.*?)(\\})', '[[\\4]]\n== \\2')     # Chapter heading with ID
   file <- replace_lines(file, '(^# )(.*?)(\\{#)(.*?)(\\})', '[[\\4]]\n== \\2')     # Chapter heading with ID
   file <- replace_lines(file, '(^## )(.*?)(\\{#)(.*?)(\\})', '[[\\4]]\n=== \\2')   # A-Head with ID
   file <- replace_lines(file, '(^## )(.*?)', '=== \\2')                            # A-Head no ID
@@ -55,15 +65,12 @@ md2asciidoc <- function(path) {
   file <- replace_lines(file, '(<https:)(.*?)(>)', 'https:\\2[]') # Links
   file <- replace_lines(file, '(\\[.*?\\])(\\()(https?:)(.*?)(\\))', '\\3\\4\\1') # Links with anchor text
   file <- replace_lines(file, '(\\[\\^.*?\\])((.|\n)*?)(\\1: )(.*?)(\n)', 'footnote:[\\5]\\2') # Footnotes
-
-  write_file(file, path_ext_set(path, ".asciidoc"))
+  file
 }
 
-path_ext_set(chapters, ".md") %>%
-  path("_oreilly", .) %>%
-  walk(md2asciidoc)
+asciidoc <- chapters_md %>% map(~ md2asciidoc(read_file(.)))
 
-# parts - ([[unique_part_id]]\n[part])
+walk2(asciidoc, path_ext_set(chapters_md, ".asciidoc"), write_file)
 
 # Copy additional resources -----------------------------------------------
 

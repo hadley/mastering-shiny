@@ -1,2 +1,2 @@
-[[part-best-practices .unnumbered]]
-== (PART\*) Best practices 
+[part]
+==  Best practices

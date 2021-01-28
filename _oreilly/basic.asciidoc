@@ -1,2 +1,2 @@
-[[part-getting-started .unnumbered]]
-== (PART\*) Getting started 
+[part]
+==  Getting started
