@@ -1,4 +1,3 @@
-# https://atlas.oreilly.com/oreillymedia/mastering-shiny
 library(tidyverse)
 library(fs)
 
@@ -81,3 +80,9 @@ dir_copy("diagrams", "_oreilly")
 file_delete(dir_ls("_oreilly/diagrams", recurse = T, glob = "*.graffle"))
 
 dir_copy("images", "_oreilly")
+
+
+# Copy everything into O'Reilly git repo ----------------------------------
+# https://atlas.oreilly.com/oreillymedia/mastering-shiny
+
+system("cp -r _oreilly/* ../oreilly")
