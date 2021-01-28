@@ -41,23 +41,24 @@ You'll likely quickly get sick of typing that code in, so RStudio provides a cou
 
 -   If you already have your future `app.R` open, type `shinyapp` then press `Shift` + `Tab` to insert the Shiny app snippet.[^action-workflow-1]
 
--   If you want to start a new project[^action-workflow-2], go to the File menu, select "New Project" then select "Shiny Web Application":
-
-    ```{r, echo = FALSE, out.width = NULL}
-    knitr::include_graphics("images/action-workflow/new-project.png", dpi = 300)
-    ```
+-   If you want to start a new project[^action-workflow-2], go to the File menu, select "New Project" then select "Shiny Web Application", as in Figure \@ref(fig:new-project).
 
 [^action-workflow-1]: Snippets are text macros that you can use to insert common code fragments.
     See <https://support.rstudio.com/hc/en-us/articles/204463668-Code-Snippets> for more details.
+    If you enjoy using snippets, make sure to check the collection of Shiny specific snippets put together by ThinkR: <https://github.com/ThinkR-open/shinysnippets>.
 
 [^action-workflow-2]: A project is a self-contained directory that is isolated from the other projects that you're working on.
     If you use RStudio, but don't currently use projects, I highly recommend reading about the [project oriented lifestyle](https://whattheyforgot.org/project-oriented-workflow.html).
+
+```{r new-project, echo = FALSE, out.width = NULL, fig.cap = "To create a new Shiny app within RStudio, choose 'Shiny Web Application' as project type"}
+knitr::include_graphics("images/action-workflow/new-project.png", dpi = 300)
+```
 
 You might think it's not worthwhile to learn these shortcuts because you'll only create an app or two a day, but creating simple apps is a great way to check that you have the basic concepts down before you start on a bigger project, and they're a great tool for debugging.
 
 ### Seeing your changes
 
-You'll *create* a few apps a day, but you'll *run* apps hundreds of times, so mastering the development workflow is particularly important.
+At most, you'll *create* a few apps a day, but you'll *run* apps hundreds of times, so mastering the development workflow is particularly important.
 The first way to reduce your iteration time is to avoid clicking on the "Run App" button, and instead learn the keyboard shortcut `Cmd/Ctrl` + `Shift` + `Enter`.
 This gives you the following development workflow:
 
@@ -67,7 +68,7 @@ This gives you the following development workflow:
 4.  Close the app.
 5.  Go to 1.
 
-Another way to increase your iteration speed still further is to turn autoreload on (`options(shiny.autoreload = TRUE)`) and then run the app in a background job, as described in <https://github.com/sol-eng/background-jobs/tree/master/shiny-job>.
+Another way to increase your iteration speed still further is to turn autoreload on and run the app in a background job, as described in <https://github.com/sol-eng/background-jobs/tree/master/shiny-job>.
 With this workflow as soon as you save a file, your app will relaunch: no need to close and restart.
 This leads to an even faster workflow:
 
@@ -75,7 +76,7 @@ This leads to an even faster workflow:
 2.  Interactively experiment.
 3.  Go to 1.
 
-The chief disadvantage of this technique is that because the app is running in a separate process, it's considerably harder to debug.
+The chief disadvantage of this technique is that it's considerably harder to debug because the app is running in a separate process.
 
 As your app gets bigger and bigger, you'll find that the "interactively experiment" step starts to become onerous.
 It's too hard to remember to re-check every component of your app that you might have affected with your changes.
@@ -86,17 +87,17 @@ It requires some initial investment to develop the tests, but the investment pay
 ### Controlling the view
 
 By default, when you run the app, it will appear in a pop-out window.
-There are two other options that you can choose from the Run App drop down:
-
-```{r, echo = FALSE, out.width = NULL}
-knitr::include_graphics("images/action-workflow/run-app.png", dpi = 300)
-```
+There are two other options that you can choose from the Run App drop down, as shown in Figure \@ref(fig:run-app):
 
 -   **Run in Viewer Pane** opens the app in the viewer pane (usually located on the right hand side of the IDE).
     It's useful for smaller apps because you can see it at the same time as you run your app code.
 
 -   **Run External** opens the app in your usual web browser.
     It's useful for larger apps and when you want to see what your app looks like in the context that most users will experience it.
+
+```{r run-app, echo = FALSE, out.width = NULL, fig.cap = "The run app button allows you to choose how the running app will be shown."}
+knitr::include_graphics("images/action-workflow/run-app.png", dpi = 300)
+```
 
 ## Debugging
 
@@ -131,7 +132,7 @@ This is a technique that I use every day.
 
 ### Reading tracebacks
 
-Every error is accompanied by a traceback, or call stack, which literally traces back through the sequence of calls that lead to the error.
+In R, every error is accompanied by a **traceback**, or call stack, which literally traces back through the sequence of calls that lead to the error.
 For example, take this simple sequence of calls: `f()` calls `g()` calls `h()` which calls the multiplication operator:
 
 ```{r}
@@ -146,21 +147,35 @@ If this code errors, as below:
 f("a")
 ```
 
-The call stack is the sequence of calls that lead to the problem:
+You can call `traceback()` to find the sequence of calls that to the problem:
+
+```{r, eval = FALSE}
+traceback()
+#> 3: h(x)
+#> 2: g(x)
+#> 1: f("a")
+```
+
+I think it's easiest to understand the traceback by flipping it upside down:
 
     1: f("a")
     2: g(x)
     3: h(x)
 
-You might already be familiar with `traceback()`.
-You can run this function interactively to see the sequence of calls that lead to an error, *after* the error has occurred.
-Unfortunately, you can't use this function in Shiny because you can't interactively run code while an app is running.
-Instead, Shiny will automatically print the traceback for you.
+This now tells you the sequence of calls that lead to the error --- `f()` called `g()` called `h()` (which errors).
 
-For example, take this simple app that uses the `f()` function I defined above:
+### Tracebacks in Shiny
+
+Unfortunately, you can't use `traceback()` in Shiny because you can't run code while an app is running.
+Instead, Shiny will automatically print the traceback for you.
+For example, take this simple app using the `f()` function I defined above:
 
 ```{r, eval = FALSE}
 library(shiny)
+
+f <- function(x) g(x)
+g <- function(x) h(x)
+h <- function(x) x * 2
 
 ui <- fluidPage(
   selectInput("n", "N", 1:10),
@@ -177,64 +192,60 @@ shinyApp(ui, server)
 
 If you run this app, you'll see an error message in the app, and a traceback in the console:
 
-    Warning: Error in *: non-numeric argument to binary operator
-      173: g [~/.active-rstudio-document#4]
-      172: f [~/.active-rstudio-document#3]
-      171: renderPlot [~/.active-rstudio-document#13]
-      169: func
-      129: drawPlot
-      115: <reactive:plotObj>
-       99: drawReactive
-       86: origRenderFunc
-       85: output$plot
-        5: runApp
-        3: print.shiny.appobj
-        1: source
+    Error in *: non-numeric argument to binary operator
+      169: g [app.R#4]
+      168: f [app.R#3]
+      167: renderPlot [app.R#13]
+      165: func
+      125: drawPlot
+      111: <reactive:plotObj>
+       95: drawReactive
+       82: renderFunc
+       81: output$plot
+        1: runApp
 
-To understand what's going on, I think it's easier to first flip it upside down, so you can see the sequence of calls in the order they appear:
+To understand what's going on we again start by flipping it upside down, so you can see the sequence of calls in the order they appear:
 
-    Warning: Error in *: non-numeric argument to binary operator
-        1: source
-        3: print.shiny.appobj
-        5: runApp
-       85: output$plot
-       86: origRenderFunc
-       99: drawReactive
-      115: <reactive:plotObj>
-      129: drawPlot
-      169: func
-      171: renderPlot [sample.R#13]
-      172: f [sample.R#3]
-      173: g [sample.R#4]
+    Error in *: non-numeric argument to binary operator
+       1: runApp
+      81: output$plot
+      82: renderFunc
+      95: drawReactive
+     111: <reactive:plotObj>
+     125: drawPlot
+     165: func
+     167: renderPlot [app.R#13]
+     168: f [app.R#3]
+     169: g [app.R#4]
 
 There are three basic parts to the call stack:
 
--   The first few calls start the app:
+-   The first few calls start the app in this case you just see `runApp()` but depending on how you start the app, you might see something more complicated.
+    For example, if you called `source()` to run the app, you might see this:
 
         1: source
         3: print.shiny.appobj
         5: runApp
 
-    Here the file is `source()`d, then `print.shiny.appobj()` calls `runApp()` to start the app.
     In general, you can ignore anything before the first `runApp()`; this is just the setup code to get the app running.
 
 -   Next, you'll see some internal Shiny code in charge of calling the reactive expression:
 
-         85: output$plot
-         86: origRenderFunc
-         99: drawReactive
-        115: <reactive:plotObj>
-        129: drawPlot
-        169: func
+         81: output$plot
+         82: renderFunc
+         95: drawReactive
+        111: <reactive:plotObj>
+        125: drawPlot
+        165: func
 
     Here, spotting `output$plot` is really important --- that tells which of your reactives (`plot`) is causing the error.
     The next few functions are internal, and you can ignore them.
 
 -   Finally, at the very bottom, you'll see the code that you have written:
 
-        171: renderPlot [sample.R#13]
-        172: f [sample.R#3]
-        173: g [sample.R#4]
+        167: renderPlot [app.R#13]
+        168: f [app.R#3]
+        169: g [app.R#4]
 
     This is the code called inside of `renderPlot()`.
     You can tell you should pay attention here because of the file path and line number; this lets you know that it's your code.
@@ -250,10 +261,16 @@ There are two ways to launch the debugger:
 
 -   Add a call to `browser()` in your source code.
     This is the standard R way of lauching the interactive debugger, and will work however you're running Shiny.
-    The other advantage of `browser()` is that because it's R code, you can make it conditional by combining it with an `if` statement:
+
+    The other advantage of `browser()` is that because it's R code, you can make it conditional by combining it with an `if` statement.
+    This allows you to launch the debugger only for problematic inputs.
 
     ```{r, eval = FALSE}
-    if (input$debug) {
+    if (input$value == "a") {
+      browser()
+    }
+    # Or maybe
+    if (my_reactive() < 0) {
       browser()
     }
     ```
@@ -267,26 +284,27 @@ There are two ways to launch the debugger:
 
     The advantage of breakpoints is that they're not code, so you never have to worry about accidentally checking them into your version control system.
 
-If you're using RStudio, the toolbar in Figure \@ref(fig:debug-toolbar) will appear when you're in the debugger.
+If you're using RStudio, the toolbar in Figure \@ref(fig:debug-toolbar) will appear at the top of the console when you're in the debugger.
 The toolbar is an easy way to remember the debugging commands that are now available to you.
 They're also available outside of RStudio; you'll just need to remember the one letter command to activate them.
 The three most useful commands are:
 
--   Next, `n`: executes the next step in the function.
+-   Next (press `n`): executes the next step in the function.
     Note that if you have a variable named `n`, you'll need to use `print(n)` to display its value.
 
--   Continue, `c`: leaves interactive debugging and continues regular execution of the function.
+-   Continue (press `c`): leaves interactive debugging and continues regular execution of the function.
     This is useful if you've fixed the bad state and want to check that the function proceeds correctly.
 
--   Stop, `Q`: stops debugging, terminates the function, and returns to the global workspace.
+-   Stop (press `Q`): stops debugging, terminates the function, and returns to the global workspace.
     Use this once you've figured out where the problem is, and you're ready to fix it and reload the code.
 
 ```{r debug-toolbar, echo = FALSE, out.width = "50%", fig.cap = "RStudio's debugging toolbar"}
 knitr::include_graphics("images/action-workflow/debug-toolbar.png")
 ```
 
-As well as stepping through the code line-by-line using these tools, you'll also run a *bunch* of interactive code to understand why you're seeing the error you see.
+As well as stepping through the code line-by-line using these tools, you'll also write and run a *bunch* of interactive code to track down what's going wrong.
 Debugging is the process of systematically comparing your expectations to reality until you find the mismatch.
+If you're new to debugging in R, you might want to read the [Debugging chapter](https://adv-r.hadley.nz/debugging.html#debugging-strategy) of "Advanced R" to learn some general techniques.
 
 ### Case study
 
@@ -327,6 +345,7 @@ server <- function(input, output, session) {
 ```
 
 I thought, *it's an eight line app, what could possibly go wrong?* Well, when I opened the app up I saw a **lot** of missing values, no matter what territory I selected.
+The code most likely to be the source of the problem was the reactive that selected the data to show: `sales[sales$TERRITORY == input$territory, ]`.
 So stopped the app, and quickly verified that subsetting worked the way I thought it did:
 
 ```{r}
@@ -334,17 +353,14 @@ sales[sales$TERRITORY == "EMEA", ]
 ```
 
 Ooops!
-I'd forgotten that `territory` contained a bunch of missing values and `NA == NA` returns `NA`.
-I quickly brainstormed a few possible solutions.
-I could:
+I'd forgotten that `TERRITORY` contained a bunch of missing values which means that `sales$TERRITORY == "EMEA"` would contain a bunch of missing values:
 
--   Use `subset()` or `dplyr::filter()` which automatically drop rows where the condition evaluates to `NA`, e.g. `subset(sales, TERRITORY == "EMEA")`.
--   Explicitly select out missing values, `sales[!is.na(sales$TERRITORY) & sales$TERRITORY == "EMEA", ]`.
--   Use `which()` to convert the logical vector to an integer vector of `TRUE` locations, which drops `NA`s as side-effect.
--   Use `%in%` instead `==` because`NA %in% NA` returns `TRUE`, i.e. `sales[sales$TERRITORY %in% "EMEA", ]`.
+```{r}
+head(sales$TERRITORY == "EMEA", 25)
+```
 
-I decided to use the first form[^action-workflow-3] because I think it's the most explicit, and has the pleasant side-effect of reducing the duplication in my code.
-I then double-checked that this had the result I expected:
+These missing values become missing rows when I use them to subset the `sales` data frame with `[` any missing values in input will be preserved in the output.
+There are lots of way to resolve this problem but I decided to use `subset()`[^action-workflow-3] because automatically removes missing values and reduces the number of times I need to type `sales`. I then double checked this actually worked:
 
 [^action-workflow-3]: I'm using `subset()` so that my app doesn't require any other packages.
     In a bigger app, I'd probably prefer `dplyr::filter()` just because I'm a little more familiar with its behaviour.
@@ -360,10 +376,16 @@ So again, I checked on the console:
 subset(sales, TERRITORY == NA)
 ```
 
-And then I remembered, of course this won't work, because of the `NA` problem I already thought about --- I had forgotten that the `NA` might also appear on the right-hand side.
-Fortunately, one of the techniques that I'd already brainstormed came to the rescue:
+And then I remembered that of course this won't work because missing values are infectious:
 
 ```{r}
+head(sales$TERRITORY == NA, 25)
+```
+
+There's another trick you can use to resolve this problem: switch from `==` to `%in%`:
+
+```{r}
+head(sales$TERRITORY %in% NA, 25)
 subset(sales, TERRITORY %in% NA)
 ```
 
@@ -371,7 +393,7 @@ So I updated the app and tried again.
 It still didn't work!
 When I selected "NA" in the drop down, I didn't see any rows.
 
-At this point, I figured I'd done everything I could on the console, and I needed to perform an experiment to figure out why the code inside of Shiny was behaving differently to my expectations.
+At this point, I figured I'd done everything I could on the console, and I needed to perform an experiment to figure out why the code inside of Shiny was working the way I expected.
 I guessed that the most likely source of the problem would be in the `selected` reactive, so I added a `browser()` statement there.
 (This made it a two-line reactive, so I also needed to wrap it in `{}`.)
 
@@ -386,16 +408,15 @@ server <- function(input, output, session) {
 ```
 
 Now when my app ran, I was immediately dumped into an interactive console.
-Luckily the default value in the select input was `NA` so I could immediately dive in to the problem.
-If that wasn't the case, I would have used `c` to continue execution, and then interacted with the app to get it into the state I needed.
+My first step was to verify that I was in the problematic situation so I ran `subset(sales, TERRITORY %in% input$territory)`.
+It returned an empty data frame, so I knew I was where I needed to be.
+If I hadn't seen the problem, I would have typed `c` to let the app continuing running, then interacted with some more in order it to get to the failing state.
 
-Then, to check I'd put the `browser()` in the right place, I ran `subset(sales, TERRITORY %in% input$territory)`.
-Indeed, it returned an empty data frame, so I could proceed to the next step.
-
-I then checked that the `sales` dataset looked like I expected.
-I didn't really expect it to be corrupted, since nothing in the app touches it, but best to be certain before continuing.
-`sales` looked ok, so it must be something to do with the selection condition.
-So I then looked at `input$territory`:
+I then checked that inputs to `subset()` were as I expected.
+I first double-check that that the `sales` dataset looked ok.
+I didn't really expect it to be corrupted, since nothing in the app touches it, but it's safest to carefully check every assumption that you're making.
+`sales` looked ok, so the problem must be in `TERRITORY %in% input$territory`.
+Since `TERRITORY` is part of `sales`, I started by inspecting `input$territory`:
 
 ```{r, eval = FALSE}
 input$territory
@@ -441,7 +462,9 @@ sales <- readr::read_csv("sales-dashboard/sales_data_sample.csv", na = "")
 unique(sales$TERRITORY)
 ```
 
-I think this is a pretty common pattern when it comes to debugging: you often need to peel back multiple layers of the onion before you fully understand the source of the issue.
+That made life much simpler!
+
+This is a common pattern when it comes to debugging: you often need to peel back multiple layers of the onion before you fully understand the source of the issue.
 
 ### Debugging reactivity
 
@@ -495,6 +518,20 @@ server <- function(input, output, session) {
   })
 }
 ```
+
+When I start the app, the console shows:
+
+    Updating y from 2 to 2
+    New total is 6
+
+And if I drag the `x` slider to `3` I see
+
+    Updating y from 2 to 6
+    New total is 8
+    New total is 12
+
+Don't worry if you find the results a little surprising.
+You'll learn more about what's going on in Chapter \@ref(action-feedback) and Chapter \@ref(the-reactive-graph).
 
 ## Getting help
 
@@ -575,6 +612,9 @@ There are three useful patterns:
 If reading data from disk seems to be an irreducible part of the problem, a strategy of last resort is to provide a complete project containing both an `app.R` and the needed data files.
 The best way to provide this is as a RStudio project hosted on GitHub, but failing that, you can carefully make a zip file that can be run locally.
 Make sure that you use relative paths (i.e. `read.csv("my-data.csv"`) not `read.csv("c:\\my-user-name\\files\\my-data.csv")`) so that your code still works when run on a different computer.
+
+You should also consider the reader and spend some formatting your code so that it's easy to read.
+If you adopt the [tidyverse style guide](http://style.tidyverse.org/), you can automatically reformat your code using the [styler](http://styler.r-lib.org) package; that quickly gets your code to a place that's easier to read.
 
 ### Making a minimal reprex
 
@@ -755,7 +795,7 @@ This is fairly typical outcome from creating a reprex: once you've simplified th
 Creating a good reprex is an incredibly powerful debugging technique.
 
 To simplify this reprex, I had to do a bunch of experimenting and reading up on functions that I wasn't very familiar with[^action-workflow-5].
-This is typically much easier if it's your own code, because you already understand what all the parts do.
+It's typically much easier to do this if it's your reprex, because you already understand the intent of the code.
 Still, you'll often need to do a bunch of experimentation to figure out where exactly the problem is coming from.
 That can be frustrating and feel time consuming, but it has a number of benefits:
 
@@ -766,6 +806,9 @@ That can be frustrating and feel time consuming, but it has a number of benefits
 -   You will build up a better mental model of how your code works, which means that you're less likely to make the same or similar mistakes in the future.
 
 -   Over time, you'll get faster and faster at creating reprexes, and this will become one of your go to techniques when debugging.
+
+-   Even if you don't create a perfect reprex, any work you can do to improve your reprex is less work for someone else to do.
+    This is particularly important if you're trying to get help from package developers because they usually have many demands on their time.
 
 When I try to help someone with their app on [RStudio community](https://community.rstudio.com/tag/shiny), creating a reprex is always the first thing I do.
 This isn't some make work exercise I use to fob off people I don't want to help: it's exactly where I start!
