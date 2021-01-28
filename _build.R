@@ -2,21 +2,19 @@
 library(tidyverse)
 library(fs)
 
-dir_delete("_oreilly")
-dir_create("_oreilly")
-Sys.setenv(CI = "true") # don't rebuild demos
-
 chapters <- setdiff(yaml::read_yaml("_bookdown.yml")$rmd_files, "index.Rmd")
 
 # Build book --------------------------------------------------------------
-
-format <- rmarkdown::md_document(variant = "markdown-fenced_code_attributes-raw_attribute", ext = ".asciidoc")
-format$pandoc$args <- c(format$pandoc$args, "--wrap=none")
 
 render_clean <- function(path, ...) {
   message("Rendering ", path)
   callr::r(function(...) rmarkdown::render(...), list(path, ...), spinner = TRUE)
 }
+
+format <- rmarkdown::md_document(variant = "markdown-fenced_code_attributes-raw_attribute")
+format$pandoc$args <- c(format$pandoc$args, "--wrap=none")
+
+Sys.setenv(CI = "true") # don't rebuild demos
 chapters %>% walk(
   render_clean,
   output_format = format,
@@ -24,31 +22,50 @@ chapters %>% walk(
 )
 
 # Convert from md to asciidoc ---------------------------------------------
-
-regexp <- googlesheets4::read_sheet("1b3j_fgnN19uvIG7XhSS7zepBTZO5vhbuEOXB5a_oT4Q")
-regexp$Pattern <- gsub("\\\\n", "\n", regexp$Pattern)
-regexp$Replacement <- gsub("\\\\n", "\n", regexp$Replacement)
-
-munge_file <- function(path) {
-  file <- read_file(path)
-
-  for (i in seq_len(nrow(regexp))) {
-    file <- str_replace_all(file, regex(regexp$Pattern[[i]], multiline = TRUE), regexp$Replacement[[i]])
-  }
-
-  write_file(file, path)
+replace_lines <- function(file, pattern, replacement) {
+  str_replace_all(file, regex(pattern, multiline = TRUE), replacement)
 }
 
-asciidoc <- dir_ls("_oreilly/", glob = "*.asciidoc")
-asciidoc %>% walk(munge_file)
+# Regular expressions mostly contributed by Nicholas Adams, O'Reilly
+md2asciidoc <- function(path) {
+  file <- read_file(path)
 
+  # Headings with and without ids
+  file <- replace_lines(file, '(^# )(.*?)(\\{#)(.*?)(\\})', '[[\\4]]\n== \\2')     # Chapter heading with ID
+  file <- replace_lines(file, '(^## )(.*?)(\\{#)(.*?)(\\})', '[[\\4]]\n=== \\2')   # A-Head with ID
+  file <- replace_lines(file, '(^## )(.*?)', '=== \\2')                            # A-Head no ID
+  file <- replace_lines(file, '(^### )(.*?)(\\{#)(.*?)(\\})', '[[\\4]]\n==== \\2') # B-Head with ID
+  file <- replace_lines(file, '(^### )(.*?)', '==== \\2')                          # B-Head no ID
 
-# indented code blocks - done
-# captions - done
+  # Code blocks
+  file <- replace_lines(file, '(^ *)(```)(.*?)(\n)((.|\n)*?)(```)', '\\1[source,\\3]\n\\1----\n\\5----')
+
+  # Figures
+  file <- replace_lines(file, '(<img src=")(.*?)(")(.*?)(/>)(\n)(<p class="caption">)\n(.*?)\n(</p>)', '.\\8\nimage::\\2["\\8"]')
+  file <- replace_lines(file, '(<img src=")(.*?)(")(.*?)(/>)', 'image::\\2[]')
+  file <- replace_lines(file, '(::: \\{.figure\\})((.|\n)*?)(:::)', '\\2') # Remove figures
+
+  # Cross refs
+  file <- replace_lines(file, '(Section )(\\\\@ref\\()(.*?)(\\))', '<<\\3>>') # Section
+  file <- replace_lines(file, '(Chapter )(\\\\@ref\\()(.*?)(\\))', '<<\\3>>') # Chapter
+  file <- replace_lines(file, '(Figure )(\\\\@ref\\()(fig:)(.*?)(\\))', '<<fig-\\4>>') # Figures
+
+  # Other formatting
+  file <- replace_lines(file, '(::: \\{.rmdnote\\})((.|\n)*?)(:::)', '****\\2****') # Sidebar
+  file <- replace_lines(file, '(<https:)(.*?)(>)', 'https:\\2[]') # Links
+  file <- replace_lines(file, '(\\[.*?\\])(\\()(https?:)(.*?)(\\))', '\\3\\4\\1') # Links with anchor text
+  file <- replace_lines(file, '(\\[\\^.*?\\])((.|\n)*?)(\\1: )(.*?)(\n)', 'footnote:[\\5]\\2') # Footnotes
+
+  write_file(file, path_ext_set(path, ".asciidoc"))
+}
+
+path_ext_set(chapters, ".md") %>%
+  path("_oreilly", .) %>%
+  walk(md2asciidoc)
+
 # parts - ([[unique_part_id]]\n[part])
 
 # Copy additional resources -----------------------------------------------
-library(dplyr)
 
 resources <- tibble(chapter = chapters) %>%
   rowwise(chapter) %>%
