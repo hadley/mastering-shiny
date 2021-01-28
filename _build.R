@@ -72,18 +72,12 @@ asciidoc <- chapters_md %>% map(~ md2asciidoc(read_file(.)))
 
 walk2(asciidoc, path_ext_set(chapters_md, ".asciidoc"), write_file)
 
-# Copy additional resources -----------------------------------------------
+# Copy over images ------------------------------------------------------------
 
-resources <- tibble(chapter = chapters) %>%
-  rowwise(chapter) %>%
-  summarise(rmarkdown::find_external_resources(chapter))
-
-paths <- resources %>% filter(web) %>% pull(path) %>% unique() %>% sort()
-dirs <- paths %>% path_dir() %>% unique()
-dir_create(path("_oreilly", dirs))
-file_copy(paths, path("_oreilly", paths))
-
-# Copy demos, since they're added dynamically
 dir_copy("demos", "_oreilly")
-rds <- dir_ls("_oreilly/demos", recurse = T, glob = "*.rds")
-file_delete(rds)
+file_delete(dir_ls("_oreilly/demos", recurse = T, glob = "*.rds"))
+
+dir_copy("diagrams", "_oreilly")
+file_delete(dir_ls("_oreilly/diagrams", recurse = T, glob = "*.graffle"))
+
+dir_copy("images", "_oreilly")
