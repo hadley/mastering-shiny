@@ -3,7 +3,9 @@
 
 === Introduction
 
-I've introduced you to a bunch of new concepts in the last three chapters. So to help them sink in, we'll now walk through a richer Shiny app that explores a fun dataset and pulls together many of the ideas that you've seen so far. We'll start by doing a little data analysis outside of Shiny, then turn it into an app, starting simply, then progressively layering on more detail.
+I've introduced you to a bunch of new concepts in the last three chapters.
+So to help them sink in, we'll now walk through a richer Shiny app that explores a fun dataset and pulls together many of the ideas that you've seen so far.
+We'll start by doing a little data analysis outside of Shiny, then turn it into an app, starting simply, then progressively layering on more detail.
 
 In this chapter, we'll supplement Shiny with vroom (for fast file reading) and the tidyverse (for general data analysis).
 
@@ -16,9 +18,14 @@ library(tidyverse)
 
 === The data
 
-We're going to explore data from the National Electronic Injury Surveillance System (NEISS), collected by the Consumer Product Safety Commission. This is a long-term study that records all accidents seen in a representative sample of hospitals in the United States. It's an interesting dataset to explore because every one is already familiar with the domain, and each observation is accompanied by a short narrative that explains how the accident occurred. You can find out more about this dataset at https://github.com/hadley/neiss[].
+We're going to explore data from the National Electronic Injury Surveillance System (NEISS), collected by the Consumer Product Safety Commission.
+This is a long-term study that records all accidents seen in a representative sample of hospitals in the United States.
+It's an interesting dataset to explore because every one is already familiar with the domain, and each observation is accompanied by a short narrative that explains how the accident occurred.
+You can find out more about this dataset at https://github.com/hadley/neiss[].
 
-In this chapter, I'm going to focus on just the data from 2017. This keeps the data small enough (\~10 MB) that it's easy to store in git (along with the rest of the book), which means we don't need to think about sophisticated strategies for importing the data quickly (we'll come back to those later in the book). You can see the code I used to create the extract for this chapter at https://github.com/hadley/mastering-shiny/blob/master/neiss/data.R[].
+In this chapter, I'm going to focus on just the data from 2017.
+This keeps the data small enough (\~10 MB) that it's easy to store in git (along with the rest of the book), which means we don't need to think about sophisticated strategies for importing the data quickly (we'll come back to those later in the book).
+You can see the code I used to create the extract for this chapter at https://github.com/hadley/mastering-shiny/blob/master/neiss/data.R[].
 
 The main dataset we'll use is `injuries`, which contains around 250,000 observations:
 
@@ -87,7 +94,9 @@ population
 
 === Exploration
 
-Before we create the app, let's explore the data a little. We'll start by looking at a product with an interesting story: 649, "toilets". First we'll pull out the injuries associated with this product:
+Before we create the app, let's explore the data a little.
+We'll start by looking at a product with an interesting story: 649, "toilets".
+First we'll pull out the injuries associated with this product:
 
 [source, r]
 ----
@@ -96,7 +105,8 @@ nrow(selected)
 #> [1] 2993
 ----
 
-Next we'll perform some basic summaries looking at the location, body part, and diagnosis of toilet related injuries. Note that I weight by the `weight` variable so that the counts can be interpreted as estimated total injuries across the whole US.
+Next we'll perform some basic summaries looking at the location, body part, and diagnosis of toilet related injuries.
+Note that I weight by the `weight` variable so that the counts can be interpreted as estimated total injuries across the whole US.
 
 [source, r]
 ----
@@ -136,9 +146,11 @@ selected %>% count(diag, wt = weight, sort = TRUE)
 #> # … with 14 more rows
 ----
 
-As you might expect, injuries involving toilets most often occur at home. The most common body parts involved possibly suggest that these are falls (since the head and face and not usually involved in routine toilet usage), and the diagnoses seem rather varied.
+As you might expect, injuries involving toilets most often occur at home.
+The most common body parts involved possibly suggest that these are falls (since the head and face and not usually involved in routine toilet usage), and the diagnoses seem rather varied.
 
-We can also explore the pattern across age and sex. We have enough data here that a table is not that useful, and so I make a plot, <<fig-toilets-raw>>, that makes the patterns more obvious.
+We can also explore the pattern across age and sex.
+We have enough data here that a table is not that useful, and so I make a plot, <<fig-toilets-raw>>, that makes the patterns more obvious.
 
 [source, r]
 ----
@@ -167,9 +179,12 @@ summary %>%
 image::/Users/hadley/Documents/shiny/mastering-shiny/_oreilly/basic-case-study_files/figure-markdown/toilets-raw-1.png["Estimated number of injuries caused by toilets, broken down by age and sex"]
 
 
-We see a spike for young boys peaking at age 3, and then an increase (particularly for women) starting around middle age, and a gradual decline after age 80. I suspect the peak is because boys usually use the toilet standing up, and the increase for women is due to osteoporosis (i.e. I suspect women and men have injuries at the same rate, but more women end up in the ER because they are at higher risk of fractures).
+We see a spike for young boys peaking at age 3, and then an increase (particularly for women) starting around middle age, and a gradual decline after age 80.
+I suspect the peak is because boys usually use the toilet standing up, and the increase for women is due to osteoporosis (i.e. I suspect women and men have injuries at the same rate, but more women end up in the ER because they are at higher risk of fractures).
 
-One problem with interpreting this pattern is that we know that there are fewer older people than younger people, so the population available to be injured is smaller. We can control for this by comparing the number of people injured with the total population and calculating an injury rate. Here I use a rate per 10,000.
+One problem with interpreting this pattern is that we know that there are fewer older people than younger people, so the population available to be injured is smaller.
+We can control for this by comparing the number of people injured with the total population and calculating an injury rate.
+Here I use a rate per 10,000.
 
 [source, r]
 ----
@@ -191,7 +206,8 @@ summary
 #> # … with 202 more rows
 ----
 
-Plotting the rate, <<fig-toilets-rate>>, yields a strikingly different trend after age 50: the difference between men and women is much smaller, and we no longer see a decrease. This is because women tend to live longer than men, so at older ages there are simple more women alive to be injured by toilets.
+Plotting the rate, <<fig-toilets-rate>>, yields a strikingly different trend after age 50: the difference between men and women is much smaller, and we no longer see a decrease.
+This is because women tend to live longer than men, so at older ages there are simple more women alive to be injured by toilets.
 
 [source, r]
 ----
@@ -208,32 +224,39 @@ image::/Users/hadley/Documents/shiny/mastering-shiny/_oreilly/basic-case-study_f
 
 (Note that the rates only go up to age 80 because I couldn't find population data for ages over 80.)
 
-Finally, we can look at some of the narratives. Browsing through these is an informal way to check our hypotheses, and generate new ideas for further exploration. Here I pull out a random sample of 10:
+Finally, we can look at some of the narratives.
+Browsing through these is an informal way to check our hypotheses, and generate new ideas for further exploration.
+Here I pull out a random sample of 10:
 
 [source, r]
 ----
 selected %>% 
   sample_n(10) %>% 
   pull(narrative)
-#>  [1] "77 YR OLD FEMALE GETTING OFF TOILET AND FELL STRIKING BROW ON FLOOR ANDLAC FACE;DIZZINESS"                                                     
-#>  [2] "92 YOF LIVES AT *** AND WAS IN BATHROOM AND FELL OFF TOILETONTO FLOOR FEELING WEAK    DX FX LEFT WRIST/ WEAKNESS"                              
-#>  [3] "78YOF WAS VOMITING THIS MORNING WHEN SHE HIT HEAD ON TOILET & PASSED OUT DX: FACIAL LACERATIONS, ABDOMINAL PAIN, EPIGASTRIC PAIN, HEAD INJURY" 
-#>  [4] "92YOM WITH PAIN TO RIGHT SHOULDER AFTER TRYING TO PULL SELF UP OFF TOILET."                                                                    
-#>  [5] "78 YOM INJ/BP NS - FELL OFF TOILET TO FLOOR"                                                                                                   
-#>  [6] "9 YO M PER MOM PT FELL FORWARD OFF TOILET HITTING HEAD AGAINST BATHTUB+LOC DX CHI"                                                             
-#>  [7] "27 YO M LAC HAND-CUT HAND ON BROKEN TOILET"                                                                                                    
-#>  [8] "81YOM WENT TO SIT ON THE TOILET AND SAT ON HIS TESTICLES CONTUSION TO TESTICLES"                                                               
-#>  [9] "KNEE PAIN  72YOF FELL GETTING OFF TOILETDX: KNEE PAIN"                                                                                         
-#> [10] "CHI;INTRACRANIAL HEMORRHAGE/72YOWF@HM USING CHAIR COMMODE&WHEN TRYING TO STAND UP FELT LIGHTHEADED&FELL.ON FLOOR FOR 2 HRS BEFORE GOT HELP UP."
+#>  [1] "71YOF GLF AFTER STANDING UP FROM TOILET DX FIBULA FX"                                                                                       
+#>  [2] "80YOF FELL OFF A TOILET AND SUSTAINED A HIP FX"                                                                                             
+#>  [3] "61YF SUFFERED FROM SZ EPI WHILE SITTING ONTO TOILET&FELL OFF HITTING HEAD ONTO THE BATHTUB>>CHI/HEMATOMA/SZ"                                
+#>  [4] "62YOM WAS SITTING ON A TOILET AND FELL OFF TO THE FLOOR ABRASION TO LIPADMITTED FOR SYNCOPE"                                                
+#>  [5] "50YF HAD SEVERE EPI OF MIGRAINE WAS ON THE TOILET WHEN PASSED OUT&FELLOFF HITTING F.HEAD ONTO THE FLOOR>>CHI, SYNCOPE"                      
+#>  [6] "55 YOM FELL ON TOILET WEDNESDAY.DX:  LUMBAR CONT."                                                                                          
+#>  [7] "PT SITTING ON THE TOILET AND FELL OFF HURTING SHOULDER. DX RIGHT SHOULDER ABRASION 90YO F#"                                                 
+#>  [8] "58 YOF C/O LOWER  ARM/WRIST INJURY S/P FELL OFF TOILET/NOT SURE IF SHEBUMPED HEAD DX FRACTURE DISTAL END OF RIGHT ULNA, SMALL BUMP ON SCALP"
+#>  [9] "CHI. 59 YOF FELL OFF OF A TOILET AND ONTO THE FLOOR."                                                                                       
+#> [10] "71 YOM PASSED OUT GETTING OFF TOILET & FELL TO FLOOR C/O HIP PAIN, XRAYDONE @ JAIL DX FEMORAL NECK FRACTURE"
 ----
 
-Having done this exploration for one product, it would be very nice if we could easily do it for other products, without having to retype the code. So let's make a Shiny app!
+Having done this exploration for one product, it would be very nice if we could easily do it for other products, without having to retype the code.
+So let's make a Shiny app!
 
 === Prototype
 
-When building a complex app, I strongly recommend starting as simple as possible, so that you can confirm the basic mechanics work before you start doing something more complicated. Here I'll start with one input (the product code), three tables, and one plot.
+When building a complex app, I strongly recommend starting as simple as possible, so that you can confirm the basic mechanics work before you start doing something more complicated.
+Here I'll start with one input (the product code), three tables, and one plot.
 
-When designing a first prototype, the challenge is in making it "as simple *as possible*". There's a tension between getting the basics working quickly and planning for the future of the app. Either extreme can be bad: if you design too narrowly, you'll spend a lot of time later on reworking your app; if you design too rigorously, you'll spend a bunch of time writing code that later ends up on the cutting floor. To help get the balance right, I often do a few pencil-and-paper sketches to rapidly explore the UI and reactive graph before committing to code.
+When designing a first prototype, the challenge is in making it "as simple *as possible*".
+There's a tension between getting the basics working quickly and planning for the future of the app.
+Either extreme can be bad: if you design too narrowly, you'll spend a lot of time later on reworking your app; if you design too rigorously, you'll spend a bunch of time writing code that later ends up on the cutting floor.
+To help get the balance right, I often do a few pencil-and-paper sketches to rapidly explore the UI and reactive graph before committing to code.
 
 Here I decided to have one row for the inputs (accepting that I'm probably going to add more inputs before this app is done), one row for all three tables (giving each table 4 columns, 1/3 of the 12 column width), and then one row for the plot:
 
@@ -260,7 +283,9 @@ ui <- fluidPage(
 
 Note the use of `setNames()` in the `selectInput()` `choices`: this shows the product name in the UI and returns the product code to the server.
 
-The server function is relatively straightforward. I first convert the `selected` and `summary` variables created in the previous section to reactive expressions. This is a reasonable general pattern: you create variables in your data analysis to decompose the analysis into steps, and to avoid recomputing things multiple times, and reactive expressions play the same role in Shiny apps.
+The server function is relatively straightforward.
+I first convert the `selected` and `summary` variables created in the previous section to reactive expressions.
+This is a reasonable general pattern: you create variables in your data analysis to decompose the analysis into steps, and to avoid recomputing things multiple times, and reactive expressions play the same role in Shiny apps.
 
 Often it's a good idea to spend a little time cleaning up your analysis code before you start your Shiny app, so you can think about these problems in regular R code, before you add the additional complexity of reactivity.
 
@@ -295,9 +320,11 @@ server <- function(input, output, session) {
 }
 ----
 
-Note that creating the `summary` reactive isn't strictly necessary here, as it's only used by a single reactive consumer. But it's good practice to keep computing and plotting separate as it makes the flow of the app easier to understand, and will make it easier to generalise in the future.
+Note that creating the `summary` reactive isn't strictly necessary here, as it's only used by a single reactive consumer.
+But it's good practice to keep computing and plotting separate as it makes the flow of the app easier to understand, and will make it easier to generalise in the future.
 
-A screenshot of the resulting app is shown in <<fig-prototype>>. You can find the source code at https://github.com/hadley/mastering-shiny/tree/master/neiss/prototype.R[] and try out a live version of the app at XYZ.
+A screenshot of the resulting app is shown in <<fig-prototype>>.
+You can find the source code at https://github.com/hadley/mastering-shiny/tree/master/neiss/prototype.R[] and try out a live version of the app at XYZ.
 
 
 .First prototype of NEISS exploration app
@@ -306,7 +333,10 @@ image::demos/basic-case-study/prototype.png["First prototype of NEISS exploratio
 
 === Polish tables
 
-Now that we have the basic components in place and working, we can progressively improve our app. The first problem with this app is that it shows a lot of information in the tables, where we probably just want the highlights. To fix this we need to first figure out how to truncate the tables. I've chosen to do that with a combination of forcats functions: I convert the variable to a factor, order by the frequency of the levels, and then lump together all levels after the top 5.
+Now that we have the basic components in place and working, we can progressively improve our app.
+The first problem with this app is that it shows a lot of information in the tables, where we probably just want the highlights.
+To fix this we need to first figure out how to truncate the tables.
+I've chosen to do that with a combination of forcats functions: I convert the variable to a factor, order by the frequency of the levels, and then lump together all levels after the top 5.
 
 [source, r]
 ----
@@ -325,7 +355,9 @@ injuries %>%
 #> 6 Other                 1929147
 ----
 
-Because I knew how to do it, I wrote a little function to automate this for any variable. The details aren't really important here, but we'll come back to them in <<action-tidy>>. You could also solve the problem with copy and paste, so don't worry if the code looks totally foreign.
+Because I knew how to do it, I wrote a little function to automate this for any variable.
+The details aren't really important here, but we'll come back to them in <<action-tidy>>.
+You could also solve the problem with copy and paste, so don't worry if the code looks totally foreign.
 
 [source, r]
 ----
@@ -346,9 +378,11 @@ I then use this in the server function:
   output$location <- renderTable(count_top(selected(), location), width = "100%")
 ----
 
-I made one other change to improve the aesthetics of the app: I forced all tables to take up the maximum width (i.e. fill the column that they appear in). This makes the output more aesthetically pleasing because it reduces the amount of incidental variation.
+I made one other change to improve the aesthetics of the app: I forced all tables to take up the maximum width (i.e. fill the column that they appear in).
+This makes the output more aesthetically pleasing because it reduces the amount of incidental variation.
 
-A screenshot of the resulting app is shown in <<fig-polish-tables>>. You can find the source code at https://github.com/hadley/mastering-shiny/tree/master/neiss/polish-tables.R[] and try out a live version of the app at XYZ.
+A screenshot of the resulting app is shown in <<fig-polish-tables>>.
+You can find the source code at https://github.com/hadley/mastering-shiny/tree/master/neiss/polish-tables.R[] and try out a live version of the app at XYZ.
 
 
 .The second iteration of the app improves the display by only showing the most frequent rows in the summary tables
@@ -357,7 +391,9 @@ image::demos/basic-case-study/polish-tables.png["The second iteration of the app
 
 === Rate vs count
 
-So far, we're displaying only a single plot, but we'd like to give the user the choice between visualising the number of injuries or the population-standardised rate. First I add a control to the UI. Here I've chosen to use a `selectInput()` because it makes both states explicit, and it would be easy to add new states in the future:
+So far, we're displaying only a single plot, but we'd like to give the user the choice between visualising the number of injuries or the population-standardised rate.
+First I add a control to the UI.
+Here I've chosen to use a `selectInput()` because it makes both states explicit, and it would be easy to add new states in the future:
 
 [source, r]
 ----
@@ -393,7 +429,8 @@ Then I condition on that input when generating the plot:
   }, res = 96)
 ----
 
-A screenshot of the resulting app is shown in <<fig-rate-vs-count>>. You can find the source code at https://github.com/hadley/mastering-shiny/tree/master/neiss/rate-vs-count.R[] and try out a live version of the app at XYZ.
+A screenshot of the resulting app is shown in <<fig-rate-vs-count>>.
+You can find the source code at https://github.com/hadley/mastering-shiny/tree/master/neiss/rate-vs-count.R[] and try out a live version of the app at XYZ.
 
 
 .In this iteration, we give the user the ability to switch between displaying the count or the population standardised rate on the y-axis.
@@ -402,9 +439,12 @@ image::demos/basic-case-study/rate-vs-count.png["In this iteration, we give the 
 
 === Narrative
 
-Finally, I want to provide some way to access the narratives because they are so interesting, and they give an informal way to cross-check the hypotheses you come up with when looking at the plots. In the R code, I sample multiple narratives at once, but there's no reason to do that in an app where you can explore interactively.
+Finally, I want to provide some way to access the narratives because they are so interesting, and they give an informal way to cross-check the hypotheses you come up with when looking at the plots.
+In the R code, I sample multiple narratives at once, but there's no reason to do that in an app where you can explore interactively.
 
-There are two parts to the solution. First we add a new row to the bottom of the UI. I use an action button to trigger a new story, and put the narrative in a `textOutput()`:
+There are two parts to the solution.
+First we add a new row to the bottom of the UI.
+I use an action button to trigger a new story, and put the narrative in a `textOutput()`:
 
 [source, r]
 ----
@@ -425,7 +465,8 @@ I then use `eventReactive()` to create a reactive that only updates when the but
   output$narrative <- renderText(narrative_sample())
 ----
 
-A screenshot of the resulting app is shown in <<fig-narrative>>. You can find the source code at https://github.com/hadley/mastering-shiny/tree/master/neiss/narrative.R[] and try out a live version of the app at XYZ.
+A screenshot of the resulting app is shown in <<fig-narrative>>.
+You can find the source code at https://github.com/hadley/mastering-shiny/tree/master/neiss/narrative.R[] and try out a live version of the app at XYZ.
 
 
 .The final iteration adds the ability to pull out a random narrative from the selected rows
@@ -446,4 +487,6 @@ image::demos/basic-case-study/narrative.png["The final iteration adds the abilit
 
 === Summary
 
-Now that you have the basics of Shiny apps under your belt, the following seven chapters will give you a grab bag of important techniques. I don't recommend reading these chapters deeply in sequence. Instead, skim them so you get a good sense of what they cover, and then dip your toes back in as you need the techniques in your app.
+Now that you have the basics of Shiny apps under your belt, the following seven chapters will give you a grab bag of important techniques.
+I don't recommend reading these chapters deeply in sequence.
+Instead, skim them so you get a good sense of what they cover, and then dip your toes back in as you need the techniques in your app.

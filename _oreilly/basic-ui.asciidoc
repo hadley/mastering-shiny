@@ -2,9 +2,12 @@
 
 === Introduction
 
-Now that you have a basic app under your belt, we can start to explore the details that make Shiny tick. As you saw in the previous chapter, Shiny encourages separation of the code that generates your user interface (the front end) from the code that drives your app's behaviour (the back end).
+Now that you have a basic app under your belt, we can start to explore the details that make Shiny tick.
+As you saw in the previous chapter, Shiny encourages separation of the code that generates your user interface (the front end) from the code that drives your app's behaviour (the back end).
 
-In this chapter, we'll focus on the front end, and give you a whirlwind tour of the HTML inputs, outputs, and layouts that Shiny provides. This gives you the ability to create visually compelling, but simple apps. In the next chapter, you'll learn more about the Shiny's back end, building your reactivity skills so that you can create richer responses to interaction.
+In this chapter, we'll focus on the front end, and give you a whirlwind tour of the HTML inputs, outputs, and layouts that Shiny provides.
+This gives you the ability to create visually compelling, but simple apps.
+In the next chapter, you'll learn more about the Shiny's back end, building your reactivity skills so that you can create richer responses to interaction.
 
 As usual, we'll begin by loading the shiny package:
 
@@ -15,19 +18,27 @@ library(shiny)
 
 === Inputs
 
-As we saw in the previous chapter, you use functions like `sliderInput()`, `selectInput()`, `textInput()`, and `numericInput()` to insert input controls into your UI specification. Now we'll discuss the common structure that underlies all input functions and give a quick overview of the inputs built into Shiny.
+As we saw in the previous chapter, you use functions like `sliderInput()`, `selectInput()`, `textInput()`, and `numericInput()` to insert input controls into your UI specification.
+Now we'll discuss the common structure that underlies all input functions and give a quick overview of the inputs built into Shiny.
 
 ==== Common structure
 
-All input functions have the same first argument: `inputId`. This is the identifier used to connect the front end with the back end: if your UI has an input with ID `"name"`, the server function will access it with `input$name`.
+All input functions have the same first argument: `inputId`.
+This is the identifier used to connect the front end with the back end: if your UI has an input with ID `"name"`, the server function will access it with `input$name`.
 
 The `inputId` has two constraints:
 
--   It must be a simple string that contains only letters, numbers, and underscores (no spaces, dashes, periods, or other special characters allowed!). Name it like you would name a variable in R.
+-   It must be a simple string that contains only letters, numbers, and underscores (no spaces, dashes, periods, or other special characters allowed!).
+    Name it like you would name a variable in R.
 
--   It must be unique. If it's not unique, you'll have no way to refer to this control in your server function!
+-   It must be unique.
+    If it's not unique, you'll have no way to refer to this control in your server function!
 
-Most input functions have a second parameter called `label`. This is used to create a human-readable label for the control. Shiny doesn't place any restrictions on this string, but you'll need to carefully think about it to make sure that your app is usable by humans! The third parameter is typically `value`, which, where possible, lets you set the default value. The remaining parameters are unique to the control.
+Most input functions have a second parameter called `label`.
+This is used to create a human-readable label for the control.
+Shiny doesn't place any restrictions on this string, but you'll need to carefully think about it to make sure that your app is usable by humans!
+The third parameter is typically `value`, which, where possible, lets you set the default value.
+The remaining parameters are unique to the control.
 
 When creating an input, I recommend supplying the `inputId` and `label` arguments by position, and all other arguments by name:
 
@@ -36,11 +47,13 @@ When creating an input, I recommend supplying the `inputId` and `label` argument
 sliderInput("min", "Limit (minimum)", value = 50, min = 0, max = 100)
 ----
 
-The following sections describe the inputs built into Shiny, loosely grouped according to the type of control they create. The goal is to give you a rapid overview of your options, not to exhaustively describe all the arguments. I'll show the most important parameters for each control below, but you'll need to read the documentation to get the full details.
+The following sections describe the inputs built into Shiny, loosely grouped according to the type of control they create.
+The goal is to give you a rapid overview of your options, not to exhaustively describe all the arguments.
+I'll show the most important parameters for each control below, but you'll need to read the documentation to get the full details.
 
 ==== Free text
 
-Collect small amounts of text with `textInput()`, passwords with `passwordInput()`footnote:[All `passwordInput()` does is hide what the user is typing, so that someone looking over their shoulder can't read it. It's up to you to make sure that any passwords are not accidentally exposed, so we don't recommend using passwords unless you have had some training in secure programming.], and paragraphs of text with `textAreaInput()`.
+Collect small amounts of text with `textInput()`, passwords with `passwordInput()`footnote:[All `passwordInput()` does is hide what the user is typing, so that someone looking over their shoulder can't read it.], and paragraphs of text with `textAreaInput()`.
 
 [source, r]
 ----
@@ -57,7 +70,8 @@ If you want to ensure that the text has certain properties you can use `validate
 
 ==== Numeric inputs
 
-To collect numeric values, create a constrained text box with `numericInput()` or a slider with `sliderInput()`. If you supply a length-2 numeric vector for the default value of `sliderInput()`, you get a "range" slider with two ends.
+To collect numeric values, create a constrained text box with `numericInput()` or a slider with `sliderInput()`.
+If you supply a length-2 numeric vector for the default value of `sliderInput()`, you get a "range" slider with two ends.
 
 [source, r]
 ----
@@ -70,13 +84,16 @@ ui <- fluidPage(
 
 image::demos/basic-ui/numeric.png[]
 
-Generally, I recommend only using sliders for small ranges, or cases where the precise value is not so important. Attempting to precisely select a number on a small slider is an exercise in frustration!
+Generally, I recommend only using sliders for small ranges, or cases where the precise value is not so important.
+Attempting to precisely select a number on a small slider is an exercise in frustration!
 
-Sliders are extremely customisable and there are many ways to tweak their appearance. See `?sliderInput` and https://shiny.rstudio.com/articles/sliders.html[] for more details.
+Sliders are extremely customisable and there are many ways to tweak their appearance.
+See `?sliderInput` and https://shiny.rstudio.com/articles/sliders.html[] for more details.
 
 ==== Dates
 
-Collect a single day with `dateInput()` or a range of two days with `dateRangeInput()`. These provide a convenient calendar picker, and additional arguments like `datesdisabled` and `daysofweekdisabled` allow you to restrict the set of valid inputs.
+Collect a single day with `dateInput()` or a range of two days with `dateRangeInput()`.
+These provide a convenient calendar picker, and additional arguments like `datesdisabled` and `daysofweekdisabled` allow you to restrict the set of valid inputs.
 
 [source, r]
 ----
@@ -88,7 +105,8 @@ ui <- fluidPage(
 
 image::demos/basic-ui/date.png[]
 
-Date format, language, and the day on which the week starts defaults to US standards. If you are creating an app with an international audience, set `format`, `language`, and `weekstart` so that the dates are natural to your users.
+Date format, language, and the day on which the week starts defaults to US standards.
+If you are creating an app with an international audience, set `format`, `language`, and `weekstart` so that the dates are natural to your users.
 
 ==== Limited choices
 
@@ -106,7 +124,8 @@ ui <- fluidPage(
 
 image::demos/basic-ui/limited-choices.png[]
 
-Radio buttons have two nice features: they show all possible options, making them suitable for short lists, and via the `choiceNames`/`choiceValues` arguments, they can display options other than plain text. `choiceNames` determines what is shown to the user; `choiceValues` determines what is returned in your server function.
+Radio buttons have two nice features: they show all possible options, making them suitable for short lists, and via the `choiceNames`/`choiceValues` arguments, they can display options other than plain text.
+`choiceNames` determines what is shown to the user; `choiceValues` determines what is returned in your server function.
 
 [source, r]
 ----
@@ -124,7 +143,8 @@ ui <- fluidPage(
 
 image::demos/basic-ui/radio-icon.png[]
 
-Dropdowns created with `selectInput()` take up the same amount of space, regardless of the number of options, making them more suitable for longer options. You can also set `multiple = TRUE` to allow the user to select multiple elements.
+Dropdowns created with `selectInput()` take up the same amount of space, regardless of the number of options, making them more suitable for longer options.
+You can also set `multiple = TRUE` to allow the user to select multiple elements.
 
 [source, r]
 ----
@@ -138,7 +158,8 @@ ui <- fluidPage(
 
 image::images/basic-ui/multi-select.png[]
 
-If you have a very large set of possible options, you may want to use "server-side" `selectInput()` so that the complete set of possible options are not embedded in the UI (which can make it slow to load), but instead sent as needed by the server. You can learn more about this advanced topic at https://shiny.rstudio.com/articles/selectize.html#server-side-selectize[].
+If you have a very large set of possible options, you may want to use "server-side" `selectInput()` so that the complete set of possible options are not embedded in the UI (which can make it slow to load), but instead sent as needed by the server.
+You can learn more about this advanced topic at https://shiny.rstudio.com/articles/selectize.html#server-side-selectize[].
 
 There's no way to select multiple values with radio buttons, but there's an alternative that's conceptually similar: `checkboxGroupInput()`.
 
@@ -192,9 +213,12 @@ ui <- fluidPage(
 
 image::demos/basic-ui/action.png[]
 
-Actions links and buttons are most naturally paired with `observeEvent()` or `eventReactive()` in your server function. You haven't learned about these important functions yet, but we'll come back to them in <<controlling-timing-of-evaluation>>.
+Actions links and buttons are most naturally paired with `observeEvent()` or `eventReactive()` in your server function.
+You haven't learned about these important functions yet, but we'll come back to them in <<controlling-timing-of-evaluation>>.
 
-You can customise the appearance using the `class` argument by using one of `"btn-primary"`, `"btn-success"`, `"btn-info"`, `"btn-warning"`, or `"btn-danger"`. You can also change the size with `"btn-lg"`, `"btn-sm"`, `"btn-xs"`. Finally, you can make buttons span the entire width of the element they are embedded within using `"btn-block"`.
+You can customise the appearance using the `class` argument by using one of `"btn-primary"`, `"btn-success"`, `"btn-info"`, `"btn-warning"`, or `"btn-danger"`.
+You can also change the size with `"btn-lg"`, `"btn-sm"`, `"btn-xs"`.
+Finally, you can make buttons span the entire width of the element they are embedded within using `"btn-block"`.
 
 [source, r]
 ----
@@ -211,11 +235,13 @@ ui <- fluidPage(
 
 image::demos/basic-ui/action-css.png[]
 
-The `class` argument works by setting the `class` attribute of the underlying HTML, which affects how the element is styled. To see other options, you can read the documentation for Bootstrap, the CSS design system used by Shiny: http://bootstrapdocs.com/v3.3.6/docs/css/#buttons[\<http://bootstrapdocs.com/v3.3.6/docs/css/\#buttons\>]{.uri}.
+The `class` argument works by setting the `class` attribute of the underlying HTML, which affects how the element is styled.
+To see other options, you can read the documentation for Bootstrap, the CSS design system used by Shiny: http://bootstrapdocs.com/v3.3.6/docs/css/#buttons[\<http://bootstrapdocs.com/v3.3.6/docs/css/\#buttons\>]{.uri}.
 
 ==== Exercises
 
-1.  When space is at a premium, it's useful to label text boxes using a placeholder that appears *inside* the text entry area. How do you call `textInput()` to generate the UI below?
+1.  When space is at a premium, it's useful to label text boxes using a placeholder that appears *inside* the text entry area.
+    How do you call `textInput()` to generate the UI below?
 
     image::demos/basic-ui/placeholder.png[]
 
@@ -223,11 +249,15 @@ The `class` argument works by setting the `class` attribute of the underlying HT
 
     image::demos/basic-ui/date-slider.png[]
 
-3.  If you have a moderately long list, it's useful to create sub-headings that break the list up into pieces. Read the documentation for `selectInput()` to figure out how. (Hint: the underlying HTML is called `<optgroup>`.)
+3.  If you have a moderately long list, it's useful to create sub-headings that break the list up into pieces.
+    Read the documentation for `selectInput()` to figure out how.
+    (Hint: the underlying HTML is called `<optgroup>`.)
 
-4.  Create a slider input to select values between 0 and 100 where the interval between each selectable value on the slider is 5. Then, add animation to the input widget so when the user presses play the input widget scrolls through automatically.
+4.  Create a slider input to select values between 0 and 100 where the interval between each selectable value on the slider is 5.
+    Then, add animation to the input widget so when the user presses play the input widget scrolls through automatically.
 
-5.  Using the following numeric input box the user can enter any value between 0 and 1000. What is the purpose of the step argument in this widget?
+5.  Using the following numeric input box the user can enter any value between 0 and 1000.
+    What is the purpose of the step argument in this widget?
 
     [source, r]
     ----
@@ -236,9 +266,12 @@ The `class` argument works by setting the `class` attribute of the underlying HT
 
 === Outputs
 
-Outputs in the UI create placeholders that are later filled by the server function. Like inputs, outputs take a unique ID as their first argument[^2]: if your UI specification creates an output with ID `"plot"`, you'll access it in the server function with `output$plot`.
+Outputs in the UI create placeholders that are later filled by the server function.
+Like inputs, outputs take a unique ID as their first argument[^2]: if your UI specification creates an output with ID `"plot"`, you'll access it in the server function with `output$plot`.
 
-Each `output` function on the front end is coupled with a `render` function in the back end. There are three main types of output, corresponding to the three things you usually include in a report: text, tables, and plots. The following sections show you the basics of the output functions on the front end, along with the corresponding `render` functions in the back end.
+Each `output` function on the front end is coupled with a `render` function in the back end.
+There are three main types of output, corresponding to the three things you usually include in a report: text, tables, and plots.
+The following sections show you the basics of the output functions on the front end, along with the corresponding `render` functions in the back end.
 
 ==== Text
 
@@ -262,7 +295,9 @@ server <- function(input, output, session) {
 
 image::demos/basic-ui/output-text.png[]
 
-Note that the `{}` are only required in render functions if need to run multiple lines of code. As you'll learn shortly, you should do as little computation in your render functions as possible, which means you can often omit them. Here's what the server function above would look like if written more compactly::
+Note that the `{}` are only required in render functions if need to run multiple lines of code.
+As you'll learn shortly, you should do as little computation in your render functions as possible, which means you can often omit them.
+Here's what the server function above would look like if written more compactly::
 
 [source, r]
 ----
@@ -303,7 +338,8 @@ There are two options for displaying data frames in tables:
 
 -   `dataTableOutput()` and `renderDataTable()` render a dynamic table, showing a fixed number of rows along with controls to change which rows are visible.
 
-`tableOutput()` is most useful for small, fixed summaries (e.g. model coefficients); `dataTableOutput()` is most appropriate if you want to expose a complete data frame to the user. If you want greater control over the output of `dataTableOutput()`, I highly recommend the https://glin.github.io/reactable/index.html[reactable] package by Greg Lin.
+`tableOutput()` is most useful for small, fixed summaries (e.g. model coefficients); `dataTableOutput()` is most appropriate if you want to expose a complete data frame to the user.
+If you want greater control over the output of `dataTableOutput()`, I highly recommend the https://glin.github.io/reactable/index.html[reactable] package by Greg Lin.
 
 [source, r]
 ----
@@ -335,19 +371,26 @@ server <- function(input, output, session) {
 
 image::demos/basic-ui/output-plot.png[]
 
-By default, `plotOutput()` will take up the full width of its container (more on that shortly), and will be 400 pixels high. You can override these defaults with the `height` and `width` arguments. We recommend always setting `res = 96` as that will make your Shiny plots match what you see in RStudio as closely as possible.
+By default, `plotOutput()` will take up the full width of its container (more on that shortly), and will be 400 pixels high.
+You can override these defaults with the `height` and `width` arguments.
+We recommend always setting `res = 96` as that will make your Shiny plots match what you see in RStudio as closely as possible.
 
-Plots are special because they are outputs that can also act as inputs. `plotOutput()` has a number of arguments like `click`, `dblclick`, and `hover`. If you pass these a string, like `click = "plot_click"`, they'll create a reactive input (`input$plot_click`) that you can use to handle user interaction on the plot, e.g. clicking on the plot. We'll come back to interactive plots in Shiny in <<action-graphics>>.
+Plots are special because they are outputs that can also act as inputs.
+`plotOutput()` has a number of arguments like `click`, `dblclick`, and `hover`.
+If you pass these a string, like `click = "plot_click"`, they'll create a reactive input (`input$plot_click`) that you can use to handle user interaction on the plot, e.g. clicking on the plot.
+We'll come back to interactive plots in Shiny in <<action-graphics>>.
 
 ==== Downloads
 
-You can let the user download a file with `downloadButton()` or `downloadLink()`. These require new techniques in the server function, so we'll come back to that in <<action-transfer>>.
+You can let the user download a file with `downloadButton()` or `downloadLink()`.
+These require new techniques in the server function, so we'll come back to that in <<action-transfer>>.
 
 ==== Exercises
 
 1.  Re-create the Shiny app from <<plots>>, this time setting height to 300px and width to 700px.
 
-2.  Update the options for `renderDataTable()` below so that the table is displayed, but nothing else (i.e. remove the search, ordering, and filtering commands). You'll need to read `?renderDataTable` and review the options at https://datatables.net/reference/option/[].
+2.  Update the options for `renderDataTable()` below so that the table is displayed, but nothing else (i.e. remove the search, ordering, and filtering commands).
+    You'll need to read `?renderDataTable` and review the options at https://datatables.net/reference/option/[].
 
     [source, r]
     ----
@@ -364,11 +407,14 @@ You can let the user download a file with `downloadButton()` or `downloadLink()`
 [[layout]]
 === Layouts 
 
-Now that you know how to create a full range of inputs and outputs, you need to be able to arrange them on the page. That's the job of the layout functions, which provide the high-level visual structure of an app. Here we'll focus on `fluidPage()`, which provides the layout style used by most apps.
+Now that you know how to create a full range of inputs and outputs, you need to be able to arrange them on the page.
+That's the job of the layout functions, which provide the high-level visual structure of an app.
+Here we'll focus on `fluidPage()`, which provides the layout style used by most apps.
 
 ==== Overview
 
-Layouts are created by a hierarchy of function calls, where the hierarchy in R matches the hierarchy in the generated HTML. When you see complex layout code like this:
+Layouts are created by a hierarchy of function calls, where the hierarchy in R matches the hierarchy in the generated HTML.
+When you see complex layout code like this:
 
 [source, r]
 ----
@@ -402,24 +448,33 @@ fluidPage(
 )
 ----
 
-Even without knowing anything about the layout functions you can read the function names to guess what this app is going to look like. You might imagine that this code will generate a classic app design: a title bar at top, followed by a sidebar (containing a slider), with the main panel containing a plot.
+Even without knowing anything about the layout functions you can read the function names to guess what this app is going to look like.
+You might imagine that this code will generate a classic app design: a title bar at top, followed by a sidebar (containing a slider), with the main panel containing a plot.
 
 ==== Page functions
 
-The most important, but least interesting, layout function is `fluidPage()`. You've seen it in every example above, because we use it to put multiple inputs or outputs into a single app. What happens if you use `fluidPage()` by itself? <<fig-ui-fluid-page>> shows the results.
+The most important, but least interesting, layout function is `fluidPage()`.
+You've seen it in every example above, because we use it to put multiple inputs or outputs into a single app.
+What happens if you use `fluidPage()` by itself?
+<<fig-ui-fluid-page>> shows the results.
 
 
 .An UI consisting only of `fluid_page()`
 image::images/basic-app/fluid-page.png["An UI consisting only of `fluid_page()`"]
 
 
-It looks very boring because there's no content, but behind the scenes, `fluidPage()` is doing a lot of work. The page function sets up all the HTML, CSS, and JS that Shiny needs. `fluidPage()` uses a layout system called **Bootstrap**, https://getbootstrap.com[], that provides attractive defaults[^3].
+It looks very boring because there's no content, but behind the scenes, `fluidPage()` is doing a lot of work.
+The page function sets up all the HTML, CSS, and JS that Shiny needs.
+`fluidPage()` uses a layout system called **Bootstrap**, https://getbootstrap.com[], that provides attractive defaults[^3].
 
-Technically, `fluidPage()` is all you need for an app, because you can put inputs and outputs directly inside of it. But while this is fine for learning the basics of Shiny, dumping all the inputs and outputs in one place doesn't look very good, so you need to learn more layout functions. Here I'll introduce you to two common structures, a page with sidebar and a multirow app, and then we'll finish off with a quick discussion of themes.
+Technically, `fluidPage()` is all you need for an app, because you can put inputs and outputs directly inside of it.
+But while this is fine for learning the basics of Shiny, dumping all the inputs and outputs in one place doesn't look very good, so you need to learn more layout functions.
+Here I'll introduce you to two common structures, a page with sidebar and a multirow app, and then we'll finish off with a quick discussion of themes.
 
 ==== Page with sidebar
 
-`sidebarLayout()`, along with `titlePanel()`, `sidebarPanel()`, and `mainPanel()`, makes it easy to create a two-column layout with inputs on the left and outputs on the right. The basic code is shown below; it generates the structure shown in <<fig-ui-sidebar>>.
+`sidebarLayout()`, along with `titlePanel()`, `sidebarPanel()`, and `mainPanel()`, makes it easy to create a two-column layout with inputs on the left and outputs on the right.
+The basic code is shown below; it generates the structure shown in <<fig-ui-sidebar>>.
 
 [source, r]
 ----
@@ -443,7 +498,8 @@ fluidPage(
 image::diagrams/basic-ui/sidebar.png["Structure of a basic app with sidebar"]
 
 
-The following example shows how to use this layout to create a very simple app that demonstrates the Central Limit Theorem. If you run this app yourself, you can see how increasing the number of samples makes a distribution that looks very similar to a normal distribution.
+The following example shows how to use this layout to create a very simple app that demonstrates the Central Limit Theorem.
+If you run this app yourself, you can see how increasing the number of samples makes a distribution that looks very similar to a normal distribution.
 
 [source, r]
 ----
@@ -471,7 +527,10 @@ image::demos/basic-ui/sidebar.png[]
 
 ==== Multi-row
 
-Under the hood, `sidebarLayout()` is built on top of a flexible multi-row layout, which you can use directly to create more visually complex apps. As usual, you start with `fluidPage()`. Then you create rows with `fluidRow()`, and columns with `column()`. The following template generates the structure shown in <<fig-ui-multirow>>.
+Under the hood, `sidebarLayout()` is built on top of a flexible multi-row layout, which you can use directly to create more visually complex apps.
+As usual, you start with `fluidPage()`.
+Then you create rows with `fluidRow()`, and columns with `column()`.
+The following template generates the structure shown in <<fig-ui-multirow>>.
 
 [source, r]
 ----
@@ -500,11 +559,14 @@ fluidPage(
 image::diagrams/basic-ui/multirow.png["The structure underlying a simple multi-row app"]
 
 
-Note that the first argument to `column()` is the width, and the width of each row must add up to 12. This gives you substantial flexibility because you can easily create 2-, 3-, or 4-column layouts (more than that starts to get cramped), or use narrow columns to create spacers.
+Note that the first argument to `column()` is the width, and the width of each row must add up to 12.
+This gives you substantial flexibility because you can easily create 2-, 3-, or 4-column layouts (more than that starts to get cramped), or use narrow columns to create spacers.
 
 ==== Themes
 
-In Chapter XYZ, we'll cover the full details of customising the visual appearance of your Shiny app. Creating a complete theme from scratch is a lot of work (but often worth it!), but you can get some easy wins by using the https://rstudio.github.io/shinythemes/[shinythemes] package. The following code shows four options:
+In Chapter XYZ, we'll cover the full details of customising the visual appearance of your Shiny app.
+Creating a complete theme from scratch is a lot of work (but often worth it!), but you can get some easy wins by using the https://rstudio.github.io/shinythemes/[shinythemes] package.
+The following code shows four options:
 
 [source, r]
 ----
@@ -532,7 +594,9 @@ theme_demo("united")
 
 image::demos/basic-ui/theme-darkly.png[]image::demos/basic-ui/theme-flatly.png[]image::demos/basic-ui/theme-sandstone.png[]image::demos/basic-ui/theme-united.png[]
 
-As you can see, theming your app is quite straightforward: you just need to use the `theme` argument to `fluidPage()`. To find out what themes are available, and what they look like, take a look at the Shiny theme selector app at https://shiny.rstudio.com/gallery/shiny-theme-selector.htmlhttps://dreamrs.github.io/fresh/[]. You might also want to take a look at the [fresh] package, which provides even more themes.
+As you can see, theming your app is quite straightforward: you just need to use the `theme` argument to `fluidPage()`.
+To find out what themes are available, and what they look like, take a look at the Shiny theme selector app at https://shiny.rstudio.com/gallery/shiny-theme-selector.html[].
+You might also want to take a look at the https://dreamrs.github.io/fresh/[fresh] package, which provides even more themes.
 
 ==== Exercises
 
@@ -553,9 +617,12 @@ Exercise ideas
 
 === Under the hood
 
-In the previous example you might have been surprised to see that I create a Shiny app using a function, `theme_demo()`. This works because Shiny code **is** R code, and you can use all of your existing tools for reducing duplication. Remember the rule of three: if you copy and paste code more than three times, you should consider writing a function or using a for loop[^4].
+In the previous example you might have been surprised to see that I create a Shiny app using a function, `theme_demo()`.
+This works because Shiny code **is** R code, and you can use all of your existing tools for reducing duplication.
+Remember the rule of three: if you copy and paste code more than three times, you should consider writing a function or using a for loop[^4].
 
-All input, output, and layout functions return HTML, the descriptive language that underpins every website. You can see that HTML by executing UI functions directly in the console:
+All input, output, and layout functions return HTML, the descriptive language that underpins every website.
+You can see that HTML by executing UI functions directly in the console:
 
 [source, r]
 ----
@@ -574,11 +641,16 @@ fluidPage(
 </div>
 ----
 
-Shiny is designed so that, as an R user, you don't need to learn about the details of HTML. However, if you already know HTML (or want to learn!) you can also work directly with HTML tags to achieve any level of customization you want. And these approaches are by no means exclusive: you can mix high-level functions with low-level HTML as much as you like.
+Shiny is designed so that, as an R user, you don't need to learn about the details of HTML.
+However, if you already know HTML (or want to learn!) you can also work directly with HTML tags to achieve any level of customization you want.
+And these approaches are by no means exclusive: you can mix high-level functions with low-level HTML as much as you like.
 
 === Other tools
 
-Here I have focussed on the UI functions built into Shiny itself. However, there is a rich and vibrant developer community building extension packages. These include packages like https://github.com/dreamRs/shinyWidgets[shinyWidgets], by https://www.dreamrs.fr[dreamRs], that provides a collection of handy widgets. But other packages expose complete different design systems:
+Here I have focussed on the UI functions built into Shiny itself.
+However, there is a rich and vibrant developer community building extension packages.
+These include packages like https://github.com/dreamRs/shinyWidgets[shinyWidgets], by https://www.dreamrs.fr[dreamRs], that provides a collection of handy widgets.
+But other packages expose complete different design systems:
 
 -   https://appsilon.github.io/shiny.semantic/[shiny.semantic], by https://appsilon.com/[Appsilon], builds on top of https://fomantic-ui.com[formantic UI].
 
@@ -592,12 +664,16 @@ You can find fuller, and up-to-date, list maintained by https://nanx.me/[Nan Xia
 
 === Summary
 
-This chapter has introduced you to the major user interface components that make up a Shiny app: the input, output, and layout functions. This was a big info dump, so don't expect to remember everything after a single read. Instead, come back to this chapter when you're looking for a specific component: you can quickly scan the figures, and then find the code you need.
+This chapter has introduced you to the major user interface components that make up a Shiny app: the input, output, and layout functions.
+This was a big info dump, so don't expect to remember everything after a single read.
+Instead, come back to this chapter when you're looking for a specific component: you can quickly scan the figures, and then find the code you need.
 
 In the next chapter, we'll move on to the server side of Shiny which provides the R code that makes your user interface come to life and respond to user actions.
 
+    It's up to you to make sure that any passwords are not accidentally exposed, so we don't recommend using passwords unless you have had some training in secure programming.
 
-[^2]: Note that the name of that argument is different for inputs (`inputId`) and outputs (`outputId`). I don't use the name of the first argument because it's so important and I expect you to remember what it does without an additional hint.
+[^2]: Note that the name of that argument is different for inputs (`inputId`) and outputs (`outputId`).
+    I don't use the name of the first argument because it's so important and I expect you to remember what it does without an additional hint.
 
 [^3]: Currently Shiny uses Bootstrap 3.3.7, https://getbootstrap.com/docs/3.3/[], but the Shiny team is planning to update to 4.0.0, the latest version, in the near future.
 

@@ -1,9 +1,13 @@
 [[reactivity-objects]]
 == Reactive building blocks 
 
-Now that you've learned how the reactive graph really works, it's useful to come back to some of the details of the underlying objects. By now, you've used these objects many times in your apps but we haven't yet discussed them as R data structures. We'll now fix that omission and give you a better sense of how they fit into R the programming language.
+Now that you've learned how the reactive graph really works, it's useful to come back to some of the details of the underlying objects.
+By now, you've used these objects many times in your apps but we haven't yet discussed them as R data structures.
+We'll now fix that omission and give you a better sense of how they fit into R the programming language.
 
-There are three fundamental building blocks of reactive programming: reactive values, reactive expressions, and observers. You've already seen most of the important parts of reactive values and expressions, so this chapter will spend most time on observers and the closely related outputs. We'll also discuss a final piece of the invalidation puzzle: timed invalidation.
+There are three fundamental building blocks of reactive programming: reactive values, reactive expressions, and observers.
+You've already seen most of the important parts of reactive values and expressions, so this chapter will spend most time on observers and the closely related outputs.
+We'll also discuss a final piece of the invalidation puzzle: timed invalidation.
 
 This chapter will again use the reactive console so that we can experiment with reactivity directly in the console without having to launch a Shiny app each time.
 
@@ -36,9 +40,12 @@ y$a       # get
 y$b <- 20 # set
 ----
 
-It's unfortunate that there are two different syntaxes, but there's no way to standardise them. However, there are no major differences in their behaviour, so you can choose between them based on which syntax you prefer. In this book, I use `reactiveVal()` because I like that the syntax makes it a little more clear that something unusual is going on.
+It's unfortunate that there are two different syntaxes, but there's no way to standardise them.
+However, there are no major differences in their behaviour, so you can choose between them based on which syntax you prefer.
+In this book, I use `reactiveVal()` because I like that the syntax makes it a little more clear that something unusual is going on.
 
-The most common source of reactive values is the `input` argument passed to the server function. This is a special read-only `reactiveValues()`: you're not allowed to modify the values because Shiny automatically updates them based on the users actions in the browser.
+The most common source of reactive values is the `input` argument passed to the server function.
+This is a special read-only `reactiveValues()`: you're not allowed to modify the values because Shiny automatically updates them based on the users actions in the browser.
 
 [source, r]
 ----
@@ -52,7 +59,8 @@ shinyApp(ui, server)
 #> Error: Can't modify read-only reactive value 'Hadley'.
 ----
 
-It's important to note that both types of reactive values have so called reference semantics. Most R objects have copy-on-modifyfootnote:[See more details at https://adv-r.hadley.nz/names-values.html#copy-on-modify[]] semantics which means that if you assign the same value to two names, the connection is broken as soon as you modify one:
+It's important to note that both types of reactive values have so called reference semantics.
+Most R objects have copy-on-modifyfootnote:[See more details at https://adv-r.hadley.nz/names-values.html#copy-on-modify[]] semantics which means that if you assign the same value to two names, the connection is broken as soon as you modify one:
 
 [source, r]
 ----
@@ -74,7 +82,8 @@ b1()
 
 ==== Exercises
 
-1.  What are the differences between these two lists of reactive values? Compare the syntax for getting and setting individual reactive values.
+1.  What are the differences between these two lists of reactive values?
+    Compare the syntax for getting and setting individual reactive values.
 
     [source, r]
     ----
@@ -86,17 +95,20 @@ b1()
 
 === Reactive expressions
 
-Recall that a reactive has two important properties: it is lazy and cached. This means that it does as little work as possible by only doing any work if it's actually needed, and when it's called twice in a row, returning the previous value. There are two important details that we haven't yet covered: what reactive expressions do with errors, and that you can use `on.exit()` inside a reactive.
+Recall that a reactive has two important properties: it is lazy and cached.
+This means that it does as little work as possible by only doing any work if it's actually needed, and when it's called twice in a row, returning the previous value.
+There are two important details that we haven't yet covered: what reactive expressions do with errors, and that you can use `on.exit()` inside a reactive.
 
 ==== Errors
 
-Reactive expressions cache errors in exactly the same way that they cache values. For example, take this reactive:
+Reactive expressions cache errors in exactly the same way that they cache values.
+For example, take this reactive:
 
 [source, r]
 ----
 r <- reactive(stop("Error occured at ", Sys.time(), call. = FALSE))
 r()
-#> Error: Error occured at 2021-01-28 13:02:11
+#> Error: Error occured at 2021-01-28 13:56:13
 ----
 
 If we wait a second or two, we can see that we get the same error as before:
@@ -105,19 +117,25 @@ If we wait a second or two, we can see that we get the same error as before:
 ----
 Sys.sleep(2)
 r()
-#> Error: Error occured at 2021-01-28 13:02:11
+#> Error: Error occured at 2021-01-28 13:56:13
 ----
 
-Errors are also treated the same way as values when it comes to the reactive graph: errors propagate through the reactive graph exactly the same way as regular values. The only difference is what happens when an error hits an output or observer:
+Errors are also treated the same way as values when it comes to the reactive graph: errors propagate through the reactive graph exactly the same way as regular values.
+The only difference is what happens when an error hits an output or observer:
 
 -   An error in an output will be displayed in the app[^2].
 -   An error in an observer will cause the current session to close. (If you don't want this to happen you can wrap the code in `try()` or `tryCatch()`.)
 
-This same system powers `req()`, which emits a special type of error[^3]. The error emitted by `req()` causes observers and outputs to stop what they're doing but not otherwise fail. By default, it will cause outputs to reset to their initial blank state, but if you use `req(..., cancelOutput = TRUE)` they'll preserve their current display.
+This same system powers `req()`, which emits a special type of error[^3].
+The error emitted by `req()` causes observers and outputs to stop what they're doing but not otherwise fail.
+By default, it will cause outputs to reset to their initial blank state, but if you use `req(..., cancelOutput = TRUE)` they'll preserve their current display.
 
 ==== `on.exit()`
 
-You can think of `reactive(x())` as a shortcut for `function() x()`, automatically adding laziness and caching. This means that you can use functions that only work inside functions. The most useful of these is `on.exit()` which allows you to run code when a reactive expression finishes, regardless of whether the reactive successfully returns an error or fails with an error. You can learn more about `on.exit()` at https://withr.r-lib.org/articles/changing-and-restoring-state.html[].
+You can think of `reactive(x())` as a shortcut for `function() x()`, automatically adding laziness and caching.
+This means that you can use functions that only work inside functions.
+The most useful of these is `on.exit()` which allows you to run code when a reactive expression finishes, regardless of whether the reactive successfully returns an error or fails with an error.
+You can learn more about `on.exit()` at https://withr.r-lib.org/articles/changing-and-restoring-state.html[].
 
 ==== Exercises
 
@@ -143,7 +161,9 @@ You can think of `reactive(x())` as a shortcut for `function() x()`, automatical
     }
     ----
 
-2.  Modify the above app to instead use `req()` instead of `stop()`. Verify that events still propagate the same way. What happens when you use the `cancelOutput` argument?
+2.  Modify the above app to instead use `req()` instead of `stop()`.
+    Verify that events still propagate the same way.
+    What happens when you use the `cancelOutput` argument?
 
 [[observers-details]]
 === Observers 
@@ -168,11 +188,13 @@ Observers differ from reactive expressions in two important ways:
 
 -   The value returned by an observer is ignored because they are designed to work with functions called for their side-effects, like `cat()` or `write.csv()`.
 
--   Observers are eager and forgetful --- they run as soon as they possibly can and they don't remember their previous action. This eagerness is "infectious" because if they use a reactive expression, that reactive expression will also be evaluated.
+-   Observers are eager and forgetful --- they run as soon as they possibly can and they don't remember their previous action.
+    This eagerness is "infectious" because if they use a reactive expression, that reactive expression will also be evaluated.
 
 ==== Nesting observers
 
-It is useful to think of `observer()` not as doing something, but as creating something (which then takes action as needed). That mindset helps you to understand what's going on in this example:
+It is useful to think of `observer()` not as doing something, but as creating something (which then takes action as needed).
+That mindset helps you to understand what's going on in this example:
 
 [source, r]
 ----
@@ -186,13 +208,16 @@ x(2)
 x(3)
 ----
 
-Every time the observer is triggered, it creates another observer, so each time `x` changes, its value is printed one more time. As a general rule, you should only ever create observers or outputs at the top-level of your server function. If you find yourself trying to nest them, sit down and sketch out the reactive graph that you're trying to create --- there's almost certainly a better approach.
+Every time the observer is triggered, it creates another observer, so each time `x` changes, its value is printed one more time.
+As a general rule, you should only ever create observers or outputs at the top-level of your server function.
+If you find yourself trying to nest them, sit down and sketch out the reactive graph that you're trying to create --- there's almost certainly a better approach.
 
 It can be harder to spot this mistake directly in a more complex app, but you can always use the reactlog: just look for unexpected churn in observers (or outputs), then track back to what is creating them.
 
 ==== `isolate()`
 
-Observers are often coupled with reactive values in order to track state changes over time. For example, take this code which tracks how many times `x` changes:
+Observers are often coupled with reactive values in order to track state changes over time.
+For example, take this code which tracks how many times `x` changes:
 
 [source, r]
 ----
@@ -206,7 +231,8 @@ observe({
 
 If you were to run it, you'd immediately get stuck in an infinite loop because the observer will take a reactive dependency on `x` **and** `count`; and since the observer modifies `count`, it will immediately re-run.
 
-Fortunately, Shiny provides `isolate()` to resolve this problem. This function allows you to access the current value of a reactive value or expression **without** taking a dependency on it:
+Fortunately, Shiny provides `isolate()` to resolve this problem.
+This function allows you to access the current value of a reactive value or expression **without** taking a dependency on it:
 
 [source, r]
 ----
@@ -244,7 +270,9 @@ count()
 
 ==== `observeEvent()`
 
-Another way to avoid this problem is to use the `observeEvent()` function that you learned about in <<observers>>. `observeEvent(x, y)` is equivalent to `observe({isolate(x); y})`. It decouples listening for an event from the action to handle that event, so you could rewrite the above code as:
+Another way to avoid this problem is to use the `observeEvent()` function that you learned about in <<observers>>.
+`observeEvent(x, y)` is equivalent to `observe({isolate(x); y})`.
+It decouples listening for an event from the action to handle that event, so you could rewrite the above code as:
 
 [source, r]
 ----
@@ -257,23 +285,29 @@ In <<reactivity-components>> we'll come back to the problem of managing state ov
 
 `observeEvent()` has an number of additional arguments that allow you to control its details:
 
--   By default, `observeEvent()` will ignore any event that yields `NULL` (or in the special case of action buttons, 0). Use `ignoreNULL = FALSE` to also handle `NULL` values.
+-   By default, `observeEvent()` will ignore any event that yields `NULL` (or in the special case of action buttons, 0).
+    Use `ignoreNULL = FALSE` to also handle `NULL` values.
 
--   By default, `observeEvent()` runs once when you create it. Use `ignoreInit = TRUE` to skip this run.
+-   By default, `observeEvent()` runs once when you create it.
+    Use `ignoreInit = TRUE` to skip this run.
 
 -   Use `once = TRUE` to run the handler only once.
 
 [[outputs-adv]]
 ==== Output 
 
-If you've paid close attention you might have noticed that I've explained `input`, reactive expressions, and observers, but I haven't said anything about `output`. How do reactive outputs fit into the picture? Take this simple output:
+If you've paid close attention you might have noticed that I've explained `input`, reactive expressions, and observers, but I haven't said anything about `output`.
+How do reactive outputs fit into the picture?
+Take this simple output:
 
 [source, r]
 ----
 output$text <- renderText(paste("Hi ", input$name, "!"))
 ----
 
-It looks a bit like a reactive expression because we're assigning the result of `renderText()`, but it feels like a observer, because it has a side-effect: updating the contents of a text box in the browser. In fact, outputs are a special type of observer. They have two special properties:
+It looks a bit like a reactive expression because we're assigning the result of `renderText()`, but it feels like a observer, because it has a side-effect: updating the contents of a text box in the browser.
+In fact, outputs are a special type of observer.
+They have two special properties:
 
 -   They are defined when you assign them into `output`, i.e. `output$text <- ...` creates the observer.
 
@@ -284,9 +318,13 @@ Outputs are intimately connected to the browser, so there's no way to experiment
 [[timed-invalidation-adv]]
 === Timed invalidation 
 
-There's one last building block to discuss. It's a little different to the others in this chapter because it's not a type of object, but is instead a special behaviour: timed invalidation. You saw an example of this in <<timed-invalidation>> with `reactiveTimer()`, but the time has come to discuss the underlying tool that powers it: `invalidateLater()`.
+There's one last building block to discuss.
+It's a little different to the others in this chapter because it's not a type of object, but is instead a special behaviour: timed invalidation.
+You saw an example of this in <<timed-invalidation>> with `reactiveTimer()`, but the time has come to discuss the underlying tool that powers it: `invalidateLater()`.
 
-`invalidateLater(ms)` causes any reactive consumer to be invalidated in the future, after `ms` milliseconds. It is useful for creating animations and connecting to data sources outside of Shiny's reactive framework that may be changing over time. For example, this reactive will automatically generate 10 fresh random normals every half a second[^5]:
+`invalidateLater(ms)` causes any reactive consumer to be invalidated in the future, after `ms` milliseconds.
+It is useful for creating animations and connecting to data sources outside of Shiny's reactive framework that may be changing over time.
+For example, this reactive will automatically generate 10 fresh random normals every half a second[^5]:
 
 [source, r]
 ----
@@ -319,9 +357,11 @@ data <- reactive({
 })
 ----
 
-This achieves the goal of updating changing data from disk, but it has a serious downside: when you invalidate the reactive, you're also invalidating all downstream consumers, so even if the data is the same, all the downstream work has to be redone. To avoid this problem, Shiny provides `reactivePoll()` which takes two functions: one that performs a relatively cheap check to see if the data has changed and another more expensive function that actually does the computation.
+This achieves the goal of updating changing data from disk, but it has a serious downside: when you invalidate the reactive, you're also invalidating all downstream consumers, so even if the data is the same, all the downstream work has to be redone.
+To avoid this problem, Shiny provides `reactivePoll()` which takes two functions: one that performs a relatively cheap check to see if the data has changed and another more expensive function that actually does the computation.
 
-We can use `reactivePoll()` to rewrite the previous reactive as follows. We use `file.mtime()`, which returns the last time the file was modified, as cheap check to see if we need to reload the file.
+We can use `reactivePoll()` to rewrite the previous reactive as follows.
+We use `file.mtime()`, which returns the last time the file was modified, as cheap check to see if we need to reload the file.
 
 [source, r]
 ----
@@ -344,7 +384,8 @@ server <- function(input, output, session) {
 
 ==== Long running reactives
 
-If you're performing a long running computation, there's an important question you need to consider: when should you execute `invalidateLater()`? For example, take this reactive:
+If you're performing a long running computation, there's an important question you need to consider: when should you execute `invalidateLater()`?
+For example, take this reactive:
 
 [source, r]
 ----
@@ -355,7 +396,8 @@ x <- reactive({
 })
 ----
 
-Assume Shiny starts the reactive running at time 0, it will request invalidation at time 500. The reactive takes 1000ms to run, so it's now time 1000, and it's immediately invalidated and must be recomputed, which then sets up another invalidation: we're stuck in an infinite loop.
+Assume Shiny starts the reactive running at time 0, it will request invalidation at time 500.
+The reactive takes 1000ms to run, so it's now time 1000, and it's immediately invalidated and must be recomputed, which then sets up another invalidation: we're stuck in an infinite loop.
 
 On other hand, if you run `invalidateLater()` at the end, it will invalidate 500ms after completion, so the reactive will be re-run every 1500 ms.
 
@@ -372,9 +414,14 @@ This is the main reason to prefer `invalidateLater()` to the simpler `reactiveTi
 
 ==== Timer accuracy
 
-The number of milliseconds specified in `invalidateLater()` is a polite request, not a demand. R may be doing other things when you asked for invalidation to occur, so your request has to wait. This effectively means that the number is a minimum and invalidation might take longer than you expect. In most cases, this doesn't matter because small differences are unlikely to affect user perception of your app. However, in situations where many small errors will accumulate, you should compute the exact elapsed time and use it to adjust your calculations.
+The number of milliseconds specified in `invalidateLater()` is a polite request, not a demand.
+R may be doing other things when you asked for invalidation to occur, so your request has to wait.
+This effectively means that the number is a minimum and invalidation might take longer than you expect.
+In most cases, this doesn't matter because small differences are unlikely to affect user perception of your app.
+However, in situations where many small errors will accumulate, you should compute the exact elapsed time and use it to adjust your calculations.
 
-For example, the following code computes distance based on velocity and elapsed time. Rather than assuming `invalidateLater(100)` always delays by exactly 100 ms, I compute the elapsed time and use it in my calculation of position.
+For example, the following code computes distance based on velocity and elapsed time.
+Rather than assuming `invalidateLater(100)` always delays by exactly 100 ms, I compute the elapsed time and use it in my calculation of position.
 
 [source, r]
 ----
@@ -394,7 +441,8 @@ observe({
 
 ==== Exercises
 
-1.  Why will this reactive never be executed? Your explanation should talk about the reactive graph and invalidation.
+1.  Why will this reactive never be executed?
+    Your explanation should talk about the reactive graph and invalidation.
 
     [source, r]
     ----
@@ -406,18 +454,24 @@ observe({
     }
     ----
 
-2.  If you're familiar with SQL, use `reactivePoll()` to only re-read an imaginary "Results" table whenever a new row is added. You can assume the Results table has a `timestamp` field that contains the date-time that a record was added.
+2.  If you're familiar with SQL, use `reactivePoll()` to only re-read an imaginary "Results" table whenever a new row is added.
+    You can assume the Results table has a `timestamp` field that contains the date-time that a record was added.
 
 [[how-it-works]]
 === Summary 
 
-In this chapter you've learned more about the building blocks that make Shiny work: reactive values, reactive expressions, observers, and timed evaluation. Now we'll turn our attention to a specific combination of reactive values and observers that allows us to escape some of the constraints (for better and worse) of the reactive graph.
+In this chapter you've learned more about the building blocks that make Shiny work: reactive values, reactive expressions, observers, and timed evaluation.
+Now we'll turn our attention to a specific combination of reactive values and observers that allows us to escape some of the constraints (for better and worse) of the reactive graph.
 
 
-[^2]: By default, you'll see the whole error message. You can show a generic error message by turning error sanitising on. See https://shiny.rstudio.com/articles/sanitize-errors.html[] for details.
+[^2]: By default, you'll see the whole error message.
+    You can show a generic error message by turning error sanitising on.
+    See https://shiny.rstudio.com/articles/sanitize-errors.html[] for details.
 
-[^3]: Technically, a custom condition. See https://adv-r.hadley.nz/conditions.html#custom-conditions[] for more details.
+[^3]: Technically, a custom condition.
+    See https://adv-r.hadley.nz/conditions.html#custom-conditions[] for more details.
 
-[^4]: In rare cases, you may prefer to process even outputs that are hidden. You can use the `outputOptions()` function's `suspendWhenHidden` to opt out of the automatic suspension feature on an output-by-output basis.
+[^4]: In rare cases, you may prefer to process even outputs that are hidden.
+    You can use the `outputOptions()` function's `suspendWhenHidden` to opt out of the automatic suspension feature on an output-by-output basis.
 
 [^5]: Assuming that it's used by some output or observer; otherwise it will stay in its initial invalidated state forever.

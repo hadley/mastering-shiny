@@ -1,15 +1,21 @@
 [[scaling-security]]
 == Security 
 
-Most Shiny apps are deployed within a company firewall and since you can generally assume that your colleagues aren't going to try and hack your appfootnote:[If you can't assume that, you have bigger problems! That said, some companies do have a "zero-trust" model, so you should double check with your IT team.], you don't need to think about security. If, however, your app contains data that only some of your colleagues should be able to access, or you want to expose your app to the public, you will need to spend some time on security. When securing your app, there are two main things to protect:
+Most Shiny apps are deployed within a company firewall and since you can generally assume that your colleagues aren't going to try and hack your appfootnote:[If you can't assume that, you have bigger problems!], you don't need to think about security.
+If, however, your app contains data that only some of your colleagues should be able to access, or you want to expose your app to the public, you will need to spend some time on security.
+When securing your app, there are two main things to protect:
 
 -   Your data: you want to make sure an attacker can't access any sensitive data.
 
 -   Your compute resources: you want to make sure an attacker can't mine bitcoin or use your server as part of a spam farm.
 
-Fortunately your job is made a little easier because security is a team sport. Whoever deploys your app is responsible for security **between** apps, ensuring that app A can't access the code or data in app B, and can't steal all the memory and compute power on the server. You responsibility is the security **within** your app, making sure that an attacker can't abuse your app to achieve their ends. This chapter will give the basics of securing your Shiny, broken down into securing your data and securing your compute resources.
+Fortunately your job is made a little easier because security is a team sport.
+Whoever deploys your app is responsible for security **between** apps, ensuring that app A can't access the code or data in app B, and can't steal all the memory and compute power on the server.
+You responsibility is the security **within** your app, making sure that an attacker can't abuse your app to achieve their ends.
+This chapter will give the basics of securing your Shiny, broken down into securing your data and securing your compute resources.
 
-If you're interested in learning a little more about security and R in general, I highly recommend Colin Gillespie's entertaining and educational useR! 2019 talk, "https://www.youtube.com/watch?v=5odJxZj9LE4[R and Security]".
+If you're interested in learning a little more about security and R in general, I highly recommend Colin Gillespie's entertaining and educational useR!
+2019 talk, "https://www.youtube.com/watch?v=5odJxZj9LE4[R and Security]".
 
 [source, r]
 ----
@@ -18,11 +24,22 @@ library(shiny)
 
 === Data
 
-The most sensitive data is stuff like personally identifying information (PII), regulated data, credit card data, health data, or anything else that would be a legal nightmare for your company if was made public. Fortunately, most Shiny apps don't deal with those types of datahttps://github.com/rstudio/config[^2], but there is an important type of data you do need to worry about: passwords. You should never include passwords in the source code of your app. Instead either put them in environment variables, or if you have many use the [config] package. Either way, make sure that they are never included in your source code control by adding the appropriate files to `.gitignore`. I also recommend documenting how a new developer can get the appropriate credentials.
+The most sensitive data is stuff like personally identifying information (PII), regulated data, credit card data, health data, or anything else that would be a legal nightmare for your company if was made public.
+Fortunately, most Shiny apps don't deal with those types of data[^2], but there is an important type of data you do need to worry about: passwords.
+You should never include passwords in the source code of your app.
+Instead either put them in environment variables, or if you have many use the https://github.com/rstudio/config[config] package.
+Either way, make sure that they are never included in your source code control by adding the appropriate files to `.gitignore`. I also recommend documenting how a new developer can get the appropriate credentials.
 
-Alternatively, you may have data that is user-specific. If you need to **authenticate** users, i.e. identify them through a user name and password, never attempt to roll a solution yourself. There are just too many things that might go wrong. Instead, you'll need to work with your IT team to design a secure access mechanism. You can see some best practices at https://solutions.rstudio.com/auth/kerberos/[] and https://db.rstudio.com/best-practices/deployment/[]. Note that code within `server()` is isolated so there's no way for one user session to see data from another.
+Alternatively, you may have data that is user-specific.
+If you need to **authenticate** users, i.e. identify them through a user name and password, never attempt to roll a solution yourself.
+There are just too many things that might go wrong.
+Instead, you'll need to work with your IT team to design a secure access mechanism.
+You can see some best practices at https://solutions.rstudio.com/auth/kerberos/[] and https://db.rstudio.com/best-practices/deployment/[].
+Note that code within `server()` is isolated so there's no way for one user session to see data from another.
 
-Finally, note that Shiny inputs use client-side validation, i.e. the checks for valid input are performed by javascript in the browser, not by R. This means it's possible for a knowledgeable attacker to send values that you don't expect. For example, take this simple app:
+Finally, note that Shiny inputs use client-side validation, i.e. the checks for valid input are performed by javascript in the browser, not by R.
+This means it's possible for a knowledgeable attacker to send values that you don't expect.
+For example, take this simple app:
 
 [source, r]
 ----
@@ -45,7 +62,9 @@ server <- function(input, output, session) {
 }
 ----
 
-You might expect that a user could access my name and birthday, but not my social security number or credit card details. But a knowledgeable attacker can open up a javascript console in their browser and run `Shiny.setInputValue("x", "c")` to see my SSN. So to be safe, you need to check all user inputs from your R code:
+You might expect that a user could access my name and birthday, but not my social security number or credit card details.
+But a knowledgeable attacker can open up a javascript console in their browser and run `Shiny.setInputValue("x", "c")` to see my SSN.
+So to be safe, you need to check all user inputs from your R code:
 
 [source, r]
 ----
@@ -76,11 +95,14 @@ server <- function(input, output, session) {
 }
 ----
 
-In general, the combination of `parse()` and `eval()` is a big warning sign for any Shiny app[^3]: they instantly make your app vulnerable. Similarly, you should never `source()` an uploaded `.R` file, or `rmarkdown::render()` an uploaded `.Rmd`. But these cases are pretty obvious, and are unlikely to be source of real problems.
+In general, the combination of `parse()` and `eval()` is a big warning sign for any Shiny app[^3]: they instantly make your app vulnerable.
+Similarly, you should never `source()` an uploaded `.R` file, or `rmarkdown::render()` an uploaded `.Rmd`. But these cases are pretty obvious, and are unlikely to be source of real problems.
 
-The bigger challenge arises because are a number of functions that `parse()`, `eval()`, or both, in a way that you're not aware of. Here are the most common:
+The bigger challenge arises because are a number of functions that `parse()`, `eval()`, or both, in a way that you're not aware of.
+Here are the most common:
 
--   **Model formulas**. It's possible to construct a model that executes arbitrary R code:
+-   **Model formulas**.
+    It's possible to construct a model that executes arbitrary R code:
 
     [source, r]
     ----
@@ -91,7 +113,8 @@ The bigger challenge arises because are a number of functions that `parse()`, `e
 
     This makes it difficult to safely allow a user to define their own models.
 
--   **Glue labels**. The glue package provides a powerful way to create strings from data:
+-   **Glue labels**.
+    The glue package provides a powerful way to create strings from data:
 
     [source, r]
     ----
@@ -120,11 +143,14 @@ The bigger challenge arises because are a number of functions that `parse()`, `e
     #> Error in .transformer(expr, env): object 'print('Hi'); number' not found
     ----
 
--   **Variable transformation.** There's no way to safely allow a use to provide code snippets to transform a variable for dplyr or ggplot2. You might expect they'll write `log10(x)` but they could write `{print("Hi"); log10(x)}`
+-   **Variable transformation.** There's no way to safely allow a use to provide code snippets to transform a variable for dplyr or ggplot2.
+    You might expect they'll write `log10(x)` but they could write `{print("Hi"); log10(x)}`
 
-    This also means that you should never use the older `ggplot2::aes_string()` with user supplied input. Instead, stick with the techniques in <<action-tidy>>.
+    This also means that you should never use the older `ggplot2::aes_string()` with user supplied input.
+    Instead, stick with the techniques in <<action-tidy>>.
 
-The same problem can occur with SQL. For example, if you construct SQL with `pastse()`, e.g.:
+The same problem can occur with SQL.
+For example, if you construct SQL with `pastse()`, e.g.:
 
 [source, r]
 ----
@@ -165,6 +191,7 @@ find_student("Robert'); DROP TABLE Students; --")
 
 It's a little hard to tell at first glance, but this is safe, because SQL's equivalent of `\'` is `''`.
 
+    That said, some companies do have a "zero-trust" model, so you should double check with your IT team.
 
 [^2]: If your app does work these types of data, it's imperative that you partner with a software engineer with security expertise.
 

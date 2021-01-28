@@ -1,7 +1,9 @@
 [[action-transfer]]
 == Uploads and downloads 
 
-Transferring files to and from the user is a common feature of apps. You can use it to upload data for analysis, or download the results as a dataset or as a report. This chapter shows the UI and server components that you'll need to transfer files in and out of your app.
+Transferring files to and from the user is a common feature of apps.
+You can use it to upload data for analysis, or download the results as a dataset or as a report.
+This chapter shows the UI and server components that you'll need to transfer files in and out of your app.
 
 [source, r]
 ----
@@ -23,21 +25,31 @@ ui <- fluidPage(
 )
 ----
 
-Like most other UI components, there are only two required arguments: `id` and `label`. The `width`, `buttonLabel` and `placeholder` arguments allow you to tweak the appearance in other ways. I won't discuss them here, but you can read more about them in `?fileInput`.
+Like most other UI components, there are only two required arguments: `id` and `label`.
+The `width`, `buttonLabel` and `placeholder` arguments allow you to tweak the appearance in other ways.
+I won't discuss them here, but you can read more about them in `?fileInput`.
 
 ==== Server
 
-Handling `fileInput()` on the server is a little more complicated than other inputs. Most inputs return simple vectors, but `fileInput()` returns a data frame with four columns:
+Handling `fileInput()` on the server is a little more complicated than other inputs.
+Most inputs return simple vectors, but `fileInput()` returns a data frame with four columns:
 
 -   `name`: the original file name on the user's computer.
 
--   `size`: the file size, in bytes. By default, the user can only upload files up to 5 MB. You can increase this limit by setting the `shiny.maxRequestSize` option prior to starting Shiny. For example, to allow up to 10 MB run `options(shiny.maxRequestSize = 10 * 1024^2)`.
+-   `size`: the file size, in bytes.
+    By default, the user can only upload files up to 5 MB.
+    You can increase this limit by setting the `shiny.maxRequestSize` option prior to starting Shiny.
+    For example, to allow up to 10 MB run `options(shiny.maxRequestSize = 10 * 1024^2)`.
 
--   `type`: the "MIME type"footnote:[MIME type is short for "**m**ulti-purpose **i**nternet **m**ail **e**xtensions type". As you might guess from the name, it was originally designed for email systems, but now it's used widely across many internet tools. A MIME type looks like `type/subtype`. Some common examples are `text/csv`, `text/html`, `image/png`, `application/pdf`, `application/vnd.ms-excel` (excel file).] of the file. This is a formal specification of the file type that is usually derived from the extension and is rarely needed in Shiny apps.
+-   `type`: the "MIME type"footnote:[MIME type is short for "**m**ulti-purpose **i**nternet **m**ail **e**xtensions type".] of the file.
+    This is a formal specification of the file type that is usually derived from the extension and is rarely needed in Shiny apps.
 
--   `datapath`: the path to where the data has been uploaded on the server. Treat this path as ephemeral: if the user uploads more files, this file may be deleted. The data is always saved to a temporary directory and given a temporary name.
+-   `datapath`: the path to where the data has been uploaded on the server.
+    Treat this path as ephemeral: if the user uploads more files, this file may be deleted.
+    The data is always saved to a temporary directory and given a temporary name.
 
-I think the easiest way to get to understand this data structure is to make a simple app. Run the following code and upload a few files to get a sense of what data Shiny is providing.
+I think the easiest way to get to understand this data structure is to make a simple app.
+Run the following code and upload a few files to get a sense of what data Shiny is providing.
 
 [source, r]
 ----
@@ -60,7 +72,10 @@ If the user is uploading a dataset, there are two details that you need to be aw
 
 -   `input$file` is initialised to `NULL` on page load, so you'll need `req(input$file)` to make sure your code waits until the first file is uploaded.
 
--   The `accept` argument allows you to limit the possible inputs. The easiest way is to supply a character vector of file extensions, like `accept = ".csv"`. But the `accept` argument is only a suggestion to the browser, and is not always enforced, so it's good practice to also validate it (e.g. <<validate>>) yourself. The easiest way to get the file extension in R is `tools::file_ext()`, but note that it strips the leading `.`.
+-   The `accept` argument allows you to limit the possible inputs.
+    The easiest way is to supply a character vector of file extensions, like `accept = ".csv"`.
+    But the `accept` argument is only a suggestion to the browser, and is not always enforced, so it's good practice to also validate it (e.g. <<validate>>) yourself.
+    The easiest way to get the file extension in R is `tools::file_ext()`, but note that it strips the leading `.`.
 
 Putting all these ideas together gives us the following app where you can upload a `.csv` or `.tsv` file and see the first `n` rows:
 
@@ -112,7 +127,8 @@ image::demos/action-transfer/download.png[]
 
 You can customise their appearance using the same `class` and `icon` arguments as for `actionButtons()`, as described in <<action-buttons>>.
 
-Unlike other outputs, `downloadButton()` is not paired with a render function. Instead, you use `downloadHandler()`, which looks something like this:
+Unlike other outputs, `downloadButton()` is not paired with a render function.
+Instead, you use `downloadHandler()`, which looks something like this:
 
 [source, r]
 ----
@@ -128,9 +144,11 @@ output$download <- downloadHandler(
 
 `downloadHandler()` has two arguments, both functions:
 
--   `filename` should be a function with no arguments that returns a file name (as a string). The job of this function is to create the name that will be shown to the user in the download dialog box.
+-   `filename` should be a function with no arguments that returns a file name (as a string).
+    The job of this function is to create the name that will be shown to the user in the download dialog box.
 
--   `content` should be a function with one argument, `file`, which is the path to save the file. The job of this function is to save the file in a place that Shiny knows about, so it can then send it to the user.
+-   `content` should be a function with one argument, `file`, which is the path to save the file.
+    The job of this function is to save the file in a place that Shiny knows about, so it can then send it to the user.
 
 This is an unusual interface, but it allows Shiny to control where the file should be saved (so it can be placed in a secure location) while you still control the contents of that file.
 
@@ -138,7 +156,10 @@ Next we'll put these pieces together to show how to transfer data files or repor
 
 ==== Downloading data
 
-The following app shows off the basics of data download by allowing you to download any dataset in the datasets package as a tab separated file. I recommend using `.tsv` (tab separated value) instead of `.csv` (comma separated values) because many European countries use commas to separate the whole and fractional parts of a number (e.g. `1,23` vs `1.23`). This means they can't use commas to separate fields and instead use semi-colons in so-called "c"sv files! You can avoid this complexity by using tab separated files, which work the same way everywhere.
+The following app shows off the basics of data download by allowing you to download any dataset in the datasets package as a tab separated file.
+I recommend using `.tsv` (tab separated value) instead of `.csv` (comma separated values) because many European countries use commas to separate the whole and fractional parts of a number (e.g. `1,23` vs `1.23`).
+This means they can't use commas to separate fields and instead use semi-colons in so-called "c"sv files!
+You can avoid this complexity by using tab separated files, which work the same way everywhere.
 
 [source, r]
 ----
@@ -174,13 +195,16 @@ server <- function(input, output, session) {
 
 <!-- TODO: add demo -->
 
-Note the use of `validate()` to only allow the user to download datasets that are data frames. A better approach would be to pre-filter the list, but this lets you see another application of `validate()`.
+Note the use of `validate()` to only allow the user to download datasets that are data frames.
+A better approach would be to pre-filter the list, but this lets you see another application of `validate()`.
 
 ==== Downloading reports
 
-As well as downloading data, you may want the users of your app to download a report that summarises the result of interactive exploration in the Shiny app. This is quite a lot of work, because you also need to display the same information in a different format, but it is very useful for high-stakes apps.
+As well as downloading data, you may want the users of your app to download a report that summarises the result of interactive exploration in the Shiny app.
+This is quite a lot of work, because you also need to display the same information in a different format, but it is very useful for high-stakes apps.
 
-One powerful way to generate such a report is with a https://bookdown.org/yihui/rmarkdown/parameterized-reports.html[parameterised RMarkdown document]. A parameterised RMarkdown file has a `params` field in the YAML metadata:
+One powerful way to generate such a report is with a https://bookdown.org/yihui/rmarkdown/parameterized-reports.html[parameterised RMarkdown document].
+A parameterised RMarkdown file has a `params` field in the YAML metadata:
 
 [source, yaml]
 ----
@@ -193,9 +217,13 @@ params:
   data: file.csv
 ----
 
-Inside the document, you can refer to these values using `params$year`, `params$region` etc. The values in the YAML metadata are defaults; you'll generally override them by providing the `params` argument in a call to `rmarkdown::render()`. This makes it easy to generate many different reports from the same `.Rmd`.
+Inside the document, you can refer to these values using `params$year`, `params$region` etc.
+The values in the YAML metadata are defaults; you'll generally override them by providing the `params` argument in a call to `rmarkdown::render()`.
+This makes it easy to generate many different reports from the same `.Rmd`.
 
-Here's a simple example adapted from https://shiny.rstudio.com/articles/generating-reports.html[], which describes this technique in more detail. The key idea is to call `rmarkdown::render()` from the `content` argument of `downloadHander()`. If you want to produce other output formats, just change the output format in the `.Rmd`, and make sure to update the extension (e.g. to `.pdf`).
+Here's a simple example adapted from https://shiny.rstudio.com/articles/generating-reports.html[], which describes this technique in more detail.
+The key idea is to call `rmarkdown::render()` from the `content` argument of `downloadHander()`.
+If you want to produce other output formats, just change the output format in the `.Rmd`, and make sure to update the extension (e.g. to `.pdf`).
 
 [source, r]
 ----
@@ -231,7 +259,8 @@ It'll generally take at least a few seconds to render a `.Rmd`, so this is a goo
 
 There are a couple of other tricks worth knowing about:
 
--   RMarkdown works in the current working directory, which will fail in many deployment scenarios (e.g. on shinyapps.io). You can work around this by copying the report to a temporary directory when your app starts (i.e. outside of the server function):
+-   RMarkdown works in the current working directory, which will fail in many deployment scenarios (e.g. on shinyapps.io).
+    You can work around this by copying the report to a temporary directory when your app starts (i.e. outside of the server function):
 
     [source, r]
     ----
@@ -250,7 +279,8 @@ There are a couple of other tricks worth knowing about:
     )
     ----
 
--   By default, RMarkdown will render the report in the current process, which means that it will inherit many settings from the Shiny app (like loaded packages, options, etc). For greater robustness, I recommend running `render()` in a separate R session using the callr package:
+-   By default, RMarkdown will render the report in the current process, which means that it will inherit many settings from the Shiny app (like loaded packages, options, etc).
+    For greater robustness, I recommend running `render()` in a separate R session using the callr package:
 
     [source, r]
     ----
@@ -390,9 +420,16 @@ server <- function(input, output, session) {
 
 1.  Use the https://ambient.data-imaginist.com[ambient] package by Thomas Lin Pedersen to generate https://ambient.data-imaginist.com/reference/noise_worley.html[worley noise] and download a PNG of it.
 
-2.  Create an app that lets you upload a csv file, select a variable, and then perform a `t.test()` on that variable. After the user has uploaded the csv file, you'll need to use `updateSelectInput()` to fill in the available variables. See <<updating-inputs>> for details.
+2.  Create an app that lets you upload a csv file, select a variable, and then perform a `t.test()` on that variable.
+    After the user has uploaded the csv file, you'll need to use `updateSelectInput()` to fill in the available variables.
+    See <<updating-inputs>> for details.
 
-3.  Create an app that lets the user upload a csv file, select one variable, draw a histogram, and then download the histogram. For an additional challenge, allow the user to select from `.png`, `.pdf`, and `.svg` output formats.
+3.  Create an app that lets the user upload a csv file, select one variable, draw a histogram, and then download the histogram.
+    For an additional challenge, allow the user to select from `.png`, `.pdf`, and `.svg` output formats.
 
-4.  Write an app that allows the user to create a Lego mosaic from any `.png` file using Ryan Timpe's https://github.com/ryantimpe/brickr[brickr] package. Once you've completed the basics, add controls to allow the user to select the size of the mosaic (in bricks), and choose whether to use "universal" or "generic" colour palettes.
+4.  Write an app that allows the user to create a Lego mosaic from any `.png` file using Ryan Timpe's https://github.com/ryantimpe/brickr[brickr] package.
+    Once you've completed the basics, add controls to allow the user to select the size of the mosaic (in bricks), and choose whether to use "universal" or "generic" colour palettes.
 
+    As you might guess from the name, it was originally designed for email systems, but now it's used widely across many internet tools.
+    A MIME type looks like `type/subtype`.
+    Some common examples are `text/csv`, `text/html`, `image/png`, `application/pdf`, `application/vnd.ms-excel` (excel file).

@@ -13,7 +13,7 @@ render_clean <- function(path, ...) {
 }
 
 format <- rmarkdown::md_document(variant = "markdown-fenced_code_attributes-raw_attribute")
-format$pandoc$args <- c(format$pandoc$args, "--wrap=none")
+format$pandoc$args <- c(format$pandoc$args, "--wrap=preserve")
 
 Sys.setenv(CI = "true") # don't rebuild demos
 chapters %>% walk(
