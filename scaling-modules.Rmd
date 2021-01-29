@@ -620,7 +620,7 @@ The inside of this module uses multiple input elements, but from the outside it 
 
 I'm going to parametrise the UI side with `label`, `choices`, and `selected` which get passed directly to `radioButtons()`.
 I also create a `textInput()` containing a placeholder, that defaults to "Other".
-To combine the text box and the radio button, I take advantage of the fact that `choiceValues` can be a list of HTML elements, including other input widgets.
+To combine the text box and the radio button, I take advantage of the fact that `choiceNames` can be a list of HTML elements, including other input widgets.
 
 ```{r}
 radioExtraUI <- function(id, label, choices, selected = NULL, placeholder = "Other") {
