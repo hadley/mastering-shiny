@@ -17,7 +17,7 @@ When securing your app, there are two main things to protect:
 
 Fortunately your job is made a little easier because security is a team sport.
 Whoever deploys your app is responsible for security **between** apps, ensuring that app A can't access the code or data in app B, and can't steal all the memory and compute power on the server.
-You responsibility is the security **within** your app, making sure that an attacker can't abuse your app to achieve their ends.
+Your responsibility is the security **within** your app, making sure that an attacker can't abuse your app to achieve their ends.
 This chapter will give the basics of securing your Shiny, broken down into securing your data and securing your compute resources.
 
 If you're interested in learning a little more about security and R in general, I highly recommend Colin Gillespie's entertaining and educational useR!
