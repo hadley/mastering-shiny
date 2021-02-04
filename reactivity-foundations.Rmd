@@ -54,7 +54,7 @@ server <- function(input, output, session) {
   input$name <- "Hadley"
 }
 shinyApp(ui, server)
-#> Error: Can't modify read-only reactive value 'Hadley'.
+#> Error: Can't modify read-only reactive value 'name'.
 ```
 
 It's important to note that both types of reactive values have so called reference semantics.
