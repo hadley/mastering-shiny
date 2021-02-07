@@ -243,15 +243,15 @@ Can you spot what's wrong with the server function below?
 
 ```{r}
 server <- function(input, output, session) {
-  output$greetnig <- renderText({
+  output$greting <- renderText({
     paste0("Hello ", input$name, "!")
   })
 }
 ```
 
-If you look closely, you might notice that I've written `greetnig` instead of `greeting`.
+If you look closely, you might notice that I've written `greting` instead of `greeting`.
 This won't generate an error in Shiny, but it won't do what you want.
-The `greetnig` output doesn't exist, the code inside `renderText()` will never be run.
+The `greting` output doesn't exist, so the code inside `renderText()` will never be run.
 
 If you're working on a Shiny app and you just can't figure out why your code never gets run, double check that your UI and server functions are using the same identifiers.
 
