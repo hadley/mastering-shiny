@@ -513,7 +513,7 @@ You've seen it in every example above, because we use it to put multiple inputs 
 What happens if you use `fluidPage()` by itself?
 Figure \@ref(fig:ui-fluid-page) shows the results.
 
-```{r ui-fluid-page, fig.cap = "An UI consisting only of `fluid_page()`", echo = FALSE}
+```{r ui-fluid-page, fig.cap = "An UI consisting only of `fluidPage()`", echo = FALSE}
 knitr::include_graphics("images/basic-app/fluid-page.png", dpi = 300)
 ```
 
