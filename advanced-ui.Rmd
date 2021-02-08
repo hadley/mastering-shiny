@@ -12,7 +12,7 @@ library(magrittr)
 
 ## Introduction
 
-The native languages of the web are HTML (for content), CSS (for styling), and JavaScript (for behavior). Shiny is designed to be accessible for R users who aren't familiar with any of those languages. But if you do speak these languages, you can take full advantage of them with Shiny to customize your apps or extend the Shiny framework.
+The native languages of the web are HTML (for content), CSS (for styling), and JavaScript (for behaviour). Shiny is designed to be accessible for R users who aren't familiar with any of those languages. But if you do speak these languages, you can take full advantage of them with Shiny to customize your apps or extend the Shiny framework.
 
 The previous chapter showed you the higher-level UI functions that come with Shiny. In this chapter, we'll take that a couple of steps deeper by learning how our R code gets translated into the HTML that's ultimately sent to the browser. Armed with that knowledge, you'll be able to add arbitrary HTML and CSS to your Shiny apps with ease.
 
@@ -29,7 +29,7 @@ If you don't know HTML, and aren't keen to learn, you can safely skip this chapt
 
 To understand how UI functions in R work, let's first talk about HTML, in case you're not familiar with it (or its cousin, XML). If you've worked with HTML before, feel free to skip to Section \@ref(generating-html).
 
-HTML is a _markup language_ for describing web pages. A markup language is just a document format that contains plain text content, plus embedded instructions for annotating, or "marking up", specific sections of that content. These instructions can control the appearance, layout, and behavior of the text they mark up, and also provide structure to the document.
+HTML is a _markup language_ for describing web pages. A markup language is just a document format that contains plain text content, plus embedded instructions for annotating, or "marking up", specific sections of that content. These instructions can control the appearance, layout, and behaviour of the text they mark up, and also provide structure to the document.
 
 Here's a simple snippet of HTML:
 
@@ -86,7 +86,7 @@ tags$blockquote(
 
 Some tags need to do more than just demarcate some text. An `<a>` (for "anchor") tag is used to create a hyperlink. It's not enough to just wrap `<a>...</a>` around the link's text, as you also need to specify where the hyperlink points to.
 
-Start tags let you include _attributes_ that customize the appearance or behavior of the tag. In this case, we'll add an `href` attribute to our `<a>` start tag:
+Start tags let you include _attributes_ that customize the appearance or behaviour of the tag. In this case, we'll add an `href` attribute to our `<a>` start tag:
 
 ```html
 <p>Learn more about <strong>Shiny</strong> at <a href="https://shiny.rstudio.com">this website</a>.</p>
@@ -98,7 +98,7 @@ tags$blockquote(HTML('<p>Learn more about <strong>Shiny</strong> at <a href="htt
 
 There are [dozens of attributes](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes) that all tags accept, and hundreds of attributes that are specific to particular tags. You don't have to worry about memorizing them all--even full-time web developers don't do that. There are two attributes that are used constantly, though.
 
-The `id` attribute uniquely identifies a tag in a document. That is, no two tags in a single document should share the same `id` value, and each tag can have zero or one `id` value. As far as the web browser is concerned, the `id` attribute is completely optional and has no intrinsic effect on the appearance or behavior of the rendered tag. However, it's incredibly useful for identifying a tag for special treatment by CSS or JavaScript, and as such, plays a crucial role for Shiny apps.
+The `id` attribute uniquely identifies a tag in a document. That is, no two tags in a single document should share the same `id` value, and each tag can have zero or one `id` value. As far as the web browser is concerned, the `id` attribute is completely optional and has no intrinsic effect on the appearance or behaviour of the rendered tag. However, it's incredibly useful for identifying a tag for special treatment by CSS or JavaScript, and as such, plays a crucial role for Shiny apps.
 
 The `class` attribute provides a way of classifying tags in a document. Unlike `id`, any number of tags can have the same class, and each tag can have multiple classes (space separated). Again, classes don't have an intrinsic effect, but are hugely helpful for using CSS or JavaScript to target groups of tags.
 

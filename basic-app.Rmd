@@ -52,7 +52,7 @@ Looking closely at the code above, our `app.R` does four things:
 2.  It defines the user interface, the HTML webpage that humans interact with.
     In this case, it's a page containing the words "Hello, world!".
 
-3.  It specifies the behavior of our app by defining a `server` function.
+3.  It specifies the behaviour of our app by defining a `server` function.
     It's currently empty, so our app doesn't *do* anything, but we'll be back to revisit this shortly.
 
 4.  It executes `shinyApp(ui, server)` to construct and start a Shiny application from UI and server.
@@ -160,7 +160,7 @@ demo <- demoApp$new("basic-app/ui", ui)
 demo$takeScreenshot()
 ```
 
-## Adding behavior {#server-function}
+## Adding behaviour {#server-function}
 
 Next, we'll bring the outputs to life by defining them in the server function.
 
