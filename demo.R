@@ -16,15 +16,22 @@ demoApp <- R6::R6Class("demoApp", public = list(
   ui = NULL,
   server = NULL,
   data = NULL,
+  assets = NULL,
 
   running = FALSE,
   driver = NULL,
 
-  initialize = function(name, ui, server = NULL, packages = character(), env = parent.frame()) {
+  initialize = function(name, ui,
+                        server = NULL,
+                        packages = character(),
+                        assets = NULL,
+                        env = parent.frame()
+                        ) {
     self$name <- name
     self$ui <- ui
     self$server <- server
     self$data <- app_data(server, ui, packages, env)
+    self$assets <- assets
 
     fs::dir_create(fs::path("demos", fs::path_dir(name)))
     self$run()
@@ -47,6 +54,10 @@ demoApp <- R6::R6Class("demoApp", public = list(
 
   saveApp = function(path = tempfile()) {
     dir.create(path)
+    if (!is.null(self$assets)) {
+      file.copy(self$assets, path, recursive = TRUE)
+    }
+
     file.copy("demo-app.R", file.path(path, "app.R"))
     saveRDS(self$data, file.path(path, "data.rds"))
     path

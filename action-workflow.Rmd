@@ -253,7 +253,7 @@ There are three basic parts to the call stack:
 If you get an error in your app but don't see a traceback then make sure that you're running the app using `Cmd/Ctrl` + `Shift` + `Enter` (or if not in RStudio, calling `runApp()`), and that you've saved the file that you're running it from.
 Other ways of running the app don't always capture the information necessary to make a traceback.
 
-### The interactive debugger
+### The interactive debugger {#browser}
 
 Once you've located the source of the error and want to figure out what's causing it, the most powerful tool you have at your disposal is the **interactive debugger**.
 The debugger pauses execution and gives you an interactive R console where you can run any code to figure out what's gone wrong.

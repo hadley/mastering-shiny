@@ -2,6 +2,7 @@
 
 ```{r, include = FALSE}
 source("common.R")
+source("demo.R")
 ```
 
 We talked briefly about `renderPlot()` in Chapter \@ref(basic-ui); it's a powerful tool for displaying graphics in your app.
@@ -27,13 +28,14 @@ I don't have space to show you all the possibilities, so here I'll focus on the 
 A plot can respond to four different mouse[^action-graphics-1] events: `click`, `dblclick` (double click), `hover` (when the mouse stays in the same place for a little while), and `brush` (a rectangular selection tool).
 To turn these events into Shiny inputs, you supply a string to the corresponding `plotOutput()` argument, e.g. `plotOutput("plot", click = "plot_click")`. This creates an `input$plot_click` that you can use to handle mouse clicks on the plot.
 
-[^action-graphics-1]: Shiny didn't support touch events when I wrote this chapter, but it might by the time you read this.
+[^action-graphics-1]: When I wrote this chapter, Shiny didn't support touch events, which means that plot interactivity won't work on mobile devices.
+    Hopefully it will support these events by the time you read this.
 
 Here's a very simple example of handling a mouse click.
 We register the `plot_click` input, and then use that to update an output with the coordinates of the mouse click:
 
 ```{r}
-ui <- basicPage(
+ui <- fluidPage(
   plotOutput("plot", click = "plot_click"),
   verbatimTextOutput("info")
 )
@@ -64,7 +66,9 @@ I'll then give a couple of examples of updating the plot with the results of the
 The point events return a relatively rich list containing a lot of information.
 The most important components are `x` and `y`, which give the location of the event in data coordinates.
 But I'm not going to talk about this data structure, since you'll only need in relatively rare situations (If you do want the details, use [this app](https://gallery.shinyapps.io/095-plot-interaction-advanced/) in the Shiny gallery).
-Instead, you'll use the `nearPoints()` helper, which finds data points near the event, taking care of a bunch of fiddly details.
+Instead, you'll use the `nearPoints()` helper, which returns a data frame containing rows near[^action-graphics-2] the click, taking care of a bunch of fiddly details.
+
+[^action-graphics-2]: Note that it's not called `nearestPoints()`; it won't return any thing if you don't click near an existing data point.
 
 Here's a simple example of `nearPoints()` in action, showing a table of data about the points near the event:
 
@@ -100,16 +104,39 @@ server <- function(input, output, session) {
   }, res = 96)
   
   output$data <- renderTable({
+    req(input$plot_click)
     nearPoints(mtcars, input$plot_click)
   })
 }
+```
+
+You might wonder exactly what `nearPoints()` returns.
+This is a good place to use `browser()`, which we discussed in Section \@ref(browser):
+
+```{r, eval = FALSE}
+...
+  output$data <- renderTable({
+    req(input$plot_click)
+    browser()
+    nearPoints(mtcars, input$plot_click)
+  })
+...
+```
+
+Now after I start the app and clicking on a point, I'm dropped into the interactive debugger, where I can run `nearPoints()` and see what it returns:
+
+```{r, eval = FALSE}
+nearPoints(mtcars, input$plot_click)
+#>             mpg cyl disp hp drat   wt  qsec vs am gear carb
+#> Datsun 710 22.8   4  108 93 3.85 2.32 18.61  1  1    4    1
+
 ```
 
 Another way to use `nearPoints()` is with `allRows = TRUE` and `addDist = TRUE`.
 That will return the original data frame with two new columns:
 
 -   `dist_` gives the distance between the row and the event (in pixels).
--   `selected_` says whether or not it should be selected (i.e. the logical vector that's usually returned).
+-   `selected_` says whether or not it's near the click event (i.e. whether or not its a row that would be returned when `allRows = FALSE)`.
 
 We'll see an example of that a little later.
 
@@ -120,9 +147,9 @@ If needed, you can get additional control over the events by supplying `clickOpt
 These are rarely needed, so I won't discuss them here; see the documentation for details.
 
 You can use multiple interactions types on one plot.
-Just make sure to explain to the user what they can do: one downside of using mouse events to interact with an app is that they're not immediately discoverable[^action-graphics-2].
+Just make sure to explain to the user what they can do: one downside of using mouse events to interact with an app is that they're not immediately discoverable[^action-graphics-3].
 
-[^action-graphics-2]: As a general rule, adding explanatory text suggests that your interface is too complex, so is best avoided, where possible.
+[^action-graphics-3]: As a general rule, adding explanatory text suggests that your interface is too complex, so is best avoided, where possible.
     This is the key idea behind "affordances", the idea that an object should suggest naturally how to interact with it as introduced by Don Norman in the *"Design of Everyday Things"*.
 
 ### Brushing
@@ -167,7 +194,7 @@ val()
 #> [1] 10
 ```
 
-The big difference is that you can also **update** reactive values, and all reactive consumers that refer to it will recompute.
+The big difference is that you can also **update** a reactive value, and all reactive consumers that refer to it will recompute.
 A reactive value uses a special syntax for updating --- you call it like a function with the first argument being the new value:
 
 ```{r, eval = FALSE}
@@ -254,8 +281,8 @@ Before we move on, it's important to understand the basic data flow in interacti
 The basic flow is something like this:
 
 1.  Javascript captures the mouse event.
-2.  Shiny sends the javascript mouse event back to R, invalidating the input.
-3.  Downstream reactive consumers are recomputed.
+2.  Shiny sends the mouse event data back to R, telling the app that the input is now out of date.
+3.  All the downstream reactive consumers are recomputed.
 4.  `plotOutput()` generates a new PNG and sends it to the browser.
 
 For local apps, the bottleneck tends to be the time taken to draw the plot.
@@ -266,6 +293,27 @@ In general, this means that it's not possible to create Shiny apps where action 
 If you need that level of speed, you'll have to perform more computation in javascript.
 One way to do this is to use an R package that wraps a JS graphics library.
 Right now, as I write this book, I think you'll get the best experience with the plotly package, as documented in the book [*Interactive web-based data visualization with R, plotly, and shiny*](https://plotly-r.com), by Carson Sievert.
+
+### Exercises
+
+1.  Use the `browser()` technique described in Section \@ref(clicking) to verify what `brushedPoints()` returns.
+    How does `allRows = TRUE` change the output?
+
+2.  Make a plot with click handler that shows all the data returned in the input.
+
+3.  Make a plot with click, dblclick, hover, and brush output handlers and nicely display the current selection in the sidebar.
+    Plot the plot in the main panel.
+
+4.  Compute the limits of the distance scale using the size of the plot.
+
+    ```{r}
+    output_size <- function(id) {
+      reactive(c(
+        session$clientData[[paste0("output_", id, "_width")]],
+        session$clientData[[paste0("output_", id, "_height")]]
+      ))
+    }
+    ```
 
 ## Theming
 
@@ -299,7 +347,7 @@ For more details, see <https://rstudio.github.io/thematic/articles/Shiny.html>.
 The rest of this chapter is less exciting than interactive graphics, but contains material that's important to cover somewhere.
 
 First, you can make plot size reactive, so it resizes in response to user actions.
-To do this, supply zero-argument functions to the `width` and `height` arguments.
+To do this, supply zero-argument functions to the `width` and `height` arguments of `renderPlot()` --- we now need to define these in the server, not the UI, because they can change.
 These functions should have no argument and return the desired size in pixels.
 They are evaluated in a reactive environment so that you can make the size of your plot dynamic.
 
@@ -325,13 +373,12 @@ server <- function(input, output, session) {
 }
 ```
 
-Note that when you resize the plot, the data stays the same.
-This is the same behaviour as when you resize a Shiny app that contains a plot with a dynamic height/width.
+Note that when you resize the plot, the data stays the same: you don't get new random numbers.
 
 In real apps, you'll use more complicated expressions in the `width` and `height` functions.
-For example, if you're using a faceted plot in ggplot2, you might use it to increase the size of the plot to keep the individual facet sizes roughly the same[^action-graphics-3].
+For example, if you're using a faceted plot in ggplot2, you might use it to increase the size of the plot to keep the individual facet sizes roughly the same[^action-graphics-4].
 
-[^action-graphics-3]: Unfortunately there's no easy way to keep them exactly the same because it's currently not possible to find out the size of the fixed elements around the borders of the plot.
+[^action-graphics-4]: Unfortunately there's no easy way to keep them exactly the same because it's currently not possible to find out the size of the fixed elements around the borders of the plot.
 
 ## Cached plots
 
@@ -364,12 +411,14 @@ You'll notice one important difference between `renderPlot()` and `renderCachedP
 This is the most important argument to `renderCachedPlot()` and we'll discuss it in more detail below.
 We'll also cover two other important concepts:
 
--   The sizing policy, which ensures that plot is shared even when the sizes are a little different.
+-   The sizing policy, which ensures that plot is cached even when the sizes are a little different.
 -   The scoping, which controls how the cache is shared across users and app restarts.
 
 Here we'll focus on the big picture; for the full details you can refer to the [Shiny website](https://shiny.rstudio.com/articles/plot-caching.html).
 
 ### Cache key
+
+<!--# needs an example -->
 
 The `cacheKeyExpr` is the most important argument to `renderCachedPlot()` because it determines when the cache can be used.
 It should return an object, usually a list of simple vectors, that determines the "state" of the plot.
@@ -395,17 +444,13 @@ To avoid this problem, `renderCachePlot()` caches plots with fixed sizes, contro
 The defaults are carefully chosen to "just work" in most cases, but if needed you can control with the `sizingPolicy` argument.
 See more details in the `?sizeGrowthRatio` help page.
 
-You may also want to consider setting cached plots to a fixed size with `plotOutput()`.
-The default value for `height` is already fixed at `"400px"`, but `width` defaults to `"100%"`.
-If you set `width = "400px"` every plot will be exactly the same size, and you'll get the best cache performance.
-
 ### Scoping
 
 By default, the plot cache is stored in memory, and shared across all users of the app.
 If needed, you can override these defaults with:
 
 -   `cache = "session"`: the cache lifetime will be tied to a single user.
-    It will be created when the session starts (i.e. when someone first visits your app), and deleted when the session ends.
+    It will be created when the session starts (i.e. when the app is first opened), and deleted when the session ends (i.e. when the app is closed.
 
 -   `cache = cachem::disk_cache()`: shares across multiple users, multiple processes, and app restarts.
     Beware that restarting the app will no longer clear the cache, so if you change the plotting code, you'll also need to manually reset the cache by deleting the directory.
@@ -453,6 +498,13 @@ server <- function(input, output, session) {
 }
 ```
 
+```{r puppies, echo = FALSE, message = FALSE, fig.cap = "An app that displays cute pictures of puppies using `renderImage()`.", out.width = "50%"}
+demo <- demoApp$new("action-graphics/puppies", ui, server, assets = "puppy-photos")
+demo$takeScreenshot("corgi")
+demo$setInputs(id = "KCdYn0xu2fU")
+demo$takeScreenshot("lab")
+```
+
 `renderImage()` needs to return a list.
 The only crucial argument is `src`, a local path to the image file.
 You can additionally supply:
@@ -464,22 +516,9 @@ You can additionally supply:
 
 -   Any other arguments, like `class` or `alt` will be added as attributes to the `<img>` tag in the HTML.
 
+You **must** also supply the `deleteFile` argument.
+Unfortunately `renderImage()` was originally designed to work with temporary files, so it automatically deleted images after rendering them.
+This was obviously very dangerous, so the behaviour changed in Shiny 1.5.0.
+Now shiny no longer deletes the images, but instead forces you to explicitly choose which behaviour you want.
+
 You can learn more about `renderImage()`, and see other ways that you might use it at <https://shiny.rstudio.com/articles/images.html>.
-
-## Exercises
-
-1.  Make a plot with click handle that shows all the data returned in the input.
-
-2.  Make a plot with click, dblclick, hover, and brush output handlers and nicely display the current selection in the sidebar.
-    Plot the plot in the main panel.
-
-3.  Compute the limits of the distance scale using the size of the plot.
-
-```{r}
-output_size <- function(id) {
-  reactive(c(
-    session$clientData[[paste0("output_", id, "_width")]],
-    session$clientData[[paste0("output_", id, "_height")]]
-  ))
-}
-```
