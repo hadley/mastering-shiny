@@ -12,7 +12,7 @@ Fortunately, it's generally straightforward to get 10-100x performance with a fe
 This chapter will show you how.
 
 We'll begin with a metaphor: thinking about a Shiny app like a restaurant.
-Next, you'll learn how to **benchmark** your app, using the shinyloadtest package to simulates many people using your app at the same time.
+Next, you'll learn how to **benchmark** your app, using the shinyloadtest package to simulate many people using your app at the same time.
 This is the place to start, because it lets you figure you have a problem and helps measure the impact of any changes that you make.
 
 Then you'll learn how to **profile** your app using the profvis package to identify slow parts of your R code.
