@@ -335,7 +335,7 @@ In general, you are better off avoiding these situations, unless you are willing
 ## Dynamic visibility
 
 The next step up in complexity is to selectively show and hide parts of the UI.
-You'll learn a number of sophisticated approaches later, once you've learned a little JS and CSS, but there's a useful technique that you can use now: concealing optional UI with a tabset.
+There are more sophisticated approaches if you know a little JavaScript and CSS, but there's a useful technique that doesn't require any extra knowledge: concealing optional UI with a tabset.
 This is a clever hack that allows you to show and hide UI as needed, without having to re-generate it from scratch (as you'll learn in the next section).
 
 (You'll need at least Shiny 1.5.0 for this to work.)

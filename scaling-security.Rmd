@@ -44,7 +44,7 @@ Instead, you'll need to work with your IT team to design a secure access mechani
 You can see some best practices at <https://solutions.rstudio.com/auth/kerberos/> and <https://db.rstudio.com/best-practices/deployment/>.
 Note that code within `server()` is isolated so there's no way for one user session to see data from another.
 
-Finally, note that Shiny inputs use client-side validation, i.e. the checks for valid input are performed by javascript in the browser, not by R.
+Finally, note that Shiny inputs use client-side validation, i.e. the checks for valid input are performed by JavaScript in the browser, not by R.
 This means it's possible for a knowledgeable attacker to send values that you don't expect.
 For example, take this simple app:
 
@@ -69,7 +69,7 @@ server <- function(input, output, session) {
 ```
 
 You might expect that a user could access my name and birthday, but not my social security number or credit card details.
-But a knowledgeable attacker can open up a javascript console in their browser and run `Shiny.setInputValue("x", "c")` to see my SSN.
+But a knowledgeable attacker can open up a JavaScript console in their browser and run `Shiny.setInputValue("x", "c")` to see my SSN.
 So to be safe, you need to check all user inputs from your R code:
 
 ```{r}

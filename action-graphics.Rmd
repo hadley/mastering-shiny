@@ -280,7 +280,7 @@ Again, I set the limits of the scale to ensure that the legend (and colours) don
 Before we move on, it's important to understand the basic data flow in interactive plots in order to understand their limitations.
 The basic flow is something like this:
 
-1.  Javascript captures the mouse event.
+1.  JavaScript captures the mouse event.
 2.  Shiny sends the mouse event data back to R, telling the app that the input is now out of date.
 3.  All the downstream reactive consumers are recomputed.
 4.  `plotOutput()` generates a new PNG and sends it to the browser.
@@ -290,8 +290,8 @@ Depending on how complex the plot is, this may take a signficant fraction of a s
 But for hosted apps, you also have to take into account the time needed to transmit the event from the browser to R, and then the rendered plot back from R to the browser.
 
 In general, this means that it's not possible to create Shiny apps where action and response is percieved as instanteous (i.e. the plot appears to update simultaneously with your action upon it).
-If you need that level of speed, you'll have to perform more computation in javascript.
-One way to do this is to use an R package that wraps a JS graphics library.
+If you need that level of speed, you'll have to perform more computation in JavaScript.
+One way to do this is to use an R package that wraps a JavaScript graphics library.
 Right now, as I write this book, I think you'll get the best experience with the plotly package, as documented in the book [*Interactive web-based data visualization with R, plotly, and shiny*](https://plotly-r.com), by Carson Sievert.
 
 ### Exercises

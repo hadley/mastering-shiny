@@ -518,7 +518,7 @@ knitr::include_graphics("images/basic-app/fluid-page.png", dpi = 300)
 ```
 
 It looks very boring because there's no content, but behind the scenes, `fluidPage()` is doing a lot of work.
-The page function sets up all the HTML, CSS, and JS that Shiny needs.
+The page function sets up all the HTML, CSS, and JavaScript that Shiny needs.
 `fluidPage()` uses a layout system called **Bootstrap**, <https://getbootstrap.com>, that provides attractive defaults[^basic-ui-3].
 
 [^basic-ui-3]: Currently Shiny uses Bootstrap 3.3.7, <https://getbootstrap.com/docs/3.3/>, but the Shiny team is planning to update to 4.0.0, the latest version, in the near future.

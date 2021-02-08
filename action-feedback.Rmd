@@ -32,7 +32,7 @@ Thinking through how the user might misuse your app allows you to provide inform
 A great way to give additional feedback to the user is via the [shinyFeedback](https://github.com/merlinoa/shinyFeedback) package.
 Using it is a two step process.
 First, you add `useShinyFeedback()` to the `ui`.
-This sets up the needed HTML and javascript for attractive error message display:
+This sets up the needed HTML and JavaScript for attractive error message display:
 
 ```{r}
 ui <- fluidPage(
@@ -541,7 +541,7 @@ server <- function(input, output, session) {
 
 The waiter package provides a large variety of spinners to choose from; see your options at `?waiter::spinners` and then choose one with (e.g.) `Waiter$new(html = spin_ripple())`.
 An even simpler alternative is to use the [shinycssloaders](https://github.com/daattali/shinycssloaders) package by Dean Attali.
-It uses JS to listen to Shiny events, so it doesn't even need any code on the server side.
+It uses JavaScript to listen to Shiny events, so it doesn't even need any code on the server side.
 Instead, you just use `shinycssloaders::withSpinner()` to wrap outputs that you want to automatically get a spinner when they have been invalidated.
 
 ```{r}
