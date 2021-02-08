@@ -289,7 +289,7 @@ Code coverage supports a slightly different workflow:
 3.  Repeat until all important lines of code are tested.
     (Getting to 100% test coverage often isn't worth it, but you should check that you are hitting the most critical parts of your app)
 
-Code coverage also works with the tools for testing reactivity and (to some extend) JavaScript, so it's a useful foundational skill.
+Code coverage also works with the tools for testing reactivity and (to some extent) JavaScript, so it's a useful foundational skill.
 
 ### Keyboard shortcuts
 
