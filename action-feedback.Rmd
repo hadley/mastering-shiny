@@ -42,33 +42,38 @@ ui <- fluidPage(
 )
 ```
 
-Then call one of the feedback functions in your server function.
-There are four variants: `feedback()`, `feedbackWarning()`, `feedbackDanger()`, and `feedbackSuccess()`.
+Then in your `server()` function, you call one of the feedback functions: `feedback()`, `feedbackWarning()`, `feedbackDanger()`, and `feedbackSuccess()`.
 They all have three key arguments:
 
 -   `inputId`, the id of the input where the feedback should be placed.
 -   `show`, a logical determining whether or not to show the feedback.
 -   `text`, the text to display.
 
-We could use that function to display a warning message for odd numbers:
+They also have `color` and `icon` arguments that you can use to further customise the appearance.
+See the documentation for more details.
+
+Lets see how this comes together in a real example, pretending that we only want to allow even numbers.
+Figure \@ref(fig:feedback) shows the results.
 
 ```{r}
 server <- function(input, output, session) {
-  observeEvent(input$n,
-    shinyFeedback::feedbackWarning(
-      "n", 
-      input$n %% 2 != 0,
-      "Please select an even number"
-    )  
-  )
-  output$half <- renderText(input$n / 2)
+  half <- reactive({
+    even <- input$n %% 2 == 0
+    shinyFeedback::feedbackWarning("n", !even, "Please select an even number")
+    input$n / 2    
+  })
+  
+  output$half <- renderText(half())
 }
 ```
 
-<!-- TODO: add demo -->
-
-These feedback functions also have `color` and `icon` arguments that you can use to further customise the appearance.
-See the documentation for more details.
+```{r feedback, fig.cap = "Using `feedbackWarning()` to display warning for invalid inputs. The app on the left shows a valid input, the app on the right shows an invalid (odd) input with warning message.", echo = FALSE, message = FALSE, out.width = "50%", }
+demo <- demoApp$new("action-feedback/feedback", ui, server)
+demo$resize(width = 250)
+demo$takeScreenshot("even")
+demo$setInputs(n = 9)
+demo$takeScreenshot("odd")
+```
 
 Notice that the error message is displayed, but the output is still updated.
 Typically you don't want that because invalid inputs are likely to cause uninformative R errors that you don't want to show to the user.
@@ -91,7 +96,7 @@ server <- function(input, output, session) {
 When the input to `req()` is not true, it sends a special signal to tell Shiny that the reactive does not have all the inputs that it requires, so it should be "paused".
 We'll take a brief digression to talk about this before we come back to using it in concert with `validate()`.
 
-### Pausing execution with `req()`
+### Cancelling execution with `req()`
 
 It's easiest to understand `req()` by starting outside of validation.
 You may have noticed that when you start an app, the complete reactive graph is computed even before the user does anything.
@@ -130,7 +135,7 @@ server <- function(input, output, session) {
 }
 ```
 
-```{r require-simple, echo = FALSE, message = FALSE, cache = FALSE, fig.cap = "The app displays an uninformative error when it is loaded because a language hasn't been selected yet", out.width = "50%", fig.show = "hold"}
+```{r require-simple, echo = FALSE, message = FALSE, cache = FALSE, fig.cap = "The app displays an uninformative error when it is loaded because a language hasn't been selected yet", out.width = "75%"}
 demo <- demoApp$new("action-feedback/require-simple", ui, server)
 demo$resize(400)
 demo$takeScreenshot()
@@ -198,9 +203,11 @@ We're going to use `req()` in two ways:
 -   We only want to proceed with computation if the user has entered a value so we do `req(input$dataset)`.
 
 -   Then we check to see if the supplied name actually exists.
-    If it doesn't, we display an error message, and then use `req()` to pause computation.
-    Note the use of `cancelOutput = TRUE`: normally "pausing" a reactive will reset all downstream outputs; using `cancelOutput = TRUE` leaves them displaying the last good value.
+    If it doesn't, we display an error message, and then use `req()` to cancel computation.
+    Note the use of `cancelOutput = TRUE`: normally cancelling a reactive will reset all downstream outputs; using `cancelOutput = TRUE` leaves them displaying the last good value.
     This is important for `textInput()` which may trigger an update while you're in the middle of typing a name.
+
+The results are shown in Figure \@ref(fig:require-cancel).
 
 ```{r}
 server <- function(input, output, session) {
@@ -220,7 +227,15 @@ server <- function(input, output, session) {
 }
 ```
 
-<!-- TODO: add demo -->
+```{r require-cancel, fig.cap = "On load, the table is empty because the dataset name is empty. The data is shown after we type a valid dataset name (iris), and continues to be shown when press backspace in order to type a new dataset name.", echo = FALSE, message = FALSE, out.width = "33%"}
+demo <- demoApp$new("action-feedback/require-cancel", ui, server)
+demo$resize(400)
+demo$takeScreenshot("empty")
+demo$setInputs(dataset = "iris")
+demo$takeScreenshot("ok")
+demo$setInputs(dataset = "iri")
+demo$takeScreenshot("error")
+```
 
 ### Validate output
 
@@ -231,6 +246,7 @@ In this case it doesn't really make sense to put the error next to an input (whi
 You can do so with a tool built into shiny: `validate()`.
 When called inside a reactive or an output, `validate(message)` stops execution of the rest of the code and instead displays `message` in any downstream outputs.
 The following code shows a simple example where we don't want to log or square-root negative values.
+You can see the results in Figure \@ref(fig:validate).
 
 ```{r}
 ui <- fluidPage(
@@ -256,7 +272,30 @@ server <- function(input, output, server) {
 }
 ```
 
-<!-- TODO: add demo. 1) default 2) x = -1 3) trans = "log" -->
+```{r validate, fig.cap = "If the inputs are valid, the output shows the transformation. If the combination of inputs is invalid, then the output is replaced with an informative message.", echo = FALSE, message = FALSE, out.width = "50%"}
+demo <- demoApp$new("action-feedback/validate", ui, server)
+demo$resize(300)
+demo$takeScreenshot("init")
+demo$setInputs(x = -1, trans = "log")
+demo$takeScreenshot("log")
+```
+
+### Exercises
+
+1.  How do you use a single `req()` to verify that multiple inputs have been successfully filled in?
+
+2.  A common alternative approach to using `if` + `validate()` above is to use `validate()` + `need()`:
+
+    ```{r, eval = FALSE}
+    validate(
+      need(
+        input$x < 0 && input$trans %in% c("log", "square-root"),
+        "x can not be negative for this transformation"
+      )
+    )
+    ```
+
+    Read `?need` and then discuss the pros and cons of the two approaches.
 
 ## Notifications {#notifications}
 
@@ -295,6 +334,7 @@ server <- function(input, output, session) {
 
 By default, the message will disappear after 5 seconds, which you can override by setting `duration`, or the user can dismiss it earlier by clicking the close button.
 If you want to make the notification more prominent, you can set the `type` argument to one of "message", "warning", or "error".
+Figure \@ref(fig:notify) gives a sense of what this looks like.
 
 ```{r}
 server <- function(input, output, session) {
@@ -310,7 +350,13 @@ server <- function(input, output, session) {
 }
 ```
 
-<!-- TODO: add demo -->
+```{r notify, echo = FALSE, fig.cap = "The progression of notifications after clicking 'Good night': the first notification appears, after three more seconds all notifications are shown, then the notifications start to fade away.", fig.align = "center"}
+knitr::include_graphics(c(
+  "images/action-feedback/notify-1.png",
+  "images/action-feedback/notify-2.png",
+  "images/action-feedback/notify-3.png"
+))
+```
 
 ### Removing on completion
 
@@ -383,35 +429,50 @@ server <- function(input, output, session) {
 For long-running tasks, the best type of feedback is a progress bar.
 As well as telling you where you are in the process, it also helps you estimate how much longer it's going to be: should you take a deep breath, go get a coffee, or come back tomorrow?
 In this section, I'll show two techniques for displaying progress bars, one built into Shiny, and one from the [waiter](https://waiter.john-coene.com/) package developed by John Coene.
-Both work roughly the same way, first creating an R6 object and then calling an update method after each step.
 
 Unfortunately both techniques suffer from the same major drawback: to use a progress bar you need to be able to divide the big task into a known number of small pieces that each take roughly the same amount of time.
 This is often hard, particularly since the underlying code is often written in C and it has no way to communicate progress updates to you.
-We are working on tools in the [progress package](https://github.com/r-lib/progress) so that packages like dplyr, readr, and vroom will generate progress bars that you can easily forward to Shiny.
-I'll update this chapter when that approach is mature enough to use.
+We are working on tools in the [progress package](https://github.com/r-lib/progress) so that packages like dplyr, readr, and vroom will one day generate progress bars that you can easily forward to Shiny.
 
 ### Shiny
 
-The following code block shows the basic lifecycle of a Shiny progress bar:
+To create a progress bar with Shiny, you need to use `withProgress()` and `incProgress()`.
+Imagine you have some slow running code that looks like this[^action-feedback-4]:
+
+[^action-feedback-4]: If your code doesn't involve a for loop or a apply/map function, it's going to be very difficult to make a progress bar.
 
 ```{r, eval = FALSE}
-# Create a progress bar object with `Progress$new(max = number_of_steps)`.
-progress <- Progress$new(max = 5)
-
-# Display the progress bar by calling the `$set()` method, 
-# providing a title for the progress bar in the `message` argument.
-progress$set(message = "Starting process")
-
-# Call `$inc()` repeatedly, once for each step.
-for (i in 1:5) {
-  progress$inc(1)
+for (i in seq_len(step)) {
+  x <- function_that_takes_a_long_time(x)     
 }
-
-# When done, call `$close()` to terminate the progress bar.
-progress$close()
 ```
 
-Here's how that might look in a complete Shiny app:
+You start by wrapping it in `withProgress()`.
+This shows the progress bar when the code starts, and automatically removes it when it's done:
+
+```{r, eval = FALSE}
+withProgress({
+  for (i in seq_len(step)) {
+    x <- function_that_takes_a_long_time(x)     
+  }
+})
+```
+
+Then call `incProgress()` after each step:
+
+```{r, eval = FALSE}
+withProgress({
+  for (i in seq_len(step)) {
+    x <- function_that_takes_a_long_time(x)
+    incProgress(1 / length(step))
+  }
+})
+```
+
+The first argument of `incProgress()` is the amount to increment the progress bar.
+By default, the progress bar starts at 0 and ends at 1, so the incrementing by 1 divided by the number of steps will ensure that the progress bar is complete at the end of the loop.
+
+Here's how that might look in a complete Shiny app, as shown in Figure \@ref(fig:progress).
 
 ```{r}
 ui <- fluidPage(
@@ -422,25 +483,31 @@ ui <- fluidPage(
 
 server <- function(input, output, session) {
   data <- eventReactive(input$go, {
-    progress <- Progress$new(max = input$steps)
-    on.exit(progress$close())
-    
-    progress$set(message = "Computing random number")
-    for (i in seq_len(input$steps)) {
-      Sys.sleep(0.5)
-      progress$inc(1)
-    }
-    runif(1)
+    withProgress(message = "Computing random number", {
+      for (i in seq_len(input$steps)) {
+        Sys.sleep(0.5)
+        incProgress(1 / input$steps)
+      }
+      runif(1)
+    })
   })
   
   output$result <- renderText(round(data(), 2))
 }
 ```
 
-Here I'm using `Sys.sleep()` to simulate a long running operation; in your code this would be a moderately expensive operation.
+```{r progress, fig.cap="A progress bar helps indicate how much longer a calculation has to run.", echo = FALSE, out.width = NULL}
+knitr::include_graphics("images/action-feedback/progress-2.png", dpi = 300)
+```
 
-Note that I paired a button with `eventReactive()` to allow the user to control when the long running event is launched.
-This is good practice for any task that requires a progress bar.
+A few things to note:
+
+-   I used the optional `message` argument to add some explanatory text to the progress bar.
+
+-   I used `Sys.sleep()` to simulate a long running operation; in your code this would be a slow function.
+
+-   I allowed the user to control when the event starts by combining a button with `eventReactive()`.
+    This is good practice for any task that requires a progress bar.
 
 ### Waiter
 
@@ -457,8 +524,25 @@ ui <- fluidPage(
 )
 ```
 
-And then we replace `Progress` with `Waitress`.
-We skip the `$set()` call because waiter's progress bars don't have labels.
+The interface for waiter's progress bars are a little different.
+The waiter package uses an R6 object to bundle all progress related functions into a single object.
+If you've never used an R6 object before, don't worry too much about the details; you can just copy and paste this template.
+The basic lifecycle looks like this:
+
+```{r, eval = FALSE}
+# Create a new progress bar
+waitress <- waiter::Waitress$new(max = input$steps)
+# Automatically close it when done
+on.exit(waitress$close())
+
+for (i in seq_len(input$steps)) {
+  Sys.sleep(0.5)
+  # increment one step
+  waitress$inc(1)
+}
+```
+
+And we can use it in a Shiny app as follows:
 
 ```{r}
 server <- function(input, output, session) {
@@ -540,6 +624,7 @@ server <- function(input, output, session) {
 ```
 
 The waiter package provides a large variety of spinners to choose from; see your options at `?waiter::spinners` and then choose one with (e.g.) `Waiter$new(html = spin_ripple())`.
+
 An even simpler alternative is to use the [shinycssloaders](https://github.com/daattali/shinycssloaders) package by Dean Attali.
 It uses JavaScript to listen to Shiny events, so it doesn't even need any code on the server side.
 Instead, you just use `shinycssloaders::withSpinner()` to wrap outputs that you want to automatically get a spinner when they have been invalidated.
@@ -575,7 +660,7 @@ This is called a "modal" dialog because it creates a new "mode" of interaction; 
 
 Imagine you have a Shiny app that deletes some files from a directory (or rows in a database etc).
 This is hard to undo so you want to make sure that the user is really sure.
-You could create a dialog box that requires an explicit confirmation as follows:
+You could create a dialog box, as shown in Figure \@ref(fig:dialog), that requires an explicit confirmation as follows:
 
 ```{r}
 modal_confirm <- modalDialog(
@@ -586,6 +671,15 @@ modal_confirm <- modalDialog(
     actionButton("ok", "Delete", class = "btn btn-danger")
   )
 )
+```
+
+```{r dialog, fig.cap = "A dialog box checking whether or not you want to delete some files.", echo = FALSE, message = FALSE, out.width=NULL}
+server <- function(input, output, session) {
+  showModal(modal_confirm)
+}
+demo <- demoApp$new("action-feedback/dialog", fluidPage(), server)
+demo$resize(400, 200)
+demo$takeScreenshot()
 ```
 
 There are a few small, but important, details to consider when creating a dialog box:
@@ -629,13 +723,11 @@ server <- function(input, output, session) {
     showNotification("Files deleted")
     removeModal()
   })
-  observeEvent(input$cancel, 
+  observeEvent(input$cancel, {
     removeModal()
-  )
+  })
 }
 ```
-
-<!-- TODO: add demo  -->
 
 ### Undoing an action
 
@@ -707,8 +799,6 @@ server <- function(input, output, session) {
 }
 ```
 
-<!-- TODO: add demo -->
-
 ### Trash
 
 For actions that you might regret days later, a more sophisticated pattern is to implement something like the trash or recycling bin on your computer.
@@ -720,3 +810,5 @@ The primary downside of this technique is that it is substantially more complica
 For that reason, I think it's beyond the scope of all but the most complicated Shiny apps, so I'm not going to show an implementation here.
 
 ## Exercises
+
+1.  
