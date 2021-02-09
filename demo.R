@@ -136,6 +136,13 @@ demoApp <- R6::R6Class("demoApp", public = list(
     invisible(self)
   },
 
+  uploadFile = function(...) {
+    if (self$running) {
+      self$driver$uploadFile(...)
+    }
+    invisible(self)
+  },
+
   execute_js = function(js) {
     if (self$running) {
       self$driver$executeScript(js)

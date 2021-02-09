@@ -23,7 +23,7 @@ The UI needed to support file uploads is simple: just add `fileInput()` to your 
 
 ```{r}
 ui <- fluidPage(
-  fileInput("file", "Upload a file")
+  fileInput("upload", "Upload a file")
 )
 ```
 
@@ -55,8 +55,9 @@ Most inputs return simple vectors, but `fileInput()` returns a data frame with f
     A MIME type looks like `type/subtype`.
     Some common examples are `text/csv`, `text/html`, `image/png`, `application/pdf`, `application/vnd.ms-excel` (excel file).
 
-I think the easiest way to get to understand this data structure is to make a simple app.
+I think the easiest way to understand this data structure is to make a simple app.
 Run the following code and upload a few files to get a sense of what data Shiny is providing.
+You can see the results after I uploaded a couple of puppy photos (from Section \@ref(images)) in Figure \@ref(fig:upload).
 
 ```{r}
 ui <- fluidPage(
@@ -68,7 +69,13 @@ server <- function(input, output, session) {
 }
 ```
 
-<!-- TODO: add demo -->
+```{r upload, fig.cap = "This simple app lets you see exactly what data Shiny provides to you for uploaded files.", echo = FALSE, message = FALSE}
+demo <- demoApp$new("action-transfer/upload", ui, server, assets = "puppy-photos")
+demo$uploadFile(
+  upload = c("puppy-photos/eoqnr8ikwFE.jpg", "puppy-photos/KCdYn0xu2fU.jpg")
+)
+demo$takeScreenshot()
+```
 
 Note my use of the `label` and `buttonLabel` arguments to mildly customise the appearance, and use of `multiple = TRUE` to allow the user to upload multiple files.
 
@@ -76,12 +83,12 @@ Note my use of the `label` and `buttonLabel` arguments to mildly customise the a
 
 If the user is uploading a dataset, there are two details that you need to be aware of:
 
--   `input$file` is initialised to `NULL` on page load, so you'll need `req(input$file)` to make sure your code waits until the first file is uploaded.
+-   `input$upload` is initialised to `NULL` on page load, so you'll need `req(input$file)` to make sure your code waits until the first file is uploaded.
 
 -   The `accept` argument allows you to limit the possible inputs.
     The easiest way is to supply a character vector of file extensions, like `accept = ".csv"`.
     But the `accept` argument is only a suggestion to the browser, and is not always enforced, so it's good practice to also validate it (e.g. Section \@ref(validate)) yourself.
-    The easiest way to get the file extension in R is `tools::file_ext()`, but note that it strips the leading `.`.
+    The easiest way to get the file extension in R is `tools::file_ext()`, just be aware it removes the leading `.` from the extension.
 
 Putting all these ideas together gives us the following app where you can upload a `.csv` or `.tsv` file and see the first `n` rows:
 
@@ -118,7 +125,8 @@ Next, we'll look at file downloads, showing you the basic UI and server componen
 
 ### Basics
 
-Again, the UI is straightforward: use either `downloadButton(id)` or `downloadLink(id)` to give the user something to click to download a file:
+Again, the UI is straightforward: use either `downloadButton(id)` or `downloadLink(id)` to give the user something to click to download a file.
+The results are shown in Figure \@ref(fig:donwload-ui).
 
 ```{r}
 ui <- fluidPage(
@@ -127,7 +135,7 @@ ui <- fluidPage(
 )
 ```
 
-```{r, echo = FALSE, out.width = NULL, message = FALSE}
+```{r donwload-ui, fig.cap = "A download button and a download link", echo = FALSE, out.width = NULL, message = FALSE}
 demo <- demoApp$new("action-transfer/download", ui)
 demo$takeScreenshot()
 ```
@@ -162,7 +170,7 @@ Next we'll put these pieces together to show how to transfer data files or repor
 
 ### Downloading data
 
-The following app shows off the basics of data download by allowing you to download any dataset in the datasets package as a tab separated file.
+The following app shows off the basics of data download by allowing you to download any dataset in the datasets package as a tab separated file, Figure \@ref(fig:download-data).
 I recommend using `.tsv` (tab separated value) instead of `.csv` (comma separated values) because many European countries use commas to separate the whole and fractional parts of a number (e.g. `1,23` vs `1.23`).
 This means they can't use commas to separate fields and instead use semi-colons in so-called "c"sv files!
 You can avoid this complexity by using tab separated files, which work the same way everywhere.
@@ -198,7 +206,11 @@ server <- function(input, output, session) {
 }
 ```
 
-<!-- TODO: add demo -->
+```{r download-data, fig.cap = "A richer app that allows you to select a built-in dataset and preview it before downloading.", echo = FALSE, message = FALSE, out.width = NULL}
+demo <- demoApp$new("action-transfer/download-data", ui, server)
+demo$setInputs(dataset = "iris")
+demo$takeScreenshot()
+```
 
 Note the use of `validate()` to only allow the user to download datasets that are data frames.
 A better approach would be to pre-filter the list, but this lets you see another application of `validate()`.
@@ -306,13 +318,13 @@ There are a couple of other tricks worth knowing about:
     }
     ```
 
-You can see all these pieces put together in `rmarkdown-report/`.
+You can see all these pieces put together in [`rmarkdown-report/`](https://github.com/hadley/mastering-shiny/tree/master/rmarkdown-report), found inside the Mastering Shiny GitHub repo.
 
-```{=html}
-<!-- Want to download multiple reports? You'd need a loop + zip file.
- e.g. https://community.rstudio.com/t/how-to-download-multiple-word-document-files-with-selectinput-with-each-selected-option-being-a-different-file/68671 -->
-```
-## Case study
+The [shinymeta](https://github.com/rstudio/shinymeta) package solves a related problem: sometimes you need to be able to turn the current state of a Shiny app into a reproducible report that can be re-run in the future.
+Learn more about it in Joe Cheng's useR!
+2019 keynote, "[Shiny's holy grail](https://www.youtube.com/watch?v=5KByRC6eqC8): Interactivity with reproducibility".
+
+## Case study {#case-study-transfer}
 
 To finish up, we'll work through a small case study where we upload a file (with user supplied separator), preview it, perform some optional transformations using the [janitor package](http://sfirke.github.io/janitor), by Sam Firke, and then let the user download it as a `.tsv`.
 
@@ -429,3 +441,24 @@ server <- function(input, output, session) {
 
 4.  Write an app that allows the user to create a Lego mosaic from any `.png` file using Ryan Timpe's [brickr](https://github.com/ryantimpe/brickr) package.
     Once you've completed the basics, add controls to allow the user to select the size of the mosaic (in bricks), and choose whether to use "universal" or "generic" colour palettes.
+
+5.  The final app in Section \@ref(case-study-transfer) contains this one large reactive:
+
+    ```{r, eval = FALSE}
+    tidied <- reactive({
+      out <- raw()
+      if (input$snake) {
+        names(out) <- janitor::make_clean_names(names(out))
+      }
+      if (input$empty) {
+        out <- janitor::remove_empty(out, "cols")
+      }
+      if (input$constant) {
+        out <- janitor::remove_constant(out)
+      }
+      
+      out
+    })
+    ```
+
+    Break it up into multiple pieces so that (e.g.) `janitor::make_clean_names()` is not re-run when `input$empty` changes.
