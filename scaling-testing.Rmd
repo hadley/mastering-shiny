@@ -52,7 +52,7 @@ library(testthat)
 library(shinytest)
 ```
 
-This chapter uses features in the upcoming releases of shiny 1.5.1, testthat 3.0.0, and shinytest 1.5.0, so if you're reading the book now you'll need to install their development versions from GitHub with `remotes::install_github(c("r-lib/testthat", "rstudio/shinytest", "rstudio/shiny"))`.
+This chapter uses new features in shiny 1.5.1, testthat 3.0.0, and shinytest 1.5.0, so you'll need to have those versions or higher installed.
 
 ```{r, include = FALSE}
 local_edition(3)
