@@ -554,7 +554,7 @@ Every use of shinytest begins by creating a ShinyDriver object with `ShinyDriver
 It returns an R6 object that you interact with much like the session object you encountered above, using `app$setInputs()` --- it takes a set of name-value pairs, updates the controls in the browser, and then waits until all reactive updates are complete.
 
 The first difference is that you'll need to explicitly retrieve values using `app$getValue(name)`.
-Unlike with `testServer()`, you can't generally, you can't access the values of reactives using ShinyDriver because it can only see what a user of the app can see.
+Unlike with `testServer()`, you can't access the values of reactives using ShinyDriver because it can only see what a user of the app can see.
 But there's a special Shiny function called `exportTestValues()` that creates a special output that shinytest can see but a human cannot.
 
 There are two other methods that allow you to simulate other actions:
