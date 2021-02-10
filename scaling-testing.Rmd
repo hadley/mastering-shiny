@@ -52,7 +52,7 @@ library(testthat)
 library(shinytest)
 ```
 
-This chapter uses new features in shiny 1.5.1, testthat 3.0.0, and shinytest 1.5.0, so you'll need to have those versions or higher installed.
+This chapter uses new features in testthat 3.0.0 and shinytest 1.5.0, so you'll need to have those versions or higher installed.
 
 ```{r, include = FALSE}
 local_edition(3)
