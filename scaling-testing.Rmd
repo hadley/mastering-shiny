@@ -501,7 +501,7 @@ The simulation is useful because it lets you quickly test reactive code, but it 
 
 `testServer()` is only a limited simulation of the full Shiny app, so that any code that relies of a "real" browser running will not work.
 Most importantly, this means that no JavaScript will be run.
-This might not seem important because we haven't talked at JavaScript in this book, but there are a number of important Shiny functions that use it behind the scenes:
+This might not seem important because we haven't talked about JavaScript in this book, but there are a number of important Shiny functions that use it behind the scenes:
 
 -   All `update*()` functions, Section \@ref(updating-inputs).
 
