@@ -93,7 +93,7 @@ Before you make your first full app-package, I recommend read [The whole game](h
 
     At a minimum, you'll need `usethis::use_package("shiny")`, and for Shiny apps, I recommend using `@import shiny` to make all the functions in the Shiny package easily available. (Using `@import` is not generally consider best practice, but it makes sense here).
 
--   Pick a license and then use the appropriate `use_license_` function to put it in the right place. We don't currently have a helper function to declare that the package is proprietary but we're working on it: <https://github.com/r-lib/usethis/issues/1163>.
+-   Pick a license and then use the appropriate `use_license_` function to put it in the right place. As of usethis 2.0.0, you can also pick a proprietary license with `use_proprietary_license()`.
 
 -   Add `app.R` to `.Rbuildignore` with `usethis::use_build_ignore("app.R")` or similar.
 
