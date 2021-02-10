@@ -430,7 +430,7 @@ selectDataVarApp <- function(filter = is.numeric) {
 
 ### Case study: histogram
 
-Now lets circle back to the original histogram module and refactor it into something more composable.
+Now let's circle back to the original histogram module and refactor it into something more composable.
 The key challenge of creating modules is creating functions that are flexible enough to be used in multiple places, but simple enough that they can easily be understood.
 Figuring out how to write functions that are good building blocks is the journey of a lifetime; expect that you'll have to do it wrong quite a few times before you get it right.
 (I wish I could offer more concrete advice here, but currently this is a skill that you'll have to refine through practice and conscious reflection.)
@@ -839,7 +839,7 @@ This is a principled limitation of the module system which we'll discuss in more
 
 <!-- TODO: add demo -->
 
-Now lets use the wizard in a slightly more realistic app that has inputs and outputs.
+Now let's use the wizard in a slightly more realistic app that has inputs and outputs.
 The main point to notice is that even though the pages are displayed by the module, their ids are controlled by the user of the module.
 The creator of the control gets control over namespacing; it doesn't matter who ends up assembling the control for final display on the webpage.
 
@@ -985,7 +985,7 @@ Feel free to skip this section if that wasn't your reaction.
 
 When some people (like me!) encounter modules for the first time, they immediately attempt to combine the module server and module UI into a single module object.
 
-To illustrate the problem, lets generalise the motivating example from the first part of the chapter so that the data frame is now a parameter:
+To illustrate the problem, let's generalise the motivating example from the first part of the chapter so that the data frame is now a parameter:
 
 ```{r}
 histogramUI <- function(id, df) {
