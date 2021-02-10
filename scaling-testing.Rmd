@@ -78,7 +78,7 @@ Tests are organised into three levels:
 
 -   **Expectation**.
     Each test contains one or more expectations, with functions that start with `expect_`.
-    These define exactly what you expect code to do, whether its returning a specific value, throwing an error, or something else.
+    These define exactly what you expect code to do, whether it's returning a specific value, throwing an error, or something else.
     In this chapter, I'll discuss the most important expectations for Shiny apps but you can see the full list on the [testthat website](https://testthat.r-lib.org/reference/index.html#section-expectations){.uri}.
 
 The art of testing is figuring out how to write tests that clearly define the expected behaviour of your function, without depending on incidental details that might change in the future.
@@ -146,7 +146,7 @@ There are four ways to run this test:
 There are two expectations that you'll use a lot of the time when testing functions: `expect_equal()` and `expect_error()`.
 Like all expectation functions the first argument is the code to check and the second argument is the expected outcome: an expected value in the case of `expect_equal()` and expected error text in the case of `expect_error()`.
 
-To get a sense for how these functions work, its useful to call them directly, outside of tests.
+To get a sense for how these functions work, it's useful to call them directly, outside of tests.
 
 When using `expect_equal()` remember that you don't have to test that whole object: generally it's better to test just the component that you're interested in:
 
@@ -317,7 +317,7 @@ knitr::include_graphics("images/scaling-testing/keyboard-shortcuts.png", dpi = 3
 
 Here's a summary of all the techniques I've talked about so far:
 
--   From the R file, use `usethis::use_test()` to create the test file (the first time its run) or navigate to the test file (if it already exists).
+-   From the R file, use `usethis::use_test()` to create the test file (the first time it's run) or navigate to the test file (if it already exists).
 
 -   Write code/write tests.
     Press `cmd/ctrl + T` to run the tests and review the results in the console.
