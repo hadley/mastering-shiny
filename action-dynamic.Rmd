@@ -34,8 +34,7 @@ Take the example in the code below, with the results shown in Figure \@ref(fig:u
 The app has two inputs that control the range (the `min` and `max`) of another input, a slider.
 The key idea is to use `observeEvent()`[^action-dynamic-1] to trigger `updateSliderInput()` whenever the `min` or `max` inputs change.
 
-[^action-dynamic-1]: Note that I've used `observeEvent()` here, although `observe()` would also work and would be more concise.
-    I generally prefer `observeEvent()` because its arguments cleanly separate the event you're listening for from the action you want to take in response.
+[^action-dynamic-1]: I introduced `observeEvent()` in Section \@ref(observers) and will discuss in more detail in Section \@ref(observers-details).
 
 ```{r}
 ui <- fluidPage(
@@ -64,7 +63,7 @@ demo$deploy()
 ```
 
 The update functions look a little different to other Shiny functions: they all take the current `session` as the first argument, and the name of the input (as a string) as the second.
-The remaining arguments match the arguments to the input constructor.
+The remaining arguments correspond to the arguments to the input constructor that can be modified after creation.
 
 To help you get the hang of the update functions, I'll show a couple more simple examples, then we'll dive into a more complicated case study using hierarchical select boxes, and finish off by discussing the problem of circular references.
 
@@ -338,8 +337,6 @@ The next step up in complexity is to selectively show and hide parts of the UI.
 There are more sophisticated approaches if you know a little JavaScript and CSS, but there's a useful technique that doesn't require any extra knowledge: concealing optional UI with a tabset.
 This is a clever hack that allows you to show and hide UI as needed, without having to re-generate it from scratch (as you'll learn in the next section).
 
-(You'll need at least Shiny 1.5.0 for this to work.)
-
 ```{r}
 ui <- fluidPage(
   sidebarLayout(
@@ -462,10 +459,14 @@ knitr::include_graphics(c(s1, s2, s3))
 demo$deploy()
 ```
 
+Note that note the value of (e.g.) `input$mean` is independent of whether or not its visible to the user.
+The underlying HTML control still exists; you just can't see it.
+
 ### Wizard interface {#dynamic-wizard}
 
 You can also use this idea to create a "wizard", a type of interface that makes it easier to collect a bunch of information by spreading it across multiple pages.
 Here we embed action buttons within each "page", making it easy to go forward and back.
+The results are shown in Figure \@ref(fig:wizard).
 
 ```{r}
 ui <- fluidPage(
@@ -500,7 +501,17 @@ server <- function(input, output, session) {
 }
 ```
 
-<!-- TODO: add demo -->
+```{r wizard, fig.cap = demo$caption("A wizard interface portions complex UI over multiple pages. Here we demonstrate the idea with a very simple example, clicking next to advance to the next page."), echo = FALSE, message = FALSE, out.width = "33%"}
+demo <- demoApp$new("action-dynamic/wizard", ui, server)
+demo$resize(200)
+demo$takeScreenshot("1")
+demo$click("page_12")
+demo$wait()
+demo$takeScreenshot("2")
+demo$click("page_23")
+demo$takeScreenshot("3")
+demo$deploy()
+```
 
 Note the use of the `switch_page()` function to reduce the amount of duplication in the server code.
 We'll come back to this idea in Chapter \@ref(scaling-functions), and then create a module to automate wizard interfaces in Section \@ref(module-wizard).
@@ -513,19 +524,24 @@ We'll come back to this idea in Chapter \@ref(scaling-functions), and then creat
 
 ## Creating UI with code {#programming-ui}
 
-Sometimes none of the techniques described above gives you the level of dynamism that you need.
-There's one last technique that gives you the ability to create any controls (both inputs and outputs) with code in the server function.
-You've always created your UI with code; this technique gives you the ability to re-generate the user interface while the app is running, not just define it when the app starts.
+Sometimes none of the techniques described above gives you the level of dynamism that you need: the update functions only allow you to change existing inputs, and a tabset only works if you have a fixed and known set of possible combinations.
+Sometimes you need to create different types or numbers of inputs (or outputs), depending on other inputs.
+This final technique gives you the ability to do so.
 
-This technique has two components:
+It's worth noting that you've always created your user interface with code, but so far you've always done it before the app starts.
+This technique gives you the ability to create and modify the user interface while the app is running.
+There are two parts to this solution:
 
--   You use `uiOutput()` to insert a placeholder in your user interface.
-    This code is run when your app launches and it leaves a placeholder that your server code can later fill in.
+-   `uiOutput()` inserts a placeholder in your `ui`.
+    This leaves a "hole" that your server code can later fill in.
 
--   You use `renderUI()` to fill in the placeholder with UI generated in the server function.
+-   `renderUI()` is called within `server()` to fill in the placeholder with dynamically generated UI.
 
-Here's a simple example to illustrate the basic idea.
-It dynamically creates a different type of input control depending on another input.
+We'll see how this works with a simple example, and then dive into some realistic uses.
+
+### Getting started {#dynamic-basics}
+
+Let's begin with a simple app that dynamically creates an input control, with the type and label control by two other inputs.
 The resulting app is shown in Figure \@ref(fig:render-simple).
 
 ```{r}
@@ -548,12 +564,11 @@ server <- function(input, output, session) {
 ```{r render-simple, fig.cap = demo$caption("App on load (left), then changing type to numeric (middle), then label to 'my label'."), out.width = "33%", fig.show = "hold", fig.align = "default", echo = FALSE, message = FALSE, cache = FALSE}
 demo <- demoApp$new("action-dynamic/render-simple", ui, server)
 demo$resize(400)
-s1 <- demo$takeScreenshot("onload")
+demo$takeScreenshot("onload")
 demo$setInputs(type = "numeric")
-s2 <- demo$takeScreenshot("numeric")
+demo$takeScreenshot("numeric")
 demo$setInputs(label = "My label")
-s3 <- demo$takeScreenshot("label")
-knitr::include_graphics(c(s1, s2, s3))
+demo$takeScreenshot("label")
 demo$deploy()
 ```
 
@@ -570,20 +585,21 @@ However, in many cases, we can fix the problem by setting the `value` of the new
 ```{r}
 server <- function(input, output, session) {
   output$numeric <- renderUI({
+    value <- isolate(input$dynamic)
     if (input$type == "slider") {
-      sliderInput("dynamic", input$label, value = isolate(input$dynamic))
+      sliderInput("dynamic", input$label, value = value, min = 0, max = 10)
     } else {
-      numericInput("dynamic", input$label, value = isolate(input$dynamic))  
+      numericInput("dynamic", input$label, value = value, min = 0, max = 10)
     }
   })
 }
 ```
 
-(I've removed the `min` and `max` arguments to make it easier to fit everything on one line; you'd still need them in real code.)
-
 The use of `isolate()` is important.
-We'll come back to exactly why it's needed in Chapter XYZ, but it ensures that we don't create a reactive dependency that would mean this code is re-run every time `input$dynamic` changes.
+We'll come back to what it does in Section \@ref(isolate), but here it ensures that we don't create a reactive dependency that would cause this code to re-run every time `input$dynamic` changes (which will happen whenever the user modifies the value).
 We only want it to change when `input$type` or `input$label` changes.
+
+### Multiple controls {#multiple-controls}
 
 Dynamic UI is most useful when you are generating an arbitrary number or type of controls.
 That means that you'll be generating UI with code, and I recommend using functional programming for this sort of task.
@@ -595,11 +611,9 @@ library(purrr)
 
 If you're not familiar with the `map()` and `reduce()` of functional programming, you might want to take a brief detour to read [*Functional programming*](https://adv-r.hadley.nz/functionals.html) before continuing.
 We'll also come back to this idea in Chapter \@ref(scaling-functions).
+These are complex ideas, so don't stress out if it doesn't make sense on your first read through.
 
-### Multiple controls {#multiple-controls}
-
-An important use of `renderUI()` is when you need to create an arbitrary number of controls.
-For example, imagine you'd like the user to be able to supply their own palette of colours.
+To make this concrete, imagine that you'd like the user to be able to supply their own colour palette.
 They'll first specify how many colours they want, and then supply a value for each colour.
 The `ui` is pretty simple: we have a `numericInput()` that controls the number of inputs, a `uiOutput()` where the generated text boxes will go, and a `textOutput()` that demonstrates that we've plumbed everything together correctly.
 
@@ -611,18 +625,7 @@ ui <- fluidPage(
 )
 ```
 
-There are three key ideas in the server function:
-
--   I create a reactive, `col_names()`, that generates a character vector giving the name of each of the colour inputs I'm about to generate.
-
--   I create the text boxes by using `map()` to create one `textInput()` for input in `col_names()`.
-    `output$col <- renderUI()` inserts these textboxes in the UI placeholder that I created earlier.
-
--   To generate the output, I need to use a new trick.
-    So far we've always accessed the components of `input` with `$`, e.g. `input$col1`.
-    But here we have the input names in a character vector, like `var <- "col1"`.
-    `$` no longer works in this scenario, so we need to swich to `[[`, i.e. `input[[var]]`.
-    I use `map_chr()` to collect all values into a character vector, and display that in `output$palette`.
+The server function is short but contains some big ideas:
 
 ```{r}
 server <- function(input, output, session) {
@@ -633,10 +636,24 @@ server <- function(input, output, session) {
   })
   
   output$palette <- renderText({
-    map_chr(col_names(), ~ input[[.x]])
+    map_chr(col_names(), ~ input[[.x]] %||% "")
   })
 }
 ```
+
+-   I use a reactive, `col_names()`, to store the names of each of the colour inputs I'm about to generate.
+
+-   I then use `map()` to create a list of `textInput()`s, one each for each name in `col_names()`.
+    `renderUI()` then takes this list of HTML components and adds it to UI.
+
+-   I need to use a new trick to access the values the input values.
+    So far we've always accessed the components of `input` with `$`, e.g. `input$col1`.
+    But here we have the input names in a character vector, like `var <- "col1"`.
+    `$` no longer works in this scenario, so we need to swich to `[[`, i.e. `input[[var]]`.
+
+-   I use `map_chr()` to collect all values into a character vector, and display that in `output$palette`.
+    Unfortunately there's a brief period, just before the new inputs are rendered by the browser, where their values are `NULL`.
+    This causes `map_chr()` to error, which we fix by using the handy `%||%` function: it returns the right-hand side whenever the left-hand side is `NULL`.
 
 You can see the results in Figure \@ref(fig:render-palette).
 
@@ -674,11 +691,13 @@ server <- function(input, output, session) {
   col_names <- reactive(paste0("col", seq_len(input$n)))
   
   output$col <- renderUI({
-    map(col_names(), ~ textInput(.x, NULL, value = isolate(input[[.x]])) %||% "")
+    map(col_names(), ~ textInput(.x, NULL, value = isolate(input[[.x]])))
   })
   
   output$plot <- renderPlot({
-    cols <- map_chr(col_names(), ~ default_val(input[[.x]], NA))
+    cols <- map_chr(col_names(), ~ input[[.x]] %||% "")
+    # convert empty inputs to transparent
+    cols[cols == ""] <- NA
     
     barplot(
       rep(1, length(cols)), 
@@ -687,14 +706,6 @@ server <- function(input, output, session) {
       axes = FALSE
     )
   }, res = 96)
-}
-
-default_val <- function(x, value) {
-  if (isTruthy(x)) {
-    x
-  } else {
-    value
-  } 
 }
 ```
 
@@ -705,7 +716,7 @@ demo$setInputs(
   col1 = "red", 
   col2 = "yellow", 
   col3 = "orange", 
-  col4 = "green", 
+  col4 = "green",
   col5 = "blue"
 )
 s1 <- demo$takeScreenshot("rainbow")
@@ -714,11 +725,6 @@ s2 <- demo$takeScreenshot("change-n")
 knitr::include_graphics(c(s1, s2))
 demo$deploy()
 ```
-
-Note the `default_val()` function.
-I constructed this function because there are two potential "default" values of each colour input: before the input has been constructed `input$col1` is `NULL`, and then afterwards it's `""`.
-Shiny's `isTruthy()` function (also used by `req()`) abstracts over these differences.
-The `%||%` (default value for `NULL`) operator is documented [here](https://rlang.r-lib.org/reference/op-null-default.html).
 
 ### Dynamic filtering {#dynamic-filter}
 
@@ -743,8 +749,8 @@ make_ui <- function(x, var) {
 }
 ```
 
-And then I'll write the server side equivalent of this function: it takes the variable and value of the input control, and returns a logical vector saying whether or not to include each observation.
-I return a logical vector here because it'll make it easy to combine the results from multiple columns.
+Then I'll write the server side equivalent of this function: it takes the variable and value of the input control, and returns a logical vector saying whether or not to include each observation.
+Using a logical vector makes it easy to combine the results from multiple columns.
 
 ```{r}
 filter_var <- function(x, val) {
@@ -798,6 +804,9 @@ I can make it work with all the columns by using a little functional programming
 
 -   In `server()`, I use `map()` to generate the selection vector for each variable.
     Then I use `reduce()` to take the logical vector for each variable and combine into a single logical vector by `&`-ing each vector together.
+
+Again, don't worry too much if you don't understand exactly what's happening here.
+The main take away is that once you master functional programming, you can write very succinct code that generate complex, dynamic apps.
 
 ```{r}
 ui <- fluidPage(
@@ -899,10 +908,10 @@ This is a useful technique to have in your back pocket if you want to force the 
     ```
 
     How could you instead implement it using dynamic visibility?
-    If you implement dynamic visiblity, how could you keep the values in sync when you change the controls?
+    If you implement dynamic visibility, how could you keep the values in sync when you change the controls?
 
 2.  Explain how this app works.
-    Why does the password disappear when you click the enter password button for the second time?
+    Why does the password disappear when you click the enter password button a second time?
 
     ```{r}
     ui <- fluidPage(
@@ -927,11 +936,13 @@ This is a useful technique to have in your back pocket if you want to force the 
     }
     ```
 
-3.  Add support for date and date-time columns `make_ui()` and `filter_var()`.
+3.  In the app in Section \@ref(dynamic-basics), what happens if you drop the `isolate()` from `value <- isolate(input$dynamic)`?
 
-4.  (Advanced) If you know the [S3 OOP](http://adv-r.hadley.nz/S3.html) system, consider how you could replace the `if` blocks in `make_ui()` and `filter_var()` with generic functions.
+4.  Add support for date and date-time columns `make_ui()` and `filter_var()`.
 
-5.  (Hard) Make a wizard that allows the user to upload their own dataset.
+5.  (Advanced) If you know the [S3 OOP](http://adv-r.hadley.nz/S3.html) system, consider how you could replace the `if` blocks in `make_ui()` and `filter_var()` with generic functions.
+
+6.  (Hard) Make a wizard that allows the user to upload their own dataset.
     The first page should handle the upload.
     The second should handle reading it, providing one drop down for each variable that lets the user select the column type.
     The third page should display a summary of the dataset so the user can check that everything looks ok.

@@ -38,9 +38,7 @@ demoApp <- R6::R6Class("demoApp", public = list(
   },
 
   run = function() {
-    self$running <- !is_ci() &&
-      knitr::is_html_output(excludes = "markdown") &&
-      self$outdated()
+    self$running <- rlang::is_interactive() || (!is_ci() && self$outdated())
     if (!self$running) {
       return()
     }
@@ -139,6 +137,13 @@ demoApp <- R6::R6Class("demoApp", public = list(
   uploadFile = function(...) {
     if (self$running) {
       self$driver$uploadFile(...)
+    }
+    invisible(self)
+  },
+
+  wait = function() {
+    if (self$running) {
+      self$driver$waitForShiny()
     }
     invisible(self)
   },
