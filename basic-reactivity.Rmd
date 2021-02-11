@@ -173,18 +173,20 @@ server <- function(input, output, session) {
 }
 ```
 
-It's hard to show exactly how this works in a book, but if you run the app, and type in the name box, you'll notice that the greeting updates automatically as you type[^basic-reactivity-3]:
+It's hard to show exactly how this works in a book, but I do my best in Figure \@ref(fig:connection).
+If you run the app, and type in the name box, you'll see that the greeting updates automatically as you type[^basic-reactivity-3].
 
 [^basic-reactivity-3]: If you're running the live app, notice that you have to type fairly slowly for the output to update one letter at a time.
     That's because Shiny uses a technique called **debouncing**, which means that it waits for a few ms before sending an update.
     That considerably reduces the amount of work that Shiny needs to do, without appreciably reducing the response time of the app.
 
-```{r, echo = FALSE, out.width = "25%", fig.show="hold", fig.align = "default", message = FALSE}
+```{r connection, fig.cap=demo$caption("Reactivity means that outputs automatically update as inputs change, as in this app where I type 'J', 'o', 'e'."), echo = FALSE, out.width = "25%", fig.show="hold", fig.align = "default", message = FALSE}
 demo <- demoApp$new("basic-reactivity/connection", ui, server)
 demo$resize(200)
 demo$setInputs(name = "J")$takeScreenshot("1")
 demo$setInputs(name = "Jo")$takeScreenshot("2")
 demo$setInputs(name = "Joe")$takeScreenshot("3")
+demo$deploy()
 ```
 
 This is the big idea in Shiny: you don't need to tell an output when to update, because Shiny automatically figures it out for you.
@@ -487,10 +489,11 @@ server <- function(input, output, session) {
 }
 ```
 
-```{r ttest, echo = FALSE, out.width = "100%", fig.cap="A Shiny app that lets you compare two simulated distributions with a t-test and a frequency polygon", message = FALSE}
+```{r ttest, echo = FALSE, out.width = "100%", fig.cap=demo$caption("A Shiny app that lets you compare two simulated distributions with a t-test and a frequency polygon"), message = FALSE}
 demo <- demoApp$new("basic-reactivity/case-study-1", ui, server, packages = "ggplot2")
 demo$resize(width = 800)
 demo$takeScreenshot()
+demo$deploy()
 ```
 
 This definition of `server` and `ui` yields Figure \@ref(fig:ttest).
@@ -663,10 +666,11 @@ server <- function(input, output, session) {
 
 This generates the app shown in Figure \@ref(fig:sim) and reactive graph shown in Figure \@ref(fig:sim-react).
 
-```{r sim, echo = FALSE, out.width = "100%", fig.cap = "A simpler app that displays a frequency polygon of random numbers drawn from two Poisson distributions." , message = FALSE}
+```{r sim, echo = FALSE, out.width = "100%", fig.cap = demo$caption("A simpler app that displays a frequency polygon of random numbers drawn from two Poisson distributions."), message = FALSE}
 demo <- demoApp$new("basic-reactivity/simulation-2", ui, server, packages = "ggplot2")
 demo$resize(800)
 demo$takeScreenshot()
+demo$deploy()
 ```
 
 ```{r sim-react, echo = FALSE, out.width = NULL, fig.cap="The reactive graph"}
@@ -757,10 +761,11 @@ server <- function(input, output, session) {
 }
 ```
 
-```{r sim-button, echo = FALSE, out.width = "100%", fig.cap = "App with action button.", message = FALSE}
+```{r sim-button, echo = FALSE, out.width = "100%", fig.cap = demo$caption("App with action button."), message = FALSE}
 demo <- demoApp$new("basic-reactivity/action-button", ui, server, packages = "ggplot2")
 demo$resize(800)
 demo$takeScreenshot()
+demo$deploy()
 ```
 
 ```{r sim-button1-react, echo = FALSE, out.width = NULL, fig.cap="This reactive graph doesn't accomplish our goal; we've added a dependency instead of replacing the existing dependencies."}
