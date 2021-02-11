@@ -32,7 +32,8 @@ To turn these events into Shiny inputs, you supply a string to the corresponding
     Hopefully it will support these events by the time you read this.
 
 Here's a very simple example of handling a mouse click.
-We register the `plot_click` input, and then use that to update an output with the coordinates of the mouse click:
+We register the `plot_click` input, and then use that to update an output with the coordinates of the mouse click.
+Figure \@ref(fig:click) shows the results.
 
 ```{r}
 ui <- fluidPage(
@@ -54,6 +55,15 @@ server <- function(input, output) {
 }
 ```
 
+```{r echo = FALSE, message = FALSE}
+demo <- demoApp$new("action-graphics/click", ui, server)
+demo$deploy()
+```
+
+```{r click, fig.cap = demo$caption("Clicking on the top-left point updates the printed coordinates"), echo = FALSE, out.width = NULL}
+knitr::include_graphics("images/action-graphics/click.png", dpi = 300 * 1.25)
+```
+
 (Note the use of `req()`, to make sure the app doesn't do anything before the first click, and that the coordinates are in terms of the underlying `wt` and `mpg` variables.)
 
 The following sections describe the events in more details.
@@ -70,7 +80,8 @@ Instead, you'll use the `nearPoints()` helper, which returns a data frame contai
 
 [^action-graphics-2]: Note that it's not called `nearestPoints()`; it won't return any thing if you don't click near an existing data point.
 
-Here's a simple example of `nearPoints()` in action, showing a table of data about the points near the event:
+Here's a simple example of `nearPoints()` in action, showing a table of data about the points near the event.
+Figure \@ref(fig:nearPoints) shows a screenshot of the app.
 
 ```{r}
 ui <- fluidPage(
@@ -86,6 +97,15 @@ server <- function(input, output, session) {
     nearPoints(mtcars, input$plot_click, xvar = "wt", yvar = "mpg")
   })
 }
+```
+
+```{r, echo = FALSE, message = FALSE}
+demo <- demoApp$new("action-graphics/nearPoints", ui, server)
+demo$deploy()
+```
+
+```{r nearPoints, fig.cap = demo$caption("`nearPoints()` translates plot coordinates to data rows, making it easy to show the underlying data for a point you clicked on"), out.width = NULL, echo = FALSE}
+knitr::include_graphics("images/action-graphics/nearPoints.png", dpi = 300 * 1.25)
 ```
 
 Here we give `nearPoints()` four arguments: the data frame that underlies the plot, the input event, and the names of the variables on the axes.
@@ -157,7 +177,8 @@ Just make sure to explain to the user what they can do: one downside of using mo
 Another way of selecting points on a plot is to use a **brush**, a rectangular selection defined by four edges.
 In Shiny, using a brush is straightforward once you've mastered `click` and `nearPoints()`: you just switch to `brush` argument and the `brushedPoints()` helper.
 
-Here's another simple example that shows which points have been selected by the brush:
+Here's another simple example that shows which points have been selected by the brush.
+Figure \@ref(fig:brushedPoints) shows the results.
 
 ```{r}
 ui <- fluidPage(
@@ -173,6 +194,15 @@ server <- function(input, output, session) {
     brushedPoints(mtcars, input$plot_brush)
   })
 }
+```
+
+```{r, echo = FALSE, message = FALSE}
+demo <- demoApp$new("action-graphics/brushedPoints", ui, server)
+demo$deploy()
+```
+
+```{r brushedPoints, fig.cap = demo$caption("Setting the `brush` argument provides the user with a draggable 'brush'. In this app, the points beneath the brush are shown in a table."), echo = FALSE, out.width = NULL}
+knitr::include_graphics("images/action-graphics/brushedPoints.png", dpi = 300 * 1.25)
 ```
 
 Use `brushOpts()` to control the colour (`fill` and `stroke`), or restrict brushing to a single dimension with `direction = "x"` or `"y"` (useful, e.g., for brushing time series).
@@ -219,13 +249,14 @@ For now, let's put the challenges of learning `reactiveVal()` aside, and show yo
 Imagine that you want to visualise the distance between a click and the points on the plot.
 In the app below, we start by creating a reactive value to store those distances, initialising it with a constant that will be used before we click anything.
 Then we use `observeEvent()` to update the reactive value when the mouse is clicked, and a ggplot that visualises the distance with point size.
-All up, this looks something like:
+All up, this looks something like the code below, and results in Figure \@ref(fig:modifying-size).
 
 ```{r}
+set.seed(1014)
 df <- data.frame(x = rnorm(100), y = rnorm(100))
 
 ui <- fluidPage(
-  plotOutput("plot", click = "plot_click")
+  plotOutput("plot", click = "plot_click", )
 )
 server <- function(input, output, session) {
   dist <- reactiveVal(rep(1, nrow(df)))
@@ -238,8 +269,17 @@ server <- function(input, output, session) {
     ggplot(df, aes(x, y, size = dist)) + 
       geom_point() + 
       scale_size_area(limits = c(0, 1000), max_size = 10, guide = NULL)
-  })
+  }, res = 96)
 }
+```
+
+```{r, echo = FALSE, message = FALSE}
+demo <- demoApp$new("action-graphics/modifying-size", ui, server)
+demo$deploy()
+```
+
+```{r modifying-size, fig.cap = demo$caption("This app uses a `reactiveVal()` to store the distance to the point that was last clicked, which is then mapped to point size. Here I show the results of clicking on a point on the far left"), echo = FALSE, out.width = NULL}
+knitr::include_graphics("images/action-graphics/modifying-size-1.png", dpi = 300 * 1.25)
 ```
 
 There are two important ggplot2 techniques to note here:
@@ -248,20 +288,25 @@ There are two important ggplot2 techniques to note here:
 -   I set the `limits` to `scale_size_area()` to ensure that sizes are comparable across clicks. To find the correct range I did a little interactive experimentation, but you can work out the exact details if needed (see the exercises at the end of the chapter).
 
 Here's a more complicated idea.
-I want to use a brush to select (and deselect) points on a plot.
+I want to use a brush to progressively add points to a selection.
 Here I display the selection using different colours, but you could imagine many other applications.
-To make this work, I initialise the `reactiveVal()` to a vector of `FALSE`s, then use `brushedPoints()` and `ifelse()` to toggle their values: if they were previously excluded they'll be included; if they were previously included, they'll be excluded.
+To make this work, I initialise the `reactiveVal()` to a vector of `FALSE`s, then use `brushedPoints()` and `|` to add any points under the brush to the selection.
+To give the user some way to start afresh, I make double clicking reset the selection.
+Figure \@ref(fig:persistent) shows a couple of screenshots from the running app.
 
 ```{r}
 ui <- fluidPage(
-  plotOutput("plot", brush = "plot_brush")
+  plotOutput("plot", brush = "plot_brush", dblclick = "plot_reset")
 )
 server <- function(input, output, session) {
   selected <- reactiveVal(rep(FALSE, nrow(mtcars)))
 
   observeEvent(input$plot_brush, {
     brushed <- brushedPoints(mtcars, input$plot_brush, allRows = TRUE)$selected_
-    selected(ifelse(brushed, !selected(), selected()))
+    selected(brushed | selected())
+  })
+  observeEvent(input$plot_reset, {
+    selected(rep(FALSE, nrow(mtcars)))
   })
 
   output$plot <- renderPlot({
@@ -271,6 +316,18 @@ server <- function(input, output, session) {
       scale_colour_discrete(limits = c("TRUE", "FALSE"))
   }, res = 96)
 }
+```
+
+```{r, echo = FALSE, message = FALSE}
+demo <- demoApp$new("action-graphics/persistent", ui, server)
+demo$deploy()
+```
+
+```{r persistent, fig.cap = "This app makes the brush \"persisent\", so that dragging it adds to the current selection.", echo = FALSE, out.width = NULL}
+knitr::include_graphics(c(
+  "images/action-graphics/persistent-1.png",
+  "images/action-graphics/persistent-3.png"
+), dpi = 300 * 1.25)
 ```
 
 Again, I set the limits of the scale to ensure that the legend (and colours) don't change after the first click.
@@ -352,13 +409,14 @@ These functions should have no argument and return the desired size in pixels.
 They are evaluated in a reactive environment so that you can make the size of your plot dynamic.
 
 The following app illustrates the basic idea.
-It provides two sliders that directly control the size of the plot:
+It provides two sliders that directly control the size of the plot.
+A couple of sample screen shots are shown in Figure \@ref(fig:resize).
+Note that when you resize the plot, the data stays the same: you don't get new random numbers.
 
 ```{r}
 ui <- fluidPage(
   sliderInput("height", "height", min = 100, max = 500, value = 250),
   sliderInput("width", "width", min = 100, max = 500, value = 250),
-  sliderInput("n", "n", min = 10, max = 100, value = 25),
   plotOutput("plot", width = 250, height = 250)
 )
 server <- function(input, output, session) {
@@ -367,13 +425,20 @@ server <- function(input, output, session) {
     height = function() input$height,
     res = 96,
     {
-      plot(rnorm(input$n), rnorm(input$n))
+      plot(rnorm(20), rnorm(20))
     }
   )
 }
 ```
 
-Note that when you resize the plot, the data stays the same: you don't get new random numbers.
+```{r resize, fig.cap = demo$caption("You can make the plot size dynamic so that it responds to user actions. This figure shows off the effect of changing the width."), echo = FALSE, message = FALSE, out.width = "50%"}
+demo <- demoApp$new("action-graphics/resize", ui, server)
+demo$resize(300)
+demo$setInputs(width = 200)
+demo$takeScreenshot("narrow")
+demo$setInputs(width = 300)
+demo$takeScreenshot("wide")
+```
 
 In real apps, you'll use more complicated expressions in the `width` and `height` functions.
 For example, if you're using a faceted plot in ggplot2, you might use it to increase the size of the plot to keep the individual facet sizes roughly the same[^action-graphics-4].
@@ -498,11 +563,12 @@ server <- function(input, output, session) {
 }
 ```
 
-```{r puppies, echo = FALSE, message = FALSE, fig.cap = "An app that displays cute pictures of puppies using `renderImage()`.", out.width = "50%"}
+```{r puppies, echo = FALSE, message = FALSE, fig.cap = demo$caption("An app that displays cute pictures of puppies using `renderImage()`."), out.width = "50%"}
 demo <- demoApp$new("action-graphics/puppies", ui, server, assets = "puppy-photos")
 demo$takeScreenshot("corgi")
 demo$setInputs(id = "KCdYn0xu2fU")
 demo$takeScreenshot("lab")
+demo$deploy()
 ```
 
 `renderImage()` needs to return a list.
