@@ -334,7 +334,7 @@ In general, you are better off avoiding these situations, unless you are willing
 ## Dynamic visibility
 
 The next step up in complexity is to selectively show and hide parts of the UI.
-There are more sophisticated approaches if you know a little JavaScript and CSS, but there's a useful technique that doesn't require any extra knowledge: concealing optional UI with a tabset.
+There are more sophisticated approaches if you know a little JavaScript and CSS, but there's a useful technique that doesn't require any extra knowledge: concealing optional UI with a tabset (as introduced in Section \@ref(tabsets)).
 This is a clever hack that allows you to show and hide UI as needed, without having to re-generate it from scratch (as you'll learn in the next section).
 
 ```{r}
@@ -347,9 +347,9 @@ ui <- fluidPage(
       tabsetPanel(
         id = "switcher",
         type = "hidden",
-        tabPanel("panel1", "Panel 1 content"),
-        tabPanel("panel2", "Panel 2 content"),
-        tabPanel("panel3", "Panel 3 content")
+        tabPanelBody("panel1", "Panel 1 content"),
+        tabPanelBody("panel2", "Panel 2 content"),
+        tabPanelBody("panel3", "Panel 3 content")
       )
     )
   )

@@ -617,6 +617,68 @@ knitr::include_graphics("diagrams/basic-ui/multirow.png", dpi = 300)
 Note that the first argument to `column()` is the width, and the width of each row must add up to 12.
 This gives you substantial flexibility because you can easily create 2-, 3-, or 4-column layouts (more than that starts to get cramped), or use narrow columns to create spacers.
 
+### Tabsets
+
+As your apps get more complicated, you might find that there's no way to fit all the inputs and output on to a single page.
+That's where `tabsetPanel()` and its close friend `tabPanel()` come in: these allow to you spread your content across multiple panels.
+As you can see in the code below, `tabsetPanel()` creates a container for any number of `tabPanels()`, which can contain any HTML components described above.
+
+```{r}
+ui <- fluidPage(
+  tabsetPanel(
+    tabPanel("Import data", 
+      fileInput("file", "Data", buttonLabel = "Upload..."),
+      textInput("delim", "Delimiter (leave blank to guess)", ""),
+      numericInput("skip", "Rows to skip", 0, min = 0),
+      numericInput("rows", "Rows to preview", 10, min = 1)
+    ),
+    tabPanel("Set parameters"),
+    tabPanel("Visualise results")
+  )
+)
+```
+
+```{r, echo = FALSE, out.width = "100%", message = FALSE}
+demo <- demoApp$new("basic-ui/tabset", ui)
+demo$resize(width = 800)
+demo$takeScreenshot()
+```
+
+If you want to know what tab a user has selected, you can provide the `id` argument to `tabsetPanel()` and it becomes an input:
+
+```{r}
+ui <- fluidPage(
+  sidebarLayout(
+    sidebarPanel(
+      textOutput("panel")
+    ),
+    mainPanel(
+      tabsetPanel(
+        id = "tabset",
+        tabPanel("panel 1", "one"),
+        tabPanel("panel 2", "two"),
+        tabPanel("panel 3", "three")
+      )
+    )
+  )
+)
+server <- function(input, output, session) {
+  output$panel <- renderText({
+    paste("Current panel: ", input$tabset)
+  })
+}
+```
+
+```{r, echo = FALSE, out.width = "50%", message = FALSE}
+demo <- demoApp$new("basic-ui/tabset-input", ui, server)
+demo$resize(width = 300)
+demo$takeScreenshot("1")
+demo$setInputs(tabset = "panel 2")
+demo$takeScreenshot("2")
+```
+
+You'll see other uses for tabsets in Section \@ref(dynamic-visibility).
+
 ### Themes
 
 In Chapter XYZ, we'll cover the full details of customising the visual appearance of your Shiny app.
