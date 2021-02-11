@@ -114,6 +114,8 @@ Before we continue, make sure you have all the software you need for this book:
     ```{r code = install, eval = FALSE}
     ```
 
+    If you've downloaded Shiny in the past, make sure that you have at least version 1.6.0.
+
 ## Acknowledgements
 
 This book was written in the open and chapters were advertised on twitter when complete.

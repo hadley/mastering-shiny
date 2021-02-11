@@ -153,7 +153,6 @@ Before long, you start to trade off correctness (just update everything whenever
 
 Reactive programming elegantly solves both problems by combining features of the solutions above.
 Now we can show you some real Shiny code, using a special Shiny mode, `reactiveConsole(TRUE)`, that makes it possible to experiment with reactivity directly in the console.
-(It's only available in Shiny 1.6.0, so if the code below doesn't work, you'll need to upgrade.)
 
 ```{r, cache = FALSE}
 library(shiny)

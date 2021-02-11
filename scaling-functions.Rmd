@@ -46,9 +46,6 @@ And indeed, if you're making a complicated app, particularly if there are multip
 If you want to do this, I recommend reading the ["Engineering Shiny"](https://engineering-shiny.org) book and using the accompanying [golem](https://thinkr-open.github.io/golem/) package.
 We'll touch on packages again when we talk more about testing because packages provide useful infrastructure for testing.
 
-In Shiny 1.5.0 and later, running the app will automatically load all files in the `R/` directory, so there's nothing else to do!
-If you're using an earlier version, use `source()` (in your `app.R`) to explicitly load each file.
-
 ## UI functions
 
 Functions are a powerful tool to reduce duplication in your UI code.

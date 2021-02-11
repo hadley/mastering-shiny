@@ -342,7 +342,6 @@ x()
 ```
 
 Not only does the reactive error when we attempt to evaluate it, even if it did work `input$y` and `input$z` wouldn't be defined.
-To test reactive code, we need a new technique introduced in Shiny 1.5.0.
 To see how it works, let's start with a simple app that has three inputs, one output, and three reactives:
 
 ```{r}

@@ -201,7 +201,6 @@ Here, the module draws a histogram, so I've called it the `histogram` module.
 This base name is then used in a variety of places:
 
 -   `R/histogram.R` holds all the code for the module.
-    If you're using Shiny 1.5.0 or greater, this file will be automatically loaded; otherwise you'll need to include a call to `source()` in your `app.R`.
 
 -   `histogramUI()` is the module UI.
     If it's used primarily for input or output I'd call it `histogramInput()` or `histogramOuput()` instead.
