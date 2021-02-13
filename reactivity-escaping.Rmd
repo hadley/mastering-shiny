@@ -28,7 +28,7 @@ In Section \@ref(input-changes) we discussed what happens when the user causes a
 There are two other important cases where you as the app author might invalidate an input:
 
 -   You call an `update` function setting the `value` argument.
-    This sends a message to the browser to changing the value of an input, which then notifies R that the invalid has been changed.
+    This sends a message to the browser to change the value of an input, which then notifies R that the input value has been changed.
 
 -   You modify the value of a reactive value (created with `reactiveVal()` or `reactiveValues()`).
 
