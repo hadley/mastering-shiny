@@ -374,7 +374,7 @@ I'm not going to repeat their advice here: instead, I'll focus on the techniques
 I also highly recommend Alan Dipert's rstudio::conf(2018) talk: [Making Shiny fast by doing as little as possible](https://rstudio.com/resources/rstudioconf-2018/make-shiny-fast-by-doing-as-little-work-as-possible/){.uri}.
 
 First resolve any issues where existing code is run more often than you expect --- make sure you're not repeating the same work in multiple reactives and that the reactive graph isn't updating more often than you expect (Section \@ref(the-reactlog-package).
-Next, there are four techniques that seem to help many Shiny apps seen in the wild: considering data import, pulling out expensive preprocessing into a separate step, sharing work across users with caching, and carefully managing user expectations.
+Next, there are four techniques that seem to help many Shiny apps seen in the wild: considering data import, pulling out expensive preprocessing into a separate step, carefully managing user expectations, and sharing work across users with caching.
 I discuss each in turn below.
 
 ### Data import
@@ -404,47 +404,6 @@ After loading data from disk, it's common to do some basic cleaning and aggregat
 If this is expensive, you should consider using a cron job, scheduled RMarkdown report, or similar, to perform the expensive operations and save the results.
 This is like hiring a prep chef who comes in at 3am (when there are no customers) and does a bunch of work so that that chefs can be as efficient as possible.
 
-### Share work across users
-
-We discussed a specific type of caching for graphics in Section \@ref(cached-plots).
-Shiny 1.6.0 introduces a general tool that works with any reactive expression or render function: `bindCache()`.
-Reactive expression already cache the most recently computed value; `bindCache()` allows you to cache any number of values and to share those values across users.
-Here I'll give you the highlights, and you can see the documentation for full details.
-
-`bindCache()` is easy to use:
-
-```{r, eval = FALSE}
-r <- reactive(slow_function(input$x, input$y)) %>% 
-  bindCache(input$x, input$y)
-```
-
-The first argument (here the `reactive()` on the left hand side of the pipe) is the reactive to cache.
-The other arguments are are the cache keys --- these are the values used to determine if a computation has occurred before and hence can be retrieved from the cache.
-The best cache keys are small and fast to compute.
-
-To use the cache effectively, you'll need to have identified a specific reactive as a bottleneck and done some thinking to make sure that it's used multiple times (so replaying previous results will save some time).
-
-#### Cache scope
-
-Like `renderCachedPlot()`, `bindCache()` has a `cache` argument that controls the scope of the cache.
-It defaults to `"app"`, giving an in-memory cache that is shared across all users of the app.
-You can restrict the scope by setting `cache = "session"` so that each user session gets its own cache.
-Or you can expand the scope with `cache = cachem::disk_cache()` so that it is shared across users, processes, and app restarts.
-Just note the broader the scope, the more care you'll need to take to clear the cache when you change behaviour (e.g. the computation in a reactive) that's not captured by the cache key.
-
-#### `bindEvent()`
-
-`bindCache()` is often paired with `bindEvent()` because if a computation takes long enough that it's worth caching it, it's likely that you'll want to user to manually trigger with an action button or similar.
-`bindEvent()` is similar to `eventReactive()`, but feels a little more natural when used in a pipe with `bindCache()`:
-
-```{r, eval = FALSE}
-r <- reactive(slow_function(input$x, input$y)) %>% 
-  bindCache(input$x, input$y) %>% 
-  bindEvent(input$go)
-```
-
-The arguments to `bindEvent()` are very similar to the arguments to `bindCache()`: the first argument is the reactive to modify, and additional unnamed arguments are reactive values that will trigger computation.
-
 ### Manage user expectations
 
 Finally, there a few tweaks you can make to your app design to make it feel faster, and improve the overall user experience of your app.
@@ -460,6 +419,111 @@ Here are four tips that can be used in many apps:
 -   If the app requires significant work to happen on startup (and you can't reduce it with preprocessing), make sure to design your app so that the UI can still appear, so that you can let the user know that they'll need to wait.
 
 -   Finally, if you want to keep the app responsive while some expensive operation happens in the background, it's time to learn about async programming: [https://rstudio.github.io/promises](https://rstudio.github.io/promises/index.html).
+
+## Caching
+
+Shiny provides a general tool that works with any reactive expression or render function: `bindCache()`[^scaling-performance-7].
+As you know, reactive expression already cache the most recently computed value; `bindCache()` allows you to cache any number of values and to share those values across users.
+This improves performance when the same computation would otherwise be performed multiple times.
+For example, imagine you have a dashboard where many users see the same data and the same plots.
+When you use caching, the computation and plotting only needs to happen once, then the results can be quickly retrieved from the cache.
+
+[^scaling-performance-7]: This function was introduced in Shiny 1.6.0, generalising the older `renderCachedPlot()` which only worked for plots.
+
+In this section, I'll give you the highlights of caching.
+But it's a pretty big area, so if you want to learn more, I recommend reading the Shiny articles [Using caching in Shiny to maximise performance](https://shiny.rstudio.com/articles/caching.html) and [Using bindCache() to speed up an app](https://shiny.rstudio.com/app-stories/weather-lookup-caching.html).
+
+### Basics
+
+`bindCache()` is easy to use:
+
+```{r, eval = FALSE}
+r <- reactive(slow_function(input$x, input$y)) %>% 
+  bindCache(input$x, input$y)
+
+output$text <- renderText(slow_function2(input$z)) %>% 
+  bindCache(input$z)
+```
+
+The first argument (here the `reactive()` or `render` function on the left hand side of the pipe) is the thing to cache.
+The other arguments are are the cache keys --- these are the values used to determine if a computation has occurred before and hence can be retrieved from the cache.
+Generally, the cache keys will be all inputs used by the cache, but there are a few exceptions which we'll come back to shortly.
+
+### Caching plots
+
+Lets take a how you might speed up a plot by using `bindCache()` with `renderPlot()`.
+If you run this app, you'll notice the first time you show each plot, it takes a noticeable fraction of a second to render because it has to draw \~50,000 points.
+But if you re-draw a plot you've already seen, it appears instantly because it's retrieved from the cache.
+
+```{r}
+library(ggplot2)
+
+ui <- fluidPage(
+  selectInput("x", "X", choices = names(diamonds), selected = "carat"),
+  selectInput("y", "Y", choices = names(diamonds), selected = "price"),
+  plotOutput("diamonds")
+)
+
+server <- function(input, output, session) {
+  output$diamonds <- renderPlot({
+    ggplot(diamonds, aes(.data[[input$x]], .data[[input$y]])) + 
+      geom_point()
+  }) %>% bindCache(input$x, input$y)
+}
+```
+
+(If the `.data` syntax is unfamiliar to you see Chapter \@ref(action-tidy) for details.)
+
+There's one special consideration with plots: they are are normally rendered at a variety of sizes, because the default plot occupies 100% of the container width (so the plot is redrawn each time you resize the app).
+That flexibility doesn't work very well for caching, because even a single pixel difference in the size would mean that the plot couldn't be retrieved from the cache.
+To avoid this problem, `bindCache()` caches fixed size plots, wtih the size controlled by an exponential rounding strategy.
+The defaults are carefully chosen to "just work" in most cases, but if needed you can control with the `sizePolicy` argument.
+See more details in the `?sizeGrowthRatio` help page.
+
+### Cache key
+
+<!--# needs an example -->
+
+The caching keys are important because they determines when the cache can be used.
+It should return an object, usually a list of simple vectors, that determines the "state" of the plot.
+
+How does the cache key work?
+Before running the reactive or render function, `bindBind()` computes the cache key and looks to see if that value appears in the cache.
+If it does, the cached plot is retrieved and sent to the user.
+If it doesn't, the plot is generated, saved to the cache, and then shown to the user.
+
+Some general advice:
+
+-   The best cache keys tend to be small lists made up of reactive inputs or reactives.
+-   You can use a small dataset as a cache key, but you should avoid using large datasets because it can be time consuming to look them up in the cache.
+-   If you want a plot to invalidate periodically, you can use something like `proc.time()[[3]] %/% 3600`. This value will change once per hour (3600 s); make it update more or less frequently by changing the denominator.
+
+#### Cache scope
+
+By default, the plot cache is stored in memory, is never bigger than 200 MB, is shared across all users a single process, and is lost when the app restarts.
+There are two main ways to change the default:
+
+-   `bindCache(…, cache = "session")` this makes the individual cache scoped to a single user session.
+    This allows much less work to be shared, so you should only use if it there's repeated expense computation that can not be shared between users (e.g. it's private data).
+
+-   Use `shinyOptions(cache)` to change the default across all `bindCache()` calls.
+    This can, for example, make a cache that works across multiple processes and lasts across app restarts.
+
+It's also possible set the to use a database cache, chain multiple caches together, and write your own back end.
+See the documentation in `?bindCache` for more details.
+
+#### `bindEvent()`
+
+`bindCache()` is often paired with `bindEvent()` because if a computation takes long enough that it's worth caching it, it's likely that you'll want to user to manually trigger with an action button or similar.
+`bindEvent()` is similar to `eventReactive()`, but feels a little more natural when used in a pipe with `bindCache()`:
+
+```{r, eval = FALSE}
+r <- reactive(slow_function(input$x, input$y)) %>% 
+  bindCache(input$x, input$y) %>% 
+  bindEvent(input$go)
+```
+
+The arguments to `bindEvent()` are very similar to the arguments to `bindCache()`: the first argument is the reactive to modify, and additional unnamed arguments are reactive values that will trigger computation.
 
 ## Summary
 
