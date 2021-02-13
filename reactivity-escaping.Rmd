@@ -115,7 +115,7 @@ Figure \@ref(fig:button-graph) shows the reactive graph for this example.
 Again note that the reactive graph does not include any connection from the observers back to the reactive value `n`.
 
 ```{r button-graph, echo = FALSE, out.width = NULL, fig.cap = "The reactive graph does not capture connections from observers to input values"}
-knitr::include_graphics("diagrams/reactivity-components.png", dpi = 300)
+knitr::include_graphics("diagrams/reactivity-components/button.png", dpi = 300)
 ```
 
 ### Accumulating inputs
