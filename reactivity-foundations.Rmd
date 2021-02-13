@@ -158,7 +158,7 @@ You can learn more about `on.exit()` at <https://withr.r-lib.org/articles/changi
     }
     ```
 
-2.  Modify the above app to instead use `req()` instead of `stop()`.
+2.  Modify the above app to use `req()` instead of `stop()`.
     Verify that events still propagate the same way.
     What happens when you use the `cancelOutput` argument?
 
