@@ -44,7 +44,20 @@ You can find out more about this dataset at <https://github.com/hadley/neiss>.
 
 In this chapter, I'm going to focus on just the data from 2017.
 This keeps the data small enough (\~10 MB) that it's easy to store in git (along with the rest of the book), which means we don't need to think about sophisticated strategies for importing the data quickly (we'll come back to those later in the book).
-You can see the code I used to create the extract for this chapter at <https://github.com/hadley/mastering-shiny/blob/master/neiss/data.R>.
+You can see the code I used to create the extract for this chapter at [<https://github.com/hadley/mastering-shiny/blob/master/neiss/data.R>](https://github.com/hadley/mastering-shiny/blob/master/neiss/data.R){.uri}.
+
+If you want to get the data on to your own computer, run this code:
+
+```{r, eval = "FALSE"}
+dir.create("neiss")
+download <- function(name) {
+  url <- "https://github.com/hadley/mastering-shiny/raw/master/neiss/"
+  download.file(paste0(url, name), paste0("neiss/", name), quiet = TRUE)
+}
+download("injuries.tsv.gz")
+download("population.tsv")
+download("products.tsv")
+```
 
 The main dataset we'll use is `injuries`, which contains around 250,000 observations:
 
