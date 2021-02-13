@@ -56,6 +56,14 @@ demoApp <- R6::R6Class("demoApp", public = list(
       file.copy(self$assets, path, recursive = TRUE)
     }
 
+    if (length(self$data$`_packages`) > 0) {
+      # Add extra dependencies in a way that rsconnect understands
+      writeLines(
+        paste0("library(", self$data$`_packages`, ")"),
+        file.path(path, "deps.R")
+      )
+    }
+
     file.copy("demo-app.R", file.path(path, "app.R"))
     saveRDS(self$data, file.path(path, "data.rds"))
     path
