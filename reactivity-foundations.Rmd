@@ -257,7 +257,7 @@ count()
 ### `observeEvent()`
 
 Another way to avoid this problem is to use the `observeEvent()` function that you learned about in Section \@ref(observers).
-`observeEvent(x, y)` is equivalent to `observe({isolate(x); y})`.
+`observeEvent(x, y)` is equivalent to `observe({x; isolate(y)})`.
 It decouples listening for an event from the action to handle that event, so you could rewrite the above code as:
 
 ```{r, eval = FALSE}
