@@ -147,7 +147,7 @@ Here are the most common:
     Instead, stick with the techniques in Chapter \@ref(action-tidy).
 
 The same problem can occur with SQL.
-For example, if you construct SQL with `pastse()`, e.g.:
+For example, if you construct SQL with `paste()`, e.g.:
 
 ```{r}
 find_student <- function(name) {
