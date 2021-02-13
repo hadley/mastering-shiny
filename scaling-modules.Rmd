@@ -1050,7 +1050,7 @@ server <- function(input, output, session) {
 ```
 
 There are two problems with this code.
-Firstly, it doesn't work, because `moduleFunction()` must be called inside a server function.
+Firstly, it doesn't work, because `moduleServer()` must be called inside a server function.
 But imagine that problem didn't exist or you worked around it some other way.
 There's still a big problem: what if we want to allow the user to select the dataset, i.e. we want to make the `df` argument reactive.
 That can't work because the module is instantiated before the server function, i.e. before we know that information.
