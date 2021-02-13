@@ -52,7 +52,7 @@ This book is aimed at two main audiences:
 
 ## What will you learn?
 
-The book is divided into five parts:
+The book is divided into four parts:
 
 1.  In "Getting started", you'll learn the basics of Shiny so you can get up and running as quickly as possible.
     You'll learn about the basics of app structure, useful UI components, and the foundations of reactive programming.
