@@ -67,7 +67,7 @@ Data-masking functions allow you to use variables in the "current" data frame wi
 It's used in many dplyr functions like `arrange()`, `filter()`, `group_by()`, `mutate()`, and `summarise()`, and in ggplot2's `aes()`.
 Data-masking is useful because it lets you use data-variables without any additional syntax.
 
-### Getting start
+### Getting started
 
 Let's begin with this call to `filter()` which uses a data-variable (`carat`) and an env-variable (`min_carat`):
 
@@ -126,9 +126,10 @@ server <- function(input, output, session) {
 }
 ```
 
-```{r tidied-up, fig.cap = "Our app works now that we've been explicit about `.data` and `.env` and `[[` vs `$`.", echo = FALSE, message = FALSE, out.width = NULL}
+```{r tidied-up, fig.cap = demo$caption("Our app works now that we've been explicit about `.data` and `.env` and `[[` vs `$`."), echo = FALSE, message = FALSE, out.width = NULL}
 demo <- demoApp$new("action-tidy/tidied-up", ui, server, packages = "ggplot2")
 demo$takeScreenshot()
+demo$deploy()
 ```
 
 Figure \@ref(fig:tidied-up) shows that we've been successful --- we only see diamonds with values of `carat` greater than 1.
@@ -136,7 +137,8 @@ Now that you've seen the basics, we'll develop a couple of more realistic, but s
 
 ### Example: ggplot2
 
-Let's apply this idea to a dynamic plot where we allow the user to create a scatterplot by selecting the variables to appear on the `x` and `y` axes:
+Let's apply this idea to a dynamic plot where we allow the user to create a scatterplot by selecting the variables to appear on the `x` and `y` axes.
+The results are shown in Figure \@ref(fig:ggplot2).
 
 ```{r}
 ui <- fluidPage(
@@ -150,6 +152,15 @@ server <- function(input, output, session) {
       geom_point(position = ggforce::position_auto())
   }, res = 96)
 }
+```
+
+```{r ggplot2, fig.cap = demo$caption("A simple app that allows you to select which variables are plotted on the `x` and `y` axes."), out.width = "50%", echo = FALSE, message = FALSE}
+demo <- demoApp$new("action-tidy/ggplot2", ui, server, packages = "ggforce")
+demo$setInputs("y" = "Sepal.Width")
+demo$takeScreenshot("scatter")
+demo$setInputs("y" = "Species")
+demo$takeScreenshot("swarm")
+demo$deploy()
 ```
 
 Here I've used `ggforce::position_auto()` so that `geom_point()` works nicely regardless of whether the x and y variables are continuous or discrete.
@@ -210,6 +221,14 @@ server <- function(input, output, session) {
       arrange(.data[[input$sort]])
   })
 }
+```
+
+```{r dplyr, fig.cap = demo$caption("A simple app that allows you to pick a variable to threshold, and choose how to sort the results."), echo = FALSE, message = FALSE, out.width = NULL}
+demo <- demoApp$new("action-tidy/dplyr", ui, server)
+demo$setInputs(min = 25, sort = "disp")
+demo$resize(600)
+demo$takeScreenshot()
+demo$deploy()
 ```
 
 Most other problems can be solved by combining `.data` with your existing programming skills.
@@ -273,7 +292,7 @@ server <- function(input, output, session) {
 }
 ```
 
-```{r user-supplied, fig.cap = demo$caption("An app that filter users supplied data, with a surprising failure mode"), echo = FALSE, message = FALSE}
+```{r user-supplied, fig.cap = demo$caption("An app that filter users supplied data, with a surprising failure mode"), echo = FALSE, message = FALSE, out.width = NULL}
 demo <- demoApp$new("action-tidy/user-supplied", ui, server)
 demo$takeScreenshot()
 demo$deploy()
@@ -393,9 +412,16 @@ server <- function(input, output, session) {
     
     mtcars %>% 
       group_by(across(all_of(input$vars))) %>% 
-      summarise(n = n())
+      summarise(n = n(), .groups = "drop")
   })
 }
+```
+
+```{r across, fig.cap = demo$caption("This app allows you to select any number of variables and count their unique combinations."), echo = FALSE, message = FALSE, out.width = NULL}
+demo <- demoApp$new("action-tidy/across", ui, server)
+demo$setInputs(vars = c("vs", "am"))
+demo$takeScreenshot()
+demo$deploy()
 ```
 
 The second argument is a function (or list of functions) that's applied to each selected column.
