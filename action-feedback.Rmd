@@ -67,12 +67,13 @@ server <- function(input, output, session) {
 }
 ```
 
-```{r feedback, fig.cap = "Using `feedbackWarning()` to display warning for invalid inputs. The app on the left shows a valid input, the app on the right shows an invalid (odd) input with warning message.", echo = FALSE, message = FALSE, out.width = "50%", }
+```{r feedback, fig.cap = demo$caption("Using `feedbackWarning()` to display warning for invalid inputs. The app on the left shows a valid input, the app on the right shows an invalid (odd) input with warning message."), echo = FALSE, message = FALSE, out.width = "50%", }
 demo <- demoApp$new("action-feedback/feedback", ui, server)
 demo$resize(width = 250)
 demo$takeScreenshot("even")
 demo$setInputs(n = 9)
 demo$takeScreenshot("odd")
+demo$deploy()
 ```
 
 Notice that the error message is displayed, but the output is still updated.
@@ -157,7 +158,7 @@ server <- function(input, output, session) {
 }
 ```
 
-```{r require-simple2, fig.cap = "By using `req()`, the output is only shown once both language and name have been supplied", out.width = "33%", fig.show = "hold", fig.align = "default", echo = FALSE, message = FALSE, cache = FALSE}
+```{r require-simple2, fig.cap = demo$caption("By using `req()`, the output is only shown once both language and name have been supplied"), out.width = "33%", fig.show = "hold", fig.align = "default", echo = FALSE, message = FALSE, cache = FALSE}
 demo <- demoApp$new("action-feedback/require-simple2", ui, server)
 demo$resize(400)
 s1 <- demo$takeScreenshot("on-load")
@@ -165,6 +166,7 @@ demo$setInputs(language = "English")
 s2 <- demo$takeScreenshot("langauge")
 demo$setInputs(name = "Hadley")
 s3 <- demo$takeScreenshot("name")
+demo$deploy()
 knitr::include_graphics(c(s1, s2, s3))
 ```
 
@@ -227,7 +229,7 @@ server <- function(input, output, session) {
 }
 ```
 
-```{r require-cancel, fig.cap = "On load, the table is empty because the dataset name is empty. The data is shown after we type a valid dataset name (iris), and continues to be shown when press backspace in order to type a new dataset name.", echo = FALSE, message = FALSE, out.width = "33%"}
+```{r require-cancel, fig.cap = demo$caption("On load, the table is empty because the dataset name is empty. The data is shown after we type a valid dataset name (iris), and continues to be shown when press backspace in order to type a new dataset name."), echo = FALSE, message = FALSE, out.width = "33%"}
 demo <- demoApp$new("action-feedback/require-cancel", ui, server)
 demo$resize(400)
 demo$takeScreenshot("empty")
@@ -235,6 +237,7 @@ demo$setInputs(dataset = "iris")
 demo$takeScreenshot("ok")
 demo$setInputs(dataset = "iri")
 demo$takeScreenshot("error")
+demo$deploy()
 ```
 
 ### Validate output
@@ -314,6 +317,7 @@ These three techniques are discussed below.
 ### Transient notification
 
 The simplest way to use `showNotification()` is to call it with a single argument: the message that you want to display.
+It's very hard to capture this behaviour with a screenshot, so go to <https://hadley.shinyapps.io/ms-notification-transient> if you want to see it in action.
 
 ```{r}
 ui <- fluidPage(
@@ -330,6 +334,11 @@ server <- function(input, output, session) {
     showNotification("Adieu")
   })
 }
+```
+
+```{r, echo = FALSE, message = FALSE}
+demo <- demoApp$new("action-feedback/notification-transient", ui, server)
+demo$deploy()
 ```
 
 By default, the message will disappear after 5 seconds, which you can override by setting `duration`, or the user can dismiss it earlier by clicking the close button.
@@ -350,7 +359,12 @@ server <- function(input, output, session) {
 }
 ```
 
-```{r notify, echo = FALSE, fig.cap = "The progression of notifications after clicking 'Good night': the first notification appears, after three more seconds all notifications are shown, then the notifications start to fade away.", fig.align = "center"}
+```{r echo = FALSE, message = FALSE}
+demo <- demoApp$new("action-feedback/notify-persistent", ui, server)
+demo$deploy()
+```
+
+```{r notify, echo = FALSE, fig.cap = demo$caption("The progression of notifications after clicking 'Good night': the first notification appears, after three more seconds all notifications are shown, then the notifications start to fade away."), fig.align = "center"}
 knitr::include_graphics(c(
   "images/action-feedback/notify-1.png",
   "images/action-feedback/notify-2.png",
@@ -392,6 +406,7 @@ Generally, these sort of notifications will live in a reactive, because that ens
 As you saw in the first example, multiple calls to `showNotification()` usually create multiple notifications.
 You can instead update a single notification by capturing the `id` from the first call and using it in subsequent calls.
 This is useful if your long-running task has multiple subcomponents.
+You can see the results in <https://hadley.shinyapps.io/ms-notification-updates>.
 
 ```{r}
 ui <- fluidPage(
@@ -422,6 +437,11 @@ server <- function(input, output, session) {
   
   output$data <- renderTable(head(data()))
 }
+```
+
+```{r, echo = FALSE, message = FALSE}
+demo <- demoApp$new("action-feedback/notification-updates", ui, server)
+demo$deploy()
 ```
 
 ## Progress bars
@@ -496,7 +516,12 @@ server <- function(input, output, session) {
 }
 ```
 
-```{r progress, fig.cap="A progress bar helps indicate how much longer a calculation has to run.", echo = FALSE, out.width = NULL}
+```{r, echo = FALSE, message = FALSE}
+demo <- demoApp$new("action-feedback/progress", ui, server)
+demo$deploy()
+```
+
+```{r progress, fig.cap=demo$caption("A progress bar helps indicate how much longer a calculation has to run."), echo = FALSE, out.width = NULL}
 knitr::include_graphics("images/action-feedback/progress-2.png", dpi = 300)
 ```
 
@@ -562,7 +587,12 @@ server <- function(input, output, session) {
 }
 ```
 
-The default display is a thin progress bar at the top of the page, but there are a number of ways to customise the output:
+```{r, echo = FALSE, message = FALSE}
+demo <- demoApp$new("action-feedback/waiter", ui, server)
+demo$deploy()
+```
+
+The default display is a thin progress bar at the top of the page (which you can see `r demo$link()`), but there are a number of ways to customise the output:
 
 -   You can override the default `theme` to use one of:
 
@@ -601,6 +631,15 @@ server <- function(input, output, session) {
 }
 ```
 
+```{r, echo = FALSE, message = FALSE}
+demo <- demoApp$new("action-feedback/spinner-1", ui, server)
+demo$deploy()
+```
+
+```{r spinner-1, fig.cap = demo$caption("A 'Waiter' displays a whole app spinner while something is happen."), echo = FALSE, message = FALSE, out.width = NULL}
+knitr::include_graphics("images/action-feedback/spinner-1.png", dpi = 300 * 1.25)
+```
+
 Like `Waitress`, you can also use `Waiter`s for specific outputs.
 These waiters can automatically remove the spinner when the output updates, so the code is even simpler:
 
@@ -621,6 +660,15 @@ server <- function(input, output, session) {
   
   output$plot <- renderPlot(plot(data()), res = 96)
 }
+```
+
+```{r, echo = FALSE, message = FALSE}
+demo <- demoApp$new("action-feedback/spinner-2", ui, server)
+demo$deploy()
+```
+
+```{r spinner-2, fig.cap = demo$caption("You can instead display a spinner for single output."), echo = FALSE, message = FALSE, out.width = NULL}
+knitr::include_graphics("images/action-feedback/spinner-2.png", dpi = 300 * 1.25)
 ```
 
 The waiter package provides a large variety of spinners to choose from; see your options at `?waiter::spinners` and then choose one with (e.g.) `Waiter$new(html = spin_ripple())`.
@@ -755,6 +803,7 @@ ui <- fluidPage(
 The server function is quite complex and requires some techniques that we haven't talked about.
 Don't worry too much about understanding the code, focus on the basic idea: we use some special arguments to `observeEvent()` to run some code after a few seconds.
 The big new idea is that we capture the result of `observeEvent()` and save it to a variable; this allows us to destroy the observer so the code that would really send the tweet is never run.
+You can try out the live app at <https://hadley.shinyapps.io/ms-undo>.
 
 ```{r}
 runLater <- function(action, seconds = 3) {
@@ -797,6 +846,11 @@ server <- function(input, output, session) {
     updateTextAreaInput(session, "message", value = last_message)
   })
 }
+```
+
+```{r, message = FALSE, echo = FALSE}
+demo <- demoApp$new("action-feedback/undo", ui, server)
+demo$deploy()
 ```
 
 ### Trash
