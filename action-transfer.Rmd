@@ -69,12 +69,13 @@ server <- function(input, output, session) {
 }
 ```
 
-```{r upload, fig.cap = "This simple app lets you see exactly what data Shiny provides to you for uploaded files.", echo = FALSE, message = FALSE}
+```{r upload, fig.cap = demo$caption("This simple app lets you see exactly what data Shiny provides to you for uploaded files."), echo = FALSE, message = FALSE, out.width = NULL}
 demo <- demoApp$new("action-transfer/upload", ui, server, assets = "puppy-photos")
 demo$uploadFile(
   upload = c("puppy-photos/eoqnr8ikwFE.jpg", "puppy-photos/KCdYn0xu2fU.jpg")
 )
 demo$takeScreenshot()
+demo$deploy()
 ```
 
 Note my use of the `label` and `buttonLabel` arguments to mildly customise the appearance, and use of `multiple = TRUE` to allow the user to upload multiple files.
@@ -90,7 +91,8 @@ If the user is uploading a dataset, there are two details that you need to be aw
     But the `accept` argument is only a suggestion to the browser, and is not always enforced, so it's good practice to also validate it (e.g. Section \@ref(validate)) yourself.
     The easiest way to get the file extension in R is `tools::file_ext()`, just be aware it removes the leading `.` from the extension.
 
-Putting all these ideas together gives us the following app where you can upload a `.csv` or `.tsv` file and see the first `n` rows:
+Putting all these ideas together gives us the following app where you can upload a `.csv` or `.tsv` file and see the first `n` rows.
+See it in action in <https://hadley.shinyapps.io/ms-upload-validate>.
 
 ```{r}
 ui <- fluidPage(
@@ -115,6 +117,11 @@ server <- function(input, output, session) {
     head(data(), input$n)
   })
 }
+```
+
+```{r, echo = FALSE, message = FALSE}
+demo <- demoApp$new("action-transfer/upload-validate", ui, server)
+demo$deploy()
 ```
 
 Note that since `multiple = FALSE` (the default), `input$file` will be a single row data frame, and `input$file$name` and `input$file$datapath` will be a length-1 character vector.
@@ -206,10 +213,11 @@ server <- function(input, output, session) {
 }
 ```
 
-```{r download-data, fig.cap = "A richer app that allows you to select a built-in dataset and preview it before downloading.", echo = FALSE, message = FALSE, out.width = NULL}
+```{r download-data, fig.cap = demo$caption("A richer app that allows you to select a built-in dataset and preview it before downloading."), echo = FALSE, message = FALSE, out.width = NULL}
 demo <- demoApp$new("action-transfer/download-data", ui, server)
 demo$setInputs(dataset = "iris")
 demo$takeScreenshot()
+demo$deploy()
 ```
 
 Note the use of `validate()` to only allow the user to download datasets that are data frames.
@@ -240,6 +248,7 @@ This makes it easy to generate many different reports from the same `.Rmd`.
 Here's a simple example adapted from <https://shiny.rstudio.com/articles/generating-reports.html>, which describes this technique in more detail.
 The key idea is to call `rmarkdown::render()` from the `content` argument of `downloadHander()`.
 If you want to produce other output formats, just change the output format in the `.Rmd`, and make sure to update the extension (e.g. to `.pdf`).
+See it in action at <https://hadley.shinyapps.io/ms-download-rmd>.
 
 ```{r}
 ui <- fluidPage(
@@ -268,6 +277,11 @@ server <- function(input, output, session) {
     }
   )
 }
+```
+
+```{r, echo = FALSE, message = FALSE }
+demo <- demoApp$new("action-transfer/download-rmd", ui, server, assets = "rmarkdown-report/report.Rmd")
+demo$deploy()
 ```
 
 It'll generally take at least a few seconds to render a `.Rmd`, so this is a good place to use a notification from Section \@ref(notifications).
@@ -381,17 +395,11 @@ ui <- fluidPage(
 )
 ```
 
-```{r, echo = FALSE, out.width = "75%", message = FALSE}
-demo <- demoApp$new("action-transfer/case-study", ui)
-demo$resize(800)
-demo$takeScreenshot()
-```
-
 This same organisation makes it easier to understand the app:
 
 ```{r}
 server <- function(input, output, session) {
-  # Upload ---------------------------------------------------------------
+  # Upload ---------------------------------------------------------
   raw <- reactive({
     req(input$file)
     delim <- if (input$delim == "") NULL else input$delim
@@ -399,7 +407,7 @@ server <- function(input, output, session) {
   })
   output$preview1 <- renderTable(head(raw(), input$rows))
   
-  # Clean ----------------------------------------------------------------
+  # Clean ----------------------------------------------------------
   tidied <- reactive({
     out <- raw()
     if (input$snake) {
@@ -416,7 +424,7 @@ server <- function(input, output, session) {
   })
   output$preview2 <- renderTable(head(tidied(), input$rows))
   
-  # Download -------------------------------------------------------------
+  # Download -------------------------------------------------------
   output$download <- downloadHandler(
     filename = function() {
       paste0(tools::file_path_sans_ext(input$file$name), ".tsv")
@@ -426,6 +434,13 @@ server <- function(input, output, session) {
     }
   )
 }
+```
+
+```{r case-study-ui, fig.cap = demo$caption("An app that lets the user upload a file, perform some simple cleaning, and then download the results."), echo = FALSE, out.width = "75%", message = FALSE}
+demo <- demoApp$new("action-transfer/case-study", ui)
+demo$resize(800)
+demo$takeScreenshot()
+demo$deploy()
 ```
 
 ## Exercises

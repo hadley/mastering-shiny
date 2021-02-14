@@ -29,7 +29,7 @@ demoApp <- R6::R6Class("demoApp", public = list(
                         ) {
     self$name <- name
     self$ui <- ui
-    self$server <- server
+    self$server <- rlang::zap_srcref(server)
     self$data <- app_data(server, ui, packages, env)
     self$assets <- assets
 
