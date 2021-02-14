@@ -7,4 +7,4 @@ if (!exists("_server")) {
   `_server` <- function(input, output, session) {}
 }
 
-shinyApp(`_ui`, `_server`)
+shinyApp(`_ui`, `_server`, enableBookmarking = `_bookmark`)

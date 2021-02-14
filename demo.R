@@ -25,12 +25,13 @@ demoApp <- R6::R6Class("demoApp", public = list(
                         server = NULL,
                         packages = character(),
                         assets = NULL,
+                        bookmark = NULL,
                         env = parent.frame()
                         ) {
     self$name <- name
     self$ui <- ui
     self$server <- rlang::zap_srcref(server)
-    self$data <- app_data(server, ui, packages, env)
+    self$data <- app_data(server, ui, packages, bookmark, env)
     self$assets <- assets
 
     fs::dir_create(fs::path("demos", fs::path_dir(name)))
@@ -256,7 +257,7 @@ demoApp <- R6::R6Class("demoApp", public = list(
 
 # server + ui -> app ------------------------------------------------------
 
-app_data <- function(server, ui, packages = character(), env = parent.frame()) {
+app_data <- function(server, ui, packages = character(), bookmark = NULL, env = parent.frame()) {
   globals <- app_server_globals(server, env)
 
   data <- globals$globals
@@ -264,6 +265,7 @@ app_data <- function(server, ui, packages = character(), env = parent.frame()) {
   data$`_server` <- server
   data$`_resources` <- shiny::resourcePaths()
   data$`_packages` <- union(globals$packages, packages)
+  data["_bookmark"] <- list(bookmark) # NULLs grrrrr
   data
 }
 

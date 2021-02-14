@@ -2,6 +2,7 @@
 
 ```{r, include = FALSE}
 source("common.R")
+source("demo.R")
 ```
 
 By default, Shiny apps have one major drawback compared to most web sites: you can't bookmark the app to return to the same place in the future or share your work with someone else with a link in an email.
@@ -33,7 +34,7 @@ ui <- fluidPage(
   )
 )
 server <- function(input, output, session) {
-  t <- reactive(seq(0, input$length, length = input$length * 100))
+  t <- reactive(seq(0, input$length, length.out = input$length * 100))
   x <- reactive(sin(input$omega * t() + input$delta) * input$damping ^ t())
   y <- reactive(sin(t()) * input$damping ^ t())
   
@@ -43,7 +44,12 @@ server <- function(input, output, session) {
 }
 ```
 
-<!-- TODO: add demo -->
+```{r pendulum, fig.cap = "This app allows you to generate intersting figures using a model of a pendulum. Wouldn't it be cool to share a link with your friends?", echo = FALSE, message = FALSE, out.width = NULL}
+demo <- demoApp$new("action-bookmark/pendulum", ui, server)
+demo$resize(800)
+demo$setInputs(omega = -0.13, damping = 0.997)
+demo$takeScreenshot()
+```
 
 There are three things we need to do to make this app bookmarkable:
 
@@ -81,10 +87,13 @@ ui <- function(request) {
 shinyApp(ui, server, enableBookmarking = "url")
 ```
 
+You can try it out at <https://hadley.shinyapps.io/ms-bookmark-url>.
 If you play around with the app and bookmark a few interesting states, you'll see that the generated URLs look something like this:
 
--   `http://127.0.0.1:4087/?_inputs_&damping=1&delta=1&length=100&omega=1`
--   `http://127.0.0.1:4087/?_inputs_&damping=0.966&delta=1.25&length=100&omega=-0.54`
+-   `https://hadley.shinyapps.io/ms-bookmark-url/?_inputs_&damping=1&delta=1&length=100&omega=1`
+
+-   `https://hadley.shinyapps.io/ms-bookmark-url/?_inputs_&damping=0.966&delta=1.25&length=100&omega=-0.54`
+
 -   `http://127.0.0.1:4087/?_inputs_&damping=0.997&delta=1.37&length=500&omega=-0.9`
 
 To understand what's happening, let's take the first URL and tease it apart into pieces:
@@ -92,12 +101,9 @@ To understand what's happening, let's take the first URL and tease it apart into
 -   `http://` is the "protocol" used to communicate with the app.
     This will always be `http` or `https`.
 
--   `127.0.0.1` is the IP address of the server; `127.0.0.1` is a special address that always points to your own computer.
+-   `hadley.shinyapps.io/ms-bookmark-url` is the location of the app.
 
--   `4087` is a randomly assigned "port".
-    Normally, different apps get different IP addresses, but that's not possible when you're hosting multiple apps on your own computer.
-
--   Everything after `?` is a parameter.
+-   Everything after `?` is a "parameter".
     Each parameter is separated by `&`, and if you break it apart you can see the values of each input in the app:
 
     -   `damping=1`
@@ -106,6 +112,15 @@ To understand what's happening, let's take the first URL and tease it apart into
     -   `omega=1`
 
 So "generating a bookmark" means recording the current values of the inputs in the parameters of URL.
+If you play around with locally, the urls will look slightly different:
+
+-   `http://127.0.0.1:4087/?_inputs_&damping=1&delta=1&length=100&omega=1`
+-   `http://127.0.0.1:4087/?_inputs_&damping=0.966&delta=1.25&length=100&omega=-0.54`
+-   `http://127.0.0.1:4087/?_inputs_&damping=0.997&delta=1.37&length=500&omega=-0.9`
+
+Most of the pieces are the same except that instead of `hadley.shinyapps.io/ms-bookmark-url` you'll see something like `127.0.0.1:4087`.
+`127.0.0.1` is a special address that always points to your own computer, and `4087` is a randomly assigned port.
+Normally, different apps get different paths or IP addresses, but that's not possible when you're hosting multiple apps on your own computer.
 
 ### Updating the URL
 
@@ -148,7 +163,12 @@ server <- function(input, output, session) {
 shinyApp(ui, server, enableBookmarking = "url")
 ```
 
-You could now remove the bookmark button if you wanted.
+```{r, echo = FALSE, message = FALSE}
+demo <- demoApp$new("action-bookmark/bookmark-auto", ui, server, bookmark = "url")
+demo$deploy()
+```
+
+And this yields <https://hadley.shinyapps.io/ms-bookmark-auto> --- since the URL now automatically updates, you could now remove the bookmark button from the UI..
 
 ### Storing richer state
 
@@ -158,13 +178,18 @@ As you can imagine, however, the URL is going to get very long if you have a lar
 
 For these cases, you might instead want to use `enableBookmarking = "server"`, which saves the state to an `.rds` file on the server.
 This always generates a short, opaque, URL but requires additional storage on the server.
-If you try it out locally with:
 
 ```{r, eval = FALSE}
 shinyApp(ui, server, enableBookmarking = "server")
 ```
 
-You'll see that the bookmark button generates URLs like:
+```{r, echo = FALSE, message = FALSE}
+demo <- demoApp$new("action-bookmark/bookmark-server", ui, server, bookmark = "server")
+demo$deploy()
+```
+
+shinyapps.io doesn't currently supported server side bookmarking, so you'll need to try this out locally.
+If you do so, you'll see that the bookmark button generates URLs like:
 
 -   `http://127.0.0.1:4087/?_state_id_=0d645f1b28f05c97`
 -   `http://127.0.0.1:4087/?_state_id_=87b56383d8a1062c`
