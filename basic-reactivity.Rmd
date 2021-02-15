@@ -849,5 +849,13 @@ This yields the following reactive graph shown in Figure \@ref(fig:observer).
 knitr::include_graphics("diagrams/basic-reactivity/graph-3.png", dpi = 300)
 ```
 
-This concludes our overview of reactivity.
-The next chapter will help you practice all the material you've seen so far by creating a bigger Shiny app that supports data analysis.
+## Summary
+
+This chapter should have improved your understanding of the backend of Shiny apps, the `server()` code that responds to user actions.
+You've also taken the first steps in mastering the reactive programming paradigm that underpins Shiny.
+What you've learned here will carry you a long way; we'll come back to the underlying theory in Chapter \@ref(why-reactivity).
+Reactivity is extremely powerful, but it is also very different to the imperative style of R programming that you're most used to.
+Don't be surprised if it takes a while for all the consequences to sink in.
+
+This chapter concludes our overview of the foundations of Shiny.
+The next chapter will help you practice the material you've seen so far by creating a bigger Shiny app designed to support a data analysis.
