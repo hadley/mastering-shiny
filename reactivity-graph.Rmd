@@ -94,6 +94,7 @@ If this happens, then:
 
 -   Shiny records a relationship between the output and reactive expression (i.e. we draw an arrow).
     The direction of the arrow is important: the expression records that it is used by the output; the output doesn't record that it uses the expression.
+    This is a subtle distinction, but its importance will become more clear when you learn about invalidation.
 
 For our sample graph, this yields Figure \@ref(fig:graph-read-reactive).
 
@@ -310,7 +311,7 @@ output$out <- renderText({
 }) 
 ```
 
-This would have no impact on the output of normal R code, but it makes a difference here because the reactive dependency is established when you read a value from the `input` with `$`s.
+This would have no impact on the output of normal R code, but it makes a difference here because the reactive dependency is established when you read a value from `input`, not when you use that value.
 
 ## The reactlog package
 
@@ -339,7 +340,7 @@ There's a surprise in this screenshot: there are three additional reactive input
 These exist because plots have an implicit dependency on the size of the output; whenever the output changes size the plot needs be redrawn.
 
 Note that while reactive inputs and outputs have names, reactive expressions and observers do not, so they're labelled with their contents.
-To make things easier to understand you may want use the `label` argument to `reactive()` and `observer()`, which will then appear in the reactlog.
+To make things easier to understand you may want use the `label` argument to `reactive()` and `observe()`, which will then appear in the reactlog.
 You can use emojis to make particularly important reactives stand out visually.
 
 ## Summary
