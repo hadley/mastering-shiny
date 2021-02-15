@@ -79,6 +79,7 @@ reactiveConsole <- function(enabled = TRUE) {
   options(shiny.suppressMissingContextError = enabled)
   if (enabled) {
     attach(reactive_console_funs, name = "reactive_console", warn.conflicts = FALSE)
+    vctrs::s3_register("base::$<-", "rv_flush_on_write")
   } else {
     detach("reactive_console")
   }
