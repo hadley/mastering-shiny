@@ -158,7 +158,7 @@ write_csv(contribs_all, "contributors.csv")
 
 ```{r, results = "asis", echo = FALSE, message = FALSE}
 library(dplyr)
-contributors <- read.csv("contributors.csv", stringsAsFactors = FALSE)
+contributors <- readr::read_csv("contributors.csv")
 contributors <- contributors %>% 
   filter(login != "hadley") %>% 
   mutate(
