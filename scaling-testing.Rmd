@@ -739,3 +739,11 @@ There are three basic options
     This has two advantages.
     Firstly, to make a good test case, you'll need to relentlessly simplify the problem until you have a very minimal reprex that you can include in a test.
     Secondly, you'll make sure that the bug never comes back again!
+
+## Summary
+
+This chapter has showed you how to organise your app into a package so that you can take advantage of the powerful tools provided by the testthat package.
+If you've never made a package before, this can seem overwhelming, but as you've seen, a package is just a simple set of conventions that you can readily adapt for a Shiny app.
+This requires a little up front work, but unlocks a big payoff: the ability to automate tests radically increases your ability to write complex apps.
+
+In the next chapter you'll learn out how to figure out what's making your apps slow, and some techniques for making them faster.

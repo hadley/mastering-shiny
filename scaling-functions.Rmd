@@ -44,7 +44,7 @@ There are two places you might put them depending on how big they are:
 If you've made an R package before, you might notice that Shiny uses the same convention for storing files containing functions.
 And indeed, if you're making a complicated app, particularly if there are multiple authors, there are substantial advantages to making a full fledged package.
 If you want to do this, I recommend reading the ["Engineering Shiny"](https://engineering-shiny.org) book and using the accompanying [golem](https://thinkr-open.github.io/golem/) package.
-We'll touch on packages again when we talk more about testing because packages provide useful infrastructure for testing.
+We'll touch on packages again when we talk more about testing.
 
 ## UI functions
 
@@ -350,3 +350,14 @@ But this feels weird as the function is still fundamentally coupled to this app 
     Can\
     modularizing your app code help solve this problem?
     Explain your reasoning.
+
+## Summary
+
+As your apps get bigger, extracting non-reactive functions out of the flow of the app will make your life substantially easier.
+Functions allow you to reactive and non-reactive code and spread your code out over multiple files.
+This often makes it much easier to see the big picture shape of your app, and by moving complex logic out of the app into regular R code it makes it much easier to experiment, iterate, and test.
+When you start extracting out function, it's likely to feel a bit slow and frustrating, but over time you'll get faster and faster, and soon it will become a key tool in your toolbox.
+
+This functions in this chapter have one important drawback --- they can generate only UI or server components, not both.
+In the next chapter, you'll learn how to create Shiny modules, which coordinate UI and server code into a single object.
+

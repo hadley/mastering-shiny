@@ -981,9 +981,7 @@ You can use the filter module without having to understand the dynamic UI and fu
 
 To conclude the chapter, I wanted to finish up with a brief discussion of a common reaction to modules.
 Feel free to skip this section if that wasn't your reaction.
-
 When some people (like me!) encounter modules for the first time, they immediately attempt to combine the module server and module UI into a single module object.
-
 To illustrate the problem, let's generalise the motivating example from the first part of the chapter so that the data frame is now a parameter:
 
 ```{r}
@@ -1112,3 +1110,10 @@ Writing modules as separate functions reflects that reality: they're distinct fu
 5.  In `radioExtraServer()`, return a list that contains both the value and whether or not it came from other.
 
 6.  In `wizardServer()` verify that the namespacing has been set up correctly by using two or more wizards in a single app, and checking that you can navigate through each wizard independently.
+
+## Summary
+
+This chapter has shown you how to use Shiny modules, a generalisation of functions that allow you to extract coordinated UI and server code into reusable components.
+It takes a while to get your head around modules, but once you do you'll have an unlocked a powerful technique for simplifying complex apps.
+
+In the next chapter, you'll learn how to structure your Shiny app like a package so that you can take advantage of the testing tools available to R packages.

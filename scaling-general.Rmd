@@ -177,3 +177,8 @@ Two resources I'd recommend:
 
 -   <https://github.com/thoughtbot/guides/tree/master/code-review>
 -   <https://google.github.io/eng-practices/review/>
+
+## Summary
+
+Now that you've learned a little bit of the software engineer mindset, the next chapters are going to dive into the details of function writing, testing, security, and performance as they apply to Shiny apps.
+You'll need to read Chapter \@ref(scaling-functions) before the other chapters, but otherwise you can skip around.
