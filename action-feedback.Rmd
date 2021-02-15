@@ -382,7 +382,7 @@ To do this, you'll need to:
 
 -   Store the `id` returned by `showNotification()`, and then pass this value to `removeNotification()`.
     The most reliable way to do so is to use `on.exit()`, which ensures that the notification is removed regardless of how the task completes (either successfully or with an error).
-    You can learn more about `on.exit()` in [Advanced R](https://adv-r.hadley.nz/functions.html#on-exit){.uri}.
+    You can learn more about `on.exit()` in [Changing and restoring state](https://withr.r-lib.org/articles/changing-and-restoring-state.html).
 
 The following example puts the pieces together to show how you might keep the user up to date when reading in a large csv file[^action-feedback-3]:
 

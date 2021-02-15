@@ -33,10 +33,12 @@ They have slightly different syntaxes for getting and setting values:
 x <- reactiveVal(10)
 x()       # get
 x(20)     # set
+x()       # get
 
-y <- reactiveValues(a = 1, b = 2)
+y <- reactiveValues(a = 10)
 y$a       # get
-y$b <- 20 # set
+y$a <- 20 # set
+y$a       # get
 ```
 
 It's unfortunate that there are two different syntaxes, but there's no way to standardise them.
@@ -131,9 +133,10 @@ By default, it will cause outputs to reset to their initial blank state, but if 
 ### `on.exit()`
 
 You can think of `reactive(x())` as a shortcut for `function() x()`, automatically adding laziness and caching.
-This means that you can use functions that only work inside functions.
+This is mostly of importance if you want to understand how Shiny is implemented, but means that you can use functions that only work inside functions.
+
 The most useful of these is `on.exit()` which allows you to run code when a reactive expression finishes, regardless of whether the reactive successfully returns an error or fails with an error.
-You can learn more about `on.exit()` at <https://withr.r-lib.org/articles/changing-and-restoring-state.html>.
+This is what makes `on.exit()` work in Section \@ref(removing-on-completion).
 
 ### Exercises
 
@@ -187,7 +190,7 @@ Observers differ from reactive expressions in two important ways:
 
 ### Nesting observers
 
-It is useful to think of `observer()` not as doing something, but as creating something (which then takes action as needed).
+It is useful to think of `observe()` not as doing something, but as creating something (which then takes action as needed).
 That mindset helps you to understand what's going on in this example:
 
 ```{r}
@@ -200,10 +203,12 @@ x(2)
 x(3)
 ```
 
-Every time the observer is triggered, it creates another observer, so each time `x` changes, its value is printed one more time.
+Each change to `x` causes the observer to be triggered.
+The observer itself calls `observe()` setting up *another* observer.
+So each time `x` changes, we it gets another observer, so its value is printed another time.
+
 As a general rule, you should only ever create observers or outputs at the top-level of your server function.
 If you find yourself trying to nest them, sit down and sketch out the reactive graph that you're trying to create --- there's almost certainly a better approach.
-
 It can be harder to spot this mistake directly in a more complex app, but you can always use the reactlog: just look for unexpected churn in observers (or outputs), then track back to what is creating them.
 
 ### `isolate()`
@@ -240,7 +245,7 @@ x(3)
 count()
 ```
 
-`isolate()` is a general tool that also works inside of `reactive()`.
+`isolate()` also works inside `reactive()`, but tends to be less use because `eventReactive()` takes care of most isolation needs for reactive expressions.
 
 ### Exercises
 
