@@ -69,7 +69,7 @@ Data-masking is useful because it lets you use data-variables without any additi
 
 ### Getting started
 
-Let's begin with this call to `filter()` which uses a data-variable (`carat`) and an env-variable (`min_carat`):
+Let's begin with this call to `filter()` which uses a data-variable (`carat`) and an env-variable (`min`):
 
 ```{r}
 min <- 1
