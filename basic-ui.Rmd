@@ -684,9 +684,26 @@ You'll see other uses for tabsets in Section \@ref(dynamic-visibility).
 Shiny apps can be themed using the [bslib](https://rstudio.github.io/bslib/) package.
 You can either pick an existing [bootswatch](https://bootswatch.com) theme, or design your own with the colours and fonts you want.
 Either way, the basics are the same: you supply `bslib::bs_theme()` to the `theme` argument of `fluidPage()`.
-Figure \@ref(fig:theme) shows the results of the following code, styling the same app in four different ways.
+Figure \@ref(fig:theme) shows the results of the following code, switching `"darkly"` out for other themes.
 
-```{r, results = FALSE}
+```{r, eval = FALSE}
+ui <- fluidPage(
+  theme = bslib::bs_theme(bootswatch = "darkly"),
+  sidebarLayout(
+    sidebarPanel(
+      textInput("txt", "Text input:", "text here"),
+      sliderInput("slider", "Slider input:", 1, 100, 30)
+    ),
+    mainPanel(
+      h1(paste0("Theme: darkly")),
+      h2("Header 2"),
+      p("Some text")
+    )
+  )
+)
+```
+
+```{r theme, fig.cap = "The same app styled with four bootswatch themes: darkly, flatly, sandstone, and united", echo = FALSE, out.width = "50%", fig.show="hold", fig.align='default', message = FALSE}
 theme_demo <- function(theme) {
   fluidPage(
     theme = bslib::bs_theme(bootswatch = theme),
@@ -703,13 +720,7 @@ theme_demo <- function(theme) {
     )
   )
 }
-theme_demo("darkly")
-theme_demo("flatly")
-theme_demo("sandstone")
-theme_demo("united")
-```
 
-```{r theme, fig.cap = "The same app styled with four bootswatch themes: darkly, flatly, sandstone, and united", echo = FALSE, out.width = "50%", fig.show="hold", fig.align='default', message = FALSE}
 demoApp$new("basic-ui/theme-darkly", theme_demo("darkly"))$takeScreenshot()
 demoApp$new("basic-ui/theme-flatly", theme_demo("flatly"))$takeScreenshot()
 demoApp$new("basic-ui/theme-sandstone", theme_demo("sandstone"))$takeScreenshot()
