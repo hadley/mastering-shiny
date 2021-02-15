@@ -510,3 +510,8 @@ This was obviously very dangerous, so the behaviour changed in Shiny 1.5.0.
 Now shiny no longer deletes the images, but instead forces you to explicitly choose which behaviour you want.
 
 You can learn more about `renderImage()`, and see other ways that you might use it at <https://shiny.rstudio.com/articles/images.html>.
+
+## Summary
+
+Visualisations are tremendously powerful way to communicating data, and this chapter has given you a few advanced techniques to empower your Shiny apps.
+Next, you'll learn techniques to provide feedback to your users about what's going on in your app, which is particularly important for actions that take a non-trivial amount of time.

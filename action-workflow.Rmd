@@ -812,3 +812,13 @@ That can be frustrating and feel time consuming, but it has a number of benefits
 
 When I try to help someone with their app on [RStudio community](https://community.rstudio.com/tag/shiny), creating a reprex is always the first thing I do.
 This isn't some make work exercise I use to fob off people I don't want to help: it's exactly where I start!
+
+## Summary
+
+This chapter has given you some useful workflows for developing apps, debugging problems, and getting help.
+These workflows might seem a little abstract and easy to dismiss because they're not concretely improving an individual app.
+But I think of workflow as one of my "secret" powers: one of the reasons that I've been able to accomplish so much is that I devote time to analysing and improving my workflow.
+I highly encourage you to do the same!
+
+The next chapter on graphics is the first of a grab bag of useful techniques.
+There's no need to read in sequence; feel free to skip ahead to a chapter that you need for a current app.

@@ -866,3 +866,12 @@ For that reason, I think it's beyond the scope of all but the most complicated S
 ## Exercises
 
 1.  
+
+## Summary
+
+This chapter has given you a number of tools to help communicate to the user what's happening with your app.
+In some sense, these techniques are mostly optional.
+But while your app will work without them, their thoughtful application can have a huge impact on the quality of the user experience.
+You can often omit feedback when you're the only user of an app, but the more people use it, the more that thoughtful notification will pay off.
+
+In the next chapter, you'll learn how to transfer files to and from the user.
