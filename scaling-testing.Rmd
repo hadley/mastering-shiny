@@ -541,7 +541,13 @@ server <- function(input, output, session) {
 
 To use shinytest you start an app with `app <- ShinyDriver$new()`, interact with it using `app$setInputs()` and friends, then get values returned by `app$getValue()`:
 
-```{r, eval = FALSE}
+```{r, include = FALSE}
+# remove customised shinyApp() which causes the following chunk to fail
+# for unknown reasons
+rm("shinyApp")
+```
+
+```{r}
 app <- shinytest::ShinyDriver$new(shinyApp(ui, server))
 app$setInputs(name = "Hadley")
 app$getValue("greeting")
