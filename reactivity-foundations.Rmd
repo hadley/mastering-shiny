@@ -43,7 +43,7 @@ y$a       # get
 
 It's unfortunate that there are two different syntaxes, but there's no way to standardise them.
 However, there are no major differences in their behaviour, so you can choose between them based on which syntax you prefer.
-In this book, I use `reactiveVal()` because I like that the syntax makes it a little more clear that something unusual is going on.
+I personally prefer `reactiveVal()` because the syntax makes it's more clear that something weird is going on; in this book I use `reactiveValues()` because the syntax is easier to understand at a glance.
 
 The most common source of reactive values is the `input` argument passed to the server function.
 This is a special read-only `reactiveValues()`: you're not allowed to modify the values because Shiny automatically updates them based on the users actions in the browser.
@@ -73,9 +73,9 @@ a1 # unchanged
 This is not the case with reactive values --- they always keep a reference back to the same value so that modifying any copy modifies all values:
 
 ```{r}
-b1 <- b2 <- reactiveVal(10)
-b2(20)
-b1()
+b1 <- b2 <- reactiveValues(x = 10)
+b1$x <- 20
+b2$x
 ```
 
 ### Exercises
@@ -217,11 +217,10 @@ Observers are often coupled with reactive values in order to track state changes
 For example, take this code which tracks how many times `x` changes:
 
 ```{r, eval = FALSE}
-count <- reactiveVal(0)
-x <- reactiveVal(1)
+r <- reactiveValues(count = 0, x = 1)
 observe({
-  x()
-  count(count() + 1)
+  r$x
+  r$count <- r$count + 1
 })
 ```
 
@@ -231,18 +230,19 @@ Fortunately, Shiny provides `isolate()` to resolve this problem.
 This function allows you to access the current value of a reactive value or expression **without** taking a dependency on it:
 
 ```{r}
-count <- reactiveVal(0)
-x <- reactiveVal(1)
+r <- reactiveValues(count = 0, x = 1)
+class(r)
 observe({
-  x()
-  isolate(count(count() + 1))
+  r$x
+  r$count <- isolate(r$count) + 1
 })
 
-x(1)
-x(2)
-count()
-x(3)
-count()
+r$x <- 1
+r$x <- 2
+r$count
+
+r$x <- 3
+r$count
 ```
 
 `isolate()` also works inside `reactive()`, but tends to be less use because `eventReactive()` takes care of most isolation needs for reactive expressions.
@@ -410,7 +410,7 @@ Rather than assuming `invalidateLater(100)` always delays by exactly 100 ms, I c
 
 ```{r, eval = FALSE}
 velocity <- 3
-distance <- reactiveVal(1)
+r <- reactiveValues(distance = 1)
 
 last <- proc.time()[[3]]
 observe({
@@ -418,7 +418,7 @@ observe({
   time <- last - cur
   last <<- cur
   
-  distance(isolate(distance()) + velocity * time)
+  r$distance <- isolate(r$distance) + velocity * time
   invalidateLater(100)
 })
 ```

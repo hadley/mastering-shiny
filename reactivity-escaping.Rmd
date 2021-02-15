@@ -9,7 +9,7 @@ source("common.R")
 Shiny's reactive programming framework is incredibly useful because it automatically determines the minimal set of computations needed to update all outputs when an input changes.
 But this framework is deliberately constraining, and sometimes you need to break free to do something risky but necessary.
 
-In this chapter you'll learn how you can combine `reactiveVal()` and `observe()` to connect the right hand side of the reactive graph back to the left hand side.
+In this chapter you'll learn how you can combine `reactiveValues()` and `observe()` to connect the right hand side of the reactive graph back to the left hand side.
 These techniques are powerful because they give you manual control over parts of the graph.
 But they're also dangerous because they allow your app to do unnecessary work.
 Most importantly, you can now create infinite loops where your app gets stuck in a cycle of updates that never ends.
@@ -68,7 +68,7 @@ None of these actions change the reactive graph, so it remains as in Figure \@re
 
 ## Case studies
 
-Next, lets take a look at a few useful cases where you might combine `reactiveVal()` and `observe()` to solve problems that are otherwise very challenging (if not impossible).
+Next, lets take a look at a few useful cases where you might combine `reactiveValues()` and `observe()` to solve problems that are otherwise very challenging (if not impossible).
 These are useful templates for your own apps.
 
 ### One output modified by multiple inputs
@@ -84,16 +84,19 @@ ui <- fluidPage(
   textOutput("notice")
 )
 server <- function(input, output, session) {
-  notice <- reactiveVal("")
-  observeEvent(input$drink, notice("You are no longer thirsty"))
-  observeEvent(input$eat, notice("You are no longer hungry"))
-
+  r <- reactiveValues(notice = "")
+  observeEvent(input$drink, {
+    r$notice <- "You are no longer thirsty"
+  })
+  observeEvent(input$eat, {
+    r$notice <- "You are no longer hungry"
+  })
   output$notice <- renderText(notice())
 }
 ```
 
 Things get slightly more complicated in the next example, where we have an app with two buttons that let you increase and decrease values.
-We use a `reactiveVal()` to store the current value, and then use `observeEvent()` to increment and decrement the value when the appropriate button is pushed.
+We use a `reactiveValues()` to store the current value, and then use `observeEvent()` to increment and decrement the value when the appropriate button is pushed.
 The main additional complexity here is that the new value of `n()` depends on the previous value.
 
 ```{r}
@@ -103,9 +106,13 @@ ui <- fluidPage(
   textOutput("n")
 )
 server <- function(input, output, session) {
-  n <- reactiveVal(0)
-  observeEvent(input$up, n(n() + 1))
-  observeEvent(input$down, n(n() - 1))
+  r <- reactiveValues(n = 0)
+  observeEvent(input$up, {
+    r$n <- r$n + 1
+  })
+  observeEvent(input$down, {
+    r$n <- r$n - 1
+  })
   
   output$n <- renderText(n())
 }
@@ -130,9 +137,9 @@ ui <- fluidPage(
   textOutput("names")
 )
 server <- function(input, output, session) {
-  names <- reactiveVal()
+  r <- reactiveValues(names = character())
   observeEvent(input$add, {
-    names(c(input$name, names()))
+    r$names <- c(input$name, r$names)
     updateTextInput(session, "name", value = "")
   })
   
@@ -150,13 +157,13 @@ ui <- fluidPage(
   textOutput("names")
 )
 server <- function(input, output, session) {
-  names <- reactiveVal()
+  r <- reactiveValues(names = character())
   observeEvent(input$add, {
-    names(union(names(), input$name))
+    r$names <- union(r$names, input$name)
     updateTextInput(session, "name", value = "")
   })
   observeEvent(input$del, {
-    names(setdiff(names(), input$name))
+    r$names <- setdiff(r$names, input$name)
     updateTextInput(session, "name", value = "")
   })
   
@@ -176,14 +183,18 @@ ui <- fluidPage(
   textOutput("n")
 )
 server <- function(input, output, session) {
-  running <- reactiveVal(FALSE)
-  observeEvent(input$start, running(TRUE))
-  observeEvent(input$stop, running(FALSE))
+  r <- reactiveValues(running = FALSE, n = 0)
+
+  observeEvent(input$start, {
+    r$running <- TRUE
+  })
+  observeEvent(input$stop, {
+    r$running <- FALSE
+  })
   
-  n <- reactiveVal(0)
   observe({
     if (running()) {
-      n(isolate(n()) + 1)
+      r$n <- isolate(r$n) + 1
       invalidateLater(250)
     }
   })
@@ -194,7 +205,7 @@ server <- function(input, output, session) {
 Notice in this case we can't easily use `observeEvent()` because we perform different actions depending on whether `running()` is `TRUE` or `FALSE`.
 Since we can't use `observeEvent()`, we must use `isolate()` --- if we don't this observer would also take a reactive dependency on `n`, which it updates, so it would get stuck in an infinite loop.
 
-Hopefully these examples start to give you a flavour of what programming with `reactiveVal()` and `observer()` feels like.
+Hopefully these examples start to give you a flavour of what programming with `reactiveValues()` and `observer()` feels like.
 It's very imperative: when this happens, do that; when that happens, do the other thing.
 This makes it easier to understand on a small scale, but harder to understand when bigger pieces start interacting.
 So generally, you'll want to use this as sparingly as possible, and keep it isolated so that the smallest possible number of observers modify the reactive value.
@@ -230,11 +241,13 @@ Once you get the hang of this pattern it's easy to fall into bad habits:
 
 ```{r}
 server <- function(input, output, session) {
-  df <- reactiveVal(cars)
-  observe(df(head(cars, input$nrows)))
+  r <- reactiveValues(df = cars)
+  observe({
+    df <- head(cars, input$nrows)
+  })
   
-  output$plot <- renderPlot(plot(df()))
-  output$table <- renderTable(df())
+  output$plot <- renderPlot(plot(r$df))
+  output$table <- renderTable(r$df)
 }
 ```
 
