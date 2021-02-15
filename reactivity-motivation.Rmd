@@ -24,7 +24,7 @@ In this part of the book, you'll dive into the theory of reactivity that underli
 
 -   In Chapter \@ref(reactivity-objects), you'll learn about the underlying building blocks, particularly observers and timed invalidation.
 
--   In Chapter \@ref(reactivity-components), you'll learn how to escape the constraints of the reactive graph using `reactiveVal()` and `observer()`.
+-   In Chapter \@ref(reactivity-components), you'll learn how to escape the constraints of the reactive graph using `reactiveVal()` and `observe()`.
 
 You certainly don't need to understand all these details for routine development of Shiny apps.
 But improving your understanding will help you write correct apps from the get go, and when something behaves unexpectedly you can more quickly narrow in on the underlying issue.
@@ -91,7 +91,7 @@ temp_f()
 ```
 
 It doesn't, however, minimise computation.
-Every time you call `temp_f()` it recomputes:
+Every time you call `temp_f()` it recomputes, even if `temp_c` hasn't changed:
 
 ```{r}
 temp_f() 
@@ -130,7 +130,10 @@ DynamicValue <- R6::R6Class("DynamicValue", list(
 ))
 ```
 
-So if Shiny had been invented five years earlier, it might have looked more like this, where `temp_c` uses `<<-` (the super-assignment operator) to update `temp_f` whenever needed.
+So if Shiny had been invented five years earlier, it might have looked more like this, where `temp_c` uses `<<-`[^reactivity-motivation-2] to update `temp_f` whenever needed.
+
+[^reactivity-motivation-2]: `<<-` is called the super-assignment operator, and here it modifies `temp_f` in the global environment, rather than creating a new `temp_f` variable inside the function as `<-` would.
+    You can learn more about `<<-` in <https://adv-r.hadley.nz/environments.html#super-assignment-->.
 
 ```{r}
 temp_c <- DynamicValue$new()
@@ -161,9 +164,9 @@ reactiveConsole(TRUE)
 
 As with event-driven programming, we need some way to indicate that we have a special type of variable.
 In Shiny, we create a **reactive value** with `reactiveVal()`.
-A reactive value has special syntax[^reactivity-motivation-2] for getting its value (calling it like a zero-argument function) and setting its value (set its value by calling it like a one-argument function).
+A reactive value has special syntax[^reactivity-motivation-3] for getting its value (calling it like a zero-argument function) and setting its value (set its value by calling it like a one-argument function).
 
-[^reactivity-motivation-2]: If you happen to have ever used R's active bindings, you might notice that the syntax is very similar.
+[^reactivity-motivation-3]: If you happen to have ever used R's active bindings, you might notice that the syntax is very similar.
     This is not a coincidence.
 
 ```{r}
@@ -192,7 +195,9 @@ temp_c(-10)
 temp_f()
 ```
 
-But if `temp_c()` hasn't changed, then `temp_f()` doesn't need to recompute:
+But if `temp_c()` hasn't changed, then `temp_f()` doesn't need to recompute[^reactivity-motivation-4], and can just be retrieved from the cache:
+
+[^reactivity-motivation-4]: You can tell it doesn't re-compute because "Converting" is not printed.
 
 ```{r}
 temp_f()
@@ -222,7 +227,7 @@ Research in reactive programming was kicked off by FRAN [@fran], **f**unctional 
 This spawned a rich literature [@rp-survey], but had little impact on the practice of programming.
 
 It wasn't until the 2010s that reactive programming roared into the programming mainstream through the fast-paced world of JavaScript UI frameworks.
-Pioneering frameworks like [Knockout](https://knockoutjs.com/), [Ember](https://emberjs.com/), and (Joe Cheng's personal inspiration) [Meteor](https://www.meteor.com) demonstrated that reactive programming could make UI programming dramatically easier.
+Pioneering frameworks like [Knockout](https://knockoutjs.com/), [Ember](https://emberjs.com/), and [Meteor](https://www.meteor.com) (Joe Cheng's personal inspiration for Shiny) demonstrated that reactive programming could make UI programming dramatically easier.
 Within a few short years, reactive programming has come to dominate web programming through hugely popular frameworks like [React](https://reactjs.org), [Vue.js](https://vuejs.org), and [Angular](https://angularjs.org), which are all either inherently reactive or designed to work hand-in-hand with reactive back ends.
 
 It's worth bearing in mind that "reactive programming" is a fairly general term.
