@@ -342,7 +342,7 @@ Note that while reactive inputs and outputs have names, reactive expressions and
 To make things easier to understand you may want use the `label` argument to `reactive()` and `observer()`, which will then appear in the reactlog.
 You can use emojis to make particularly important reactives stand out visually.
 
-### Summary
+## Summary
 
 In this chapter, you've learned precisely how the reactive graph operates.
 In particular, you've learned for the first time about the invalidation phase, which doesn't immediately cause recomputation, but instead marks reactive consumers as invalid, so that they will be recomputed when need.
