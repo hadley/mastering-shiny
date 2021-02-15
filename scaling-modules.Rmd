@@ -807,7 +807,9 @@ wizardServer <- function(id, n) {
 }
 ```
 
-Note that it's not possible to use a for loop instead of `map()`/`lapply()` here; we'll come back to why in Chapter XYZ.
+Note that it's not possible to use a for loop instead of `map()`/`lapply()` here.
+A for loop works by changing the value of the same `i` variable so that by the time the loop is done, every `changePage()` would use use the same value.
+`map()` and `lapply()` work by creating new environments each with their own value of `i`.
 
 Now we can construct an app and simple example to make sure we've plumbed everything together correctly:
 
