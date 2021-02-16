@@ -78,70 +78,17 @@ ui <- fluidRow(
 )
 ```
 
-In my opinion, functions are useful even in this simple case:
+Here a function helps in two ways:
 
 -   We can give the function a evocative name, making it easier to understand what's going on when we re-read the code in the future.
 
 -   If we need to change the behaviour, we only need to do it in one place.
     For example, if we decided that we needed a finer resolution for the steps, we only need to write `step = 0.01` in one place, not four.
 
-### Functional programming
-
-If you're comfortable with functional programming, you could reduce the code still further:
-
-```{r}
-library(purrr)
-
-vars <- c("alpha", "beta", "gamma", "delta")
-sliders <- map(vars, sliderInput01)
-ui <- fluidRow(sliders)
-```
-
-There are two big ideas here:
-
--   `map()` calls `sliderInput01()` once for each string stored in `vars`.
-    It returns a list of sliders.
-
--   When you pass a list to an html container, it automatically unpacks so that elements of the list become the children of the container.
-
-If you would like to learn more about `map()` (or its base equivalent, `lapply()`), you might enjoy the [Functionals chapter](https://adv-r.hadley.nz/functionals.html) of *Advanced R*.
-
-It's possible to generalise this further if the controls have more than one varying input.
-First, we create an inline data frame that defines the parameters of each control, using `tibble::tribble()`.
-Explicitly describing UI structure as data is a useful pattern.
-
-```{r}
-vars <- tibble::tribble(
-  ~ id,   ~ min, ~ max,
-  "alpha",     0,     1,
-  "beta",      0,    10,
-  "gamma",    -1,     1,
-  "delta",     0,     1,
-)
-```
-
-Then we create a function where the argument names match the column names:
-
-```{r}
-mySliderInput <- function(id, label = id, min = 0, max = 1) {
-  sliderInput(id, label, min = min, max = max, value = 0.5, step = 0.1)
-}
-```
-
-Then finally we use `purrr::pmap()` to call `mySliderInput()` once for each row of `vars`:
-
-```{r}
-sliders <- pmap(vars, mySliderInput)
-```
-
-Don't worry if this code looks like gibberish to you: you can continue to use copy and paste.
-But in the long-run, I'd recommend learning more about functional programming, because it gives you such a wonderful ability to concisely express otherwise long-winded concepts.
-See Section \@ref(programming-ui) for more examples of using these techniques to generate dynamic UI in response to user actions.
-
 ### Other applications
 
-Whenever you use the same variant of an input control in multiple places, make a function.
-For example:
+Functions can be useful in many other places.
+Here are a few ideas to get your creative juices flowing:
 
 -   If you're using a customised `dateInput()` for your country, pull it out into one place so that you can use consistent arguments.
     For example, imagine you wanted a date control for Americans to use to select weekdays:
@@ -175,7 +122,62 @@ For example:
     }
     ```
 
-If you're developing a lot of Shiny apps within your organisation, this sort of function is really useful to include in a shared package that everyone can use to make their apps more consistent.
+If you're developing a lot of Shiny apps within your organisation, you can help improve cross-app consistency by putting functions like this in a shared package.
+
+### Functional programming
+
+Returning back to our motivating example, you could reduce the code still further if you're comfortable with functional programming.
+
+```{r}
+library(purrr)
+
+vars <- c("alpha", "beta", "gamma", "delta")
+sliders <- map(vars, sliderInput01)
+ui <- fluidRow(sliders)
+```
+
+There are two big ideas here:
+
+-   `map()` calls `sliderInput01()` once for each string stored in `vars`.
+    It returns a list of sliders.
+
+-   When you pass a list into `fluidRow()` (or any html container), it automatically unpacks the list so that the elements become the children of the container.
+
+If you would like to learn more about `map()` (or its base equivalent, `lapply()`), you might enjoy the [Functionals chapter](https://adv-r.hadley.nz/functionals.html) of *Advanced R*.
+
+### UI as data
+
+It's possible to generalise this idea further if the controls have more than one varying input.
+First, we create an inline data frame that defines the parameters of each control, using `tibble::tribble()`.
+We're turning UI structure into an explicit data structure.
+
+```{r}
+vars <- tibble::tribble(
+  ~ id,   ~ min, ~ max,
+  "alpha",     0,     1,
+  "beta",      0,    10,
+  "gamma",    -1,     1,
+  "delta",     0,     1,
+)
+```
+
+Then we create a function where the argument names match the column names:
+
+```{r}
+mySliderInput <- function(id, label = id, min = 0, max = 1) {
+  sliderInput(id, label, min = min, max = max, value = 0.5, step = 0.1)
+}
+```
+
+Then finally we use `purrr::pmap()` to call `mySliderInput()` once for each row of `vars`:
+
+```{r}
+sliders <- pmap(vars, mySliderInput)
+```
+
+Don't worry if this code looks like gibberish to you: you can continue to use copy and paste.
+But in the long-run, I'd recommend learning more about functional programming, because it gives you such a wonderful ability to concisely express otherwise long-winded concepts.
+You can see other examples See Section \@ref(programming-ui) for more examples of using these techniques to generate dynamic UI in response to user actions.
 
 ## Server functions
 
