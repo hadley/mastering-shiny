@@ -34,3 +34,4 @@ Remotes:
     rstudio/bookdown,
     rstudio/rmarkdown
 Encoding: UTF-8
+Config/testthat/edition: 3

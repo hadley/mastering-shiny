@@ -11,6 +11,8 @@ Testing is a way to capture desired behaviour of your code, in such a way that y
 Turning your existing informal tests into code is painful when you first do it, because you need to carefully turn every key press and mouse click into a line of code, but once done, it's tremendously faster to re-run your tests.
 
 We'll perform automated testing with the [testthat](http://testthat.r-lib.org/) package.
+testthat requires turning your app into a package, but as discussed in Chapter \@ref(package), this is not too much work, and I think pays off for other reasons.
+
 A testthat test looks like this:
 
 ```{r, eval = FALSE}
@@ -20,11 +22,9 @@ test_that("as.vector() strips names", {
 })
 ```
 
-We'll come back to the details very soon, but note that a test starts by declaring the intent ("`as.vector()` strips names) then uses regular R code to generate some test data.
-The test data is then compared to the expected result using a **expectation**, a function that starts with `expect_`.
-The first argument is some code to run, and the second argument describes the expected result: here we verify that the output of `as.vector(x)` equals `c(1, 2)`.
+We'll come back to the details very soon, but note that a test starts by declaring the intent ("`as.vector()` strips names") then uses regular R code to generate some test data. The test data is then compared to the expected result using a **expectation**, a function that starts with `expect_`. The first argument is some code to run, and the second argument describes the expected result: here we verify that the output of `as.vector(x)` equals `c(1, 2)`.
 
-We'll work through levels of testing in this chapter:
+We'll work through four levels of testing in this chapter:
 
 -   We'll start by testing non-reactive **functions**.
     This will help you learn the basic testing workflow, and allow you to verify the behaviour of code that you've extracted out of the server function or UI.
@@ -48,14 +48,8 @@ Interleaved between the different levels of testing, I'll also provide advice ab
 
 ```{r setup, cache = FALSE}
 library(shiny)
-library(testthat)
+library(testthat) # >= 3.0.0
 library(shinytest)
-```
-
-This chapter uses new features in testthat 3.0.0 and shinytest 1.5.0, so you'll need to have those versions or higher installed.
-
-```{r, include = FALSE}
-local_edition(3)
 ```
 
 ## Testing functions
@@ -68,7 +62,7 @@ We'll start by discussing how to test these non-reactive functions, showing you 
 Tests are organised into three levels:
 
 -   **File**.
-    All test files live in `tests/testthat`, and each test file should correspond to a code file in `R/`, e.g. the code in `R/module.R` should be tested by the code in `tests/testthat/module.R`.
+    All test files live in `tests/testthat`, and each test file should correspond to a code file in `R/`, e.g. the code in `R/module.R` should be tested by the code in `tests/testthat/test-module.R`.
     Fortunately you don't have to remember that convention: just use `usethis::use_test()` to automatically create or locate the test file corresponding to the currently open R file.
 
 -   **Test**.
@@ -206,10 +200,14 @@ These are rarely needed for testing Shiny apps but are very useful for testing p
 ### User interface functions
 
 You can use the same basic idea to test functions that you've extracted out of your UI code.
-But these require a new expectation, because manually typing out all the HTML would be tedious, so instead we use a snapshot test.
+But these require a new expectation, because manually typing out all the HTML would be tedious, so instead we use a snapshot test[^scaling-testing-3].
 A snapshot expectation differs from other expectations primarily in that the expected result is stored in a separate snapshot file, rather than in the code itself.
 Snapshot tests are most useful when you are designing complex user interface design systems, which is outside of the scope of most apps.
 So here I'll briefly show you the key ideas, and then point you to additional resources to learn more.
+
+[^scaling-testing-3]: Snapshot tests require the third edition of testthat.
+    New package will automatically use the testthat 3e, but you'll need to manually update older packages.
+    See [testthat 3e](https://testthat.r-lib.org/articles/third-edition.html) for more details.
 
 Take this UI function we defined earlier:
 
@@ -226,32 +224,36 @@ We could use `expect_equal()`:
 
 ```{r}
 test_that("shinyInput01() creates expected HTML", {
-  expect_equal(sliderInput("x"), "<div class=\"form-group shiny-input-container\">\n  <label class=\"control-label\" for=\"x\">x</label>\n  <input class=\"js-range-slider\" id=\"x\" data-min=\"0\" data-max=\"1\" data-from=\"0.5\" data-step=\"0.1\" data-grid=\"true\" data-grid-num=\"10\" data-grid-snap=\"false\" data-prettify-separator=\",\" data-prettify-enabled=\"true\" data-keyboard=\"true\" data-data-type=\"number\"/>\n</div>")
+  expect_equal(as.character(sliderInput01("x")), "<div class=\"form-group shiny-input-container\">\n  <label class=\"control-label\" id=\"x-label\" for=\"x\">x</label>\n  <input class=\"js-range-slider\" id=\"x\" data-skin=\"shiny\" data-min=\"0\" data-max=\"1\" data-from=\"0.5\" data-step=\"0.1\" data-grid=\"true\" data-grid-num=\"10\" data-grid-snap=\"false\" data-prettify-separator=\",\" data-prettify-enabled=\"true\" data-keyboard=\"true\" data-data-type=\"number\"/>\n</div>")
 })
 ```
 
 But the presence of quotes and newlines requires a lot of escaping in the string --- that makes it hard to see exactly what we expect, and if the output changes, makes it hard to see exactly what's happened.
 
 The key idea of snapshot tests is to store the expected results in a separate file: that keeps bulky data out of your test code, and means that you don't need to worry about escaping special values in a string.
-Here we use `expect_snapshot_output()` to capture the output displayed on the console:
+Here we use `expect_snapshot()` to capture the output displayed on the console:
 
-```{r}
+```{r, eval = FALSE}
 test_that("shinyInput01() creates expected HTML", {
-  expect_snapshot_output(sliderInput01("x"))
+  expect_snapshot(sliderInput01("x"))
 })
 ```
 
 The main difference with other expectations is that there's no second argument that describes what you expect to see.
-Instead, that data is saved in separate file named by convention: assuming that your code is in `R/slider.R` and your test is in `tests/testthat/test-slider.R`, then snapshot will be saved in `tests/testhat/_snaps/slider.md`.
-The first time you run the test, `expect_snapshot_output()` will automatically create the reference output, which will look like this:
+Instead, that data is saved in separate `.md` file.
+If your code is in `R/slider.R` and your test is in `tests/testthat/test-slider.R`, then snapshot will be saved in `tests/testhat/_snaps/slider.md`.
+The first time you run the test, `expect_snapshot()` will automatically create the reference output, which will look like this:
 
 ``` {.md}
 # shinyInput01() creates expected HTML
 
-    <div class="form-group shiny-input-container">
-      <label class="control-label" for="x">x</label>
-      <input class="js-range-slider" id="x" data-min="0" data-max="1" data-from="0.5" data-step="0.1" data-grid="true" data-grid-num="10" data-grid-snap="false" data-prettify-separator="," data-prettify-enabled="true" data-keyboard="true" data-data-type="number"/>
-    </div>
+    Code
+      sliderInput01("x")
+    Output
+      <div class="form-group shiny-input-container">
+        <label class="control-label" id="x-label" for="x">x</label>
+        <input class="js-range-slider" id="x" data-skin="shiny" data-min="0" data-max="1" data-from="0.5" data-step="0.1" data-grid="true" data-grid-num="10" data-grid-snap="false" data-prettify-separator="," data-prettify-enabled="true" data-keyboard="true" data-data-type="number"/>
+      </div>
 ```
 
 If the output later changes, the test will fail.
@@ -336,10 +338,13 @@ Now that you understand how to test regular, non-reactive code, it's time to mov
 The first challenge is testing reactivity.
 As you've already seen, you can't run reactive code interactively:
 
-```{r, eval = FALSE}
+```{r, error = TRUE}
 x <- reactive(input$y + input$z)
 x()
 ```
+
+You might wonder about using `reactiveConsole()` like we did in Chapter \@ref(reactivity-objects).
+Unfortunately its simulation of reactivity depends fundamentally on an interactive console, so won't work in tests.
 
 Not only does the reactive error when we attempt to evaluate it, even if it did work `input$y` and `input$z` wouldn't be defined.
 To see how it works, let's start with a simple app that has three inputs, one output, and three reactives:
@@ -360,7 +365,7 @@ server <- function(input, output, session) {
 ```
 
 To test this code we'll use the `testServer()`.
-This function takes two arguments: an app and some code to run.
+This function takes two arguments: a server function and some code to run.
 The code is run in a special environment, *inside* the server function, so you can access outputs, reactives, and a special `session` object that allows you to simulate user interaction.
 The main time you'll use this is for `session$setInputs()` which allows you to set the value of input controls, as if you were a user interacting with the app in a browser.
 
@@ -376,7 +381,7 @@ testServer(server, {
 
 Note that we're only testing the server function; the `ui` component of the app is completely ignored.
 You can see this most clearly by inspecting the inputs: unlike a real Shiny app, all inputs start as `NULL`, because the initial value is recorded in the `ui`.
-We'll come back to UI testing in Section \@ref(testing-JavaScript).
+We'll come back to UI testing in Section \@ref(testing-javascript).
 
 ```{r}
 testServer(server, {
@@ -402,7 +407,7 @@ The main challenging is debugging failing tests: you can't step through them lin
 
 ### Modules
 
-You can test a module in a similar way to testing an app function, but here's a little more clear that you're only testing the server side of the module.
+You can test a module in a similar way to testing an app function, but here it's a little more clear that you're only testing the server side of the module.
 Let's start with a simple module that uses three outputs to display a brief summary of a variable:
 
 ```{r}
@@ -441,7 +446,7 @@ testServer(summaryServer, args = list(var = x), {
 Again, we can turn this into an automated test by putting it inside `test_that()` and calling some `expect_` functions.
 Here I wrap it all up into a test that checks that the module responds correctly as the reactive input changes:
 
-```{r, cache = FALSE}
+```{r}
 test_that("output updates when reactive input changes", {
   x <- reactiveVal()
   testServer(summaryServer, args = list(var = x), {
@@ -451,7 +456,7 @@ test_that("output updates when reactive input changes", {
     
     x(10:20)
     expect_equal(range_val(), c(10, 20))
-    # expect_equal(output$min, "10")
+    expect_equal(output$min, "10")
   }) 
 })
 ```
