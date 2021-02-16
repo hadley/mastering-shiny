@@ -147,7 +147,7 @@ server <- function(input, output, session) {
 }
 ```
 
-We could make this slightly more useful by providing add and delete buttons:
+We could make this slightly more useful by providing a delete button and making sure that the add button doesn't create duplicate names:
 
 ```{r}
 ui <- fluidPage(
@@ -205,7 +205,7 @@ server <- function(input, output, session) {
 Notice in this case we can't easily use `observeEvent()` because we perform different actions depending on whether `running()` is `TRUE` or `FALSE`.
 Since we can't use `observeEvent()`, we must use `isolate()` --- if we don't this observer would also take a reactive dependency on `n`, which it updates, so it would get stuck in an infinite loop.
 
-Hopefully these examples start to give you a flavour of what programming with `reactiveValues()` and `observer()` feels like.
+Hopefully these examples start to give you a flavour of what programming with `reactiveValues()` and `observe()` feels like.
 It's very imperative: when this happens, do that; when that happens, do the other thing.
 This makes it easier to understand on a small scale, but harder to understand when bigger pieces start interacting.
 So generally, you'll want to use this as sparingly as possible, and keep it isolated so that the smallest possible number of observers modify the reactive value.
