@@ -218,6 +218,8 @@ To help you understand it, I'm going to start by revisiting the basics of code e
 To make the process concrete, we'll work with following code where I use `profivs::pause()` (more on that shortly) to indicate work being done:
 
 ```{r}
+library(profvis)
+
 f <- function() {
   pause(0.2)
   g()
@@ -294,8 +296,7 @@ Now you understand the flame graph, let's apply it to real code with the profvis
 It's easy to use: just wrap the code you want to profile in `profvis::profvis()`:
 
 ```{r, eval = FALSE}
-library(profvis)
-profvis(f())
+profvis::profvis(f())
 ```
 
 After the code has completed, profvis will pop up an interactive visualisation, Figure \@ref(fig:profvis-raw).
@@ -325,6 +326,8 @@ server <- function(input, output, session) {
   output$y <- eventReactive(input$x, f())
 }
 
+# Note the explicit call to runApp() here: this is important
+# as otherwise the app won't actually run.
 profvis::profvis(runApp(shinyApp(ui, server)))
 ```
 
@@ -401,7 +404,7 @@ That makes it faster and easier to retrieve just the data needed for a specific 
 ### Data processing
 
 After loading data from disk, it's common to do some basic cleaning and aggregation.
-If this is expensive, you should consider using a cron job, scheduled RMarkdown report, or similar, to perform the expensive operations and save the results.
+If this is expensive and needs to happen regularly because the data is changing, you should consider using a cron job, scheduled RMarkdown report, or similar, to perform the expensive operations and save the results.
 This is like hiring a prep chef who comes in at 3am (when there are no customers) and does a bunch of work so that that chefs can be as efficient as possible.
 
 ### Manage user expectations
@@ -530,3 +533,4 @@ The arguments to `bindEvent()` are very similar to the arguments to `bindCache()
 This chapter has given you the tools to precise measure and improve the performance of any shiny app.
 You learned about shinyloadtest to measure the performance, using shinycannon to simulate multiple users working with your app the at same time.
 Then you learned how to use profvis to find the single most expensive operation, and a grab-bag of techniques that you can use to improve it.
+
