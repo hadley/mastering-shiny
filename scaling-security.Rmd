@@ -86,7 +86,8 @@ I deliberately didn't create a user friendly error message --- the only time you
 
 ## Compute resources
 
-It's hopefully obvious that the following app is very dangerous, because it allows the user to do anything they want:
+It's hopefully obvious that the following app is very dangerous, because it allows the user to run any R code they want.
+They could delete important files, modify data, or send confidential data back to the user of the ap.
 
 ```{r}
 ui <- fluidPage(
@@ -182,4 +183,4 @@ find_student <- function(name) {
 find_student("Robert'); DROP TABLE Students; --")
 ```
 
-It's a little hard to tell at first glance, but this is safe, because SQL's equivalent of `\'` is `''`.
+It's a little hard to tell at first glance, but this is safe, because SQL's equivalent of `\'` is `''` so the query returns all rows of the `Students` table where the name is literally "Robert'); DROP TABLE Students; --".
