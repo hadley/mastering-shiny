@@ -6,6 +6,7 @@ Imports:
     ggforce,
     globals,
     openintro,
+    profvis,
     RSQLite,
     shiny (>= 1.6.0),
     shinycssloaders,
