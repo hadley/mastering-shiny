@@ -20,7 +20,7 @@ library(dplyr, warn.conflicts = FALSE)
 library(ggplot2)
 ```
 
-## Motivation
+## Motivation {#tidy-motivation}
 
 Imagine I want to create an app that allows you to filter a numeric variable to select rows that are greater than a threshold.
 You might write something like this:
