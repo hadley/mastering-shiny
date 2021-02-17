@@ -533,4 +533,3 @@ The arguments to `bindEvent()` are very similar to the arguments to `bindCache()
 This chapter has given you the tools to precise measure and improve the performance of any shiny app.
 You learned about shinyloadtest to measure the performance, using shinycannon to simulate multiple users working with your app the at same time.
 Then you learned how to use profvis to find the single most expensive operation, and a grab-bag of techniques that you can use to improve it.
-

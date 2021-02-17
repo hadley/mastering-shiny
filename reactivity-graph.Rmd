@@ -362,4 +362,3 @@ In particular, you've learned for the first time about the invalidation phase, w
 The invalidation cycle is also important because it clears out previously discovered dependencies so that they can be automatically rediscovered, making the reactive graphic dynamic.
 
 Now that you've got the big picture under your belt, the next chapter will give some additional details about the underlying data structures that power reactive values, expressions, and output, and we'll discuss the related concept of timed invalidation.
-
