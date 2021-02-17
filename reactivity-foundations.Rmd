@@ -320,9 +320,12 @@ observe({
 })
 ```
 
+In the following sections you'll learn how to use `invalidateLater()` to read changing data from disk, how to avoid getting `invalidateLater()` stuck in an infinite loop, and some occasionally important details of exactly when the invalidation happens.
+
 ### Polling
 
-Take this reactive that re-reads a csv file every second:
+A useful application of `invalidateLater()` is connect Shiny to data that is changing outside of R.
+For example, you could use the following reactive to re-reads a csv file every second:
 
 ```{r}
 data <- reactive({
@@ -331,11 +334,10 @@ data <- reactive({
 })
 ```
 
-This achieves the goal of updating changing data from disk, but it has a serious downside: when you invalidate the reactive, you're also invalidating all downstream consumers, so even if the data is the same, all the downstream work has to be redone.
-To avoid this problem, Shiny provides `reactivePoll()` which takes two functions: one that performs a relatively cheap check to see if the data has changed and another more expensive function that actually does the computation.
+This connects changing data into Shiny's reactive graph, but it has a serious downside: when you invalidate the reactive, you're also invalidating all downstream consumers, so even if the data is the same, all the downstream work has to be redone.
 
-We can use `reactivePoll()` to rewrite the previous reactive as follows.
-We use `file.mtime()`, which returns the last time the file was modified, as cheap check to see if we need to reload the file.
+To avoid this problem, Shiny provides `reactivePoll()` which takes two functions: one that performs a relatively cheap check to see if the data has changed and another more expensive function that actually does the computation.
+We can use `reactivePoll()` to rewrite the previous reactive as below.
 
 ```{r}
 server <- function(input, output, session) {
@@ -346,6 +348,8 @@ server <- function(input, output, session) {
 }
 ```
 
+Here we used to `file.mtime()`, which returns the last time the file was modified, as a cheap check to see if we need to reload the file:
+
 Reading a file when it changes is a common task, so Shiny provides an even more specific helper that just needs a file name and a reader function:
 
 ```{r}
@@ -353,6 +357,8 @@ server <- function(input, output, session) {
   data <- reactiveFileReader(1000, session, "data.csv", read.csv)
 }
 ```
+
+If you need to read changing data from other sources (e.g. a database), you'll need to come up with your own `reactivePoll()` code.
 
 ### Long running reactives
 
@@ -407,6 +413,9 @@ observe({
   invalidateLater(100)
 })
 ```
+
+If you're not doing careful animation, feel free to ignore the inherent variation in `invalidateLater()`.
+Just remember that it's a polite request, not a demand.
 
 ### Exercises
 
