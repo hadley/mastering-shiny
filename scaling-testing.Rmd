@@ -451,15 +451,19 @@ test_that("output updates when reactive input changes", {
   x <- reactiveVal()
   testServer(summaryServer, args = list(var = x), {
     x(1:10)
+    session$flushReact()
     expect_equal(range_val(), c(1, 10))
     expect_equal(output$mean, "5.5")
     
     x(10:20)
+    session$flushReact()
     expect_equal(range_val(), c(10, 20))
     expect_equal(output$min, "10")
   }) 
 })
 ```
+
+There's one important trick here: because `x` is created outside of `testServer()`, changing `x` does not automatically update the reactive graph, so we have to do so manually by calling `session$flushReact()`.
 
 If your module has a return value (a reactive or list of reactives), you can capture it with `session$getReturned()`.
 Then you can check the value of that reactive, just like any other reactive.
