@@ -1,4 +1,4 @@
-# Why reactivity?
+# Why reactivity? {#reactive-motivation}
 
 ```{r setup, include=FALSE}
 source("common.R")
@@ -16,20 +16,9 @@ As Tom Dale said of his Ember.js JavaScript framework: "We do a lot of magic, bu
 When you peel back the layers of reactive programming, you won't find a pile of heuristics, special cases, and hacks; instead you'll find a clever, but ultimately fairly straightforward mechanism.
 Once you've formed an accurate mental model of reactivity, you'll see that there's nothing up Shiny's sleeves: the magic comes from simple concepts combined in consistent ways.
 
-In this part of the book, you'll dive into the theory of reactivity that underlies the magic of Shiny:
+In this chapter, we'll motivate reactive programming by trying to do without it and then give a brief history of reactivity as it pertains to Shiny.
 
--   In this chapter, you'll learn why the reactivity programming model is needed, and a little bit about the history of reactive programming outside of R.
-
--   In Chapter \@ref(reactive-graph), you'll learn the full details of the reactive graph, which determines exactly when reactive components are updated.
-
--   In Chapter \@ref(reactivity-objects), you'll learn about the underlying building blocks, particularly observers and timed invalidation.
-
--   In Chapter \@ref(reactivity-components), you'll learn how to escape the constraints of the reactive graph using `reactiveVal()` and `observe()`.
-
-You certainly don't need to understand all these details for routine development of Shiny apps.
-But improving your understanding will help you write correct apps from the get go, and when something behaves unexpectedly you can more quickly narrow in on the underlying issue.
-
-## Why reactive programming? {#motivation}
+## Why do we need reactive programming? {#motivation}
 
 Reactive programming is a style of programming that focuses on values that change over time, and calculations and actions that depend on those values.
 Reactivity is important for Shiny apps because they're interactive: users change input controls (dragging sliders, typing in textboxes, checking checkboxes, ...) which causes logic to run on the server (reading CSVs, subsetting data, fitting models, ...) ultimately resulting in outputs updating (plots redrawing, tables updating, ...).
@@ -223,8 +212,7 @@ Spreadsheets are closely related to reactive programming: you declare the relati
 So you've probably already done a bunch of reactive programming without knowing it!
 
 While the ideas of reactivity have been around for a long time, it wasn't until the late 1990s that they were seriously studied in academic computer science.
-Research in reactive programming was kicked off by FRAN [@fran], **f**unctional **r**eactive **an**imation, a novel system for incorporating changes over time and user input into a functional programming language.
-This spawned a rich literature [@rp-survey], but had little impact on the practice of programming.
+Research in reactive programming was kicked off by FRAN [@fran], **f**unctional **r**eactive **an**imation, a novel system for incorporating changes over time and user input into a functional programming language. This spawned a rich literature [@rp-survey], but had little impact on the practice of programming.
 
 It wasn't until the 2010s that reactive programming roared into the programming mainstream through the fast-paced world of JavaScript UI frameworks.
 Pioneering frameworks like [Knockout](https://knockoutjs.com/), [Ember](https://emberjs.com/), and [Meteor](https://www.meteor.com) (Joe Cheng's personal inspiration for Shiny) demonstrated that reactive programming could make UI programming dramatically easier.

@@ -1,1 +1,32 @@
-# (PART\*) Best practices {-}
+# (PART\*) Best practices {.unnumbered}
+
+# Introduction {#scaling-intro .unnumbered}
+
+When you start using Shiny, it'll take you a long time to make even small apps, because you have to learn the fundamentals.
+Over time, however, you'll become more comfortable with the basic interface of the package and the key ideas of reactivity, and you'll be able to create larger, more complex applications.
+As you start to write larger apps, you'll encounter a new set of challenges: keeping a complex and growing code-base organized, stable, and maintainable.
+This will include problems like:
+
+-   "I can't find the code I'm looking for in this huge file."
+
+-   "I haven't worked on this code in 6 months and I'm afraid I'm going to break it if I make any changes."
+
+-   "Someone else started working with me on the application and we keep standing on each others toes."
+
+-   "The app works on my computer but doesn't work on my collaborator's or in production."
+
+In this, the "best practices", part of the book, you'll learn some key concepts and tools from software engineering that will help you overcome these challenges:
+
+-   In Chapter \@ref(best-practices), I'll briefly introduce you to the big ideas of software engineering.
+
+-   In Chapter \@ref(scaling-functions), I'll show you how to extract code out of your Shiny app in to independent apps, and discuss why you might want to do so.
+
+-   In Chapter \@ref(scaling-modules), you'll learn about Shiny's module system, which allows you to extract coupled UI and server code into isolated and reusable components.
+
+-   In Chapter \@ref(scaling-packaging), I'll show you how to turn your app in R package, and motivate why that investment will pay off for bigger apps.
+
+-   In Chapter \@ref(scaling-testing), you'll learn how to turn your existing informal tests into automated test that can easily be re-run whenever your app changes.
+
+-   In Chapter \@ref(performance), you'll learn how to identify and resolve performance bottlenecks in your apps, ensuring they remain speedy even when used by hundreds of users.
+
+Of course you can't learn everything about software engineering in one part of one book, so I'll also point you to good places to learn more.

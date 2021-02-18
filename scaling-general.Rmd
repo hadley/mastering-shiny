@@ -1,23 +1,9 @@
 # General guidelines {#best-practices}
 
-(Thanks to my colleague Jeff Allen for contributing the bulk of this chapter)
+## Introduction
 
-When you start using Shiny, it'll take you a long time to make even small apps, because you have to learn the fundamentals.
-Over time, however, you'll become more comfortable with the basic interface of the package and the key ideas of reactivity, and you'll be able to create larger, more complex applications.
-As you start to write larger apps, you'll encounter a new set of challenges: keeping a complex and growing code-base organized, stable, and maintainable.
-This will include problems like:
-
--   "I can't find the code I'm looking for in this huge file."
-
--   "I haven't worked on this code in 6 months and I'm afraid I'm going to break it if I make any changes."
-
--   "Someone else started working with me on the application and we keep standing on each others toes."
-
--   "The app works on my computer but doesn't work on my collaborator's or in production."
-
-In this, the "best practices", part of the book, you'll learn some key concepts and tools from software engineering that will help you overcome these challenges.
-Below, I'll briefly introduce you to the big ideas, and then dive into the details in subsequent chapters.
-Of course you can't learn everything about software engineering in one part of one book, so I'll also point you to good places to learn more.
+This chapter introduces the most important software engineering skills you'll need when writing Shiny apps: code organisation, testing, dependency management, source code control, continuous integration, and code reviews.
+These skills are not specific to Shiny apps, but you'll need to learn a bit about all of them if you want to write complex apps that get easier to maintain over time, not harder.
 
 Improving your software engineering skills is a lifelong journey.
 Expect to have frustrations as you start learning them, but understand that everyone experiences the same issues, and if you persevere you'll get past them.
@@ -26,7 +12,9 @@ It takes time and practice to get to the final stage.
 
 I recommend setting aside some time each week to practice your software development skills.
 During this time, try to avoid touching the behaviour or appearance of your app, but instead focus your efforts on making the app easier to understand and develop.
-This will make your app easier to change in the future, and as you improve your software development your first attempt at an app will also become higher quality.
+This will make your app easier to change in the future, and as you improve your software development skills your first attempt at an app will also become higher quality.
+
+(Thanks to my colleague Jeff Allen for contributing the bulk of this chapter)
 
 ## Code organization
 
