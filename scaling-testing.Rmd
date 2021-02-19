@@ -87,8 +87,8 @@ Here I've extracted out some code from my server function, and called it `load_f
 load_file <- function(name, path) {
   ext <- tools::file_ext(name)
   switch(ext,
-    csv = vroom::vroom(path, delim = ","),
-    tsv = vroom::vroom(path, delim = "\t"),
+    csv = vroom::vroom(path, delim = ",", col_types = list()),
+    tsv = vroom::vroom(path, delim = "\t", col_types = list()),
     validate("Invalid file; Please upload a .csv or .tsv file")
   )
 }
@@ -166,34 +166,31 @@ There are also functions that implement relaxed versions of `expect_equal()` for
 
 -   `expect_mapequal(x, y)` tests that `x` and `y` have the same names and that `x[names(y)]` equals `y`.
 
+It's often important to test that code generates an error, for which you can use `expect_error()`:
+
 ```{r, error = TRUE}
 expect_error("Hi!")
 expect_error(stop("Bye"))
-expect_error(stop(Bye))
 ```
 
 Note that the second argument to `expect_error()` is a regular expression --- the goal is to find a short fragment of text that matches the error you expect and is unlikely to match errors that you don't expect.
 
 ```{r, error = TRUE}
-expect_error(
-  stop("Calculation failed [location 1]"), 
-  "Calculation failed [location 1]"
-)
-expect_error(
-  stop("Calculation failed [location 1]"), 
-  "Calculation failed \\[location 1\\]"
-)
+f <- function() {
+  stop("Calculation failed [location 1]")
+}
+
+expect_error(f(), "Calculation failed [location 1]")
+expect_error(f(), "Calculation failed \\[location 1\\]")
 ```
 
 But it's better still to just pick a small fragment to match:
 
 ```{r, error = TRUE}
-expect_error(
-  stop("Calculation failed [location 1]"), 
-  "Calculation failed"
-)
+expect_error(f(),  "Calculation failed")
 ```
 
+Or use `expect_snapshot()`, which we'll discuss shortly.
 `expect_error()` also comes with variants `expect_warning()` and `expect_message()` for testing for warnings and messages in the same way as errors.
 These are rarely needed for testing Shiny apps but are very useful for testing packages.
 
@@ -309,10 +306,10 @@ I recommend that you add three yourself to complete the set:
 You're of course free to choose whatever shortcut makes sense to you, but these have share some underlying structure.
 Keyboard shortcuts using Shift apply to the whole package, and without shift apply to the current file.
 
-This is what my keyboard shortcuts look like on a Mac:
+Figure \@ref(fig:shortcuts) shows what my keyboard shortcuts look like on a Mac.
 
-```{r, echo = FALSE, out.width = NULL}
-knitr::include_graphics("images/scaling-testing/keyboard-shortcuts.png", dpi = 300)
+```{r shortcuts, fig.cap="My keyboard shortcut for a Mac.", echo = FALSE, out.width = NULL}
+knitr::include_graphics("images/scaling-testing/keyboard-shortcuts.png", dpi = 140)
 ```
 
 ### Workflow summary
@@ -550,18 +547,16 @@ server <- function(input, output, session) {
 
 To use shinytest you start an app with `app <- ShinyDriver$new()`, interact with it using `app$setInputs()` and friends, then get values returned by `app$getValue()`:
 
-```{r, include = FALSE}
-# remove customised shinyApp() which causes the following chunk to fail
-# for unknown reasons
-rm("shinyApp")
-```
+<!--# Don't evaluate because it doesn't work on GHA -->
 
-```{r}
+```{r, eval = FALSE}
 app <- shinytest::ShinyDriver$new(shinyApp(ui, server))
 app$setInputs(name = "Hadley")
 app$getValue("greeting")
+#> [1] "Hi Hadley"
 app$click("reset")
 app$getValue("greeting")
+#> [1] ""
 ```
 
 Every use of shinytest begins by creating a ShinyDriver object with `ShinyDriver$new()`, which takes a Shiny app object or a path to a Shiny app.
