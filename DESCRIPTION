@@ -3,6 +3,7 @@ Title: Mastering Shiny
 Version: 0.0.1
 Imports: 
     gapminder,
+    gh,
     ggforce,
     globals,
     openintro,
