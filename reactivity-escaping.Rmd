@@ -143,7 +143,7 @@ server <- function(input, output, session) {
     updateTextInput(session, "name", value = "")
   })
   
-  output$names <- renderText(names())
+  output$names <- renderText(r$names)
 }
 ```
 
@@ -167,7 +167,7 @@ server <- function(input, output, session) {
     updateTextInput(session, "name", value = "")
   })
   
-  output$names <- renderText(names())
+  output$names <- renderText(r$names)
 }
 ```
 
