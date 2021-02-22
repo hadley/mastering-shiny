@@ -91,7 +91,7 @@ server <- function(input, output, session) {
   observeEvent(input$eat, {
     r$notice <- "You are no longer hungry"
   })
-  output$notice <- renderText(notice())
+  output$notice <- renderText(r$notice)
 }
 ```
 
