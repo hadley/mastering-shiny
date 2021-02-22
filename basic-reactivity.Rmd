@@ -497,7 +497,7 @@ demo$deploy()
 ```
 
 This definition of `server` and `ui` yields Figure \@ref(fig:ttest).
-You can find a live version at <https://hadley.shinyapps.io/case-study-1>; I recommend opening the app and having a quick play to make sure you understand its basic operation before you continue reading.
+You can find a live version at <https://hadley.shinyapps.io/ms-case-study-1>; I recommend opening the app and having a quick play to make sure you understand its basic operation before you continue reading.
 
 ### The reactive graph
 
