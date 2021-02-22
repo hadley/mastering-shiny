@@ -149,6 +149,27 @@ histogramApp <- function() {
 
 Note that, like all Shiny control, you need to use the same `id` in both UI and server, otherwise the two pieces will not be connected.
 
+::: {.rmdnote}
+Modules were introduced in Shiny 0.13 (Jan 2016) with `callModule()` and overhauled in Shiny 1.5.0 (June 2020) with the introduction of `moduleServer()`.
+If you've learned modules a while ago, you might have learned `callModule()` and be wondering what the deal is with `moduleServer()`.
+These two functions are identical, except that the first two arguments are flipped.
+This is a simple change that leads to a rather different structure for the entire app:
+
+```{r}
+histogramServerOld <- function(input, output, session) {
+  data <- reactive(mtcars[[input$var]])
+  output$hist <- renderPlot({
+    hist(data(), breaks = input$bins, main = input$var)
+  }, res = 96)
+}
+server <- function(input, output, session) {
+  callModule(histogramServerOld, "hist1")
+}
+```
+
+The difference is largely superficial for this simple app, but `moduleServer()` makes more complicated modules with arguments considerably easier to understand.
+:::
+
 ### Namespacing
 
 Now that we have a complete app, let's circle back and talk about namespacing some more.
