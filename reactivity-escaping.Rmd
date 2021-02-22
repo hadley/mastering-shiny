@@ -91,7 +91,7 @@ server <- function(input, output, session) {
   observeEvent(input$eat, {
     r$notice <- "You are no longer hungry"
   })
-  output$notice <- renderText(notice())
+  output$notice <- renderText(r$notice)
 }
 ```
 
@@ -114,7 +114,7 @@ server <- function(input, output, session) {
     r$n <- r$n - 1
   })
   
-  output$n <- renderText(n())
+  output$n <- renderText(r$n)
 }
 ```
 
@@ -198,7 +198,7 @@ server <- function(input, output, session) {
       invalidateLater(250)
     }
   })
-  output$n <- renderText(n())
+  output$n <- renderText(r$n)
 }
 ```
 
@@ -243,7 +243,7 @@ Once you get the hang of this pattern it's easy to fall into bad habits:
 server <- function(input, output, session) {
   r <- reactiveValues(df = cars)
   observe({
-    df <- head(cars, input$nrows)
+    r$df <- head(cars, input$nrows)
   })
   
   output$plot <- renderPlot(plot(r$df))
