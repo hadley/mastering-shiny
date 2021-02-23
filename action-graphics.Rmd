@@ -7,7 +7,7 @@ source("demo.R")
 
 We talked briefly about `renderPlot()` in Chapter \@ref(basic-ui); it's a powerful tool for displaying graphics in your app.
 This chapter will show you how to use it to its full extent to create interactive plots, plots that respond to mouse events.
-You'll also learn a grab bag of other useful techniques, including theming your plots to match your app, making plots with dynamic width and height, and display images with the related `renderImage()`.
+You'll also learn a couple of other useful techniques, including making plots with dynamic width and height and displaying images with the `renderImage()`.
 
 In this chapter, we'll need ggplot2 as well as Shiny, since that's what I'll use for the majority of the graphics.
 
@@ -351,38 +351,11 @@ If you need that level of speed, you'll have to perform more computation in Java
 One way to do this is to use an R package that wraps a JavaScript graphics library.
 Right now, as I write this book, I think you'll get the best experience with the plotly package, as documented in the book [*Interactive web-based data visualization with R, plotly, and shiny*](https://plotly-r.com), by Carson Sievert.
 
-## Theming
+## Dynamic height and width
 
 The rest of this chapter is less exciting than interactive graphics, but contains material that's important to cover somewhere.
 
-If you've heavily customised the style of your app, you may want to also customise your plots to match.
-Fortunately, this is very easy thanks to the [thematic](https://rstudio.github.io/thematic/) package by Carson Sievert.
-There are two main ways to use it.
-Firstly, you can explicitly set a theme defined by foreground, background, and accent colours (and font if desired):
-
-```{r, message = FALSE, warning = FALSE}
-library(thematic)
-thematic_on(bg = "#222222", fg = "white", accent = "#0CE3AC")
-
-library(ggplot2)
-ggplot(mtcars, aes(wt, mpg)) +
-  geom_point() +
-  geom_smooth()
-```
-
-These settings will affect all ggplot2, lattice, and base plots until you call `thematic_off()`.
-
-You can also call `thematic_on()` with `font = "auto"` and no other arguments to attempt to automatically determine all of the settings from the theme associated with your Shiny app:
-
-```{r, eval = FALSE}
-thematic_on(font = "auto")
-```
-
-For more details, see <https://rstudio.github.io/thematic/articles/Shiny.html>.
-
-## Dynamic height and width
-
-It's possible to make the plot size reactive, so the width and height changes in response to user actions.
+First of all, it's possible to make the plot size reactive, so the width and height changes in response to user actions.
 To do this, supply zero-argument functions to the `width` and `height` arguments of `renderPlot()` --- these now must be defined in the server, not the UI, since they can change.
 These functions should have no argument and return the desired size in pixels.
 They are evaluated in a reactive environment so that you can make the size of your plot dynamic.

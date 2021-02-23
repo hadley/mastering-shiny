@@ -19,6 +19,7 @@ rmd_files:
 
     "action.Rmd",
     "action-workflow.Rmd",
+    "action-layout.Rmd",
     "action-graphics.Rmd",
     "action-feedback.Rmd",
     "action-transfer.Rmd",
