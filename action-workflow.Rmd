@@ -756,7 +756,7 @@ But here `renderUI()` doesn't use any reactive inputs, so it should work the sam
 
 This yielded a particularly nice result, because now the error occurs much earlier, before we even start the app:
 
-```{r, error = TRUE}
+```{r, eval = FALSE}
 ui <- fluidPage(
   sliderInput("slider",
     "Select Range:",
@@ -766,6 +766,8 @@ ui <- fluidPage(
   ),
   verbatimTextOutput("breaks")
 )
+#> Error: Type mismatch for `min`, `max`, and `value`.
+#> i All values must have same type: either numeric, Date, or POSIXt.
 ```
 
 And now we can take the hint from the error message and look at each of the inputs we're feeding to `min`, `max`, and `value` to see where the problem is:
