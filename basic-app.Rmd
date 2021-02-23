@@ -258,7 +258,7 @@ knitr::include_graphics("images/basic-app/cheatsheet.png", dpi = 300)
 
 1.  Create an app that greets the user by name.
     You don't know all the functions you need to do this yet, so I've included some lines of code below.
-    Figure out which lines you'll use and then copy and paste them into the right place in a Shiny app.
+    Think about which lines you'll use and then copy and paste them into the right place in a Shiny app.
 
     ```{r, eval = FALSE}
     tableOutput("mortgage")
@@ -276,7 +276,7 @@ knitr::include_graphics("images/basic-app/cheatsheet.png", dpi = 300)
 2.  Suppose your friend wants to design an app that allows the user to set a number (`x`) between 1 and 50, and displays the result of multiplying this number by 5.
     This is their first attempt:
 
-    ```{r, echo = TRUE, out.width = NULL}
+    ```{r}
     library(shiny)
 
     ui <- fluidPage(
@@ -323,8 +323,9 @@ knitr::include_graphics("images/basic-app/cheatsheet.png", dpi = 300)
     demo$takeScreenshot()
     ```
 
-4.  Replace the UI and server components of your app from the previous exercise with the UI and server components below, run the app, and describe the app's functionality.
-    Then reduce the duplication in the app by using a reactive expression.
+4.  Take the following app which adds some additional functionality to the last app described in the last exercise.
+    What's new?
+    How could you reduce the amount of duplicated code in the app by using a reactive expression.
 
     ```{r}
     library(shiny)
@@ -363,8 +364,8 @@ knitr::include_graphics("images/basic-app/cheatsheet.png", dpi = 300)
     ```{r}
     library(shiny)
     library(ggplot2)
-    datasets <- data(package = "ggplot2")$results[c(2, 4, 10), "Item"]
 
+    datasets <- c("economics", "faithfuld", "seals")
     ui <- fluidPage(
       selectInput("dataset", "Dataset", choices = datasets),
       verbatimTextOutput("summary"),

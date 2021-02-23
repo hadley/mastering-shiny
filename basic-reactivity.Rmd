@@ -173,7 +173,7 @@ server <- function(input, output, session) {
 }
 ```
 
-It's hard to show exactly how this works in a book, but I do my best in Figure \@ref(fig:connection).
+It's hard to show how this works in a book, but I do my best in Figure \@ref(fig:connection).
 If you run the app, and type in the name box, you'll see that the greeting updates automatically as you type[^basic-reactivity-3].
 
 [^basic-reactivity-3]: If you're running the live app, notice that you have to type fairly slowly for the output to update one letter at a time.
@@ -332,7 +332,34 @@ This concept is very important and different to most other R code, so I'll say i
 
 ### Exercises
 
-1.  Draw the reactive graph for the following server functions:
+1.  Given this UI:
+
+    ```{r}
+    ui <- fluidPage(
+      textInput("name", "What's your name?"),
+      textOutput("greeting")
+    )
+    ```
+
+    Fix the simple errors found in each of the three server functions below.
+    First try spotting the problem just by reading the code; then run the code to make sure you've fixed it.
+
+    ```{r}
+    server1 <- function(input, output, server) {
+      input$greeting <- renderText(paste0("Hello ", name))
+    }
+
+    server2 <- function(input, output, server) {
+      greeting <- paste0("Hello ", input$name)
+      output$greeting <- renderText(greeting)
+    }
+
+    server3 <- function(input, output, server) {
+      output$greting <- paste0("Hello", input$name)
+    }
+    ```
+
+2.  Draw the reactive graph for the following server functions:
 
     ```{r}
     server1 <- function(input, output, session) {
@@ -353,14 +380,14 @@ This concept is very important and different to most other R code, so I'll say i
     }
     ```
 
-2.  Why will this code fail?
+3.  Why will this code fail?
 
     ```{r}
-    var <- reactive(df[input$var])
+    var <- reactive(df[[input$var]])
     range <- reactive(range(var(), na.rm = TRUE))
     ```
 
-    Why is `var()` a bad name for a reactive?
+    Why are `range()` and `var()` bad names for reactive?
 
 ## Reactive expressions
 
@@ -430,6 +457,7 @@ In a real analysis, you probably would've done a bunch of exploration before you
 I've skipped that exploration here so we can get to the app as quickly as possible.
 But extracting imperative code out into regular functions is an important technique for all Shiny apps: the more code you can extract out of your app, the easier it will be to understand.
 This is good software engineering because it helps isolate concerns: the functions outside of the app focus on the computation so that the code inside of the app can focus on responding to user actions.
+We'll come back to that idea again in Chapter \@ref(scaling-functions).
 
 ### The app
 
@@ -850,7 +878,7 @@ knitr::include_graphics("diagrams/basic-reactivity/graph-3.png", dpi = 300)
 This chapter should have improved your understanding of the backend of Shiny apps, the `server()` code that responds to user actions.
 You've also taken the first steps in mastering the reactive programming paradigm that underpins Shiny.
 What you've learned here will carry you a long way; we'll come back to the underlying theory in Chapter \@ref(reactive-motivation).
-Reactivity is extremely powerful, but it is also very different to the imperative style of R programming that you're most used to.
+Reactivity is extremely powerful, but it is also very different to the imperative style of R programming that you'µre most used to.
 Don't be surprised if it takes a while for all the consequences to sink in.
 
 This chapter concludes our overview of the foundations of Shiny.

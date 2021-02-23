@@ -298,19 +298,12 @@ To see other options, you can read the documentation for Bootstrap, the CSS desi
     demo$takeScreenshot()
     ```
 
-3.  If you have a moderately long list, it's useful to create sub-headings that break the list up into pieces.
-    Read the documentation for `selectInput()` to figure out how.
+3.  Create a slider input to select values between 0 and 100 where the interval between each selectable value on the slider is 5.
+    Then, add animation to the input widget so when the user presses play the input widget scrolls through the range automatically.
+
+4.  If you have a moderately long list in a `selectInput()`, it's useful to create sub-headings that break the list up into pieces.
+    Read the documentation to figure out how.
     (Hint: the underlying HTML is called `<optgroup>`.)
-
-4.  Create a slider input to select values between 0 and 100 where the interval between each selectable value on the slider is 5.
-    Then, add animation to the input widget so when the user presses play the input widget scrolls through automatically.
-
-5.  Using the following numeric input box the user can enter any value between 0 and 1000.
-    What is the purpose of the step argument in this widget?
-
-    ```{r eval=FALSE}
-    numericInput("number", "Select a value", value = 150, min = 0, max = 1000, step = 50)
-    ```
 
 ## Outputs {#outputs}
 
@@ -446,12 +439,23 @@ These require new techniques in the server function, so we'll come back to that 
 
 ### Exercises
 
-1.  Re-create the Shiny app from Section \@ref(plots), this time setting height to 300px and width to 700px.
+1.  Which of `textOutput()` and `verbatimTextOutput()` should each of the following render functions be paired with?
 
-2.  Update the options for `renderDataTable()` below so that the table is displayed, but nothing else (i.e. remove the search, ordering, and filtering commands).
+    a.  `renderPrint(summary(mtcars))`
+
+    b.  `renderText("Good morning!")`
+
+    c.  `renderPrint(t.test(1:5, 2:6))`
+
+    d.  `renderText(str(lm(mpg ~ wt, data = mtcars)))`
+
+2.  Re-create the Shiny app from Section \@ref(plots), this time setting height to 300px and width to 700px.
+    Set the plot "alt" text so that a visually impaired user can tell that its a scatterplot of five random numbers.
+
+3.  Update the options in the call to `renderDataTable()` below so that the data is displayed, but all other controls are suppress (i.e. remove the search, ordering, and filtering commands).
     You'll need to read `?renderDataTable` and review the options at <https://datatables.net/reference/option/>.
 
-    ```{r eval=FALSE}
+    ```{r}
     ui <- fluidPage(
       dataTableOutput("table")
     )
@@ -460,7 +464,7 @@ These require new techniques in the server function, so we'll come back to that 
     }
     ```
 
-3.  Convert the above app to use [reactable](https://glin.github.io/reactable).
+4.  Alternatively, read up on [reactable](https://glin.github.io/reactable), and convert the above app to use it instead.
 
 ## Layouts {#layout}
 
@@ -747,9 +751,9 @@ I highly recommend investing a little time to learn the theming tools --- themin
 
 1.  Create an app with that contains two plots, each of which takes up half of the app (regardless of what size the whole app is).
 
-2.  Modify the Central Limit Theorem app so that the sidebar is on the right instead of the left.
+2.  Modify the Central Limit Theorem app from Section \@ref(page-with-sidebar) so that the sidebar is on the right instead of the left.
 
-3.  Browse the themes available in the shinythemes package, pick an attractive theme, and apply it the Central Limit Theorem app.
+3.  Use `bslib::bs_theme_preview()` to make the ugliest theme you can.
 
 ```{=html}
 <!--
