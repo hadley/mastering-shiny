@@ -5,12 +5,12 @@ source("common.R")
 options(tibble.print_min = 6, tibble.print_max = 6)
 ```
 
-If you are creating a large/long-term Shiny app, I strongly recommend that you organise your app in the same way you'd organise an R package.
+If you are creating a large or long-term Shiny app, I highly recommend that you organise your app in the same way as an R package.
 This means three things:
 
 -   All R code lives in an `R/` directory.
 
--   There's a function that creates your app (i.e. calls `shinyApp()` with your UI and server)
+-   There's a function that creates your app (i.e. calls `shinyApp()` with your UI and server).
 
 -   A `DESCRIPTION` file exists in the root directory of the app.
 
@@ -24,7 +24,7 @@ But packages can also be very simple, and at their heart, the key idea of a pack
 Here, I'll start by showing you how to achieve the absolute minimal compliance with the standard, and then provide a few hints as to next steps.
 
 As you start working with apps that use the package structure, you may find that you enjoy the process and want to learn more.
-I recommend [*R Packages*](https://r-pkgs.org){.uri}, and if you want to learn more about the intersection of R packages and Shiny apps, I highly recommend [*Engineering Shiny*](http://engineering-shiny.org/){.uri}, by Colin Fay, Sébastien Rochette, Vincent Guyader, Cervan Girard.
+I recommend [*R Packages*](https://r-pkgs.org){.uri}, and if you want to learn more about the intersection of R packages and Shiny apps, I recommend [*Engineering Shiny*](http://engineering-shiny.org/){.uri}, by Colin Fay, Sébastien Rochette, Vincent Guyader, Cervan Girard.
 
 ```{r setup}
 library(shiny)
@@ -91,23 +91,23 @@ As your app grows bigger, it's also worth remembering the keyboard shortcuts you
 
 -   When your cursor is on the name of function `F2` will jump to the function definition.
 
-If you do a lot of package development, we recommend making a couple of small additions to your `.Rprofile`.
-This file contains R code that's run whenever you start R, so it's a great way to customise your interactive development environment.
-You can open it by running `usethis::edit_r_profile()`.
+If you do a lot of package development, we recommend making a couple of small additions to your `.Rprofile`:
 
 ``` {.r}
 if (interactive()) {
-  suppressMessages(suppressWarnings(require(devtools)))
+  suppressMessages(suppressWarnings(require(usethis)))
   suppressMessages(suppressWarnings(require(testthat)))
 }
 ```
 
+This file contains R code that's run whenever you start R, so it's a great way to customise your interactive development environment.
+You can open it by running `usethis::edit_r_profile()`.
+
 ## `R CMD check`
 
-To make a "real" package, you can use `Cmd/Ctrl + Shift + E`.
-That calls `devtools::check()` which in turn calls `R CMD check`.
-This is R's tool for checking compliance to the package standard.
-Getting `R CMD check` to pass is quite a lot of work and there's little pay off in the short term.
+To make a "real" package use use `Cmd/Ctrl + Shift + E` to repeatedly call `R CMD check` and fix all the problems that you find.
+`R CMD check` is R's tool for checking compliance to the package standard.
+It's a lot of work to get it to pass and there's little pay off in the short term.
 But in the long-term this will protect you against a number of potential problems, and because it ensures your app adheres to standards that R developers are familiar with, it makes it easier for others to contribute to your app.
 
 I don't recommend that you do this the first time, the second time, or even the third time you try out the package structure.
@@ -128,7 +128,8 @@ Then use the following hints to get `R CMD check` passing cleanly:
     (Using `@import` is not generally consider best practice, but it makes sense here).
 
 -   Pick a license and then use the appropriate `use_license_` function to put it in the right place.
-    As of usethis 2.0.0, you can also pick a proprietary license with `usethis::use_proprietary_license()`.
+    If you code is proprietary, not open source, use `usethis::use_proprietary_license()`.
+    See <https://r-pkgs.org/license.html> for more details.
 
 -   Add `app.R` to `.Rbuildignore` with `usethis::use_build_ignore("app.R")` or similar.
 
@@ -136,6 +137,7 @@ Then use the following hints to get `R CMD check` passing cleanly:
 
     The advantage of `data/` is that it's stored in `.rda` format, which is faster to load, and is loaded lazily so if it's not used by the app, it's not loaded in memory.
     You can create `data/` files in the correct format with `usethis::use_data()`.
+    Learn more in <https://r-pkgs.org/data.html>.
 
     Alternatively, you can put raw data in `inst/ext` and load it with `read.csv(system.file("exdata", "mydata.csv", package = "myApp"))` or similar.
 
@@ -150,3 +152,31 @@ Then use the following hints to get `R CMD check` passing cleanly:
 
 [^scaling-packages-1]: The distinction between Imports and Suggests is not generally important for app packages.
     If you do want to make a distinction, the most useful is to use Imports for packages that need to be present on the deployment machine (in order for the app to work) and Suggests for packages that need to be present on the development machine (in order to develop the app).
+
+## The whole game
+
+Let's apply all these steps to turn a simple app into a package:
+
+```{r}
+library(shiny)
+
+load_file <- function(name, path) {
+  ext <- tools::file_ext(name)
+  switch(ext,
+    csv = vroom::vroom(path, delim = ","),
+    tsv = vroom::vroom(path, delim = "\t"),
+    validate("Invalid file; Please upload a .csv or .tsv file")
+  )
+}
+
+# Needs function
+# Needs dataset
+
+ui <- fluidPage(
+  
+)
+server <- function(input, output, session) {
+  
+}
+shinyApp(ui, server)
+```
