@@ -1,4 +1,6 @@
-library(tidyverse)
+library(dplyr)
+library(ggplot2)
+library(forcats)
 library(vroom)
 library(shiny)
 
