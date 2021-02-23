@@ -292,67 +292,6 @@ server <- function(input, output, session) {
 
 But this feels weird as the function is still fundamentally coupled to this app because it only affects a control named "wizard" with a very specific set of tabs.
 
-## Exercises
-
-1.  The following app plots user selected variables from the `msleep` dataset for three different types of mammals (carnivores, omnivores, and herbivores), with one tab for each type of mammal.
-    Remove the redundancy in the `selectInput()` definitions with the use of functions.
-
-    ```{r, eval = FALSE}
-    library(tidyverse)
-
-    ui <- fluidPage(
-      selectInput(inputId = "x",
-                  label = "X-axis:",
-                  choices = c("sleep_total", "sleep_rem", "sleep_cycle", 
-                              "awake", "brainwt", "bodywt"),
-                  selected = "sleep_rem"),
-      selectInput(inputId = "y",
-                  label = "Y-axis:",
-                  choices = c("sleep_total", "sleep_rem", "sleep_cycle", 
-                              "awake", "brainwt", "bodywt"),
-                  selected = "sleep_total"),
-      tabsetPanel(id = "vore",
-                  tabPanel("Carnivore",
-                           plotOutput("plot_carni")),
-                  tabPanel("Omnivore",
-                           plotOutput("plot_omni")),
-                  tabPanel("Herbivore",
-                           plotOutput("plot_herbi")))
-    )
-
-    server <- function(input, output, session) {
-
-      # make subsets
-      carni <- reactive( filter(msleep, vore == "carni") )
-      omni  <- reactive( filter(msleep, vore == "omni")  )
-      herbi <- reactive( filter(msleep, vore == "herbi") )
-
-      # make plots
-      output$plot_carni <- renderPlot({
-        ggplot(data = carni(), aes_string(x = input$x, y = input$y)) +
-          geom_point()
-      }, res = 96)
-      output$plot_omni <- renderPlot({
-        ggplot(data = omni(), aes_string(x = input$x, y = input$y)) +
-          geom_point()
-      }, res = 96)
-      output$plot_herbi <- renderPlot({
-        ggplot(data = herbi(), aes_string(x = input$x, y = input$y)) +
-          geom_point()
-      }, res = 96)
-
-    }
-
-    shinyApp(ui = ui, server = server)
-    ```
-
-2.  Continue working with the same app from the previous exercise, and further remove redundancy in the code by modularizing how subsets and plots are created.
-
-3.  Suppose you have an app that is slow to launch when a user visits it.
-    Can\
-    modularizing your app code help solve this problem?
-    Explain your reasoning.
-
 ## Summary
 
 As your apps get bigger, extracting non-reactive functions out of the flow of the app will make your life substantially easier.
