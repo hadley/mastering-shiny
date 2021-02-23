@@ -261,7 +261,9 @@ If you try out the live app at `r demo$link()`, you'll notice that when you swit
 That's because `updateSelectInput()` only has an affect after all outputs and observers have run, so there's temporarily a state where you have dataset B and a variable from dataset A, so that the output contains `summary(NULL)`.
 
 You can resolve this problem by "freezing" the input with `freezeReactiveValue()`.
-This ensures that any reactives or outputs that use the input won't be updated until the next full round of invalidation.
+This ensures that any reactives or outputs that use the input won't be updated until the next full round of invalidation[^action-dynamic-3].
+
+[^action-dynamic-3]: To be more precise, any attempt to read a frozen input will result in `req(FALSE).`
 
 ```{r}
 server <- function(input, output, session) {
@@ -278,14 +280,20 @@ server <- function(input, output, session) {
 }
 ```
 
+Note that there's no need to "thaw" the input value; this happens automatically after Shiny detects that the session and server are once again in sync.
+
+You might wonder when you should use `freezeReactiveValue()`: it's actually good practice to **always** use it when you dynamically change an input `value`.
+The actual modification takes some time to flow to the browser then back to Shiny, and in the interim any reads of the value are at best wasted, and at worst lead to errors.
+Use `freezeReactiveValue()` to tell all downstream calculations that an input value is stale and they should save their effort until it's useful.
+
 ### Circular references
 
-There's an important issue we need to discuss if you want to use the update functions to change the current `value`[^action-dynamic-3] of an input.
+There's an important issue we need to discuss if you want to use the update functions to change the current `value`[^action-dynamic-4] of an input.
 From Shiny's perspective, using an update function to modify `value` is no different to the user modifying the value by clicking or typing.
 That means an update function can trigger reactive updates in exactly the same way that a human can.
 This means that you are now stepping outside of the bounds of pure reactive programming, and you need to start worrying about circular references and infinite loops.
 
-[^action-dynamic-3]: This is generally only a concern when you are changing the `value`, but be some other parameters can change the value indirectly.
+[^action-dynamic-4]: This is generally only a concern when you are changing the `value`, but be some other parameters can change the value indirectly.
     For example, if you modify the `choices` for `selectInput()`, or `min` and `max` for `sliderInput()`, the current `value` will be modified if it's no longer in the allowed set of values.
 
 For example, take the following simple app.
