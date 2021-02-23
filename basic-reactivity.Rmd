@@ -849,7 +849,7 @@ knitr::include_graphics("diagrams/basic-reactivity/graph-3.png", dpi = 300)
 
 This chapter should have improved your understanding of the backend of Shiny apps, the `server()` code that responds to user actions.
 You've also taken the first steps in mastering the reactive programming paradigm that underpins Shiny.
-What you've learned here will carry you a long way; we'll come back to the underlying theory in Chapter \@ref(why-reactivity).
+What you've learned here will carry you a long way; we'll come back to the underlying theory in Chapter --- \@ref(why-reactivity). --- 
 Reactivity is extremely powerful, but it is also very different to the imperative style of R programming that you're most used to.
 Don't be surprised if it takes a while for all the consequences to sink in.
 
