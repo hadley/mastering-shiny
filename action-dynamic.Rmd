@@ -44,10 +44,10 @@ ui <- fluidPage(
 )
 server <- function(input, output, session) {
   observeEvent(input$min, {
-    updateSliderInput(input = "n", min = input$min)
+    updateSliderInput(inputId = "n", min = input$min)
   })  
   observeEvent(input$max, {
-    updateSliderInput(input = "n", max = input$max)
+    updateSliderInput(inputId = "n", max = input$max)
   })
 }
 ```
@@ -62,7 +62,7 @@ knitr::include_graphics(c(s1, s2, s3))
 demo$deploy()
 ```
 
-The update functions look a little different to other Shiny functions: they all take name of the input (as a string) as the the `input` argument[^action-dynamic-2].
+The update functions look a little different to other Shiny functions: they all take name of the input (as a string) as the the `inputId` argument[^action-dynamic-2].
 The remaining arguments correspond to the arguments to the input constructor that can be modified after creation.
 
 [^action-dynamic-2]: The first argument, `session`, exists for backward compatibility but is very rarely needed.
@@ -85,9 +85,9 @@ ui <- fluidPage(
 
 server <- function(input, output, session) {
   observeEvent(input$reset, {
-    updateSliderInput(input = "x1", value = 0)
-    updateSliderInput(input = "x2", value = 0)
-    updateSliderInput(input = "x3", value = 0)
+    updateSliderInput(inputId = "x1", value = 0)
+    updateSliderInput(inputId = "x2", value = 0)
+    updateSliderInput(inputId = "x3", value = 0)
   })
 }
 ```
@@ -114,7 +114,7 @@ ui <- fluidPage(
 server <- function(input, output, session) {
   observeEvent(input$n, {
     label <- paste0("Simulate ", input$n, " times")
-    updateActionButton(input = "simulate", label = label)
+    updateActionButton(inputId = "simulate", label = label)
   })
 }
 ```
@@ -190,7 +190,7 @@ server <- function(input, output, session) {
   })
   observeEvent(territory(), {
     choices <- unique(territory()$CUSTOMERNAME)
-    updateSelectInput(input = "customername", choices = choices) 
+    updateSelectInput(inputId = "customername", choices = choices) 
   })
   
   customer <- reactive({
@@ -199,7 +199,7 @@ server <- function(input, output, session) {
   })
   observeEvent(customer(), {
     choices <- unique(customer()$ORDERNUMBER)
-    updateSelectInput(input = "ordernumber", choices = choices)
+    updateSelectInput(inputId = "ordernumber", choices = choices)
   })
   
   output$data <- renderTable({
@@ -247,7 +247,7 @@ ui <- fluidPage(
 )
 server <- function(input, output, session) {
   observeEvent(input$n,
-    updateNumericInput(input = "n", value = input$n + 1)
+    updateNumericInput(inputId = "n", value = input$n + 1)
   )
 }
 ```
@@ -268,14 +268,19 @@ ui <- fluidPage(
 server <- function(input, output, session) {
   observeEvent(input$temp_f, {
     c <- round((input$temp_f - 32) * 5 / 9)
-    updateNumericInput(input = "temp_c", value = c)
+    updateNumericInput(inputId = "temp_c", value = c)
   })
   
   observeEvent(input$temp_c, {
     f <- round((input$temp_c * 9 / 5) + 32)
-    updateNumericInput(input = "temp_f", value = f)
+    updateNumericInput(inputId = "temp_f", value = f)
   })
 }
+```
+
+```{r, echo = FALSE, message = FALSE}
+demo <- demoApp$new("action-dynamic/temperature", ui, server)
+demo$deploy()
 ```
 
 If you play around with this app, `r demo$link()`, you'll notice that it *mostly* works, but you might notice that it'll sometimes trigger multiple changes.
@@ -359,7 +364,7 @@ ui <- fluidPage(
 
 server <- function(input, output, session) {
   observeEvent(input$controller, {
-    updateTabsetPanel(input = "switcher", selected = input$controller)
+    updateTabsetPanel(inputId = "switcher", selected = input$controller)
   })
 }
 ```
@@ -435,7 +440,7 @@ See the final result in Figure \@ref(fig:dynamic-conditional).
 ```{r}
 server <- function(input, output, session) {
   observeEvent(input$dist, {
-    updateTabsetPanel(input = "params", selected = input$dist)
+    updateTabsetPanel(inputId = "params", selected = input$dist)
   }) 
   
   sample <- reactive({
@@ -493,7 +498,7 @@ ui <- fluidPage(
 
 server <- function(input, output, session) {
   switch_page <- function(i) {
-    updateTabsetPanel(input = "wizard", selected = paste0("page_", i))
+    updateTabsetPanel(inputId = "wizard", selected = paste0("page_", i))
   }
   
   observeEvent(input$page_12, switch_page(2))
