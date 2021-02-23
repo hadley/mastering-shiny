@@ -221,6 +221,60 @@ This base name is then used in a variety of places:
 
 -   `histogramApp()` creates a complete app for interactive experimentation and more formal testing.
 
+### Exercises
+
+1.  Why is it good practice to put a module in its own file in the `R/` directory?
+    What do you need to do to make sure it's loaded by your Shiny app?
+
+2.  The following module UI includes a critical mistake.
+    What is it and why will it cause problems?
+
+    ```{r}
+    histogramUI <- function(id) {
+      tagList(
+        selectInput("var", "Variable", choices = names(mtcars)),
+        numericInput("bins", "bins", value = 10, min = 1),
+        plotOutput("hist")
+      )
+    }
+    ```
+
+3.  The following module generate a new random number every time you click go:
+
+    ```{r}
+    randomUI <- function(id) {
+      tagList(
+        textOutput(NS(id, "val")),
+        actionButton(NS(id, "go"), "Go!")
+      )
+    }
+    randomServer <- function(id) {
+      moduleServer(id, function(input, output, session) {
+        rand <- eventReactive(input$go, sample(100, 1))
+        output$val <- renderText(rand())
+      })
+    }
+    ```
+
+    Create an app that displays four copies of this module on a single page.
+    Verify that each module is independent.
+    How could you change the return value of `randomUI()` to make the display more attractive?
+
+4.  Are you sick of typing module boilerplate already?
+    Read about [RStudio snippets](https://support.rstudio.com/hc/en-us/articles/204463668-Code-Snippets) and add the following snippet to your RStudio config to make it even easier to create new modules.
+
+        ${1}UI <- function(id) {
+          tagList(
+            ${2}
+          )
+        }
+
+        ${1}Server <- function(id) {
+          moduleServer(id, function(input, output, session) {
+            ${3} 
+          }
+        }
+
 ## Inputs and outputs
 
 Sometimes a module with only an `id` argument to the module UI and server is useful because it allows you to isolate complex code in its own file.
@@ -583,7 +637,7 @@ histogramApp <- function() {
 The main challenge with this sort of code is remembering when you use the reactive (e.g. `x$value`) vs. when you use its value (e.g. `x$value()`).
 Just remember that when passing an argument to a module, you want the module to react to the value changing which means that you have to pass the reactive, not it's current value.
 
-If you find yourself frequently returning multiple values from a reactive, you might also consider using the zeallot package.
+If you find yourself frequently returning multiple values from a reactive, you might also consider using the [zeallot](https://github.com/r-lib/zeallot) package.
 zeallot provides the `%<-%` operator which allows you to assign into multiple variables (sometimes called multiple, unpacking, or destructuring assignment).
 This can be useful when returning multiple values because you avoid a layer of indirection.
 
@@ -601,6 +655,55 @@ histogramApp <- function() {
   shinyApp(ui, server)
 }
 ```
+
+### Exercises
+
+1.  Rewrite `selectVarServer()` so that both `data` and `filter` are reactive.
+    Then use it with an app function that lets the user pick the dataset with the `dataset` module and filtering function using `inputSelect()`.
+    Give the user the ability to filter numeric, character, or factor variables.
+
+2.  The following code defines output and server components of a module that takes a numeric input and produces a bulleted list of three summary statistics.
+    Create an app function that allows you to experiment with it.
+    The app function should take a data frame as input, and use `numericVarSelectInput()` to pick the variable to summarise.
+
+    ```{r}
+    summaryOutput <- function(id) {
+      tags$ul(
+        tags$li("Min: ", textOutput(NS(id, "min"), inline = TRUE)),
+        tags$li("Max: ", textOutput(NS(id, "max"), inline = TRUE)),
+        tags$li("Missing: ", textOutput(NS(id, "n_na"), inline = TRUE))
+      )
+    }
+
+    summaryServer <- function(id, var) {
+      moduleServer(id, function(input, output, session) {
+        rng <- reactive({
+          req(var())
+          range(var(), na.rm = TRUE)
+        })
+        
+        output$min <- renderText(rng()[[1]])
+        output$max <- renderText(rng()[[2]])
+        output$n_na <- renderText(sum(is.na(var())))
+      })
+    }
+    ```
+
+3.  The following module input provides a text control that lets you type a date in ISO8601 format (yyyy-mm-dd).
+    Complete the module by providing a server function that uses `output$error` to display a message if the entered value is not a valid date.
+    The module should return a `Date` object for valid dates.
+    (Hint: use `strptime(x, "%Y-%m-%d")` to parse the string; it will return `NA` if the value isn't a valid date.)
+
+    ```{r}
+    ymdDateUI <- function(id, label) {
+      label <- paste0(label, " (yyyy-mm-dd)")
+      
+      fluidRow(
+        textInput(NS(id, "date"), label),
+        textOutput(NS(id, "error"))
+      )
+    }
+    ```
 
 ## Case studies
 
@@ -1106,60 +1209,6 @@ That can't work because the module is instantiated before the server function, i
 In Shiny, UI and server are inherently disconnected; Shiny doesn't know which UI invocation belongs to which server session.
 You can see this pattern throughout Shiny: for example, `plotOutput()` and `renderPlot()` are connected only by shared ID.
 Writing modules as separate functions reflects that reality: they're distinct functions that are not connected other than through a shared ID.
-
-## Exercises
-
-1.  Example passing `input$foo` to reactive and it not working.
-
-2.  Rewrite `selectVarServer()` so that both `data` and `filter` are reactive.
-    Pair it with an app function that lets the user pick the dataset with the `dataset` module, a function with an `inputSelect()` that lets the user filter for numeric, character, or factor variables.
-
-3.  The following code defines output and server components of a module that takes a numeric input and produces a bulleted list of three summary statistics.
-    Create an app function that allows you to experiment with it.
-    The app function should take a data frame as input, and use `numericVarSelectInput()` to pick the variable to summarise.
-
-    ```{r}
-    summaryOutput <- function(id) {
-      tags$ul(
-        tags$li("Min: ", textOutput(NS(id, "min"), inline = TRUE)),
-        tags$li("Max: ", textOutput(NS(id, "max"), inline = TRUE)),
-        tags$li("Missing: ", textOutput(NS(id, "n_na"), inline = TRUE))
-      )
-    }
-
-    summaryServer <- function(id, var) {
-      moduleServer(id, function(input, output, session) {
-        rng <- reactive({
-          req(var())
-          range(var(), na.rm = TRUE)
-        })
-        
-        output$min <- renderText(rng()[[1]])
-        output$max <- renderText(rng()[[2]])
-        output$n_na <- renderText(sum(is.na(var())))
-      })
-    }
-    ```
-
-4.  The following module input provides a text control that lets you type a date in ISO8601 format (yyyy-mm-dd).
-    Complete the module by providing a server function that uses `output$error` to display a message if the entered value is not a valid date.
-    The module should return a `Date` object for valid dates.
-    (Hint: use `strptime(x, "%Y-%m-%d")` to parse the string; it will return `NA` if the value isn't a valid date.)
-
-    ```{r}
-    ymdDateUI <- function(id, label) {
-      label <- paste0(label, " (yyyy-mm-dd)")
-      
-      fluidRow(
-        textInput(NS(id, "date"), label),
-        textOutput(NS(id, "error"))
-      )
-    }
-    ```
-
-5.  In `radioExtraServer()`, return a list that contains both the value and whether or not it came from other.
-
-6.  In `wizardServer()` verify that the namespacing has been set up correctly by using two or more wizards in a single app, and checking that you can navigate through each wizard independently.
 
 ## Summary
 
