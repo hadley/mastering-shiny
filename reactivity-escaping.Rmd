@@ -33,7 +33,9 @@ There are two other important cases where you as the app author might invalidate
 -   You modify the value of a reactive value (created with `reactiveVal()` or `reactiveValues()`).
 
 It's important to understand that in both of these cases a reactive dependency is *not* created between the reactive value and the observer.
-While these actions cause the graph to invalidate, they are not recorded through new connections.
+While these actions cause the graph to invalidate, they are not recorded through new connections[^reactivity-escaping-1].
+
+[^reactivity-escaping-1]: As a debugging aid, the reactlog package can capture and draw these connection when you modify reactive values from an observer, but this information is not used by Shiny.
 
 To make this idea concrete, take the following simple app, with reactive graph shown in Figure \@ref(fig:graph-mutation).
 
@@ -73,9 +75,9 @@ These are useful templates for your own apps.
 
 ### One output modified by multiple inputs
 
-To get started we'll tackle a very simple problem: I want a common text box that's updated by multiple events[^reactivity-escaping-1].
+To get started we'll tackle a very simple problem: I want a common text box that's updated by multiple events[^reactivity-escaping-2].
 
-[^reactivity-escaping-1]: This is rather similar to a notification, as seen in Section \@ref(notifications).
+[^reactivity-escaping-2]: This is rather similar to a notification, as seen in Section \@ref(notifications).
 
 ```{r, eval = FALSE}
 ui <- fluidPage(
