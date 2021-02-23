@@ -283,6 +283,8 @@ demo$setInputs(x = -1, trans = "log")
 demo$takeScreenshot("log")
 ```
 
+```{=html}
+<!--
 ### Exercises
 
 1.  How do you use a single `req()` to verify that multiple inputs have been successfully filled in?
@@ -299,7 +301,8 @@ demo$takeScreenshot("log")
     ```
 
     Read `?need` and then discuss the pros and cons of the two approaches.
-
+-->
+```
 ## Notifications {#notifications}
 
 If there isn't a problem and you just want to let the user know what's happening, then you want a **notification**.
@@ -862,10 +865,6 @@ It's also a bit like the confirmation; you have to do two separate actions to ma
 
 The primary downside of this technique is that it is substantially more complicated to implement (you have to have a separate "holding cell" that stores the information needed to undo the action), and requires regular intervention from the user to avoid accumulating.
 For that reason, I think it's beyond the scope of all but the most complicated Shiny apps, so I'm not going to show an implementation here.
-
-## Exercises
-
-1.  
 
 ## Summary
 

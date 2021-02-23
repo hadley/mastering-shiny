@@ -355,10 +355,6 @@ In general, if you're using dplyr for very simple cases, you might find it easie
 However, in my opinion, one of the advantages of the tidyverse is the careful thought that has been applied to edge cases so that functions work more consistently.
 I don't want to oversell this, but at the same time, it's easy to forget the quirks of specific base R functions, and write code that works 95+% of the time, but fails in unusual ways the other 5% of the time.
 
-### Exercises
-
-1.  Why does `filter(diamonds, "carat" > 1)` return all rows?
-
 ## Tidy-selection
 
 As well as data-masking, there's one other important part of tidy evaluation: tidy-selection.
@@ -444,8 +440,6 @@ server <- function(input, output, session) {
 }
 ```
 
-### Exercises
-
 ## `parse()` + `eval()`
 
 Before we go, it's worth a brief comment about `paste()` + `parse()` + `eval()`.
@@ -457,3 +451,12 @@ This isn't super important if it's a Shiny app that only you use, but it isn't a
 We'll come back that idea in Chapter \@ref(scaling-safety).
 
 (You shouldn't feel bad if this is the only way you can figure out to solve a problem, but when you have a bit more mental space, I'd recommend spending some time figuring out how to do it without string manipulation. This will help you to become a better R programmer.)
+
+## Summary
+
+In this chapter you've learned how to create Shiny apps that lets the user choose which variables will be fed into tidyverse functions like `dplyr::filter()` and `ggplot2::aes()`.
+This requires getting your head around a key distinction that you haven't had to think about before: the different between a data-variable and an env-variable.
+It will take some practice before this comes second nature, but once you master the ideas you unlock the power to expose the data analysis powers of the tidyverse to non-R users.
+
+This is the last chapter in the "Shiny in Action" part of the book.
+Now that you have the tools you need to make a range of useful apps, I'm going to focus on improving your understanding of the theory that underlies Shiny.

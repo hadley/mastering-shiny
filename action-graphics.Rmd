@@ -351,27 +351,6 @@ If you need that level of speed, you'll have to perform more computation in Java
 One way to do this is to use an R package that wraps a JavaScript graphics library.
 Right now, as I write this book, I think you'll get the best experience with the plotly package, as documented in the book [*Interactive web-based data visualization with R, plotly, and shiny*](https://plotly-r.com), by Carson Sievert.
 
-### Exercises
-
-1.  Use the `browser()` technique described in Section \@ref(clicking) to verify what `brushedPoints()` returns.
-    How does `allRows = TRUE` change the output?
-
-2.  Make a plot with click handler that shows all the data returned in the input.
-
-3.  Make a plot with click, dblclick, hover, and brush output handlers and nicely display the current selection in the sidebar.
-    Plot the plot in the main panel.
-
-4.  Compute the limits of the distance scale using the size of the plot.
-
-    ```{r}
-    output_size <- function(id) {
-      reactive(c(
-        session$clientData[[paste0("output_", id, "_width")]],
-        session$clientData[[paste0("output_", id, "_height")]]
-      ))
-    }
-    ```
-
 ## Theming
 
 The rest of this chapter is less exciting than interactive graphics, but contains material that's important to cover somewhere.
