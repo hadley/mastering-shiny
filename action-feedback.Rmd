@@ -68,7 +68,7 @@ server <- function(input, output, session) {
 ```
 
 ```{r feedback, fig.cap = demo$caption("Using `feedbackWarning()` to display warning for invalid inputs. The app on the left shows a valid input, the app on the right shows an invalid (odd) input with warning message."), echo = FALSE, message = FALSE, out.width = "50%", }
-demo <- demoApp$new("action-feedback/feedback", ui, server)
+demo <- demoApp$new("action-feedback/feedback", ui, server, packages = "shinyFeedback", before = ~ shinyFeedback::useShinyFeedback())
 demo$resize(width = 250)
 demo$takeScreenshot("even")
 demo$setInputs(n = 9)
@@ -276,7 +276,7 @@ server <- function(input, output, server) {
 ```
 
 ```{r validate, fig.cap = "If the inputs are valid, the output shows the transformation. If the combination of inputs is invalid, then the output is replaced with an informative message.", echo = FALSE, message = FALSE, out.width = "50%"}
-demo <- demoApp$new("action-feedback/validate", ui, server)
+demo <- demoApp$new("action-feedback/validate", ui, server, packages = "shinyFeedback", before = ~ shinyFeedback::useShinyFeedback())
 demo$resize(300)
 demo$takeScreenshot("init")
 demo$setInputs(x = -1, trans = "log")
@@ -588,7 +588,7 @@ server <- function(input, output, session) {
 ```
 
 ```{r, echo = FALSE, message = FALSE}
-demo <- demoApp$new("action-feedback/waiter", ui, server)
+demo <- demoApp$new("action-feedback/waiter", ui, server, packages = "waiter", before = ~ waiter::use_waitress())
 demo$deploy()
 ```
 
@@ -632,7 +632,7 @@ server <- function(input, output, session) {
 ```
 
 ```{r, echo = FALSE, message = FALSE}
-demo <- demoApp$new("action-feedback/spinner-1", ui, server)
+demo <- demoApp$new("action-feedback/spinner-1", ui, server, packages = "waiter", before = ~ waiter::use_waiter())
 demo$deploy()
 ```
 
@@ -663,7 +663,7 @@ server <- function(input, output, session) {
 ```
 
 ```{r, echo = FALSE, message = FALSE}
-demo <- demoApp$new("action-feedback/spinner-2", ui, server)
+demo <- demoApp$new("action-feedback/spinner-2", ui, server, packages = "waiter", before = ~ waiter::use_waiter())
 demo$deploy()
 ```
 
