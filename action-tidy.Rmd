@@ -448,7 +448,7 @@ If you have no idea what this combination is, you can skip this section, but if 
 It's a tempting approach because it requires learning very few new ideas.
 But it has some major downsides: because you are pasting strings together, it's very easy to accidentally create invalid code, or code that can be abused to do something that you didn't want.
 This isn't super important if it's a Shiny app that only you use, but it isn't a good habit to get into --- otherwise it's very easy to accidentally create a security hole in an app that you share more widely.
-We'll come back that idea in Chapter \@ref(scaling-safety).
+We'll come back that idea in Chapter \@ref(scaling-security).
 
 (You shouldn't feel bad if this is the only way you can figure out to solve a problem, but when you have a bit more mental space, I'd recommend spending some time figuring out how to do it without string manipulation. This will help you to become a better R programmer.)
 

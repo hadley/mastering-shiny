@@ -11,7 +11,7 @@ Testing is a way to capture desired behaviour of your code, in such a way that y
 Turning your existing informal tests into code is painful when you first do it, because you need to carefully turn every key press and mouse click into a line of code, but once done, it's tremendously faster to re-run your tests.
 
 We'll perform automated testing with the [testthat](http://testthat.r-lib.org/) package.
-testthat requires turning your app into a package, but as discussed in Chapter \@ref(package), this is not too much work, and I think pays off for other reasons.
+testthat requires turning your app into a package, but as discussed in Chapter \@ref(scaling-packaging), this is not too much work, and I think pays off for other reasons.
 
 A testthat test looks like this:
 

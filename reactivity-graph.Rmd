@@ -22,7 +22,7 @@ Recall that reactive inputs and expressions are collectively called reactive pro
 
 [^reactivity-graph-1]: Anywhere you see output, you can also think observer.
     The primary difference is that certain outputs that aren't visible will never be computed.
-    We'll discuss the details in Section \@ref(outputs-adv)
+    We'll discuss the details in Section \@ref(observers-details).
 
 ```{r graph-complete, echo = FALSE, out.width = NULL, fig.cap = "Complete reactive graph of an imaginary app containing three inputs, three reactive expressions, and three outputs."}
 knitr::include_graphics("diagrams/reactivity-tracking/08.png", dpi = 300)

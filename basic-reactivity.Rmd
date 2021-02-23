@@ -53,7 +53,7 @@ This is why almost all of the reactive programming you'll do in Shiny will be in
 
 [^basic-reactivity-2]: The primary exception is where there's some work that can be shared across multiple users.
     For example, all users might be looking at the same large csv file, so you might as well load it once and share it between users.
-    We'll come back to that idea in Section \@ref(data-import).
+    We'll come back to that idea in Section \@ref(schedule-data-munging).
 
 Server functions take three parameters: `input`, `output`, and `session`.
 Because you never call the server function yourself, you'll never create these objects yourself.
