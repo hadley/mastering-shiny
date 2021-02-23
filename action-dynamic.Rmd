@@ -227,6 +227,57 @@ demo$deploy()
 
 Try out this simple example at `r demo$link()`, or see a more fully fleshed out application at <https://github.com/hadley/mastering-shiny/tree/master/sales-dashboard>.
 
+### Freezing reactive inputs
+
+Sometimes this sort of hierarchical selection can briefly create an invalid set of inputs, leading to a flicker of undesirable output.
+For example, consider this simple app where you select a dataset and then select a variable to summarise:
+
+```{r}
+ui <- fluidPage(
+  selectInput("dataset", "Choose a dataset", c("pressure", "cars")),
+  selectInput("column", "Choose column", character(0)),
+  verbatimTextOutput("summary")
+)
+
+server <- function(input, output, session) {
+  dataset <- reactive(get(input$dataset, "package:datasets"))
+  
+  observeEvent(input$dataset, {
+    updateSelectInput(inputId = "column", choices = names(dataset()))
+  })
+  
+  output$summary <- renderPrint({
+    summary(dataset()[[input$column]])
+  })
+}
+```
+
+```{r echo = FALSE, message = FALSE}
+demo <- demoApp$new("action-dynamic/freeze", ui, server)
+demo$deploy()
+```
+
+If you try out the live app at `r demo$link()`, you'll notice that when you switch datasets the summary output will briefly flicker.
+That's because `updateSelectInput()` only has an affect after all outputs and observers have run, so there's temporarily a state where you have dataset B and a variable from dataset A, so that the output contains `summary(NULL)`.
+
+You can resolve this problem by "freezing" the input with `freezeReactiveValue()`.
+This ensures that any reactives or outputs that use the input won't be updated until the next full round of invalidation.
+
+```{r}
+server <- function(input, output, session) {
+  dataset <- reactive(get(input$dataset, "package:datasets"))
+  
+  observeEvent(input$dataset, {
+    freezeReactiveValue(input, "column")
+    updateSelectInput(inputId = "column", choices = names(dataset()))
+  })
+  
+  output$summary <- renderPrint({
+    summary(dataset()[[input$column]])
+  })
+}
+```
+
 ### Circular references
 
 There's an important issue we need to discuss if you want to use the update functions to change the current `value`[^action-dynamic-3] of an input.
