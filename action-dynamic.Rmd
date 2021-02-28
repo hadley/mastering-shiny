@@ -44,10 +44,10 @@ ui <- fluidPage(
 )
 server <- function(input, output, session) {
   observeEvent(input$min, {
-    updateSliderInput(inputId = "n", min = input$min)
+    updateSliderInput(session, inputId = "n", min = input$min)
   })  
   observeEvent(input$max, {
-    updateSliderInput(inputId = "n", max = input$max)
+    updateSliderInput(session, inputId = "n", max = input$max)
   })
 }
 ```
@@ -85,9 +85,9 @@ ui <- fluidPage(
 
 server <- function(input, output, session) {
   observeEvent(input$reset, {
-    updateSliderInput(inputId = "x1", value = 0)
-    updateSliderInput(inputId = "x2", value = 0)
-    updateSliderInput(inputId = "x3", value = 0)
+    updateSliderInput(session, inputId = "x1", value = 0)
+    updateSliderInput(session, inputId = "x2", value = 0)
+    updateSliderInput(session, inputId = "x3", value = 0)
   })
 }
 ```
@@ -114,7 +114,7 @@ ui <- fluidPage(
 server <- function(input, output, session) {
   observeEvent(input$n, {
     label <- paste0("Simulate ", input$n, " times")
-    updateActionButton(inputId = "simulate", label = label)
+    updateActionButton(session, inputId = "simulate", label = label)
   })
 }
 ```
@@ -190,7 +190,7 @@ server <- function(input, output, session) {
   })
   observeEvent(territory(), {
     choices <- unique(territory()$CUSTOMERNAME)
-    updateSelectInput(inputId = "customername", choices = choices) 
+    updateSelectInput(session, inputId = "customername", choices = choices) 
   })
   
   customer <- reactive({
@@ -199,7 +199,7 @@ server <- function(input, output, session) {
   })
   observeEvent(customer(), {
     choices <- unique(customer()$ORDERNUMBER)
-    updateSelectInput(inputId = "ordernumber", choices = choices)
+    updateSelectInput(session, inputId = "ordernumber", choices = choices)
   })
   
   output$data <- renderTable({
@@ -243,7 +243,7 @@ server <- function(input, output, session) {
   dataset <- reactive(get(input$dataset, "package:datasets"))
   
   observeEvent(input$dataset, {
-    updateSelectInput(inputId = "column", choices = names(dataset()))
+    updateSelectInput(session, inputId = "column", choices = names(dataset()))
   })
   
   output$summary <- renderPrint({
@@ -269,7 +269,7 @@ server <- function(input, output, session) {
   
   observeEvent(input$dataset, {
     freezeReactiveValue(input, "column")
-    updateSelectInput(inputId = "column", choices = names(dataset()))
+    updateSelectInput(session, inputId = "column", choices = names(dataset()))
   })
   
   output$summary <- renderPrint({
@@ -298,7 +298,7 @@ ui <- fluidPage(
 )
 server <- function(input, output, session) {
   observeEvent(input$n,
-    updateNumericInput(inputId = "n", value = input$n + 1)
+    updateNumericInput(session, inputId = "n", value = input$n + 1)
   )
 }
 ```
@@ -319,12 +319,12 @@ ui <- fluidPage(
 server <- function(input, output, session) {
   observeEvent(input$temp_f, {
     c <- round((input$temp_f - 32) * 5 / 9)
-    updateNumericInput(inputId = "temp_c", value = c)
+    updateNumericInput(session, inputId = "temp_c", value = c)
   })
   
   observeEvent(input$temp_c, {
     f <- round((input$temp_c * 9 / 5) + 32)
-    updateNumericInput(inputId = "temp_f", value = f)
+    updateNumericInput(session, inputId = "temp_f", value = f)
   })
 }
 ```
