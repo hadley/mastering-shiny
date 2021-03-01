@@ -139,7 +139,7 @@ knitr::include_graphics("diagrams/reactivity-tracking/06.png", dpi = 300)
 ### The next output executes
 
 Now that the first output is complete, Shiny chooses another to execute.
-This output turns turns orange, Figure \@ref(fig:graph-output-next), and starts reading values from reactive producers.
+This output turns orange, Figure \@ref(fig:graph-output-next), and starts reading values from reactive producers.
 
 ```{r graph-output-next, echo = FALSE, out.width = NULL, fig.cap ="The next output starts computing, turning orange."}
 knitr::include_graphics("diagrams/reactivity-tracking/07.png", dpi = 300)
