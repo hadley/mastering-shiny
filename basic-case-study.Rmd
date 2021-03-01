@@ -220,7 +220,8 @@ Here I decided to have one row for the inputs (accepting that I'm probably going
 ```{r code = section_get("neiss/prototype.R", "ui")}
 ```
 
-Note the use of `setNames()` in the `selectInput()` `choices`: this shows the product name in the UI and returns the product code to the server.
+We haven't talked about `fluidRow()` and `column()` yet, but you should be able to guess what they do from the context, and we'll come back to talk about them in Section \@ref(multi-row).
+Also note the use of `setNames()` in the `selectInput()` `choices`: this shows the product name in the UI and returns the product code to the server.
 
 The server function is relatively straightforward.
 I first convert the `selected` and `summary` variables created in the previous section to reactive expressions.

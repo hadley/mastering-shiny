@@ -16,7 +16,7 @@ You don't yet have many ways to stitch the inputs and outputs together, but we'l
 
 Here I'll mostly stick to the inputs and outputs built into Shiny itself.
 However, there is a rich and vibrant community of extension packages, like [shinyWidgets](https://github.com/dreamRs/shinyWidgets), [colorpicker](https://github.com/daattali/colourpicker), and [sorttable](https://rstudio.github.io/sortable/).
-You can find a comprehensive, actively-maintained list of other packages at [<https://github.com/nanxstats/awesome-shiny-extensions>](https://github.com/nanxstats/awesome-shiny-extensions){.uri}, maintained by [Nan Xiao](https://nanx.me/).
+You can find a comprehensive, actively-maintained list of other packages at <https://github.com/nanxstats/awesome-shiny-extensions>, maintained by [Nan Xiao](https://nanx.me/).
 
 As usual, we'll begin by loading the shiny package:
 
@@ -161,7 +161,6 @@ ui <- fluidPage(
 ```{r, echo = FALSE, out.width = NULL, message = FALSE}
 demo <- demoApp$new("basic-ui/radio-icon", ui)
 demo$takeScreenshot()
-resourcePathReset()
 ```
 
 Dropdowns created with `selectInput()` take up the same amount of space, regardless of the number of options, making them more suitable for longer options.
@@ -242,7 +241,6 @@ ui <- fluidPage(
 ```{r, echo = FALSE, out.width = NULL, message = FALSE}
 demo <- demoApp$new("basic-ui/action", ui)
 demo$takeScreenshot()
-resourcePathReset()
 ```
 
 Actions links and buttons are most naturally paired with `observeEvent()` or `eventReactive()` in your server function.

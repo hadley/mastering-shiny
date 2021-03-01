@@ -466,6 +466,7 @@ A Shiny app is a great way to do this because it lets you avoid tediously modify
 Below I wrap the pieces into a Shiny app where I can interactively tweak the inputs.
 
 Let's start with the UI.
+We'll come back to exactly what `fluidRow()` and `column()` do in Section \@ref(multi-row); but you can guess their purpose from their names 😄.
 The first row has three columns for input controls (distribution 1, distribution 2, and plot controls).
 The second row has a wide column for the plot, and a narrow column for the hypothesis test.
 

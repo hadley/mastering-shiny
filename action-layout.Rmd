@@ -1,4 +1,4 @@
-# Layout, themes, and HTML
+# Layout, themes, and HTML {#action-layout}
 
 ```{r, include = FALSE}
 source("common.R")
@@ -6,6 +6,8 @@ source("demo.R")
 ```
 
 ## Introduction
+
+In this chapter you'll unlock some new tools for laying out input and output components into an app, learn how to theme your app (and plots!), and learn a little bit more about how these functions work so you can customise further.
 
 ```{r}
 library(shiny)
@@ -42,12 +44,8 @@ First skim it by focusing on the hierarchy of the function calls:
 fluidPage(
   titlePanel(),
   sidebarLayout(
-    sidebarPanel(
-      sliderInput("obs")
-    ),
-    mainPanel(
-      plotOutput("distPlot")
-    )
+    sidebarPanel(),
+    mainPanel()
   )
 )
 ```
@@ -55,26 +53,27 @@ fluidPage(
 Even without knowing anything about the layout functions you can read the function names to guess what this app is going to look like.
 You might imagine that this code will generate a classic app design: a title bar at top, followed by a sidebar (containing a slider), with the main panel containing a plot.
 
+This is another reason why paying attention to the style of your code is important.
+If you stick with a consistent set of rules for indenting functions, you can easily see the overall app structure in the way that your app is indented.
+
 ### Page functions
 
 The most important, but least interesting, layout function is `fluidPage()`.
-You've seen it in every example above, because we use it to put multiple inputs or outputs into a single app.
+You've seen it in every example so far, because we use it to put multiple inputs or outputs into a single app.
 What happens if you use `fluidPage()` by itself?
 Figure \@ref(fig:ui-fluid-page) shows the results.
 
 ```{r ui-fluid-page, fig.cap = "An UI consisting only of `fluidPage()`", echo = FALSE}
-knitr::include_graphics("images/basic-app/fluid-page.png", dpi = 300)
+knitr::include_graphics("images/action-layout/fluid-page.png", dpi = 300)
 ```
 
-It looks very boring because there's no content, but behind the scenes, `fluidPage()` is doing a lot of work.
-The page function sets up all the HTML, CSS, and JavaScript that Shiny needs.
-`fluidPage()` uses a layout system called **Bootstrap**, [<https://getbootstrap.com>](https://getbootstrap.com){.uri}, that provides attractive defaults[^action-layout-1].
-
-[^action-layout-1]: Currently Shiny uses Bootstrap 3.3.7, <https://getbootstrap.com/docs/3.3/>, but the Shiny team is planning to update to 4.0.0, the latest version, in the near future.
+It looks very boring because there's no content, but behind the scenes, `fluidPage()` is doing a lot of work, setting up all the HTML, CSS, and JavaScript that Shiny needs.
+`fluidPage()` uses a layout system called **Bootstrap**, [\<https://getbootstrap.com\>](https://getbootstrap.com){.uri}, that provides attractive defaults.
+We'll talk more about bootstrap in Section \@ref(bootstrap).
 
 Technically, `fluidPage()` is all you need for an app, because you can put inputs and outputs directly inside of it.
-But while this is fine for learning the basics of Shiny, dumping all the inputs and outputs in one place doesn't look very good, so you need to learn more layout functions.
-Here I'll introduce you to two common structures, a page with sidebar and a multirow app, and then we'll finish off with a quick discussion of themes.
+But while this is fine for learning Shiny, dumping all the inputs and outputs in one place doesn't look very good, so you need to learn more layout functions in order to generate attractive usable apps.
+Here I'll introduce you to three techniques: a page with sidebar, a multirow app, and using a tabset to spread your app over multiple "pages".
 
 ### Page with sidebar
 
@@ -98,7 +97,7 @@ fluidPage(
 ```
 
 ```{r ui-sidebar, echo = FALSE, out.width = NULL, fig.cap = "Structure of a basic app with sidebar"}
-knitr::include_graphics("diagrams/basic-ui/sidebar.png", dpi = 300)
+knitr::include_graphics("diagrams/action-layout/sidebar.png", dpi = 300)
 ```
 
 The following example shows how to use this layout to create a very simple app that demonstrates the Central Limit Theorem.
@@ -126,7 +125,7 @@ server <- function(input, output, session) {
 ```
 
 ```{r, echo = FALSE, out.width = "100%", message = FALSE}
-demo <- demoApp$new("basic-ui/sidebar", ui, server)
+demo <- demoApp$new("action-layout/sidebar", ui, server)
 demo$resize(width = 800)
 demo$takeScreenshot()
 ```
@@ -160,11 +159,13 @@ fluidPage(
 ```
 
 ```{r ui-multirow, echo = FALSE, out.width = NULL, fig.cap = "The structure underlying a simple multi-row app"}
-knitr::include_graphics("diagrams/basic-ui/multirow.png", dpi = 300)
+knitr::include_graphics("diagrams/action-layout/multirow.png", dpi = 300)
 ```
 
 Note that the first argument to `column()` is the width, and the width of each row must add up to 12.
 This gives you substantial flexibility because you can easily create 2-, 3-, or 4-column layouts (more than that starts to get cramped), or use narrow columns to create spacers.
+
+"[Grid systems in graphic design](https://www.amazon.com/dp/3721201450)" by Josef Müller-Brockman.
 
 ### Tabsets
 
@@ -188,7 +189,7 @@ ui <- fluidPage(
 ```
 
 ```{r, echo = FALSE, out.width = "100%", message = FALSE}
-demo <- demoApp$new("basic-ui/tabset", ui)
+demo <- demoApp$new("action-layout/tabset", ui)
 demo$resize(width = 800)
 demo$takeScreenshot()
 ```
@@ -219,7 +220,7 @@ server <- function(input, output, session) {
 ```
 
 ```{r, echo = FALSE, out.width = "50%", message = FALSE}
-demo <- demoApp$new("basic-ui/tabset-input", ui, server)
+demo <- demoApp$new("action-layout/tabset-input", ui, server)
 demo$resize(width = 300)
 demo$takeScreenshot("1")
 demo$setInputs(tabset = "panel 2")
@@ -232,11 +233,35 @@ You'll see other uses for tabsets in Section \@ref(dynamic-visibility).
 
 1.  Create an app with that contains two plots, each of which takes up half of the app (regardless of what size the whole app is).
 
-Modify the Central Limit Theorem app from Section \@ref(page-with-sidebar) so that the sidebar is on the right instead of the left.
+2.  Modify the Central Limit Theorem app from Section \@ref(page-with-sidebar) so that the sidebar is on the right instead of the left.
 
-## Other tools
+```{=html}
+<!--
 
-Other packages expose complete different design systems:
+Exercise ideas
+
+1. A sample app where some commas are missing between layout elements
+1. Write the code that generates the layouts in these drawings
+
+-->
+```
+## Bootstrap
+
+Before we go further, it's worth briefly discussing the design framework used by Shiny: [Bootstrap](https://getbootstrap.com).
+Bootstrap is a collection of HTML conventions, CSS styles, and useful JS that's been bundled in a convenient form.
+Bootstrap grew out of a framework originally developed for twitter, but the core development team now comes from many places, and it has become one of the most popular CSS frameworks is use today.
+In the R ecosystem bootstrap also powers `rmarkdown::html_document()` and is used by the [pkgdown](http://pkgdown.r-lib.org/) package for making package websites, so it's highly likely that you have seen many HTML documents styled with bootstrap.
+All of these packages are built on a specialised package called [bslib](https://rstudio.github.io/bslib).
+
+As a Shiny developer, you don't need to care too much about bootstrap, but knowing something about it will help you customise your app.
+By default, Shiny uses bootstrap v3.
+You can switch to the latest version (v4 at time of writing) with `bslib::bs_theme()`.
+This will give your app a slight stylistic boost, but most importantly unlocks many more extension points which we'll discuss shortly.
+Switching from v3 to v4 is 100% safe if you only use components built in to Shiny, but may require a little tweaking if your app uses custom HTML.
+
+In the next section, I'll discuss the tools that bslib provides to change the colours and fonts used by your app.
+If you want a radically different look, you may want to consider another a design framework.
+A number of existing R packages make this easy by wrapping popular bootstrap alternatives:
 
 -   [shiny.semantic](https://appsilon.github.io/shiny.semantic/), by [Appsilon](https://appsilon.com/), builds on top of [formantic UI](https://fomantic-ui.com).
 
@@ -246,13 +271,21 @@ Other packages expose complete different design systems:
 
 -   [shinydashboard](https://rstudio.github.io/shinydashboard/), also by RStudio, provides a layout system designed to create dashboards.
 
-You can find fuller, and up-to-date, list maintained by [Nan Xiao](https://nanx.me/) at [<https://github.com/nanxstats/awesome-shiny-extensions>](https://github.com/nanxstats/awesome-shiny-extensions){.uri}.
+You can find a fuller, actively maintained, list at [\<https://github.com/nanxstats/awesome-shiny-extensions\>](https://github.com/nanxstats/awesome-shiny-extensions){.uri}.
 
 ## Themes
 
-Shiny apps can be themed using the [bslib](https://rstudio.github.io/bslib/) package.
-You can either pick an existing [bootswatch](https://bootswatch.com) theme, or design your own with the colours and fonts you want.
-Either way, the basics are the same: you supply `bslib::bs_theme()` to the `theme` argument of `fluidPage()`.
+I highly recommend investing a little time to learn the theming tools --- theming your app to match your corporate style guide is an easy way to make yourself look good.
+
+```{r, eval = FALSE}
+fluidPage(
+  theme = bslib::bs_theme(...)
+)
+```
+
+### Shiny themes
+
+The easiest way to change the overall look of your app is to pick a premade "[bootswatch](https://bootswatch.com)" theme using the `bootswatch` argument to `bslib::bs_theme()`.
 Figure \@ref(fig:theme) shows the results of the following code, switching `"darkly"` out for other themes.
 
 ```{r, eval = FALSE}
@@ -290,11 +323,10 @@ theme_demo <- function(theme) {
   )
 }
 
-demoApp$new("basic-ui/theme-darkly", theme_demo("darkly"))$takeScreenshot()
-demoApp$new("basic-ui/theme-flatly", theme_demo("flatly"))$takeScreenshot()
-demoApp$new("basic-ui/theme-sandstone", theme_demo("sandstone"))$takeScreenshot()
-demoApp$new("basic-ui/theme-united", theme_demo("united"))$takeScreenshot()
-resourcePathReset()
+demoApp$new("action-layout/theme-darkly", theme_demo("darkly"))$takeScreenshot()
+demoApp$new("action-layout/theme-flatly", theme_demo("flatly"))$takeScreenshot()
+demoApp$new("action-layout/theme-sandstone", theme_demo("sandstone"))$takeScreenshot()
+demoApp$new("action-layout/theme-united", theme_demo("united"))$takeScreenshot()
 ```
 
 Alternatively, you can construct your own theme using the other arguments to `bs_theme()` like `bg` (background colour), `fg` (foreground colour) and `base_font`:
@@ -302,24 +334,31 @@ Alternatively, you can construct your own theme using the other arguments to `bs
 ```{r}
 theme <- bslib::bs_theme(
   bg = "#0b3d91", 
-  fg = "white",
+  fg = "white"
 )
 ```
 
 An easy way to preview and customise your theme is to use `bslib::bs_theme_preview(theme)`.
-This will open a Shiny app that shows the theme on a bunch of standard control, and provides you with interactive controls for customising the most important parameters.
-I highly recommend investing a little time to learn the theming tools --- theming your app to match your corporate style guide is an easy way to make yourself look good.
+This will open a Shiny app that shows what the theme looks like when applied many standard controls, and also provides you with interactive controls for customising the most important parameters.
 
-### Plots
+### Plot themes
 
 If you've heavily customised the style of your app, you may want to also customise your plots to match.
-Fortunately, this is very easy thanks to the [thematic](https://rstudio.github.io/thematic/) package by Carson Sievert.
-There are two main ways to use it.
-Firstly, you can explicitly set a theme defined by foreground, background, and accent colours (and font if desired):
+Fortunately, this is very easy thanks to the [thematic](https://rstudio.github.io/thematic/) package which automatically themes ggplot2, lattice, and base plots.
+It's very easy to use with a Shiny app: just call `thematic_shiny()` in your server function.
+This will automatically determine all of the settings from your app theme:
+
+```{r, eval = FALSE}
+thematic::thematic_shiny()
+```
+
+For more details about using thematic with Shiny, see <https://rstudio.github.io/thematic/articles/Shiny.html>.
+
+Alternatively, if you want to theme plots outside of Shiny.
+you can call `thematic::thematic_on()` with explicit: `fg` (foreground), `bg` (background), `accent`, and `font`:
 
 ```{r, message = FALSE, warning = FALSE}
-library(thematic)
-thematic_on(bg = "#222222", fg = "white", accent = "#0CE3AC")
+thematic::thematic_on(bg = "#222222", fg = "white", accent = "#0CE3AC")
 
 library(ggplot2)
 ggplot(mtcars, aes(wt, mpg)) +
@@ -327,41 +366,19 @@ ggplot(mtcars, aes(wt, mpg)) +
   geom_smooth()
 ```
 
-These settings will affect all ggplot2, lattice, and base plots until you call `thematic_off()`.
-
-You can also call `thematic_on()` with `font = "auto"` and no other arguments to attempt to automatically determine all of the settings from the theme associated with your Shiny app:
-
-```{r, eval = FALSE}
-thematic_on(font = "auto")
-```
-
-For more details, see [<https://rstudio.github.io/thematic/articles/Shiny.html>](https://rstudio.github.io/thematic/articles/Shiny.html){.uri}.
+These settings will affect all plots until you call `thematic_off()`.
 
 ### Exercises
 
-1.  Create an app with that contains two plots, each of which takes up half of the app (regardless of what size the whole app is).
+1.  Use `bslib::bs_theme_preview()` to make the ugliest theme you can
 
-2.  Modify the Central Limit Theorem app from Section \@ref(page-with-sidebar) so that the sidebar is on the right instead of the left.
-
-3.  Use `bslib::bs_theme_preview()` to make the ugliest theme you can.
-
-```{=html}
-<!--
-
-Exercise ideas
-
-1. A sample app where some commas are missing between layout elements
-1. Write the code that generates the layouts in these drawings
-
--->
-```
 ## Under the hood
 
 In the previous example you might have been surprised to see that I create a Shiny app using a function, `theme_demo()`.
 This works because Shiny code **is** R code, and you can use all of your existing tools for reducing duplication.
-Remember the rule of three: if you copy and paste code more than three times, you should consider writing a function or using a for loop[^action-layout-2].
+Remember the rule of three: if you copy and paste code more than three times, you should consider writing a function or using a for loop[^action-layout-1].
 
-[^action-layout-2]: Or using `lapply()` or `purrr::map()` if you know a little about functional programming.
+[^action-layout-1]: Or using `lapply()` or `purrr::map()` if you know a little about functional programming.
 
 All input, output, and layout functions return HTML, the descriptive language that underpins every website.
 You can see that HTML by executing UI functions directly in the console:
@@ -384,3 +401,13 @@ fluidPage(
 Shiny is designed so that, as an R user, you don't need to learn about the details of HTML.
 However, if you already know HTML (or want to learn!) you can also work directly with HTML tags to achieve any level of customization you want.
 And these approaches are by no means exclusive: you can mix high-level functions with low-level HTML as much as you like.
+
+### Utility classes
+
+Learn more at <https://rstudio.github.io/bslib/articles/theming.html#utility-classes-1>.
+
+### Divs
+
+You can still customise the inputs and outputs that don't have a `class` argument; you just have to wrap them in a `<div>` first.
+A `<div>` is an HTML element that can wrap any other element (or elements).
+It doesn't have any appearance by default (so won't usually change the appearance of your app), but you can apply classes to it to adjust margins, padding, and background colour.

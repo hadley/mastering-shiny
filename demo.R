@@ -314,10 +314,4 @@ screenshot_dpi <- function() {
   }
 }
 
-resourcePathReset <- function() {
-  for (prefix in names(shiny::resourcePaths())) {
-    shiny::removeResourcePath(prefix)
-  }
-}
-
 is_ci <- function() isTRUE(as.logical(Sys.getenv("CI")))
