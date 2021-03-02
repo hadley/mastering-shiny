@@ -12,7 +12,7 @@ As you saw in the previous chapter, Shiny encourages separation of the code that
 
 In this chapter, we'll focus on the front end, and give you a whirlwind tour of the HTML inputs and outputs provided by Shiny.
 This gives you the ability to capture many types of data and display many types of R output.
-You don't yet have many ways to stitch the inputs and outputs together, but we'll come back to that in the next chapter.
+You don't yet have many ways to stitch the inputs and outputs together, but we'll come back to that in Chapter \@ref(action-layout).
 
 Here I'll mostly stick to the inputs and outputs built into Shiny itself.
 However, there is a rich and vibrant community of extension packages, like [shinyWidgets](https://github.com/dreamRs/shinyWidgets), [colorpicker](https://github.com/daattali/colourpicker), and [sorttable](https://rstudio.github.io/sortable/).
