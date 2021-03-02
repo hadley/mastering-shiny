@@ -1,4 +1,4 @@
-# Preface
+# Preface {.unnumbered}
 
 ```{r include = FALSE}
 source("common.R")
