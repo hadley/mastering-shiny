@@ -186,16 +186,18 @@ If you'd like to learn more about designing using a grid system, I highly recomm
 
 ## Multi-page layouts
 
-Technical still a single "HTML" page, but it's broken into pieces so that only one piece is visible at a time.
-Modules, which you'll learn about in Chapter \@ref(scaling-modules) pair particularly well with tabsets because they allow you to partition up the server function in the same way you partition up the user interface.
+As your app grows in complexity, it might become impossible to fit everything on a single page.
+In this section you'll learn various uses of `tabPanel()` that create the illusion of multiple pages.
+Technically this is an illusion because you'll still have a single app with a single underlying HTML file, but it's now broken into panels so that only one panel is visible at a time.
 
-You'll see other uses for tabsets in Section \@ref(dynamic-visibility).
+Multi-page apps pair particularly well with modules, which you'll learn about in Chapter \@ref(scaling-modules).
+Modules allow you to partition up the server function in the same way you partition up the user interface, creating independent components that only interact through well defined connection points.
 
 ### Tabsets
 
-As your apps get more complicated, you might find that there's no way to fit all the inputs and output on to a single page.
-That's where `tabsetPanel()` and its close friend `tabPanel()` come in: these allow to you spread your content across multiple panels.
-As you can see in the code below, `tabsetPanel()` creates a container for any number of `tabPanels()`, which can contain any HTML components described above.
+The simple way to break up a page into pieces is to use `tabsetPanel()` and its close friend `tabPanel()`.
+As you can see in the code below, `tabsetPanel()` creates a container for any number of `tabPanels()`, which can in turn contain any other HTML components.
+Figure \@ref(fig:tabset) shows a simple example.
 
 ```{r}
 ui <- fluidPage(
@@ -212,13 +214,14 @@ ui <- fluidPage(
 )
 ```
 
-```{r, echo = FALSE, out.width = "100%", message = FALSE}
+```{r tabset, fig.caption = "A `tabsetPanel()` allows the user to select a single `tabPanel()` to view", echo = FALSE, message = FALSE}
 demo <- demoApp$new("action-layout/tabset", ui)
 demo$resize(width = 800)
 demo$takeScreenshot()
 ```
 
-If you want to know what tab a user has selected, you can provide the `id` argument to `tabsetPanel()` and it becomes an input:
+If you want to know what tab a user has selected, you can provide the `id` argument to `tabsetPanel()` and it becomes an input.
+Figure \@ref(fig:tabset-input) shows this in action.
 
 ```{r}
 ui <- fluidPage(
@@ -243,7 +246,7 @@ server <- function(input, output, session) {
 }
 ```
 
-```{r, echo = FALSE, out.width = "50%", message = FALSE}
+```{r tabset-input, fig.caption = "A tabset becomes an input when you use the `id` argument. This allows you to make your app behave differently depending on which tab is currently visible.", echo = FALSE, out.width = "50%", message = FALSE}
 demo <- demoApp$new("action-layout/tabset-input", ui, server)
 demo$resize(width = 300)
 demo$takeScreenshot("1")
@@ -251,32 +254,68 @@ demo$setInputs(tabset = "panel 2")
 demo$takeScreenshot("2")
 ```
 
-### Navlists
+Note `tabsetPanel()` can be used anywhere in your app; it's totally fine to nest tabsets inside of other components (including tabsets!) if needed.
 
-If you have many pages, you can arrange them in a menu system by using `navbarPage()` and `navbarMenu()` instead of `tabsetPanel()`:
+### Navlists and navbars
+
+Because tabs are displayed horizontally, there's a fundamental limit to how many tabs you can use, particularly if they have long titles.
+`navbarPage()`and `navbarMenu()` provide two alternative layouts that let you use more tabs with longer titles.
+
+`navlistPanel()` is similar to `tabsetPanel()` but instead of running the tabs titles horizontally, it shows them vertically in a sidebar.
+You can also use plain strings to add headings to the list, as shown in Figure \@ref(fig:navlistPanel).
+
+```{r}
+ui <- fluidPage(
+  navlistPanel(
+    id = "tabset",
+    "Heading 1",
+    tabPanel("panel 1", "Panel one contents"),
+    "Heading 2",
+    tabPanel("panel 2", "Panel two contents"),
+    tabPanel("panel 3", "Panel three contents")
+  )
+)
+```
+
+```{r navlistPanel, fig.cap = "A `navlistPanel()` displays the tab titles vertically, rather than horizontally.", echo = FALSE, message = FALSE, out.width = NULL}
+demo <- demoApp$new("action-layout/navlistPanel", ui)
+demo$resize(800)
+demo$takeScreenshot()
+```
+
+Another approach is `navbarPage()` --- it still runs the tab titles horizontally, but you can use `navbarMenu()` to add drop-down menus for an additional level of hierarchy.
+Figure \@ref(fig:navbarPage) shows a simple example.
 
 ```{r}
 ui <- navbarPage(
   "Page title",   
-  id = "tabset",
   tabPanel("panel 1", "one"),
   tabPanel("panel 2", "two"),
-  tabPanel("panel 3", "three")
+  tabPanel("panel 3", "three"),
+  navbarMenu("subpanels", 
+    tabPanel("panel 4a", "four-a"),
+    tabPanel("panel 4b", "four-b"),
+    tabPanel("panel 4c", "four-c")
+  )
 )
-server <- function(input, output, session) {
-  output$panel <- renderText({
-    paste("Current panel: ", input$tabset)
-  })
-}
 ```
 
-### Navbars
+```{r navbarPage, fig.cap = "A `navbarPage()` sets up a horizontal nav bar at the top of the page.", echo = FALSE, message = FALSE, out.width = NULL}
+if (FALSE) {
+  # Generates a random tabset id so can't automate
+  demo <- demoApp$new("action-layout/navbarPage", ui)
+  demo$resize(800)
+  demo$takeScreenshot()  
+}
+knitr::include_graphics("demos/action-layout/navbarPage.png", dpi = screenshot_dpi())
+```
 
-These can even included nested drop down menus by using `navbarMenu()`.
+These layouts give you considerable ability to create rich and satisfying apps.
+To go further, you'll need to learn more about the underlying design system.
 
 ## Bootstrap
 
-To begin, I need to introduce you to the design framework used by Shiny: [Bootstrap](https://getbootstrap.com).
+To continue your app customisation journey, you'll need to learn more about the [Bootstrap](https://getbootstrap.com) design framework used by Shiny.
 Bootstrap is a collection of HTML conventions, CSS styles, and JS snippets bundled up into a convenient form.
 Bootstrap grew out of a framework originally developed for Twitter, but the core development team is now very broad, and Bootstrap has become one of the most popular CSS frameworks used on the web.
 Bootstrap is also popular in R --- you've undoubtedly seen many documents produced by `rmarkdown::html_document()` and used many package websites made by [pkgdown](http://pkgdown.r-lib.org/), both of which also use boostrap.
