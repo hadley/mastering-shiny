@@ -315,35 +315,22 @@ To go further, you'll need to learn more about the underlying design system.
 
 ## Bootstrap
 
-To continue your app customisation journey, you'll need to learn more about the [Bootstrap](https://getbootstrap.com) design framework used by Shiny.
+To continue your app customisation journey, you'll need to learn a little more about the [Bootstrap](https://getbootstrap.com) design framework used by Shiny.
 Bootstrap is a collection of HTML conventions, CSS styles, and JS snippets bundled up into a convenient form.
-Bootstrap grew out of a framework originally developed for Twitter, but the core development team is now very broad, and Bootstrap has become one of the most popular CSS frameworks used on the web.
-Bootstrap is also popular in R --- you've undoubtedly seen many documents produced by `rmarkdown::html_document()` and used many package websites made by [pkgdown](http://pkgdown.r-lib.org/), both of which also use boostrap.
+Bootstrap grew out of a framework originally developed for Twitter, but the core development team is now broad and Bootstrap has become one of the most popular CSS frameworks used on the web.
+Bootstrap is also popular in R --- you've undoubtedly seen many documents produced by `rmarkdown::html_document()` and used many package websites made by [pkgdown](http://pkgdown.r-lib.org/), both of which also use Bootstrap.
 
-As a Shiny developer, you don't need to think too much about Bootstrap, because Shiny functions automatically generate bootstrap compatible HTML for.
-But it's good to know that Bootstrap exists because:
+As a Shiny developer, you don't need to think too much about Bootstrap, because Shiny functions automatically generate bootstrap compatible HTML for you.
+But it's good to know that Bootstrap exists because then:
 
--   You can use `bslib::bs_theme()` to customise the visual appearance of your code, as well see in Section \@ref(themes).
+-   You can use `bslib::bs_theme()` to customise the visual appearance of your code, Section \@ref(themes).
 
--   Some components allow you to supply additional CSS classes to style app components.
-    For example, as you saw in Section \@ref(action-buttons), you can create a "danger" button with `actionButton(class = "btn-danger")`.
-    `"btn-danger"` is the name of the css class that Bootstrap uses.
-    We'll come back to this idea in Section \@ref(custom-classes).
+-   You can use the `class` argument to customise some layouts, inputs, and outputs using Bootstrap class names, Section \@ref(custom-classes).
 
--   You can make your own bindings to Bootstrap components that Shiny doesn't wrap.
-    We'll talk about this more in Section \@ref()
+-   You can make your own functions to generate Bootstrap components that Shiny doesn't provide, Section \@ref(new-components).
 
-For example, Shiny defaults to Bootstrap v3.
-But you can switch to v4 with a call to `bslib::bs_theme()`.
-This will give your app a slight stylistic boost, but most importantly unlocks many more extension points which we'll discuss in .
-Switching from v3 to v4 is completely safe if you only use components built in to Shiny, but may require a little tweaking if your app uses custom HTML.
-
-In the past, each of these packages bundled its own version of Bootstrap.
-Recently, however, RStudio developed the [bslib](https://rstudio.github.io/bslib) package,
-
-In the next section, I'll discuss the tools that bslib provides to change the colours and fonts used by your app.
-If you want a radically different look, you may want to consider another a design framework.
-A number of existing R packages make this easy by wrapping popular bootstrap alternatives:
+It's also possible to use a completely different CSS framework.
+A number of existing R packages make this easy by wrapping popular alternatives to Bootstrap:
 
 -   [shiny.semantic](https://appsilon.github.io/shiny.semantic/), by [Appsilon](https://appsilon.com/), builds on top of [formantic UI](https://fomantic-ui.com).
 
@@ -357,7 +344,16 @@ You can find a fuller, actively maintained, list at <https://github.com/nanxstat
 
 ## Themes
 
-I highly recommend investing a little time to learn the theming tools --- theming your app to match your corporate style guide is an easy way to make yourself look good.
+Bootstrap is so ubiquitous within the R community that it's easy to get style fatigue: after a while every Shiny app and Rmd file start to look the same.
+The solution is theming with the [bslib](https://rstudio.github.io/bslib) package.
+bslib is relatively new package that allows you to override many Bootstrap defaults in order to create an appearance that is uniquely yours.
+As I write this, bslib is mostly applicable only to Shiny, but work is afoot to bring its enhanced theming power to RMarkdown, pkgdown, and more.
+
+If you're producing apps for your company, I highly recommend investing a little time in theming --- theming your app to match your corporate style guide is an easy way to make yourself look good.
+
+### Getting started
+
+You create a theme with `bslib::bs_theme()` and then apply it by passing it to the `theme` argument of the page layout function:
 
 ```{r, eval = FALSE}
 fluidPage(
@@ -365,7 +361,10 @@ fluidPage(
 )
 ```
 
-### Bootstrap versions
+If not specified, Shiny will use the classic Bootstrap v3 theme that it has used, basically since it was created.
+By default, `bslib::bs_theme()`, will use Bootstrap v4.
+Using Bootstrap v4 instead of v3 will not cause problems if you only use built-in components.
+There is a possibility that it might cause problems if you've used custom HTML, so you can force it to stay with v3 with `version = 3`.
 
 ### Shiny themes
 
@@ -430,31 +429,36 @@ This will open a Shiny app that shows what the theme looks like when applied man
 If you've heavily customised the style of your app, you may want to also customise your plots to match.
 Fortunately, this is very easy thanks to the [thematic](https://rstudio.github.io/thematic/) package which automatically themes ggplot2, lattice, and base plots.
 It's very easy to use with a Shiny app: just call `thematic_shiny()` in your server function.
-This will automatically determine all of the settings from your app theme:
+This will automatically determine all of the settings from your app theme as shown by Figure \@ref(fig:thematic).
 
-```{r, eval = FALSE}
-thematic::thematic_shiny()
-```
-
-For more details about using thematic with Shiny, see <https://rstudio.github.io/thematic/articles/Shiny.html>.
-
-Alternatively, if you want to theme plots outside of Shiny.
-you can call `thematic::thematic_on()` with explicit: `fg` (foreground), `bg` (background), `accent`, and `font`:
-
-```{r, message = FALSE, warning = FALSE}
-thematic::thematic_on(bg = "#222222", fg = "white", accent = "#0CE3AC")
-
+```{r}
 library(ggplot2)
-ggplot(mtcars, aes(wt, mpg)) +
-  geom_point() +
-  geom_smooth()
+
+ui <- fluidPage(
+  theme = bslib::bs_theme(bootswatch = "darkly"),
+  titlePanel("A themed plot"),
+  plotOutput("plot"),
+)
+
+server <- function(input, output, session) {
+  thematic::thematic_shiny()
+  
+  output$plot <- renderPlot({
+    ggplot(mtcars, aes(wt, mpg)) +
+      geom_point() +
+      geom_smooth()
+  }, res = 96)
+}
 ```
 
-These settings will affect all plots until you call `thematic_off()`.
+```{r thematic, fig.cap="Use `thematic::thematic_shiny()` ensures that the ggplot2 automatically matches the app theme", echo = FALSE, message = FALSE, out.width = NULL}
+demo <- demoApp$new("action-layout/thematic", ui, server)
+demo$takeScreenshot()
+```
 
 ### Exercises
 
-1.  Use `bslib::bs_theme_preview()` to make the ugliest theme you can
+1.  Use `bslib::bs_theme_preview()` to make the ugliest theme you can.
 
 ## Under the hood
 
@@ -489,6 +493,10 @@ And these approaches are by no means exclusive: you can mix high-level functions
 ### Custom classes
 
 Learn more at <https://rstudio.github.io/bslib/articles/theming.html#utility-classes-1>.
+
+-   supply additional `class` Some components allow you to supply additional CSS classes to style app components.
+    For example, as you saw in Section \@ref(action-buttons), you can create a "danger" button with `actionButton(class = "btn-danger")`.
+    `"btn-danger"` is the name of the css class that Bootstrap uses.
 
 ### New components
 
