@@ -8,6 +8,8 @@ I think everyone should start with Chapter \@ref(workflow), because it gives you
 After that, there's no prescribed order and relatively few connections between the chapters: I'd suggest quickly skimming to get the lay of the land (and so you might remember these tools if related problems crop up in the future), and otherwise only deeply reading the bits that you currently need.
 Here's a quick run down of the main topics:
 
+-   Chapter \@ref(action-layout) details the various ways you can layout input and output components on a page, and how you can customise their appearance with themes.
+
 -   Chapter \@ref(action-graphics) shows you how to add direct interaction to your plot and how to display images generated in other ways.
 
 -   Chapter \@ref(action-feedback) covers a family of techniques (including inline errors, notifications, progress bars, and dialog boxes) for giving feedback to your users while you app runs.

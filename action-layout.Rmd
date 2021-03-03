@@ -543,3 +543,11 @@ tags$p(
 Note the use of `inline = TRUE`; the `textOutput()` default is to produe a complete paragraph.
 
 To learn more about using HTML, CSS, and JavaScript to make compelling user interfaces, I highly recommend David Granjon's [Outstanding User Interfaces with Shiny](https://unleash-shiny.rinterface.com/index.html).
+
+## Summary
+
+This chapter has given you the tools you need to make complex and attractive Shiny apps.
+You've learned the Shiny functions that allow you to layout single- and multi page apps (like `fluidPage()` and `tabsetPanel()`) and how to customise the overall visual appearance themes.
+You've also learn a little bit about what's going on under the hood: you now know that Shiny uses Bootstrap, and that the input and output functions just return HTML, which you can also create yourself.
+
+In the next chapter you'll learn more about another important visual component of your app: graphics.

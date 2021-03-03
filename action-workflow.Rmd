@@ -822,5 +822,5 @@ These workflows might seem a little abstract and easy to dismiss because they're
 But I think of workflow as one of my "secret" powers: one of the reasons that I've been able to accomplish so much is that I devote time to analysing and improving my workflow.
 I highly encourage you to do the same!
 
-The next chapter on graphics is the first of a grab bag of useful techniques.
+The next chapter on layouts and themes is the first of a grab bag of useful techniques.
 There's no need to read in sequence; feel free to skip ahead to a chapter that you need for a current app.
