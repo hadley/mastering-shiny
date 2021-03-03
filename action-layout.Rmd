@@ -214,7 +214,7 @@ ui <- fluidPage(
 )
 ```
 
-```{r tabset, fig.caption = "A `tabsetPanel()` allows the user to select a single `tabPanel()` to view", echo = FALSE, message = FALSE}
+```{r tabset, fig.cap = "A `tabsetPanel()` allows the user to select a single `tabPanel()` to view", echo = FALSE, message = FALSE}
 demo <- demoApp$new("action-layout/tabset", ui)
 demo$resize(width = 800)
 demo$takeScreenshot()
@@ -246,7 +246,7 @@ server <- function(input, output, session) {
 }
 ```
 
-```{r tabset-input, fig.caption = "A tabset becomes an input when you use the `id` argument. This allows you to make your app behave differently depending on which tab is currently visible.", echo = FALSE, out.width = "50%", message = FALSE}
+```{r tabset-input, fig.cap = "A tabset becomes an input when you use the `id` argument. This allows you to make your app behave differently depending on which tab is currently visible.", echo = FALSE, out.width = "50%", message = FALSE}
 demo <- demoApp$new("action-layout/tabset-input", ui, server)
 demo$resize(width = 300)
 demo$takeScreenshot("1")
