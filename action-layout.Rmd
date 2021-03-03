@@ -325,9 +325,9 @@ But it's good to know that Bootstrap exists because then:
 
 -   You can use `bslib::bs_theme()` to customise the visual appearance of your code, Section \@ref(themes).
 
--   You can use the `class` argument to customise some layouts, inputs, and outputs using Bootstrap class names, Section \@ref(custom-classes).
+-   You can use the `class` argument to customise some layouts, inputs, and outputs using Bootstrap class names, as you saw in Section \@ref(action-buttons).
 
--   You can make your own functions to generate Bootstrap components that Shiny doesn't provide, Section \@ref(new-components).
+-   You can make your own functions to generate Bootstrap components that Shiny doesn't provide, as explained in "[Utility classes](https://rstudio.github.io/bslib/articles/theming.html#utility-classes)".
 
 It's also possible to use a completely different CSS framework.
 A number of existing R packages make this easy by wrapping popular alternatives to Bootstrap:
@@ -462,14 +462,14 @@ demo$takeScreenshot()
 
 ## Under the hood
 
-In the previous example you might have been surprised to see that I create a Shiny app using a function, `theme_demo()`.
-This works because Shiny code **is** R code, and you can use all of your existing tools for reducing duplication.
-Remember the rule of three: if you copy and paste code more than three times, you should consider writing a function or using a for loop[^action-layout-1].
+Shiny is designed so that, as an R user, you don't need to learn about the details of HTML.
+However, if you know the basics of HTML and CSS, it's possible to customise Shiny still further.
+Unfortunately HTML and CSS are beyond the scope of this book, but a good place to start are the [HTML basics](https://developer.mozilla.org/en-US/docs/Learn/Getting_started_with_the_web/HTML_basics) and [CSS basics](https://developer.mozilla.org/en-US/docs/Learn/Getting_started_with_the_web/CSS_basics) tutorials made by MDN.
 
-[^action-layout-1]: Or using `lapply()` or `purrr::map()` if you know a little about functional programming.
-
-All input, output, and layout functions return HTML, the descriptive language that underpins every website.
+There's no magic behind all of the input, output, and layout functions: they just generate HTML[^action-layout-1].
 You can see that HTML by executing UI functions directly in the console:
+
+[^action-layout-1]: The magic that connects inputs and outputs to R happens elsewhere (via javascript) but that's well beyond the scope of this book.
 
 ```{r, eval = FALSE}
 fluidPage(
@@ -486,20 +486,60 @@ fluidPage(
 </div>
 ```
 
-Shiny is designed so that, as an R user, you don't need to learn about the details of HTML.
-However, if you already know HTML (or want to learn!) you can also work directly with HTML tags to achieve any level of customization you want.
-And these approaches are by no means exclusive: you can mix high-level functions with low-level HTML as much as you like.
+(Note that this is the contents of the `<body>` tag; other parts of Shiny take take of generating the `<head>`. If you want to include additional CSS or JS dependencies you'll need to learn `htmltools::htmlDependency()`.
+Two good places to start are <https://blog.r-hub.io/2020/08/25/js-r/#web-dependency-management> and <https://unleash-shiny.rinterface.com/htmltools-dependencies.html>.)
 
-### Custom classes
+It's possible to add your own HTML to the `ui`.
+One way to do so is by including literal HTML with the `HTML()` function.
+In the example below, I use the "raw character constant[^action-layout-2]", `r"()"`, to make it easier to include quotes in the string:
 
-Learn more at <https://rstudio.github.io/bslib/articles/theming.html#utility-classes-1>.
+[^action-layout-2]: Introduced in R 4.0.0.
 
--   supply additional `class` Some components allow you to supply additional CSS classes to style app components.
-    For example, as you saw in Section \@ref(action-buttons), you can create a "danger" button with `actionButton(class = "btn-danger")`.
-    `"btn-danger"` is the name of the css class that Bootstrap uses.
+```{r}
+ui <- fluidPage(
+  HTML(r"(
+    <h1>This is a heading</h1>
+    <p class="my-class">This is some text!</p>
+    <ul>
+      <li>First bullet</li>
+      <li>Second bullet</li>
+    </ul>
+  )")
+)
+```
 
-### New components
+If you're a HTML/CSS expert, you might be interested to know that can skip `fluidPage()` altogether and supply raw HTML.
+See ["Build your entire UI with HTML"](https://shiny.rstudio.com/articles/html-ui.html).
+for more details.
 
-You can still customise the inputs and outputs that don't have a `class` argument; you just have to wrap them in a `<div>` first.
-A `<div>` is an HTML element that can wrap any other element (or elements).
-It doesn't have any appearance by default (so won't usually change the appearance of your app), but you can apply classes to it to adjust margins, padding, and background colour.
+Alternatively, you can use of the HTML helper that Shiny provides.
+There are regular functions for the most important elements like `h1()` and `p()`, and all others can be accessed via the the tags helper.
+Named arguments become attributes and unnamed arguments become children, so we can recreate the above HTML as:
+
+```{r}
+ui <- fluidPage(
+  h1("This is a heading"),
+  p("This is some text", class = "my-class"),
+  tags$ul(
+    tags$li("First bullet"), 
+    tags$li("Second bullet")
+  )
+)
+```
+
+One advantage of generating HTML with code is that you can interweave existing Shiny components into a custom structure.
+For example, the code below makes a paragraph of text containing two outputs, one which is bold:
+
+```{r, eval = FALSE}
+tags$p(
+  "You made ", 
+  tags$b("$", textOutput("amount", inline = TRUE)),
+  " in the last ", 
+  textOutput("days", inline = TRUE),
+  " days " 
+)
+```
+
+Note the use of `inline = TRUE`; the `textOutput()` default is to produe a complete paragraph.
+
+To learn more about using HTML, CSS, and JavaScript to make compelling user interfaces, I highly recommend David Granjon's [Outstanding User Interfaces with Shiny](https://unleash-shiny.rinterface.com/index.html).
