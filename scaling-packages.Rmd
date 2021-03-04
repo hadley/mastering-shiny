@@ -6,22 +6,23 @@ options(tibble.print_min = 6, tibble.print_max = 6)
 ```
 
 If you are creating a large or long-term Shiny app, I highly recommend that you organise your app in the same way as an R package.
-This means three things:
+This means that you:
 
--   All R code lives in an `R/` directory.
+-   Put all R code in the `R/` directory.
 
--   There's a function that creates your app (i.e. calls `shinyApp()` with your UI and server).
+-   Write a function that starts your app (i.e. calls `shinyApp()` with your UI and server).
 
--   A `DESCRIPTION` file exists in the root directory of the app.
+-   Create a `DESCRIPTION` file in the root directory of your app.
 
 This structure gets your toes into the water of package development.
 It's a long way from a complete package, but it's still useful because it activates new tools that make it easier to work with larger amounts of code.
 The package structure will pay off further when we talk about testing in Chapter \@ref(scaling-testing), because you get tools that make it easy to run the tests and to see what code is tested.
-In the long run, it also helps you document the pieces of complex apps, although we won't discuss that in this book.
+In the long run, it also helps you document the pieces of complex apps using [roxygen2](https://roxygen2.r-lib.org), although we won't discuss that in this book.
 
 It's easy to think of packages as these big complicated artefacts like Shiny, ggplot2, or dplyr.
-But packages can also be very simple, and at their heart, the key idea of a package is that it's a set of conventions for organising your code and related artefacts.
-Here, I'll start by showing you how to achieve the absolute minimal compliance with the standard, and then provide a few hints as to next steps.
+But packages can also be very simple.
+The core idea of a package is that it's a set of conventions for organising your code and related artefacts: if you follow those conventions, you get a bunch of tools for free.
+In this chapter, I'll show you the most important conventions, and then provide a few hints as to next steps.
 
 As you start working with apps that use the package structure, you may find that you enjoy the process and want to learn more.
 I recommend [*R Packages*](https://r-pkgs.org){.uri}, and if you want to learn more about the intersection of R packages and Shiny apps, I recommend [*Engineering Shiny*](http://engineering-shiny.org/){.uri}, by Colin Fay, Sébastien Rochette, Vincent Guyader, Cervan Girard.
@@ -33,27 +34,287 @@ library(shiny)
 ## Converting an existing app
 
 Converting an app to a package requires a small amount of work.
-Follow these steps to create a package.
-I'm assuming that your app is called `myApp` and it already lives in a directory called `myApp/`.
+Assuming that you have an app called `myApp` and it already lives in a directory called `myApp/`, you'll need to do the following things:
 
--   If it doesn't exist already, create an `R` directory.
+-   If it doesn't exist already, create an `R` directory and move `app.R` into it.
 
--   Move `app.R` into `R/` and wrap the existing call to `shinyApp()` in a function called `myApp()`:
+-   You'll then transform the app into a standalone function by wrapping
 
     ```{r}
+    library(shiny)
+
     myApp <- function(...) {
-      # Plus other stuff that was previously in app.R
-      # Hopefully refactored in a few function calls
-      
-      # Supress Shiny's auto-load behaviour
-      old <- options(shiny.autoload.r = FALSE)
-      on.exit(options(old), add = TRUE)  
-      
+      ui <- function(request) {
+        fluidPage(...)
+      }
+      server <- function(input, output, session) {
+      }
       shinyApp(ui, server, ...)
     }
     ```
 
--   If you're deploying your app (not just running it locally), you'll need to a add a new `app.R` that tells the deployment server how you run your app.
+-   If you have any calls to `source()`, you can now remove them as the package load process will take care of them for you.
+
+-   If you are loading datasets using `read.csv()` or similar, you can instead use `usethis::use_data(mydataset)` to save the data in the `data/` directory.
+    The package load process will automatically make this data available to you.
+
+-   Call `usethis::use_description()` to create a description file.
+    In many cases, you'll never need to look at this file, but you need it to activate RStudio's "package development mode" which provides the keyboard shortcuts we'll use later.
+
+-   If you don't already have one, create an RStudio project file by calling `usethis::use_rstudio()`.
+
+-   Restart RStudio.
+
+To make this concrete, we'll next work through a simple case study before coming back to the benefits of this work in Section \@ref(package-workflow).
+
+### Single file
+
+Imagine I have a relatively complex app that currently lives in a single `app.R`:
+
+```{r, message = FALSE}
+library(shiny)
+
+monthFeedbackUI <- function(id) {
+  textOutput(NS(id, "feedback"))
+}
+monthFeedbackServer <- function(id, month) {
+  stopifnot(is.reactive(month))
+  
+  moduleServer(id, function(input, output, session) {
+    output$feedback <- renderText({
+      if (month() == "October") {
+        "You picked a great month!"
+      } else {
+        "Eh, you could do better."
+      }
+    })
+  })
+}
+
+stones <- vroom::vroom("birthstones.csv")
+birthstoneUI <- function(id) {
+  p(
+    "The birthstone for ", textOutput(NS(id, "month"), inline = TRUE),
+    " is ", textOutput(NS(id, "stone"), inline = TRUE)
+  )
+}
+birthstoneServer <- function(id, month) {
+  stopifnot(is.reactive(month))
+  
+  moduleServer(id, function(input, output, session) {
+    stone <- reactive(stones$stone[stones$month == month()])
+    output$month <- renderText(month())
+    output$stone <- renderText(stone())
+  })
+}
+
+months <- c(
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December"
+)
+ui <- navbarPage(
+  "Sample app",
+  tabPanel("Pick a month",
+    selectInput("month", "What's your favourite month?", choices = months)
+  ),
+  tabPanel("Feedback", monthFeedbackUI("tab1")),
+  tabPanel("Birthstone", birthstoneUI("tab2"))
+)
+server <- function(input, output, session) {
+  monthFeedbackServer("tab1", reactive(input$month))
+  birthstoneServer("tab2", reactive(input$month))
+}
+shinyApp(ui, server)
+```
+
+This code creates simple three page app that uses modules to keep the pages isolated.
+It's a toy app, but it's still realistic --- the main difference compared to a real app is that here the individual UI and server components are much simpler.
+
+### Module files
+
+Before turning it into a package, my first step is to pull the two modules out into their own files following the advice in Section \@ref(naming-conventions):
+
+-   `R/monthFeedback.R`
+
+    ```{r}
+    monthFeedbackUI <- function(id) {
+      textOutput(NS(id, "feedback"))
+    }
+    monthFeedbackServer <- function(id, month) {
+      stopifnot(is.reactive(month))
+      
+      moduleServer(id, function(input, output, session) {
+        output$feedback <- renderText({
+          if (month() == "October") {
+            "You picked a great month!"
+          } else {
+            "Eh, you could do better."
+          }
+        })
+      })
+    }
+    ```
+
+-   `R/birthstone.R`
+
+    ```{r}
+    birthstoneUI <- function(id) {
+      p(
+        "The birthstone for ", textOutput(NS(id, "month"), inline = TRUE),
+        " is ", textOutput(NS(id, "stone"), inline = TRUE)
+      )
+    }
+    birthstoneServer <- function(id, month) {
+      stopifnot(is.reactive(month))
+      
+      moduleServer(id, function(input, output, session) {
+        stone <- reactive(stones$stone[stones$month == month()])
+        output$month <- renderText(month())
+        output$stone <- renderText(stone())
+      })
+    }
+    ```
+
+That leaves me with the following `app.R`:
+
+```{r}
+library(shiny)
+
+stones <- vroom::vroom("birthstones.csv")
+months <- c(
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December"
+)
+
+ui <- navbarPage(
+  "Sample app",
+  tabPanel("Pick a month",
+    selectInput("month", "What's your favourite month?", choices = months)
+  ),
+  tabPanel("Feedback", monthFeedbackUI("tab1")),
+  tabPanel("Birthstone", birthstoneUI("tab2"))
+)
+server <- function(input, output, session) {
+  monthFeedbackServer("tab1", reactive(input$month))
+  birthstoneServer("tab2", reactive(input$month))
+}
+shinyApp(ui, server)
+```
+
+Even this simple change is useful because it helps me understand the big picture of the app.
+If instead I want to dive into the details, I can look at the code for the individual modules.
+
+### A package
+
+Now let's make this into a package.
+First I run `usethis::use_description()`, which creates a `DESCRIPTION` file.
+Next, I move `app.R` to `R/app.R` and wrap `shinyApp()` into a function:
+
+```{r}
+library(shiny)
+
+monthApp <- function(...) {
+  stones <- vroom::vroom("birthstones.csv")
+  months <- c(
+    "January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December"
+  )
+  
+  ui <- navbarPage(
+    "Sample app",
+    tabPanel("Pick a month",
+      selectInput("month", "What's your favourite month?", choices = months)
+    ),
+    tabPanel("Feedback", monthFeedbackUI("tab1")),
+    tabPanel("Birthstone", birthstoneUI("tab2"))
+  )
+  server <- function(input, output, session) {
+    monthFeedbackServer("tab1", reactive(input$month))
+    birthstoneServer("tab2", reactive(input$month))
+  }
+  shinyApp(ui, server, ...)
+}
+```
+
+As an optional extra, I convert `birthstones.csv` to a package dataset by running `usethis::use_data("birthstones")`.
+This creates `data/birthstones.rda`, which will be loaded automatically when loading the package.
+I can now delete `birthstones.csv` and remove the line that reads it in: `stones <- vroom::vroom("birthstones.csv")`.\`
+
+## Benefits {#package-workflow}
+
+Why bother doing all this work?
+The most important benefit is a new workflow that makes it easier accurately re-load all app code and relaunch the app.
+But it also makes it easier to share code between apps and share your app with others.
+
+### Workflow
+
+Putting your app code into the package structure unlocks a new workflow:
+
+-   Re-load all code in the app with `Cmd/Ctrl + Shift + L`.
+    This calls `devtools::load_all()` which automatically saves all open files, `source()`s every file in `R/`, loads all datasets in `data/` then puts your cursor in the console.
+
+-   Re-run the app with `myApp()`.
+
+As your app grows bigger, it's also worth knowing about the two most important code navigation keyboard shortcuts:
+
+-   `Ctrl/Cmd + .` will open the "fuzzy file and function finder" --- type a few letters at the start of the file or function that you want to navigate to, select it with the arrow keys and then press enter.
+    This allows you to quickly jump around your app without taking your hands off the keyboard.
+
+-   When your cursor is on the name of function, `F2` will jump to the function definition.
+
+If you do a lot of package development, you might want to automatically load usethis, so you can type (e.g.) `use_description()` instead of `usethis::use_description()`.
+You can do so by adding the following lines to your `.Rprofile`.
+This file contains R code that's run whenever you start R, so it's a great way to customise your interactive development environment.
+
+```{r, eval = FALSE}
+if (interactive()) {
+  require(usethis, quietly = TRUE)
+}
+```
+
+The easiest was to find and open your `.Rprofile` is to run `usethis::edit_r_profile()`.
+
+### Sharing
+
+Since your app is now wrapped up in a function, it's easy to include multiple apps in the same package.
+And because you have multiple apps in the same place, it's now much easier to share code and data across apps.
+That's a huge benefit if you have a bunch of apps for related tasks.
+
+Packages are also a great way to share apps.
+Shinyapps.io and RStudio connect are great way to share apps with folks who aren't familiar with R.
+But sometimes you want to share apps with your colleagues who do use R --- maybe instead of allowing the user to upload a dataset, you want to provide them with a function that they call with a dataset.
+For example, the following very simple app allows the R user to supply their own dataframe for interactive summaries.
+
+```{r}
+dataSummaryApp <- function(df) {
+  ui <- fluidPage(
+    selectInput("var", "Variable", choices = names(df)),
+    verbatimTextOutput("summary")
+  )
+  
+  server <- function(input, output, session) { 
+    output$summary <- renderPrint({
+      summary(df[[input$var]])
+    })
+  }
+  
+  shinyApp(ui, server)
+}
+```
+
+[RStudio Gadgets](https://shiny.rstudio.com/articles/gadgets.html) build on this idea: they are Shiny apps that let you add new user interface to the RStudio IDE. It's even possible to write gadgets that generate code, so you can perform some task that's easy to do interactively, and the gadget generates the corresponding code and saves back into the open file.
+
+## Extra steps
+
+There are two common extra steps you might take beyond the basics: making it easy to deploy your app-package, and turning it into a "real" package.
+
+### Deploying your app-package
+
+If you want to deploy your app to RStudio Connect or Shiny[^scaling-packages-1] you'll need two extra steps:
+
+[^scaling-packages-1]: I'd expect most other ways of deploying Shiny apps would also work since `app.R` is the most common way of structuring apps.
+
+-   You'll need an `app.R` that tells the deployment server how to run your app.
     The easiest way is to load the code with pkgload:
 
     ```{r, eval = FALSE}
@@ -63,49 +324,26 @@ I'm assuming that your app is called `myApp` and it already lives in a directory
 
     (You can see other techniques at <https://engineering-shiny.org/deploy.html>).
 
--   Call `usethis::use_description()` to create a description file.
-    You don't have to even look at or touch this file (although you need to if you want to make a full package), but you need to have it to activate RStudio's "package development mode" which provides the keyboard shortcuts we'll use later.
+-   Normally when you deploy an app, the rsconnect package automatically figures out all of the packages your code uses.
+    But now that you have a `DESCRIPTION` file, it requires you to explicitly specify them.
+    The easiest way to do this is to call `usethis::use_package()`.
+    You'll need to start with shiny and pkgload:
 
--   Remove any calls to `source()` or `shiny::loadSupport()`.
-    The package code loading process now takes care of these.
+    ```{r}
+    usethis::use_package("shiny")
+    usethis::use_package("pkgload")
+    ```
 
--   Restart RStudio.
+Now, whenever you ready to share an update version of your app with your users, you can run `rsconnect::deployApp()`.
 
-This gives your app the basic structure of a package, which enables some useful keyboard shortcuts that we'll talk about next.
-It's possible to turn your app in to a "real" package, which means that it passes the automated `R CMD check`.
-That's not essential, but it can be useful if you're sharing with others.
+### `R CMD check`
 
-## Workflow {#package-workflow}
+A minimal package contains an `R/` directory, a `DESCRIPTION` file, and a function to run your app.
+This is already useful because it unlocks some useful workflows to speed up app development.
+In the next chapter, we'll see the most powerful workflows --- the ability to do automated testing.
+But there's one other technique you might want to use: the automated checks provided by `R CMD check`.
 
-Putting your app code into the package structure unlocks a new workflow:
-
--   Re-load all code in the app with `cmd/ctrl + shift + L`.
-    This calls `devtools::load_all()` which automatically saves all open files, `source()`s every file in `R/`, then puts your cursor in the console.
-
--   Re-run the app with `myApp()`.
-
-As your app grows bigger, it's also worth remembering the keyboard shortcuts you have available to navigate your code:
-
--   `Ctrl/Cmd + .` will open the "fuzzy file and function finder" --- type a few letters at the start of the file or function that you want to navigate to, select it with the arrow keys and then press enter.
-    This allows you to quickly jump around your app without taking your hands off the keyboard.
-
--   When your cursor is on the name of function `F2` will jump to the function definition.
-
-If you do a lot of package development, we recommend making a couple of small additions to your `.Rprofile`:
-
-``` {.r}
-if (interactive()) {
-  suppressMessages(suppressWarnings(require(usethis)))
-  suppressMessages(suppressWarnings(require(testthat)))
-}
-```
-
-This file contains R code that's run whenever you start R, so it's a great way to customise your interactive development environment.
-You can open it by running `usethis::edit_r_profile()`.
-
-## `R CMD check`
-
-To make a "real" package use use `Cmd/Ctrl + Shift + E` to repeatedly call `R CMD check` and fix all the problems that you find.
+I think this is what makes a serious package --- you care enough about the package conventions to repeatedly use `Cmd/Ctrl + Shift + E` to call `R CMD check` and fix all the problems that you find.
 `R CMD check` is R's tool for checking compliance to the package standard.
 It's a lot of work to get it to pass and there's little pay off in the short term.
 But in the long-term this will protect you against a number of potential problems, and because it ensures your app adheres to standards that R developers are familiar with, it makes it easier for others to contribute to your app.
@@ -114,31 +352,24 @@ I don't recommend that you do this the first time, the second time, or even the 
 Instead, I recommend that you get familiar with the basic structure and workflow before you take the next step to make a fully compliant package.
 It's also something I'd generally reserve for important apps, particularly any app that will be deployed elsewhere.
 
-Before you make your first full app-package, I recommend read [The whole game](https://r-pkgs.org/whole-game.html) chapter of *R packages*: that will give you a sense of the fuller package structure, and basic workflows that you will use.
+Before you make your first full app-package, you'll need to read "[The whole game](https://r-pkgs.org/whole-game.html)" chapter of *R packages*: it will give you a fuller sense of the package structure, and introduce you to other useful workflows.
 Then use the following hints to get `R CMD check` passing cleanly:
 
--   Ensure that your app/directory name is a valid package name.
-    A package name can't contain `-`.
-
 -   Remove any calls to `library()` or `require()` and instead replace them with a declaration in your `DESCRIPTION`.
-    `usethis::use_package("name")` to add the required package to the `DESCRIPTION`[^scaling-packages-1].
+    `usethis::use_package("name")` to add the required package to the `DESCRIPTION`[^scaling-packages-2].
     You'll then need to decide whether you want to refer to each function explicitly with `::`, or use `@importFrom packageName functionName` to declare the import in one place.
 
     At a minimum, you'll need `usethis::use_package("shiny")`, and for Shiny apps, I recommend using `@import shiny` to make all the functions in the Shiny package easily available.
     (Using `@import` is not generally consider best practice, but it makes sense here).
 
 -   Pick a license and then use the appropriate `use_license_` function to put it in the right place.
-    If you code is proprietary, not open source, use `usethis::use_proprietary_license()`.
-    See <https://r-pkgs.org/license.html> for more details.
+    For proprietary code you can use `usethis::use_proprietary_license()`.
+    See <https://r-pkgs.org/license.html> for more details of licensing.
 
 -   Add `app.R` to `.Rbuildignore` with `usethis::use_build_ignore("app.R")` or similar.
 
 -   If your app contains small reference datasets, put them in `data` or `inst/extdata`.
-
-    The advantage of `data/` is that it's stored in `.rda` format, which is faster to load, and is loaded lazily so if it's not used by the app, it's not loaded in memory.
-    You can create `data/` files in the correct format with `usethis::use_data()`.
-    Learn more in <https://r-pkgs.org/data.html>.
-
+    We discussed `usethis::use_data()` above --- it's nice because it's stored in `.rda` format, which is faster to load, and is loaded lazily so if it's not used by the app, it's not loaded in memory.
     Alternatively, you can put raw data in `inst/ext` and load it with `read.csv(system.file("exdata", "mydata.csv", package = "myApp"))` or similar.
 
 -   You can also change your `app.R` to use the package.
@@ -146,37 +377,17 @@ Then use the following hints to get `R CMD check` passing cleanly:
     For public work this means a CRAN or GitHub package; for private work this may mean using a tool like [RStudio Package Manager](https://rstudio.com/products/package-manager/) or [drat](https://github.com/eddelbuettel/drat).
 
     ```{r, eval = FALSE}
-    library(myApp)
     myApp::myApp()
     ```
 
-[^scaling-packages-1]: The distinction between Imports and Suggests is not generally important for app packages.
+[^scaling-packages-2]: The distinction between Imports and Suggests is not generally important for app packages.
     If you do want to make a distinction, the most useful is to use Imports for packages that need to be present on the deployment machine (in order for the app to work) and Suggests for packages that need to be present on the development machine (in order to develop the app).
 
-## The whole game
+## Summary
 
-Let's apply all these steps to turn a simple app into a package:
-
-```{r}
-library(shiny)
-
-load_file <- function(name, path) {
-  ext <- tools::file_ext(name)
-  switch(ext,
-    csv = vroom::vroom(path, delim = ","),
-    tsv = vroom::vroom(path, delim = "\t"),
-    validate("Invalid file; Please upload a .csv or .tsv file")
-  )
-}
-
-# Needs function
-# Needs dataset
-
-ui <- fluidPage(
-  
-)
-server <- function(input, output, session) {
-  
-}
-shinyApp(ui, server)
-```
+In this chapter, you've dipped your toes into the water of package development.
+This might seem overwhelming if you think of packages like ggplot2 and shiny, but packages can be very very simple.
+In fact, all a project needs to be a package is a directory of R files and a `DESCRIPTION` file.
+A package is just a lightweight set of convention that unlock useful tools and workflows.
+In this chapter, you learned how to turn an app into a package and some of the reasons you might want to.
+In the next chapter, you'll learn more about what I think is the most important reason to turn your app into a package: to make it easier to test.
