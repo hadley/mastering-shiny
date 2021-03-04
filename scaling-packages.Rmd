@@ -329,7 +329,7 @@ If you want to deploy your app to RStudio Connect or Shiny[^scaling-packages-1] 
     The easiest way to do this is to call `usethis::use_package()`.
     You'll need to start with shiny and pkgload:
 
-    ```{r}
+    ```{r, eval = FALSE}
     usethis::use_package("shiny")
     usethis::use_package("pkgload")
     ```
