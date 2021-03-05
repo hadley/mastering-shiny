@@ -629,3 +629,9 @@ Here are four tips that can be used in many apps:
 This chapter has given you the tools to precise measure and improve the performance of any shiny app.
 You learned about shinyloadtest to measure the performance, using shinycannon to simulate multiple users working with your app the at same time.
 Then you learned how to use profvis to find the single most expensive operation, and a grab-bag of techniques that you can use to improve it.
+
+This is the last chapter in Mastering Shiny --- thank your for making it all the way to the end!
+I hope you have found the book useful, and that the skills I have given you help you produce many compelling Shiny apps.
+I'd love to hear if you've found the book useful, or if there's anything that you think could be improved in the future.
+The best way to get in touch is twitter, [\@hadleywickham](https://twitter.com/hadleywickham), or Github, <https://github.com/hadley/mastering-shiny/>.
+Thanks again for reading, and best wishes for your future Shiny apps!
