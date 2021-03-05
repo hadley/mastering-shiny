@@ -23,53 +23,53 @@ chapters %>% walk(
 )
 
 # Convert from md to asciidoc ---------------------------------------------
-
-replace_lines <- function(file, pattern, replacement, comments = FALSE) {
-  str_replace_all(file, regex(pattern, multiline = TRUE, comments = comments), replacement)
-}
-
-# Regular expressions mostly contributed by Nicholas Adams, O'Reilly
-md2asciidoc <- function(file) {
-  # Headings with and without ids
-  file <- replace_lines(file, r"(
-    ^\#\ \(PART\\\*\) # standard part marker
-    (.*?)\            # title
-    \{\#
-      ([-a-zA-Z]+)         # id
-      (\ .unnumbered)?
-    \}
-    )", "[part]\n== \\1", comments = TRUE)
-  file <- replace_lines(file, '(^# )(.*?)(\\{#)(.*?)(\\})', '[[\\4]]\n== \\2')     # Chapter heading with ID
-  file <- replace_lines(file, '(^# )(.*?)(\\{#)(.*?)(\\})', '[[\\4]]\n== \\2')     # Chapter heading with ID
-  file <- replace_lines(file, '(^## )(.*?)(\\{#)(.*?)(\\})', '[[\\4]]\n=== \\2')   # A-Head with ID
-  file <- replace_lines(file, '(^## )(.*?)', '=== \\2')                            # A-Head no ID
-  file <- replace_lines(file, '(^### )(.*?)(\\{#)(.*?)(\\})', '[[\\4]]\n==== \\2') # B-Head with ID
-  file <- replace_lines(file, '(^### )(.*?)', '==== \\2')                          # B-Head no ID
-
-  # Code blocks
-  file <- replace_lines(file, '(^ *)(```)(.*?)(\n)((.|\n)*?)(```)', '\\1[source,\\3]\n\\1----\n\\5----')
-
-  # Figures
-  file <- replace_lines(file, '(<img src=")(.*?)(")(.*?)(/>)(\n)(<p class="caption">)\n(.*?)\n(</p>)', '.\\8\nimage::\\2["\\8"]')
-  file <- replace_lines(file, '(<img src=")(.*?)(")(.*?)(/>)', 'image::\\2[]')
-  file <- replace_lines(file, '(::: \\{.figure\\})((.|\n)*?)(:::)', '\\2') # Remove figures
-
-  # Cross refs
-  file <- replace_lines(file, '(Section )(\\\\@ref\\()(.*?)(\\))', '<<\\3>>') # Section
-  file <- replace_lines(file, '(Chapter )(\\\\@ref\\()(.*?)(\\))', '<<\\3>>') # Chapter
-  file <- replace_lines(file, '(Figure )(\\\\@ref\\()(fig:)(.*?)(\\))', '<<fig-\\4>>') # Figures
-
-  # Other formatting
-  file <- replace_lines(file, '(::: \\{.rmdnote\\})((.|\n)*?)(:::)', '****\\2****') # Sidebar
-  file <- replace_lines(file, '(<https:)(.*?)(>)', 'https:\\2[]') # Links
-  file <- replace_lines(file, '(\\[.*?\\])(\\()(https?:)(.*?)(\\))', '\\3\\4\\1') # Links with anchor text
-  file <- replace_lines(file, '(\\[\\^.*?\\])((.|\n)*?)(\\1: )(.*?)(\n)', 'footnote:[\\5]\\2') # Footnotes
-  file
-}
-
-asciidoc <- chapters_md %>% map(~ md2asciidoc(read_file(.)))
-
-walk2(asciidoc, path_ext_set(chapters_md, ".asciidoc"), write_file)
+#
+# replace_lines <- function(file, pattern, replacement, comments = FALSE) {
+#   str_replace_all(file, regex(pattern, multiline = TRUE, comments = comments), replacement)
+# }
+#
+# # Regular expressions mostly contributed by Nicholas Adams, O'Reilly
+# md2asciidoc <- function(file) {
+#   # Headings with and without ids
+#   file <- replace_lines(file, r"(
+#     ^\#\ \(PART\\\*\) # standard part marker
+#     (.*?)\            # title
+#     \{\#
+#       ([-a-zA-Z]+)         # id
+#       (\ .unnumbered)?
+#     \}
+#     )", "[part]\n== \\1", comments = TRUE)
+#   file <- replace_lines(file, '(^# )(.*?)(\\{#)(.*?)(\\})', '[[\\4]]\n== \\2')     # Chapter heading with ID
+#   file <- replace_lines(file, '(^# )(.*?)(\\{#)(.*?)(\\})', '[[\\4]]\n== \\2')     # Chapter heading with ID
+#   file <- replace_lines(file, '(^## )(.*?)(\\{#)(.*?)(\\})', '[[\\4]]\n=== \\2')   # A-Head with ID
+#   file <- replace_lines(file, '(^## )(.*?)', '=== \\2')                            # A-Head no ID
+#   file <- replace_lines(file, '(^### )(.*?)(\\{#)(.*?)(\\})', '[[\\4]]\n==== \\2') # B-Head with ID
+#   file <- replace_lines(file, '(^### )(.*?)', '==== \\2')                          # B-Head no ID
+#
+#   # Code blocks
+#   file <- replace_lines(file, '(^ *)(```)(.*?)(\n)((.|\n)*?)(```)', '\\1[source,\\3]\n\\1----\n\\5----')
+#
+#   # Figures
+#   file <- replace_lines(file, '(<img src=")(.*?)(")(.*?)(/>)(\n)(<p class="caption">)\n(.*?)\n(</p>)', '.\\8\nimage::\\2["\\8"]')
+#   file <- replace_lines(file, '(<img src=")(.*?)(")(.*?)(/>)', 'image::\\2[]')
+#   file <- replace_lines(file, '(::: \\{.figure\\})((.|\n)*?)(:::)', '\\2') # Remove figures
+#
+#   # Cross refs
+#   file <- replace_lines(file, '(Section )(\\\\@ref\\()(.*?)(\\))', '<<\\3>>') # Section
+#   file <- replace_lines(file, '(Chapter )(\\\\@ref\\()(.*?)(\\))', '<<\\3>>') # Chapter
+#   file <- replace_lines(file, '(Figure )(\\\\@ref\\()(fig:)(.*?)(\\))', '<<fig-\\4>>') # Figures
+#
+#   # Other formatting
+#   file <- replace_lines(file, '(::: \\{.rmdnote\\})((.|\n)*?)(:::)', '****\\2****') # Sidebar
+#   file <- replace_lines(file, '(<https:)(.*?)(>)', 'https:\\2[]') # Links
+#   file <- replace_lines(file, '(\\[.*?\\])(\\()(https?:)(.*?)(\\))', '\\3\\4\\1') # Links with anchor text
+#   file <- replace_lines(file, '(\\[\\^.*?\\])((.|\n)*?)(\\1: )(.*?)(\n)', 'footnote:[\\5]\\2') # Footnotes
+#   file
+# }
+#
+# asciidoc <- chapters_md %>% map(~ md2asciidoc(read_file(.)))
+#
+# walk2(asciidoc, path_ext_set(chapters_md, ".asciidoc"), write_file)
 
 # Copy over images ------------------------------------------------------------
 

@@ -1,2 +1,0 @@
-[part]
-==  Best practices
