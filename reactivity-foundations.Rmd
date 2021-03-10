@@ -294,7 +294,7 @@ These are rarely needed but good to know about so that you can look up the detai
 ## Timed invalidation {#timed-invalidation-adv}
 
 `isolate()` reduce the times the reactive graph is invalidated.
-This topic of this ssection, `invalidateLater()` does the opposite: it lets you invalidate the reactive graph when no data has changed.
+This topic of this section, `invalidateLater()` does the opposite: it lets you invalidate the reactive graph when no data has changed.
 You saw an example of this in Section \@ref(timed-invalidation) with `reactiveTimer()`, but the time has come to discuss the underlying tool that powers it: `invalidateLater()`.
 
 `invalidateLater(ms)` causes any reactive consumer to be invalidated in the future, after `ms` milliseconds.
