@@ -176,7 +176,7 @@ y(5)
 y(4)
 ```
 
-I rarely use `observe()` in this book, because it's the low-level tool the powers the user-friendly `observeEvent()`.
+I rarely use `observe()` in this book, because it's the low-level tool that powers the user-friendly `observeEvent()`.
 Generally, you should stick with `observeEvent()` unless it's impossible to get it to do what you want.
 In this book, I'll only show you one case where `observe()` is necessary, Section \@ref(pausing-animations).
 
