@@ -20,7 +20,7 @@ library(tidyverse)
 
 We're going to explore data from the National Electronic Injury Surveillance System (NEISS), collected by the Consumer Product Safety Commission.
 This is a long-term study that records all accidents seen in a representative sample of hospitals in the United States.
-It's an interesting dataset to explore because every one is already familiar with the domain, and each observation is accompanied by a short narrative that explains how the accident occurred.
+It's an interesting dataset to explore because everyone is already familiar with the domain, and each observation is accompanied by a short narrative that explains how the accident occurred.
 You can find out more about this dataset at https://github.com/hadley/neiss[].
 
 In this chapter, I'm going to focus on just the data from 2017.
@@ -51,7 +51,9 @@ Each row represents a single accident with 10 variables:
 
 -   `age`, `sex`, and `race` give demographic information about the person who experienced the accident.
 
--   `body_part` is the location of the injury on the body (like ankle or ear); `location` is the place where the accident occurred (like home or school).
+-   `body_part` is the location of the injury on the body (like ankle or ear). 
+
+-   `location` is the place where the accident occurred (like home or school).
 
 -   `diag` gives the basic diagnosis of the injury (like fracture or laceration).
 
