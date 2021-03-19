@@ -53,7 +53,7 @@ fluidPage(
 )
 ```
 
-Even though you haven't these functions yet, you can see guess what's going on by reading their names.
+Even though you haven't these functions yet, you can guess what's going on by reading their names.
 You might imagine that this code will generate a classic app design: a title bar at top, followed by a sidebar (containing a slider) and main panel (containing a plot).
 The ability to easily see hierarchy through indentation is one of the reasons it's a good idea to use a consistent style.
 
@@ -489,7 +489,7 @@ fluidPage(
 </div>
 ```
 
-Note that this is the contents of the `<body>` tag; other parts of Shiny take take of generating the `<head>`.
+Note that this is the contents of the `<body>` tag; other parts of Shiny take care of generating the `<head>`.
 If you want to include additional CSS or JS dependencies you'll need to learn `htmltools::htmlDependency()`.
 Two good places to start are <https://blog.r-hub.io/2020/08/25/js-r/#web-dependency-management> and <https://unleash-shiny.rinterface.com/htmltools-dependencies.html>.
 
@@ -516,7 +516,7 @@ If you're a HTML/CSS expert, you might be interested to know that can skip `flui
 See "[Build your entire UI with HTML](https://shiny.rstudio.com/articles/html-ui.html)" for more details.
 
 Alternatively, you can use of the HTML helper that Shiny provides.
-There are regular functions for the most important elements like `h1()` and `p()`, and all others can be accessed via the the tags helper.
+There are regular functions for the most important elements like `h1()` and `p()`, and all others can be accessed via the other tags helper.
 Named arguments become attributes and unnamed arguments become children, so we can recreate the above HTML as:
 
 ```{r}

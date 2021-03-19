@@ -176,7 +176,7 @@ y(5)
 y(4)
 ```
 
-I rarely use `observe()` in this book, because it's the low-level tool the powers the user-friendly `observeEvent()`.
+I rarely use `observe()` in this book, because it's the low-level tool that powers the user-friendly `observeEvent()`.
 Generally, you should stick with `observeEvent()` unless it's impossible to get it to do what you want.
 In this book, I'll only show you one case where `observe()` is necessary, Section \@ref(pausing-animations).
 
@@ -258,9 +258,9 @@ Like `observe()`, a lot of the time you don't need to use `isolate()` directly b
 When you saw the code above, you might have remembered Section \@ref(observers) and wondered why I didn't use `observeEvent()`:
 
 ```{r, eval = FALSE}
-observeEvent(x(), {
-  count(count() + 1)
-})
+observeEvent(r$x, { 
+  r$count <- r$count + 1 
+}) 
 ```
 
 And indeed, I could have because `observeEvent(x, y)` is equivalent to `observe({x; isolate(y)})`.
@@ -293,7 +293,7 @@ These are rarely needed but good to know about so that you can look up the detai
 
 ## Timed invalidation {#timed-invalidation-adv}
 
-`isolate()` reduce the times the reactive graph is invalidated.
+`isolate()` reduces the time the reactive graph is invalidated.
 This topic of this section, `invalidateLater()` does the opposite: it lets you invalidate the reactive graph when no data has changed.
 You saw an example of this in Section \@ref(timed-invalidation) with `reactiveTimer()`, but the time has come to discuss the underlying tool that powers it: `invalidateLater()`.
 
@@ -324,7 +324,7 @@ In the following sections you'll learn how to use `invalidateLater()` to read ch
 
 ### Polling
 
-A useful application of `invalidateLater()` is connect Shiny to data that is changing outside of R.
+A useful application of `invalidateLater()` is to connect Shiny to data that is changing outside of R.
 For example, you could use the following reactive to re-read a csv file every second:
 
 ```{r}

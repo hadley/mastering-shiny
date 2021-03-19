@@ -240,8 +240,8 @@ monthApp <- function(...) {
 }
 ```
 
-As an optional extra, I converted `birthstones.csv` to a package dataset by running `usethis::use_data("birthstones")`.
-This creates `data/birthstones.rda`, which will be loaded automatically when I load the package.
+As an optional extra, I converted `birthstones.csv` to a package dataset by running `usethis::use_data(stones)`.
+This creates `data/stones.rda`, which will be loaded automatically when I load the package.
 I can now delete `birthstones.csv` and remove the line that reads it in: `stones <- vroom::vroom("birthstones.csv")`.
 
 You can see the final product at <https://github.com/hadley/monthApp>.
@@ -359,7 +359,7 @@ It's also something I'd generally reserve for important apps, particularly any a
 It can be a lot of work to get `R CMD check` passing, and there's little pay off in the short term.
 But in the long-term this will protect you against a number of potential problems, and because it ensures your app adheres to standards that R developers are familiar with, it makes it easier for others to contribute to your app.
 
-Before you make your first full app-package, you'll should read "[The whole game](https://r-pkgs.org/whole-game.html)" chapter of *R packages*: it will give you a fuller sense of the package structure, and introduce you to other useful workflows.
+Before you make your first full app-package, you should read "[The whole game](https://r-pkgs.org/whole-game.html)" chapter of *R packages*: it will give you a fuller sense of the package structure, and introduce you to other useful workflows.
 Then use the following hints to get `R CMD check` passing cleanly:
 
 -   Remove any calls to `library()` or `require()` and instead replace them with a declaration in your `DESCRIPTION`.
