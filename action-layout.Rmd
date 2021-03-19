@@ -53,7 +53,7 @@ fluidPage(
 )
 ```
 
-Even though you haven't these functions yet, you can see guess what's going on by reading their names.
+Even though you haven't these functions yet, you can guess what's going on by reading their names.
 You might imagine that this code will generate a classic app design: a title bar at top, followed by a sidebar (containing a slider) and main panel (containing a plot).
 The ability to easily see hierarchy through indentation is one of the reasons it's a good idea to use a consistent style.
 
