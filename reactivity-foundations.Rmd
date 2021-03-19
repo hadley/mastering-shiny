@@ -4,7 +4,7 @@
 source("common.R")
 ```
 
-Now that you have the theory underpinning the reactive graph and you've got some practical experience, so now is a good time to talk in more detail about reactivity fits into R the programming language.
+Now that you understand the theory underpinning the reactive graph and you have some practical experience, it is a good time to talk in more detail about how reactivity fits into R the programming language.
 There are three fundamental building blocks of reactive programming: reactive values, reactive expressions, and observers.
 You've already seen most of the important parts of reactive values and expressions, so this chapter will spend more time on observers and outputs (which as you'll learn are a special type of observer).
 You'll also learn two other tools for controlling the reactive graph: isolation and timed invalidation.
@@ -75,7 +75,7 @@ These are a little different to the `reactiveValues()` that you create yourself 
     l2 <- list(a = reactiveVal(1), b = reactiveVal(2))
     ```
 
-2.  Design and perform a small experiment to verify that `reactiveValue()` also has reference semantics.
+2.  Design and perform a small experiment to verify that `reactiveVal()` also has reference semantics.
 
 ## Reactive expressions
 
