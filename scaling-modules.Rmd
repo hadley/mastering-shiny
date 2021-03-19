@@ -271,8 +271,8 @@ This base name is then used in a variety of places:
 
         ${1}Server <- function(id) {
           moduleServer(id, function(input, output, session) {
-            ${3} 
-          }
+            ${3}
+          })
         }
 
 ## Inputs and outputs
