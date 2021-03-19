@@ -240,8 +240,8 @@ monthApp <- function(...) {
 }
 ```
 
-As an optional extra, I converted `birthstones.csv` to a package dataset by running `usethis::use_data("birthstones")`.
-This creates `data/birthstones.rda`, which will be loaded automatically when I load the package.
+As an optional extra, I converted `birthstones.csv` to a package dataset by running `usethis::use_data(stones)`.
+This creates `data/stones.rda`, which will be loaded automatically when I load the package.
 I can now delete `birthstones.csv` and remove the line that reads it in: `stones <- vroom::vroom("birthstones.csv")`.
 
 You can see the final product at <https://github.com/hadley/monthApp>.
