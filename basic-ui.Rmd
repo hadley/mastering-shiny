@@ -449,7 +449,7 @@ These require new techniques in the server function, so we'll come back to that 
 
     c.  `renderPrint(t.test(1:5, 2:6))`
 
-    d.  `renderText(str(lm(mpg ~ wt, data = mtcars)))`
+    d.  `renderPrint(str(lm(mpg ~ wt, data = mtcars)))`
 
 2.  Re-create the Shiny app from Section \@ref(plots), this time setting height to 300px and width to 700px.
     Set the plot "alt" text so that a visually impaired user can tell that its a scatterplot of five random numbers.
