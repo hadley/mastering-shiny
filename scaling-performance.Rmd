@@ -7,7 +7,7 @@ options(tibble.print_min = 6, tibble.print_max = 6)
 
 A Shiny app can support thousands or tens of thousands of users, if developed the right way.
 But most Shiny apps are quickly thrown together to solve a pressing analytic need, and typically begin life with poor performance.
-This is a feature of Shiny: its allows you to quickly prototype a proof of concept that works for you, before figuring out how to make it fast so many people can use it simultaneously.
+This is a feature of Shiny: it allows you to quickly prototype a proof of concept that works for you, before figuring out how to make it fast so many people can use it simultaneously.
 Fortunately, it's generally straightforward to get 10-100x performance with a few simple tweaks.
 This chapter will show you how.
 
@@ -53,7 +53,7 @@ Adding more resources allow a server to run more processes is called scaling **u
 
 [^scaling-performance-3]: Or vertical scaling
 
-At some point, you'll have crammed as many chefs into your restaurant as you possibly can and its still not enough to meet demand.
+At some point, you'll have crammed as many chefs into your restaurant as you possibly can and it's still not enough to meet demand.
 At that point, you'll need to build more restaurants.
 This is called scaling **out**[^scaling-performance-4], and for Shiny it means using multiple servers.
 Scaling out allows you to handle any number of customers, as long as you can pay the infrastructure costs.
@@ -281,7 +281,7 @@ knitr::include_graphics("diagrams/scaling-performance/collapsed.png", dpi = 300)
 This is a flame graph!
 It's easy to see both how long `f()` takes to run, and why it takes that long, i.e. where its time is spend.
 
-You might wonder why it's a called a flame graph.
+You might wonder why it's called a flame graph.
 Most flame graphs in the wild are randomly coloured with "warm" colours, meant evoke the idea of the computer running "hot".
 However, since those colours don't add any additional information, we usually omit them and stick to black and white.
 You can learn more about this colour scheme, alternatives, and the history of flame graphs in "[The Flame Graph](https://queue.acm.org/detail.cfm?id=2927301){.uri}[@flame-graph]".
@@ -520,7 +520,7 @@ The defaults are carefully chosen to "just work" in most cases, but if needed yo
 ### Cache key
 
 It's worth talking briefly about the cache key: the set of values used to figure out whether or not the computation has been previously performed.
-These values are also used to determine the reactive dependencies, much like the *first* argument of `observeEvent()` or `evenReactive()`.
+These values are also used to determine the reactive dependencies, much like the *first* argument of `observeEvent()` or `eventReactive()`.
 That means if you use the wrong cache key you can get very confusing results.
 For example, image that I have this cached reactive:
 
@@ -535,7 +535,7 @@ So the cache key should always include all of the reactive inputs in the express
 But you may also want to include additional values that are not used in the reactive.
 The most useful example of this is adding the current day, or some rounded current time, so that cached values are only used for a fixed amount of time.
 
-As well as inputs, you can use other `reactive()`s as cache keys, but you'll need to keep them as a simple as possible (i.e. atomic vectors, or simple lists of atomic vectors).
+As well as inputs, you can use other `reactive()`s as cache keys, but you'll need to keep them as simple as possible (i.e. atomic vectors, or simple lists of atomic vectors).
 Don't use large datasets because it is expensive to figure out if a large data frame has already been seen, and that will reduce the benefit you see from caching.
 
 ### Cache scope
@@ -627,7 +627,7 @@ Here are four tips that can be used in many apps:
 ## Summary
 
 This chapter has given you the tools to precise measure and improve the performance of any shiny app.
-You learned about shinyloadtest to measure the performance, using shinycannon to simulate multiple users working with your app the at same time.
+You learned about shinyloadtest to measure the performance, using shinycannon to simulate multiple users working with your app at the same time.
 Then you learned how to use profvis to find the single most expensive operation, and a grab-bag of techniques that you can use to improve it.
 
 This is the last chapter in Mastering Shiny --- thank your for making it all the way to the end!
