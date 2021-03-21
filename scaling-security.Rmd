@@ -87,7 +87,7 @@ I deliberately didn't create a user friendly error message --- the only time you
 ## Compute resources
 
 It's hopefully obvious that the following app is very dangerous, because it allows the user to run any R code they want.
-They could delete important files, modify data, or send confidential data back to the user of the ap.
+They could delete important files, modify data, or send confidential data back to the user of the app.
 
 ```{r}
 ui <- fluidPage(
