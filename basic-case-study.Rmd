@@ -140,7 +140,7 @@ selected %>% count(diag, wt = weight, sort = TRUE)
 ```
 
 As you might expect, injuries involving toilets most often occur at home.
-The most common body parts involved possibly suggest that these are falls (since the head and face and not usually involved in routine toilet usage), and the diagnoses seem rather varied.
+The most common body parts involved possibly suggest that these are falls (since the head and face are not usually involved in routine toilet usage), and the diagnoses seem rather varied.
 
 We can also explore the pattern across age and sex.
 We have enough data here that a table is not that useful, and so I make a plot, Figure \@ref(fig:toilets-raw), that makes the patterns more obvious.
