@@ -346,7 +346,7 @@ server <- function(input, output, session) {
 
 I thought, *it's an eight line app, what could possibly go wrong?* Well, when I opened the app up I saw a **lot** of missing values, no matter what territory I selected.
 The code most likely to be the source of the problem was the reactive that selected the data to show: `sales[sales$TERRITORY == input$territory, ]`.
-So stopped the app, and quickly verified that subsetting worked the way I thought it did:
+So I stopped the app, and quickly verified that subsetting worked the way I thought it did:
 
 ```{r}
 sales[sales$TERRITORY == "EMEA", ]
