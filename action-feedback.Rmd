@@ -230,7 +230,10 @@ server <- function(input, output, session) {
 ```
 
 ```{r require-cancel, fig.cap = demo$caption("On load, the table is empty because the dataset name is empty. The data is shown after we type a valid dataset name (iris), and continues to be shown when press backspace in order to type a new dataset name."), echo = FALSE, message = FALSE, out.width = "33%"}
-demo <- demoApp$new("action-feedback/require-cancel", ui, server)
+demo <- demoApp$new("action-feedback/require-cancel", ui, server, 
+  packages = "shinyFeedback", 
+  before = ~ shinyFeedback::useShinyFeedback()
+)
 demo$resize(400)
 demo$takeScreenshot("empty")
 demo$setInputs(dataset = "iris")
