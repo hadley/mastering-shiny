@@ -208,6 +208,8 @@ shinyApp(ui, server)
 Just pulling the modules out into separate files is useful because it helps me understand the big picture of the app.
 If instead I want to dive into the details, I can look at the modules files.
 
+One caveat. `birthstoneServer` function can't find the variable `stones` no longer in the environment in which it is defined. So, it searches `stones` in the base package before in `app.R`. As `stones` is not in the base package, it is OK. However, if the variable name is `units`, we shall see "Error: object of type 'closure' is not subsettable".
+
 ### A package
 
 Now let's make this into a package.
