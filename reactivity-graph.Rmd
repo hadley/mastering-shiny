@@ -200,7 +200,7 @@ The arrows coming out of a node are one-shot notifications that will fire the *n
 Now that they've fired, they've fulfilled their purpose and we can erase them.
 
 It's less obvious why we erase the arrows coming *in* to an invalidated node, even if the node they're coming from isn't invalidated.
-While those arrows represent notifications that haven't fired, the invalidated node no longer cares about them: reactive consumers only care about notifications in order to invalidate themselves and that that has already happened.
+While those arrows represent notifications that haven't fired, the invalidated node no longer cares about them: reactive consumers only care about notifications in order to invalidate themselves and that has already happened.
 
 It may seem perverse that we put so much value on those relationships, and now we've thrown them away!
 But this is a key part of Shiny's reactive programming model: though these particular arrows *were* important, they are now out of date.
