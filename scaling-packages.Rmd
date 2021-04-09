@@ -179,12 +179,17 @@ Before turning it into a package, my first step is to pull the two modules out i
     }
     ```
 
+-   `R/stones.R`:
+
+    ```{r}
+    stones <- vroom::vroom("birthstones.csv")
+    ```
+
 That leaves me with the following `app.R`:
 
 ```{r}
 library(shiny)
 
-stones <- vroom::vroom("birthstones.csv")
 months <- c(
   "January", "February", "March", "April", "May", "June",
   "July", "August", "September", "October", "November", "December"
@@ -208,7 +213,6 @@ shinyApp(ui, server)
 Just pulling the modules out into separate files is useful because it helps me understand the big picture of the app.
 If instead I want to dive into the details, I can look at the modules files.
 
-One caveat. `birthstoneServer` function can't find the variable `stones` no longer in the environment in which it is defined. So, it searches `stones` in the base package before in `app.R`. As `stones` is not in the base package, it is OK. However, if the variable name is `units`, we shall see "Error: object of type 'closure' is not subsettable".
 
 ### A package
 
@@ -220,7 +224,6 @@ Next, I move `app.R` to `R/app.R` and wrap `shinyApp()` into a function:
 library(shiny)
 
 monthApp <- function(...) {
-  stones <- vroom::vroom("birthstones.csv")
   months <- c(
     "January", "February", "March", "April", "May", "June",
     "July", "August", "September", "October", "November", "December"
@@ -244,7 +247,7 @@ monthApp <- function(...) {
 
 As an optional extra, I converted `birthstones.csv` to a package dataset by running `usethis::use_data(stones)`.
 This creates `data/stones.rda`, which will be loaded automatically when I load the package.
-I can now delete `birthstones.csv` and remove the line that reads it in: `stones <- vroom::vroom("birthstones.csv")`.
+I can now delete `birthstones.csv` and remove the file `stones.R` that reads it in: `stones <- vroom::vroom("birthstones.csv")`.
 
 You can see the final product at <https://github.com/hadley/monthApp>.
 
