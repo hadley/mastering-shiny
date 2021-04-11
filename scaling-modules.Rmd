@@ -184,7 +184,7 @@ You have your own "space" of names that you own, and can arrange to best meet yo
 Namespacing turns modules into black boxes.
 From outside of the module, you can't see any of the inputs, outputs, or reactives inside of it.
 For example, take the app below.
-The text output `output$out` will never get updated because there is no `input$bins`; the `bins` input can only be seen inside of the `hist1` module.
+The text output `output$out` will never get updated because there is no `input$bins` explicitly in the UI; the `bins` input can only be seen inside of the `hist1` module.
 
 ```{r}
 ui <- fluidPage(
@@ -239,7 +239,7 @@ This base name is then used in a variety of places:
     }
     ```
 
-3.  The following module generate a new random number every time you click go:
+3.  The following module generates a new random number every time you click go:
 
     ```{r}
     randomUI <- function(id) {
@@ -260,7 +260,7 @@ This base name is then used in a variety of places:
     Verify that each module is independent.
     How could you change the return value of `randomUI()` to make the display more attractive?
 
-4.  Are you sick of typing module boilerplate already?
+4.  Are you sick of typing the module boilerplate already?
     Read about [RStudio snippets](https://support.rstudio.com/hc/en-us/articles/204463668-Code-Snippets) and add the following snippet to your RStudio config to make it even easier to create new modules.
 
         ${1}UI <- function(id) {
