@@ -75,9 +75,9 @@ So to be safe, you need to check all user inputs from your R code:
 
 ```{r}
 server <- function(input, output, session) {
-  output$y <- renderText({
-    req(secrets$x %in% allowed)
-    secrets$y[[secrets$x == input$x]]
+  output$secret <- renderText({
+    req(input$x %in% allowed)
+    secrets[[input$x]]
   })
 }
 ```
