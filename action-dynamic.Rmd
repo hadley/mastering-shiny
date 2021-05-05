@@ -525,7 +525,7 @@ knitr::include_graphics(c(s1, s2, s3))
 demo$deploy()
 ```
 
-Note that note the value of (e.g.) `input$mean` is independent of whether or not its visible to the user.
+Note that the value of (e.g.) `input$mean` is independent of whether or not its visible to the user.
 The underlying HTML control still exists; you just can't see it.
 
 ### Wizard interface {#dynamic-wizard}
