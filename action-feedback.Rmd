@@ -128,7 +128,7 @@ ui <- fluidPage(
 server <- function(input, output, session) {
   greetings <- c(
     English = "Hello", 
-    Maori = "Ki ora"
+    Maori = "Kia ora"
   )
   output$greeting <- renderText({
     paste0(greetings[[input$language]], " ", input$name, "!")
@@ -149,7 +149,7 @@ Now nothing will be displayed until the user has supplied values for both langua
 server <- function(input, output, session) {
   greetings <- c(
     English = "Hello", 
-    Maori = "Ki ora"
+    Maori = "Kia ora"
   )
   output$greeting <- renderText({
     req(input$language, input$name)
