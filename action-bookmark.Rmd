@@ -220,7 +220,7 @@ This section briefly covers some of the cases which need a little extra care:
 -   If there are inputs that should not be bookmarked, e.g. they contain private information that shouldn't be shared, include a called to `setBookmarkExclude()` somewhere in your server function.
     For example, `setBookmarkExclude(c("secret1", "secret2"))` will ensure that the `secret1` and `secret2` inputs are not bookmarked.
 
--   If you are manually managing reactive state in your own `reactiveValues()` object (as we'll discuss in Chapter \@ref(reactivity-components), you'll need to use the `onBookmark()` and `onRestore()` callbacks to manually save and load your additional state.
+-   If you are manually managing reactive state in your own `reactiveValues()` object (as we'll discuss in Chapter \@ref(reactivity-components)), you'll need to use the `onBookmark()` and `onRestore()` callbacks to manually save and load your additional state.
     See [*Advanced Bookmarking*](https://shiny.rstudio.com/articles/advanced-bookmarking.html) for more details.
 
 ## Exercises
