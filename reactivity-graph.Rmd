@@ -272,7 +272,7 @@ The neat thing about this process is that Shiny has done the minimum amount of w
 ## Dynamism
 
 In Section \@ref(removing-relationships), you learned that Shiny "forgets" the connections between reactive components that it spend so much effort recording.
-This makes Shiny's reactive reactive dynamic, because it can change while your app runs.
+This makes Shiny's reactive dynamic, because it can change while your app runs.
 This dynamism is so important that I want to reinforce it with a simple example:
 
 ```{r}
