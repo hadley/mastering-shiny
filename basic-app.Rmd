@@ -118,7 +118,7 @@ You can stop the app and return access to the console using any one of these opt
 
 The basic workflow of Shiny app development is to write some code, start the app, play with the app, write some more code, and repeat.
 If you're using RStudio, you don't even need to stop and re-start the app to see your changes --- you can either press the **Reload app** button in the toolbox or use the `Cmd/Ctrl` + `Shift` + `Enter` keyboard shortcut.
-I'll cover otherworkflow patterns in Chapter \@ref(action-workflow).
+I'll cover other workflow patterns in Chapter \@ref(action-workflow).
 
 ## Adding UI controls {#adding-ui}
 
