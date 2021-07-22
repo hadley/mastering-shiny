@@ -173,7 +173,7 @@ summary
 ```
 
 Plotting the rate, Figure \@ref(fig:toilets-rate), yields a strikingly different trend after age 50: the difference between men and women is much smaller, and we no longer see a decrease.
-This is because women tend to live longer than men, so at older ages there are simple more women alive to be injured by toilets.
+This is because women tend to live longer than men, so at older ages there are simply more women alive to be injured by toilets.
 
 ```{r toilets-rate, out.width = "100%", fig.asp = 1/2, fig.cap = "Estimated rate of injuries per 10,000 people, broken down by age and sex"}
 summary %>% 
