@@ -84,7 +84,7 @@ Note my use of the `label` and `buttonLabel` arguments to mildly customise the a
 
 If the user is uploading a dataset, there are two details that you need to be aware of:
 
--   `input$upload` is initialised to `NULL` on page load, so you'll need `req(input$file)` to make sure your code waits until the first file is uploaded.
+-   `input$upload` is initialised to `NULL` on page load, so you'll need `req(input$upload)` to make sure your code waits until the first file is uploaded.
 
 -   The `accept` argument allows you to limit the possible inputs.
     The easiest way is to supply a character vector of file extensions, like `accept = ".csv"`.
@@ -96,19 +96,19 @@ See it in action in <https://hadley.shinyapps.io/ms-upload-validate>.
 
 ```{r}
 ui <- fluidPage(
-  fileInput("file", NULL, accept = c(".csv", ".tsv")),
+  fileInput("upload", NULL, accept = c(".csv", ".tsv")),
   numericInput("n", "Rows", value = 5, min = 1, step = 1),
   tableOutput("head")
 )
 
 server <- function(input, output, session) {
   data <- reactive({
-    req(input$file)
+    req(input$upload)
     
-    ext <- tools::file_ext(input$file$name)
+    ext <- tools::file_ext(input$upload$name)
     switch(ext,
-      csv = vroom::vroom(input$file$datapath, delim = ","),
-      tsv = vroom::vroom(input$file$datapath, delim = "\t"),
+      csv = vroom::vroom(input$upload$datapath, delim = ","),
+      tsv = vroom::vroom(input$upload$datapath, delim = "\t"),
       validate("Invalid file; Please upload a .csv or .tsv file")
     )
   })
