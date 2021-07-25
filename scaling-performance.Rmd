@@ -604,7 +604,7 @@ Since you're paying attention to this code, it's also worth checking that you're
 
 [^scaling-performance-7]: See <https://ursalabs.org/blog/2020-feather-v2/> for some benchmarks.
 
-If these changes aren't enough to resolve the bottleneck you might consider using a separate a cron job or scheduled RMarkdown report to call `my_data_prep()` and save the results.
+If these changes aren't enough to resolve the bottleneck you might consider using a separate cron job or scheduled RMarkdown report to call `my_data_prep()` and save the results.
 Then your app can load the pre-prepared data and get to work.
 This is like hiring a prep chef who comes in at 3am (when there are no customers) so that during the lunch rush your chefs can be as efficient as possible.
 
