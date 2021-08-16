@@ -724,7 +724,7 @@ While doing this, I discovered:
 -   `df` is a data frame that's converted to an xts data frame called `timeSeries`.
     But the only way `timeSeries` is used is via `time(timeSeries)` which returns a date-time.
     So I created a new variable `datetime` that contained some dummy date-time data.
-    This still yielded the same error, so I removed `timeSeres` and `df`, and since that was the only place xts was used, I also removed `library(xts)`
+    This still yielded the same error, so I removed `timeSeries` and `df`, and since that was the only place xts was used, I also removed `library(xts)`
 
 Together, those changes yielded a new `server()` that looked like this:
 
