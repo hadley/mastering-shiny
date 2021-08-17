@@ -94,7 +94,7 @@ If you play around with the app and bookmark a few interesting states, you'll se
 
 -   `https://hadley.shinyapps.io/ms-bookmark-url/?_inputs_&damping=0.966&delta=1.25&length=100&omega=-0.54`
 
--   `http://127.0.0.1:4087/?_inputs_&damping=0.997&delta=1.37&length=500&omega=-0.9`
+-   `https://hadley.shinyapps.io/ms-bookmark-url/?_inputs_&damping=0.997&delta=1.37&length=500&omega=-0.9`
 
 To understand what's happening, let's take the first URL and tease it apart into pieces:
 
