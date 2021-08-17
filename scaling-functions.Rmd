@@ -273,7 +273,7 @@ server <- function(input, output, session) {
 }
 ```
 
-This doesn't make testing or debugging any easier, but it does reduce duplicated code in.
+This doesn't make testing or debugging any easier, but it does reduce duplicated code in the server.
 
 We could of course add `session` to the arguments of the function:
 
