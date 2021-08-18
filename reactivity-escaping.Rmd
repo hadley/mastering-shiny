@@ -99,7 +99,7 @@ server <- function(input, output, session) {
 
 Things get slightly more complicated in the next example, where we have an app with two buttons that let you increase and decrease values.
 We use a `reactiveValues()` to store the current value, and then use `observeEvent()` to increment and decrement the value when the appropriate button is pushed.
-The main additional complexity here is that the new value of `n()` depends on the previous value.
+The main additional complexity here is that the new value of `r$n` depends on the previous value.
 
 ```{r}
 ui <- fluidPage(
