@@ -983,7 +983,7 @@ This is a principled limitation of the module system which we'll discuss in more
 
 Now let's use the wizard in a slightly more realistic app that has inputs and outputs, and yields Figure \@ref(fig:wizard-module).
 The main point to notice is that even though the pages are displayed by the module, their ids are controlled by the user of the module.
-It's the developer who creators the control who controls its name; it doesn't matter who ends up assembling the control for final display on the webpage.
+It's the developer who creates the control and controls its name; it doesn't matter who ends up assembling the control for final display on the webpage.
 
 ```{r}
 page1 <- tagList(
