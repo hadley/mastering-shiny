@@ -613,7 +613,7 @@ If reading data from disk seems to be an irreducible part of the problem, a stra
 The best way to provide this is as a RStudio project hosted on GitHub, but failing that, you can carefully make a zip file that can be run locally.
 Make sure that you use relative paths (i.e. `read.csv("my-data.csv"`) not `read.csv("c:\\my-user-name\\files\\my-data.csv")`) so that your code still works when run on a different computer.
 
-You should also consider the reader and spend some formatting your code so that it's easy to read.
+You should also consider the reader and spend some time formatting your code so that it's easy to read.
 If you adopt the [tidyverse style guide](http://style.tidyverse.org/), you can automatically reformat your code using the [styler](http://styler.r-lib.org) package; that quickly gets your code to a place that's easier to read.
 
 ### Making a minimal reprex
