@@ -242,7 +242,7 @@ val()
 ```
 
 Unfortunately if you actually try to run this code in the console you'll get an error because it has to be run in an reactive environment.
-That makes experimentation and debugging more challenging because you'll need to `browser()` or similar to pause execution within the call to `shinyApp()`.
+That makes experimentation and debugging more challenging because you'll need to use `browser()` or something similar to pause execution within the call to `shinyApp()`.
 This is one of the challenges we'll come back to later in Chapter \@ref(reactivity-components).
 
 For now, let's put the challenges of learning `reactiveVal()` aside, and show you why you might bother.
