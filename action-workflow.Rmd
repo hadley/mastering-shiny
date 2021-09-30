@@ -359,7 +359,7 @@ I'd forgotten that `TERRITORY` contained a bunch of missing values which means t
 head(sales$TERRITORY == "EMEA", 25)
 ```
 
-These missing values become missing rows when I use them to subset the `sales` data frame with `[` any missing values in input will be preserved in the output.
+These missing values become missing rows when I use them to subset the `sales` data frame with `[`; any missing values in input will be preserved in the output.
 There are lots of way to resolve this problem but I decided to use `subset()`[^action-workflow-3] because automatically removes missing values and reduces the number of times I need to type `sales`. I then double checked this actually worked:
 
 [^action-workflow-3]: I'm using `subset()` so that my app doesn't require any other packages.
