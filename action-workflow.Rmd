@@ -220,7 +220,7 @@ To understand what's going on we again start by flipping it upside down, so you 
 
 There are three basic parts to the call stack:
 
--   The first few calls start the app in this case you just see `runApp()` but depending on how you start the app, you might see something more complicated.
+-   The first few calls start the app. In this case, you just see `runApp()`, but depending on how you start the app, you might see something more complicated.
     For example, if you called `source()` to run the app, you might see this:
 
         1: source
