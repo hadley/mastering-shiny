@@ -393,7 +393,7 @@ So I updated the app and tried again.
 It still didn't work!
 When I selected "NA" in the drop down, I didn't see any rows.
 
-At this point, I figured I'd done everything I could on the console, and I needed to perform an experiment to figure out why the code inside of Shiny was working the way I expected.
+At this point, I figured I'd done everything I could on the console, and I needed to perform an experiment to figure out why the code inside of Shiny wasn't working the way I expected.
 I guessed that the most likely source of the problem would be in the `selected` reactive, so I added a `browser()` statement there.
 (This made it a two-line reactive, so I also needed to wrap it in `{}`.)
 
