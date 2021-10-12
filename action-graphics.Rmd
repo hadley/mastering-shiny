@@ -393,7 +393,7 @@ demo$takeScreenshot("wide")
 ```
 
 In real apps, you'll use more complicated expressions in the `width` and `height` functions.
-For example, if you're using a faceted plot in ggplot2, you might use it to increase the size of the plot to keep the individual facet sizes roughly the same[^action-graphics-4].
+For example, if you're using a faceted plot in ggplot2, you might use it to increase the size of the plot to keep the individual facet sizes roughly the same[^action-graphics-4]. Note that you'll need to set `height = "auto"` in the relevant `plotOutput()` functions to ensure that other components of the shiny app take account of the dynamic sizing.
 
 [^action-graphics-4]: Unfortunately there's no easy way to keep them exactly the same because it's currently not possible to find out the size of the fixed elements around the borders of the plot.
 
