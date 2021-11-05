@@ -343,9 +343,9 @@ demo <- demoApp$new("basic-ui/output-text", ui, server)
 demo$takeScreenshot()
 ```
 
-Note that the `{}` are only required in render functions if need to run multiple lines of code.
+Note that the `{}` are only required in render functions if you need to run multiple lines of code.
 As you'll learn shortly, you should do as little computation in your render functions as possible, which means you can often omit them.
-Here's what the server function above would look like if written more compactly::
+Here's what the server function above would look like if written more compactly:
 
 ```{r}
 server <- function(input, output, session) {
