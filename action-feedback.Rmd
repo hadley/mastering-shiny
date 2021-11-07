@@ -748,7 +748,7 @@ There are a few small, but important, details to consider when creating a dialog
 -   Can you make the dangerous option more obvious?
     Here I've used `class = "btn btn-danger"` to style the button prominently.
 
-Jakob Nielsen has more good advice at <http://www.useit.com/alertbox/ok-cancel.html>.
+Jakob Nielsen has more good advice at <https://www.nngroup.com/articles/ok-cancel-or-cancel-ok/>.
 
 Let's use this dialog in a real (if very simple) app.
 Our UI exposes a single button to "delete all the files":
