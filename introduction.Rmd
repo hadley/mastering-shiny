@@ -75,7 +75,7 @@ There are also a number of important topics specific to Shiny that I don't cover
 
 -   This book only covers the built-in user interface toolkit.
     This doesn't provide the sexiest possible design, but it's simple to learn and gets you a long way.
-    If you have additional needs (or just get bored with the defaults), there are number of other packages that provide alternative front ends.
+    If you have additional needs (or just get bored with the defaults), there are a number of other packages that provide alternative front ends.
     See Section \@ref(other-tools) for more details.
 
 -   Deployment of Shiny apps.
