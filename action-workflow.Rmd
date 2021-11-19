@@ -147,7 +147,7 @@ If this code errors, as below:
 f("a")
 ```
 
-You can call `traceback()` to find the sequence of calls that to the problem:
+You can call `traceback()` to find the sequence of calls that lead to the problem:
 
 ```{r, eval = FALSE}
 traceback()
