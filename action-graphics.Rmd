@@ -285,7 +285,7 @@ knitr::include_graphics("images/action-graphics/modifying-size-1.png", dpi = 300
 There are two important ggplot2 techniques to note here:
 
 -   I add the distances to the data frame before plotting. I think it's good practice to put related variables together in a data frame before visualising it.
--   I set the `limits` to `scale_size_area()` to ensure that sizes are comparable across clicks. To find the correct range I did a little interactive experimentation, but you can work out the exact details if needed (see the exercises at the end of the chapter).
+-   I set the `limits` to `scale_size_area()` to ensure that sizes are comparable across clicks. To find the correct range I did a little interactive experimentation, but you can work out the exact details if needed.
 
 Here's a more complicated idea.
 I want to use a brush to progressively add points to a selection.
