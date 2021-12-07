@@ -331,7 +331,7 @@ But it's good to know that Bootstrap exists because then:
 It's also possible to use a completely different CSS framework.
 A number of existing R packages make this easy by wrapping popular alternatives to Bootstrap:
 
--   [shiny.semantic](https://appsilon.github.io/shiny.semantic/), by [Appsilon](https://appsilon.com/), builds on top of [formantic UI](https://fomantic-ui.com).
+-   [shiny.semantic](https://appsilon.github.io/shiny.semantic/), by [Appsilon](https://appsilon.com/), builds on top of [Fomantic-UI](https://fomantic-ui.com).
 
 -   [shinyMobile](https://github.com/RinteRface/shinyMobile), by [RInterface](https://rinterface.com), builds on top of [framework 7](https://framework7.io), and is specifically designed for mobile apps.
 
