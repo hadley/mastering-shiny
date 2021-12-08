@@ -413,7 +413,7 @@ It returned an empty data frame, so I knew I was where I needed to be.
 If I hadn't seen the problem, I would have typed `c` to let the app continuing running, then interacted with some more in order it to get to the failing state.
 
 I then checked that inputs to `subset()` were as I expected.
-I first double-checked that that the `sales` dataset looked ok.
+I first double-checked that the `sales` dataset looked ok.
 I didn't really expect it to be corrupted, since nothing in the app touches it, but it's safest to carefully check every assumption that you're making.
 `sales` looked ok, so the problem must be in `TERRITORY %in% input$territory`.
 Since `TERRITORY` is part of `sales`, I started by inspecting `input$territory`:
