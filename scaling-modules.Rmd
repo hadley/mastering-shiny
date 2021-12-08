@@ -317,7 +317,7 @@ datasetInput <- function(id, filter = NULL) {
 
 The module server is also simple: we just use `get()` to retrieve the dataset with its name.
 There's one new idea here: like a function and unlike a regular `server()`, this module server returns a value.
-Here we take advantage of the usual rule that last expression processed in the function becomes the return value[^scaling-modules-2].
+Here we take advantage of the usual rule that the last expression processed in the function becomes the return value[^scaling-modules-2].
 This value should always be a reactive.
 
 [^scaling-modules-2]: The tidyverse style guide, <https://style.tidyverse.org/functions.html#return>, recommends reserving `return()` only for cases where you are returning early.
