@@ -1,29 +1,7 @@
-bookdown::bs4_book:
-  theme:
-    primary: "#4D6F8D"
-  repo: https://github.com/hadley/mastering-shiny
-  includes:
-    in_header: [ga_script.html]
 bookdown::gitbook:
-  css: style.css
-  includes:
-    in_header: [ga_script.html]
   config:
     toc:
       collapse: section
       before: |
-        <li><a href="./">Mastering Shiny</a></li>
-    edit: https://github.com/hadley/mastering-shiny/edit/master/%s
-    download: []
-    sharing:
-      facebook: no
-      twitter: no
-      github: yes
-      all: []
-bookdown::pdf_book:
-  includes:
-    in_header: preamble.tex
-  latex_engine: xelatex
-  citation_package: natbib
-  keep_tex: yes
-bookdown::epub_book: default
+        <li><strong><a href="./">MASTERING SHINY (BUSCAR TRADUCCION)</a></strong></li>
+  css: style.css

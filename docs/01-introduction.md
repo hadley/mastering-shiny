@@ -1,8 +1,6 @@
 # Preface {.unnumbered}
 
-```{r include = FALSE}
-source("common.R")
-```
+
 
 ## What is Shiny?
 
@@ -99,19 +97,16 @@ Before we continue, make sure you have all the software you need for this book:
 -   **R packages**: This book uses a bunch of R packages.
     You can install them all at once by running:
 
-    ```{r, echo = FALSE, cache = FALSE}
-    deps <- desc::desc_get_deps()
-    pkgs <- sort(deps$package[deps$type == "Imports"])
-    pkgs2 <- strwrap(paste(encodeString(pkgs, quote = '"'), collapse = ", "), exdent = 2)
+    
 
-    install <- paste0(
-      "install.packages(c(\n  ", 
-      paste(pkgs2, "\n", collapse = ""), 
-      "))"
-    )
-    ```
-
-    ```{r code = install, eval = FALSE}
+    
+    ```r
+    install.packages(c(
+      "gapminder", "ggforce", "gh", "globals", "openintro", "profvis", 
+      "RSQLite", "shiny", "shinycssloaders", "shinyFeedback", 
+      "shinythemes", "testthat", "thematic", "tidyverse", "vroom", 
+      "waiter", "xml2", "zeallot" 
+    ))
     ```
 
     If you've downloaded Shiny in the past, make sure that you have at least version 1.6.0.
@@ -122,54 +117,9 @@ This book was written in the open and chapters were advertised on twitter when c
 It is truly a community effort: many people read drafts, fixed typos, suggested improvements, and contributed content.
 Without those contributors, the book wouldn't be nearly as good as it is, and I'm deeply grateful for their help.
 
-```{r, eval = FALSE, echo = FALSE}
-library(tidyverse)
-contribs_all_json <- gh::gh("/repos/:owner/:repo/contributors",
-  owner = "hadley",
-  repo = "mastering-shiny",
-  .limit = Inf
-)
-contribs_all <- tibble(
-  login = contribs_all_json %>% map_chr("login"),
-  n = contribs_all_json %>% map_int("contributions")
-)
 
-contribs_old <- read_csv("contributors.csv", col_types = list())
-contribs_new <- contribs_all %>% anti_join(contribs_old, by = "login")
 
-# Get info for new contributors
-needed_json <- map(
-  contribs_new$login, 
-  ~ gh::gh("/users/:username", username = .x)
-)
-info_new <- tibble(
-  login = contribs_new$login,
-  name = map_chr(needed_json, "name", .default = NA),
-  blog = map_chr(needed_json, "blog", .default = NA)
-)
-info_old <- contribs_old %>% select(login, name, blog)
-info_all <- bind_rows(info_old, info_new)
-
-contribs_all <- contribs_all %>% 
-  left_join(info_all, by = "login") %>% 
-  arrange(login)
-write_csv(contribs_all, "contributors.csv")
-```
-
-```{r, results = "asis", echo = FALSE, message = FALSE}
-library(dplyr)
-contributors <- readr::read_csv("contributors.csv")
-contributors <- contributors %>% 
-  filter(login != "hadley") %>% 
-  mutate(
-    login = paste0("\\@", login),
-    desc = ifelse(is.na(name), login, paste0(name, " (", login, ")"))
-  )
-
-cat("A big thank you to all ", nrow(contributors), " people who contributed specific improvements via GitHub pull requests (in alphabetical order by username): ", sep = "")
-cat(paste0(contributors$desc, collapse = ", "))
-cat(".\n")
-```
+A big thank you to all 83 people who contributed specific improvements via GitHub pull requests (in alphabetical order by username): Adam Pearce (\@1wheel), Adi Sarid (\@adisarid), Alexandros Melemenidis (\@alex-m-ffm), Anton Klåvus (\@antonvsdata), Betsy Rosalen (\@betsyrosalen), Michael Beigelmacher (\@brooklynbagel), Bryan Smith (\@BSCowboy), c1au6io_hh (\@c1au6i0), \@canovasjm, Chris Beeley (\@ChrisBeeley), \@chsafouane, Chuliang Xiao (\@ChuliangXiao), Conor Neilson (\@condwanaland), \@d-edison, Dean Attali (\@daattali), DanielDavid521 (\@Danieldavid521), David Granjon (\@DivadNojnarg), Eduardo Vásquez (\@edovtp), Emil Hvitfeldt (\@EmilHvitfeldt), Emilio (\@emilopezcano), Emily Riederer (\@emilyriederer), Eric Simms (\@esimms999), Federico Marini (\@federicomarini), Frederik Kok Hansen (\@fkoh111), Frans van Dunné (\@FvD), Giorgio Comai (\@giocomai), Hedley (\@heds1), Henning (\@henningsway), Hlynur (\@hlynurhallgrims), \@hsm207, \@jacobxk, James Pooley (\@jamespooley), Joe Cheng (\@jcheng5), Julien Colomb (\@jcolomb), Juan C Rodriguez (\@jcrodriguez1989), Jennifer (Jenny) Bryan (\@jennybc), Jim Hester (\@jimhester), Joachim Gassen (\@joachim-gassen), Jon Calder (\@jonmcalder), Jonathan Carroll (\@jonocarroll), Julian Stanley (\@julianstanley), \@jyuu, \@kaanpekel, Karandeep Singh (\@kdpsingh), Robert Kirk DeLisle (\@KirkDCO), Elaine (\@loomalaine), Malcolm Barrett (\@malcolmbarrett), Marly Gotti (\@marlycormar), Matthew Wilson (\@MattW-Geospatial), Matthew T. Warkentin (\@mattwarkentin), Mauro Lepore (\@maurolepore), Maximilian Rohde (\@maxdrohde), Matthew Berginski (\@mbergins), Michael Dewar (\@michael-dewar), Mine Cetinkaya-Rundel (\@mine-cetinkaya-rundel), Maria Paula Caldas (\@mpaulacaldas), nthobservation (\@nthobservation), Pietro Monticone (\@pitmonticone), psychometrician (\@psychometrician), Ram Thapa (\@raamthapa), Janko Thyson (\@rappster), Rebecca Janis (\@rbjanis), Tom Palmer (\@remlapmot), Russ Hyde (\@russHyde), Barret Schloerke (\@schloerke), Scott (\@scottyd22), Matthew Sedaghatfar (\@sedaghatfar), Shixiang Wang (\@ShixiangWang), Praer (Suthira Owlarn) (\@sowla), Sébastien Rochette (\@statnmap), \@stevensbr, André Calero Valdez (\@Sumidu), Tanner Stauss (\@tmstauss), Tony Fujs (\@tonyfujs), Stefan Moog (\@trekonom), Jeff Allen (\@trestletech), Trey Gilliland (\@treygilliland), Albrecht (\@Tungurahua), Valeri Voev (\@ValeriVoev), Vickus (\@Vickusr), William Doane (\@WilDoane), 黄湘云 (\@XiangyunHuang), gXcloud (\@xwydq).
 
 ## Colophon
 
@@ -177,31 +127,30 @@ This book was written in [RStudio](http://www.rstudio.com/ide/) using [bookdown]
 The [website](http://mastering-shiny.org/) is hosted with [netlify](http://netlify.com/), and automatically updated after every commit by [Github Actions](https://github.com/features/actions).
 The complete source is available from [GitHub](https://github.com/hadley/mastering-shiny).
 
-This version of the book was built with `r R.version.string` and the following packages:
+This version of the book was built with R version 4.1.2 (2021-11-01) and the following packages:
 
-```{r, echo = FALSE, results="asis"}
-pkgs <- sessioninfo::package_info(pkgs, dependencies = FALSE)
-df <- tibble(
-  package = pkgs$package,
-  version = pkgs$ondiskversion,
-  source = gsub("@", "\\\\@", pkgs$source)
-)
-knitr::kable(df, format = "markdown")
-```
 
-```{r, echo = FALSE}
-ruler <- function(width = getOption("width")) {
-  x <- seq_len(width)
-  y <- dplyr::case_when(
-    x %% 10 == 0 ~ as.character((x %/% 10) %% 10),
-    x %% 5 == 0  ~ "+",
-    TRUE         ~ "-"
-  )
-  cat(y, "\n", sep = "")
-  cat(x %% 10, "\n", sep = "")
-}
-```
+|package         |version |source         |
+|:---------------|:-------|:--------------|
+|gapminder       |0.3.0   |CRAN (R 4.1.1) |
+|ggforce         |0.3.3   |CRAN (R 4.1.2) |
+|gh              |1.3.0   |CRAN (R 4.1.1) |
+|globals         |0.14.0  |CRAN (R 4.1.1) |
+|openintro       |NA      |NA             |
+|profvis         |NA      |NA             |
+|RSQLite         |NA      |NA             |
+|shiny           |1.7.1   |CRAN (R 4.1.1) |
+|shinycssloaders |NA      |NA             |
+|shinyFeedback   |NA      |NA             |
+|shinythemes     |NA      |NA             |
+|testthat        |3.1.1   |CRAN (R 4.1.2) |
+|thematic        |NA      |NA             |
+|tidyverse       |1.3.1   |CRAN (R 4.1.1) |
+|vroom           |1.5.7   |CRAN (R 4.1.2) |
+|waiter          |NA      |NA             |
+|xml2            |1.3.3   |CRAN (R 4.1.2) |
+|zeallot         |NA      |NA             |
 
-```{r, include = FALSE}
-ruler()
-```
+
+
+
