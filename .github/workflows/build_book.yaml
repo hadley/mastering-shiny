@@ -1,65 +1,77 @@
 on:
   push:
     branches:
-      - master
+      - traduccion
   pull_request:
     branches:
-      - master
-  schedule:
-    # run every day at 11 PM
-    - cron: '0 23 * * *'
+      - traduccion
+  # schedule:
+  #   # run every day at 11 PM
+  #   - cron: '0 23 * * *'
 
-name: build-book
+name: Build book
 
 env:
   isExtPR: ${{ github.event.pull_request.head.repo.fork == true }}
 
 jobs:
   build:
+    runs-on: macOS-latest
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
-    runs-on: macOS-latest
     steps:
       - name: Checkout repo
-        uses: actions/checkout@master
+        uses: actions/checkout@v2
 
       - name: Setup R
-        id: install-r
         uses: r-lib/actions/setup-r@master
 
       - name: Setup pandoc
         uses: r-lib/actions/setup-pandoc@master
 
-      - name: Install pak and query dependencies
+      - name: Get R version
+        id: get-r-version
         run: |
-          install.packages("pak", repos = "https://r-lib.github.io/p/pak/dev/")
-          saveRDS(pak::local_dev_deps_tree(), ".github/r-depends.rds")
-        shell: Rscript {0}
+          echo "::set-output name=version::$(Rscript -e 'cat(as.character(getRversion()))')"
+        shell: bash
 
       - name: Cache R packages
         uses: actions/cache@v2
         with:
           path: ${{ env.R_LIBS_USER }}
-          key: ${{ runner.os }}-${{ steps.install-r.outputs.installed-r-version }}-1-${{ hashFiles('.github/r-depends.rds') }}
-          restore-keys: ${{ runner.os }}-${{ steps.install-r.outputs.installed-r-version }}-1-
+          key: ${{ runner.os }}-${{ steps.get-r-version.outputs.version }}-3-
+
+      - name: Install pak
+        run: |
+          install.packages("pak", repos = "https://r-lib.github.io/p/pak/dev/")
+        shell: Rscript {0}
 
       - name: Install dependencies
         run: |
-          pak::local_install_dev_deps(upgrade = TRUE)
+          pak::local_install_dev_deps()
         shell: Rscript {0}
 
-      - name: Install PhantomJS
-        run: R -e 'webshot::install_phantomjs()'
+      - name: Cache bookdown results
+        uses: actions/cache@v2
+        with:
+          path: _bookdown_files
+          key: bookdown-3-${{ hashFiles('**/*Rmd') }}
+          restore-keys: bookdown-3-
 
-      - name: Build book
-        run: Rscript -e 'bookdown::render_book("index.Rmd", quiet = TRUE)'
+      - name: Build site
+        run: |
+          # Allows [implcit heading links] to work; will need to convert
+          # to explicit before switching to visual editor
+          options(bookdown.render.file_scope = FALSE)
+          bookdown::render_book("index.Rmd")
+        shell: Rscript {0}
 
       - name: Deploy to Netlify
         if: contains(env.isExtPR, 'false')
         id: netlify-deploy
         uses: nwtgck/actions-netlify@v1.1
         with:
-          publish-dir: './_book'
+          publish-dir: './docs'
           production-branch: master
           github-token: ${{ secrets.GITHUB_TOKEN }}
           deploy-message:
