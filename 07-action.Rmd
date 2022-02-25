@@ -1,0 +1,24 @@
+# (PART\*) Shiny en acción {.unnumbered}
+
+# Introducción {#action-intro .unnumbered}
+
+Los siguientes capítulos te brindarán una serie de técnicas útiles. Pienso que todo el mundo debería comenzar por el capítulo \@ref(workflow), porque entrega herramientas importantes tanto para desarrollar y depurar aplicaciones, como para obtener ayuda cuando te atasques. 
+
+Luego de esto, no hay un orden prescrito y las conexiones entre los capítulos son pocas. Sugeriría hojearlos rápidamente para conocer el terreno (para que así puedas recordar estas herramientas si es que surgen problemas relacionados en el futuro) y solo leer en profundidad los fragmentos que necesitas actualmente. 
+
+Aquí hay un resumen rápido de los temas principales:
+-   El capítulo \@ref(action-layout) detalla las diferentes maneras en que puedes diseñar los componentes de input y output en una página y cómo puedes personalizar su apariencia utilizando temas.  
+
+-   El capítulo \@ref(action-graphics) te muestra cómo añadir interacción direacta a tu gráfico y cómo mostrar imágenes que fueron generadas de otras maneras.
+
+-   El capítulo \@ref(action-feedback) aborda una familia de técnicas (entre las que se incluye errores en línea, notificaciones, barras de progreso y cajas de diálogo) para dar retroalimentación a usuarios y usuarias mientras una aplicación se ejecuta. 
+
+-   El capítulo \@ref(action-transfer) discute cómo transferir archivos hacia y desde tu aplicación.  
+
+-   El capítulo \@ref(action-dynamic) muestra cómo modificar de forma dinámica la interfaz de usuario de tus aplicaciones mientras estas se ejecutan. 
+
+-   El capítulo \@ref(action-bookmark) muestra cómo grabar un estado particular de una aplicación de modo tal que usuarios y usuarias puedan marcarla como favorito en su navegador.
+
+-   El capítulo \@ref(action-tidy) muestra cómo permitir a quienes usan la aplicación seleccionar variables cuando se está trabajando con paquetes del tidyverse. 
+
+Partamos trabajando en tu flujo de trabajo para desarrollar aplicaciones. 

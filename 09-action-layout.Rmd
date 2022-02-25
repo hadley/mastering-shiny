@@ -1,0 +1,557 @@
+# Layout, themes, HTML {#action-layout}
+
+```{r, include = FALSE}
+source("_common.R")
+source("demo.R")
+```
+**CAPÍTULO EN PROCESO DE TRADUCCIÓN**
+
+## Introduction
+
+In this chapter you'll unlock some new tools for controlling the overall appearance of your app.
+We'll start by talking about page layouts (both single and "multiple") that let you organise your inputs and outputs.
+Then you'll learn about Bootstrap, the CSS toolkit that Shiny uses, and how to customise its overall visual appearance with themes.
+We'll finish with a brief discussion of what's going on under the hood so that if you know HTML and CSS you can customise Shiny apps still further.
+
+```{r}
+library(shiny)
+```
+
+## Single page layouts {#layout}
+
+In Chapter \@ref(basic-ui) you learned about the inputs and outputs that form the interactive components of the app.
+But I didn't talk about how to lay them out on the page, and instead I just used `fluidPage()` to slap them together as quickly as possible.
+While this is fine for learning Shiny, it doesn't create usable or visually appealing apps, so now it's time to learn some more layout functions.
+
+Layout functions provide the high-level visual structure of an app.
+Layouts are created by a hierarchy of function calls, where the hierarchy in R matches the hierarchy in the generated HTML.
+This helps you understand layout code.
+For example, when you look at layout code like this:
+
+```{r, eval = FALSE}
+fluidPage(
+  titlePanel("Hello Shiny!"),
+  sidebarLayout(
+    sidebarPanel(
+      sliderInput("obs", "Observations:", min = 0, max = 1000, value = 500)
+    ),
+    mainPanel(
+      plotOutput("distPlot")
+    )
+  )
+)
+```
+
+Focus on the hierarchy of the function calls:
+
+```{r, eval = FALSE}
+fluidPage(
+  titlePanel(),
+  sidebarLayout(
+    sidebarPanel(),
+    mainPanel()
+  )
+)
+```
+
+Even though you haven't learned these functions yet, you can guess what's going on by reading their names.
+You might imagine that this code will generate a classic app design: a title bar at top, followed by a sidebar (containing a slider) and main panel (containing a plot).
+The ability to easily see hierarchy through indentation is one of the reasons it's a good idea to use a consistent style.
+
+In the remainder of this section I'll discuss the functions that help you design single-page apps, then moving on to multi-page apps in the next section.
+I also recommend checking out the Shiny [Application layout guide](https://shiny.rstudio.com/articles/layout-guide.html); it's a little dated but contains some useful gems.
+
+### Page functions
+
+The most important, but least interesting, layout function is `fluidPage()`, which you've seen in pretty much every example so far.
+But what's it doing and what happens if you use it by itself?
+Figure \@ref(fig:ui-fluid-page) shows the results: it looks like a very boring app but there's a lot going behind the scenes, because `fluidPage()` sets up all the HTML, CSS, and JavaScript that Shiny needs.
+
+```{r ui-fluid-page, fig.cap = "An UI consisting only of `fluidPage()`", echo = FALSE}
+knitr::include_graphics("images/action-layout/fluid-page.png", dpi = 300)
+```
+
+In addition to `fluidPage()`, Shiny provides a couple of other page functions that can come in handy in more specialised situations: `fixedPage()` and `fillPage()`.
+`fixedPage()` works like `fluidPage()` but has a fixed maximum width, which stops your apps from becoming unreasonable wide on bigger screens.
+`fillPage()` fills the full height of the browser and is useful if you want to make a plot that occupies the whole screen.
+You can find the details in their documentation.
+
+### Page with sidebar
+
+To make more complex layouts, you'll need call layout functions inside of `fluidPage()`.
+For example, to make a two-column layout with inputs on the left and outputs on the right you can use `sidebarLayout()` (along with it's friends `titlePanel()`, `sidebarPanel()`, and `mainPanel()`).
+The following code shows the basic structure to generate Figure \@ref(fig:ui-sidebar).
+
+```{r, eval = FALSE}
+fluidPage(
+  titlePanel(
+    # app title/description
+  ),
+  sidebarLayout(
+    sidebarPanel(
+      # inputs
+    ),
+    mainPanel(
+      # outputs
+    )
+  )
+)
+```
+
+```{r ui-sidebar, echo = FALSE, out.width = NULL, fig.cap = "Structure of a basic app with sidebar"}
+knitr::include_graphics("diagrams/action-layout/sidebar.png", dpi = 300)
+```
+
+To make it more realistic, lets add an input and output to create a very simple app that demonstrates the Central Limit Theorem, as shown in Figure \@ref(fig:clt).
+If you run this app yourself, you can increase the number of samples to see the distribution become more normal.
+
+```{r}
+ui <- fluidPage(
+  titlePanel("Central limit theorem"),
+  sidebarLayout(
+    sidebarPanel(
+      numericInput("m", "Number of samples:", 2, min = 1, max = 100)
+    ),
+    mainPanel(
+      plotOutput("hist")
+    )
+  )
+)
+server <- function(input, output, session) {
+  output$hist <- renderPlot({
+    means <- replicate(1e4, mean(runif(input$m)))
+    hist(means, breaks = 20)
+  }, res = 96)
+}
+```
+
+```{r clt, fig.cap = "A common app design is to put controls in a sidebar and display results in the main panel", echo = FALSE, out.width = NULL, message = FALSE}
+demo <- demoApp$new("action-layout/sidebar", ui, server)
+demo$resize(width = 800)
+demo$takeScreenshot()
+```
+
+### Multi-row
+
+Under the hood, `sidebarLayout()` is built on top of a flexible multi-row layout, which you can use directly to create more visually complex apps.
+As usual, you start with `fluidPage()`.
+Then you create rows with `fluidRow()`, and columns with `column()`.
+The following template generates the structure shown in Figure \@ref(fig:ui-multirow).
+
+```{r, eval = FALSE}
+fluidPage(
+  fluidRow(
+    column(4, 
+      ...
+    ),
+    column(8, 
+      ...
+    )
+  ),
+  fluidRow(
+    column(6, 
+      ...
+    ),
+    column(6, 
+      ...
+    )
+  )
+)
+```
+
+```{r ui-multirow, echo = FALSE, out.width = NULL, fig.cap = "The structure underlying a simple multi-row app"}
+knitr::include_graphics("diagrams/action-layout/multirow.png", dpi = 300)
+```
+
+Each row is made up of 12 columns and the first argument to `column()` gives how many of those columns to occupy.
+A 12 column layout gives you substantial flexibility because you can easily create 2-, 3-, or 4-column layouts, or use narrow columns to create spacers.
+You can see an example of this layout in Section \@ref(prototype).
+
+<!--# This would be a good place to include an example -->
+
+If you'd like to learn more about designing using a grid system, I highly recommend the classic text on the subject: "[Grid systems in graphic design](https://www.amazon.com/dp/3721201450)" by Josef Müller-Brockman.
+
+### Exercises
+
+1.  Read the documentation of `sidebarLayout()` to determine the width (in columns) of the sidebar and the main panel.
+    Can you recreate its appearance using `fluidRow()` and `column()`?
+    What are you missing?
+
+2.  Modify the Central Limit Theorem app to put the sidebar on the right instead of the left.
+
+3.  Create an app with that contains two plots, each of which takes up half of the width.
+    Put the controls in a full width container below the plots.
+
+<!--# Exercise idea: right code to generate the layouts in these drawings/screenshots -->
+
+## Multi-page layouts
+
+As your app grows in complexity, it might become impossible to fit everything on a single page.
+In this section you'll learn various uses of `tabPanel()` that create the illusion of multiple pages.
+This is an illusion because you'll still have a single app with a single underlying HTML file, but it's now broken into pieces and only one piece is visible at a time.
+
+Multi-page apps pair particularly well with modules, which you'll learn about in Chapter \@ref(scaling-modules).
+Modules allow you to partition up the server function in the same way you partition up the user interface, creating independent components that only interact through well defined connections.
+
+### Tabsets
+
+The simple way to break up a page into pieces is to use `tabsetPanel()` and its close friend `tabPanel()`.
+As you can see in the code below, `tabsetPanel()` creates a container for any number of `tabPanels()`, which can in turn contain any other HTML components.
+Figure \@ref(fig:tabset) shows a simple example.
+
+```{r}
+ui <- fluidPage(
+  tabsetPanel(
+    tabPanel("Import data", 
+      fileInput("file", "Data", buttonLabel = "Upload..."),
+      textInput("delim", "Delimiter (leave blank to guess)", ""),
+      numericInput("skip", "Rows to skip", 0, min = 0),
+      numericInput("rows", "Rows to preview", 10, min = 1)
+    ),
+    tabPanel("Set parameters"),
+    tabPanel("Visualise results")
+  )
+)
+```
+
+```{r tabset, fig.cap = "A `tabsetPanel()` allows the user to select a single `tabPanel()` to view", echo = FALSE, message = FALSE}
+demo <- demoApp$new("action-layout/tabset", ui)
+demo$resize(width = 800)
+demo$takeScreenshot()
+```
+
+If you want to know what tab a user has selected, you can provide the `id` argument to `tabsetPanel()` and it becomes an input.
+Figure \@ref(fig:tabset-input) shows this in action.
+
+```{r}
+ui <- fluidPage(
+  sidebarLayout(
+    sidebarPanel(
+      textOutput("panel")
+    ),
+    mainPanel(
+      tabsetPanel(
+        id = "tabset",
+        tabPanel("panel 1", "one"),
+        tabPanel("panel 2", "two"),
+        tabPanel("panel 3", "three")
+      )
+    )
+  )
+)
+server <- function(input, output, session) {
+  output$panel <- renderText({
+    paste("Current panel: ", input$tabset)
+  })
+}
+```
+
+```{r tabset-input, fig.cap = "A tabset becomes an input when you use the `id` argument. This allows you to make your app behave differently depending on which tab is currently visible.", echo = FALSE, out.width = "50%", message = FALSE}
+demo <- demoApp$new("action-layout/tabset-input", ui, server)
+demo$resize(width = 300)
+demo$takeScreenshot("1")
+demo$setInputs(tabset = "panel 2")
+demo$takeScreenshot("2")
+```
+
+Note `tabsetPanel()` can be used anywhere in your app; it's totally fine to nest tabsets inside of other components (including tabsets!) if needed.
+
+### Navlists and navbars
+
+Because tabs are displayed horizontally, there's a fundamental limit to how many tabs you can use, particularly if they have long titles.
+`navbarPage()`and `navbarMenu()` provide two alternative layouts that let you use more tabs with longer titles.
+
+`navlistPanel()` is similar to `tabsetPanel()` but instead of running the tab titles horizontally, it shows them vertically in a sidebar.
+It also allows you to add headings with plain strings, as shown in the code below, which generates Figure \@ref(fig:navlistPanel).
+
+```{r}
+ui <- fluidPage(
+  navlistPanel(
+    id = "tabset",
+    "Heading 1",
+    tabPanel("panel 1", "Panel one contents"),
+    "Heading 2",
+    tabPanel("panel 2", "Panel two contents"),
+    tabPanel("panel 3", "Panel three contents")
+  )
+)
+```
+
+```{r navlistPanel, fig.cap = "A `navlistPanel()` displays the tab titles vertically, rather than horizontally.", echo = FALSE, message = FALSE, out.width = NULL}
+demo <- demoApp$new("action-layout/navlistPanel", ui)
+demo$resize(800)
+demo$takeScreenshot()
+```
+
+Another approach is use `navbarPage()`: it still runs the tab titles horizontally, but you can use `navbarMenu()` to add drop-down menus for an additional level of hierarchy.
+Figure \@ref(fig:navbarPage) shows a simple example.
+
+```{r}
+ui <- navbarPage(
+  "Page title",   
+  tabPanel("panel 1", "one"),
+  tabPanel("panel 2", "two"),
+  tabPanel("panel 3", "three"),
+  navbarMenu("subpanels", 
+    tabPanel("panel 4a", "four-a"),
+    tabPanel("panel 4b", "four-b"),
+    tabPanel("panel 4c", "four-c")
+  )
+)
+```
+
+```{r navbarPage, fig.cap = "A `navbarPage()` sets up a horizontal nav bar at the top of the page.", echo = FALSE, message = FALSE, out.width = NULL}
+if (FALSE) {
+  # Generates a random tabset id so can't automate
+  demo <- demoApp$new("action-layout/navbarPage", ui)
+  demo$resize(800)
+  demo$takeScreenshot()  
+}
+knitr::include_graphics("demos/action-layout/navbarPage.png", dpi = screenshot_dpi())
+```
+
+These layouts give you considerable ability to create rich and satisfying apps.
+To go further, you'll need to learn more about the underlying design system.
+
+## Bootstrap
+
+To continue your app customisation journey, you'll need to learn a little more about the [Bootstrap](https://getbootstrap.com) framework used by Shiny.
+Bootstrap is a collection of HTML conventions, CSS styles, and JS snippets bundled up into a convenient form.
+Bootstrap grew out of a framework originally developed for Twitter and over the last 10 years has grown to become one of the most popular CSS frameworks used on the web.
+Bootstrap is also popular in R --- you've undoubtedly seen many documents produced by `rmarkdown::html_document()` and used many package websites made by [pkgdown](http://pkgdown.r-lib.org/), both of which also use Bootstrap.
+
+As a Shiny developer, you don't need to think too much about Bootstrap, because Shiny functions automatically generate bootstrap compatible HTML for you.
+But it's good to know that Bootstrap exists because then:
+
+-   You can use `bslib::bs_theme()` to customise the visual appearance of your code, Section \@ref(themes).
+
+-   You can use the `class` argument to customise some layouts, inputs, and outputs using Bootstrap class names, as you saw in Section \@ref(action-buttons).
+
+-   You can make your own functions to generate Bootstrap components that Shiny doesn't provide, as explained in "[Utility classes](https://rstudio.github.io/bslib/articles/theming.html#utility-classes)".
+
+It's also possible to use a completely different CSS framework.
+A number of existing R packages make this easy by wrapping popular alternatives to Bootstrap:
+
+-   [shiny.semantic](https://appsilon.github.io/shiny.semantic/), by [Appsilon](https://appsilon.com/), builds on top of [formantic UI](https://fomantic-ui.com).
+
+-   [shinyMobile](https://github.com/RinteRface/shinyMobile), by [RInterface](https://rinterface.com), builds on top of [framework 7](https://framework7.io), and is specifically designed for mobile apps.
+
+-   [shinymaterial](https://ericrayanderson.github.io/shinymaterial/), by [Eric Anderson](https://github.com/ericrayanderson), is built on top of Google's [Material design](https://material.io/design) framework.
+
+-   [shinydashboard](https://rstudio.github.io/shinydashboard/), also by RStudio, provides a layout system designed to create dashboards.
+
+You can find a fuller, and actively maintained, list at <https://github.com/nanxstats/awesome-shiny-extensions>.
+
+## Themes
+
+Bootstrap is so ubiquitous within the R community that it's easy to get style fatigue: after a while every Shiny app and Rmd start to look the same.
+The solution is theming with the [bslib](https://rstudio.github.io/bslib) package.
+bslib is relatively new package that allows you to override many Bootstrap defaults in order to create an appearance that is uniquely yours.
+As I write this, bslib is mostly applicable only to Shiny, but work is afoot to bring its enhanced theming power to RMarkdown, pkgdown, and more.
+
+If you're producing apps for your company, I highly recommend investing a little time in theming --- theming your app to match your corporate style guide is an easy way to make yourself look good.
+
+### Getting started
+
+Create a theme with `bslib::bs_theme()` then apply it to an app with the `theme` argument of the page layout function:
+
+```{r, eval = FALSE}
+fluidPage(
+  theme = bslib::bs_theme(...)
+)
+```
+
+If not specified, Shiny will use the classic Bootstrap v3 theme that it has used basically since it was created.
+By default, `bslib::bs_theme()`, will use Bootstrap v4.
+Using Bootstrap v4 instead of v3 will not cause problems if you only use built-in components.
+There is a possibility that it might cause problems if you've used custom HTML, so you can force it to stay with v3 with `version = 3`.
+
+### Shiny themes
+
+The easiest way to change the overall look of your app is to pick a premade "[bootswatch](https://bootswatch.com)" theme using the `bootswatch` argument to `bslib::bs_theme()`.
+Figure \@ref(fig:theme) shows the results of the following code, switching `"darkly"` out for other themes.
+
+```{r, eval = FALSE}
+ui <- fluidPage(
+  theme = bslib::bs_theme(bootswatch = "darkly"),
+  sidebarLayout(
+    sidebarPanel(
+      textInput("txt", "Text input:", "text here"),
+      sliderInput("slider", "Slider input:", 1, 100, 30)
+    ),
+    mainPanel(
+      h1(paste0("Theme: darkly")),
+      h2("Header 2"),
+      p("Some text")
+    )
+  )
+)
+```
+
+```{r theme, fig.cap = "The same app styled with four bootswatch themes: darkly, flatly, sandstone, and united", echo = FALSE, out.width = "50%", fig.show="hold", fig.align='default', message = FALSE}
+theme_demo <- function(theme) {
+  fluidPage(
+    theme = bslib::bs_theme(bootswatch = theme),
+    sidebarLayout(
+      sidebarPanel(
+        textInput("txt", "Text input:", "text here"),
+        sliderInput("slider", "Slider input:", 1, 100, 30)
+      ),
+      mainPanel(
+        h1(paste0("Theme: ", theme)),
+        h2("Header 2"),
+        p("Some text")
+      )
+    )
+  )
+}
+
+demoApp$new("action-layout/theme-darkly", theme_demo("darkly"))$takeScreenshot()
+demoApp$new("action-layout/theme-flatly", theme_demo("flatly"))$takeScreenshot()
+demoApp$new("action-layout/theme-sandstone", theme_demo("sandstone"))$takeScreenshot()
+demoApp$new("action-layout/theme-united", theme_demo("united"))$takeScreenshot()
+```
+
+Alternatively, you can construct your own theme using the other arguments to `bs_theme()` like `bg` (background colour), `fg` (foreground colour) and `base_font`[^action-layout-1]:
+
+[^action-layout-1]: Fonts are a little trickier than colours because you have to make sure the app viewer has the font, not just you.
+    Make sure to read the `bs_theme()` docs for all the details.
+
+```{r}
+theme <- bslib::bs_theme(
+  bg = "#0b3d91", 
+  fg = "white", 
+  base_font = "Source Sans Pro"
+)
+```
+
+An easy way to preview and customise your theme is to use `bslib::bs_theme_preview(theme)`.
+This will open a Shiny app that shows what the theme looks like when applied many standard controls, and also provides you with interactive controls for customising the most important parameters.
+
+### Plot themes
+
+If you've heavily customised the style of your app, you may want to also customise your plots to match.
+Luckily, this is really easy thanks to the [thematic](https://rstudio.github.io/thematic/) package which automatically themes ggplot2, lattice, and base plots.
+Just call `thematic_shiny()` in your server function.
+This will automatically determine all of the settings from your app theme as in Figure \@ref(fig:thematic).
+
+```{r}
+library(ggplot2)
+
+ui <- fluidPage(
+  theme = bslib::bs_theme(bootswatch = "darkly"),
+  titlePanel("A themed plot"),
+  plotOutput("plot"),
+)
+
+server <- function(input, output, session) {
+  thematic::thematic_shiny()
+  
+  output$plot <- renderPlot({
+    ggplot(mtcars, aes(wt, mpg)) +
+      geom_point() +
+      geom_smooth()
+  }, res = 96)
+}
+```
+
+```{r thematic, fig.cap="Use `thematic::thematic_shiny()` ensures that the ggplot2 automatically matches the app theme", echo = FALSE, message = FALSE, out.width = NULL}
+demo <- demoApp$new("action-layout/thematic", ui, server)
+demo$takeScreenshot()
+```
+
+### Exercises
+
+1.  Use `bslib::bs_theme_preview()` to make the ugliest theme you can.
+
+## Under the hood
+
+Shiny is designed so that, as an R user, you don't need to learn about the details of HTML.
+However, if you know some HTML and CSS, it's possible to customise Shiny still further.
+Unfortunately teaching HTML and CSS is out scope for this book, but a good place to start are the [HTML](https://developer.mozilla.org/en-US/docs/Learn/Getting_started_with_the_web/HTML_basics) and [CSS basics](https://developer.mozilla.org/en-US/docs/Learn/Getting_started_with_the_web/CSS_basics) tutorials by MDN.
+
+The most important thing to know is that there's no magic behind all the input, output, and layout functions: they just generate HTML[^action-layout-2].
+You can see that HTML by executing UI functions directly in the console:
+
+[^action-layout-2]: The magic that connects inputs and outputs to R happens elsewhere (via javascript) but that's well beyond the scope of this book.
+
+```{r, eval = FALSE}
+fluidPage(
+  textInput("name", "What's your name?")
+)
+```
+
+``` {.html}
+<div class="container-fluid">
+  <div class="form-group shiny-input-container">
+    <label for="name">What's your name?</label>
+    <input id="name" type="text" class="form-control" value=""/>
+  </div>
+</div>
+```
+
+Note that this is the contents of the `<body>` tag; other parts of Shiny take care of generating the `<head>`.
+If you want to include additional CSS or JS dependencies you'll need to learn `htmltools::htmlDependency()`.
+Two good places to start are <https://blog.r-hub.io/2020/08/25/js-r/#web-dependency-management> and <https://unleash-shiny.rinterface.com/htmltools-dependencies.html>.
+
+It's possible to add your own HTML to the `ui`.
+One way to do so is by including literal HTML with the `HTML()` function.
+In the example below, I use the "raw character constant[^action-layout-3]", `r"()"`, to make it easier to include quotes in the string:
+
+[^action-layout-3]: Introduced in R 4.0.0.
+
+```{r}
+ui <- fluidPage(
+  HTML(r"(
+    <h1>This is a heading</h1>
+    <p class="my-class">This is some text!</p>
+    <ul>
+      <li>First bullet</li>
+      <li>Second bullet</li>
+    </ul>
+  )")
+)
+```
+
+If you're a HTML/CSS expert, you might be interested to know that can skip `fluidPage()` altogether and supply raw HTML.
+See "[Build your entire UI with HTML](https://shiny.rstudio.com/articles/html-ui.html)" for more details.
+
+Alternatively, you can use of the HTML helper that Shiny provides.
+There are regular functions for the most important elements like `h1()` and `p()`, and all others can be accessed via the other tags helper.
+Named arguments become attributes and unnamed arguments become children, so we can recreate the above HTML as:
+
+```{r}
+ui <- fluidPage(
+  h1("This is a heading"),
+  p("This is some text", class = "my-class"),
+  tags$ul(
+    tags$li("First bullet"), 
+    tags$li("Second bullet")
+  )
+)
+```
+
+One advantage of generating HTML with code is that you can interweave existing Shiny components into a custom structure.
+For example, the code below makes a paragraph of text containing two outputs, one which is bold:
+
+```{r, eval = FALSE}
+tags$p(
+  "You made ", 
+  tags$b("$", textOutput("amount", inline = TRUE)),
+  " in the last ", 
+  textOutput("days", inline = TRUE),
+  " days " 
+)
+```
+
+Note the use of `inline = TRUE`; the `textOutput()` default is to produe a complete paragraph.
+
+To learn more about using HTML, CSS, and JavaScript to make compelling user interfaces, I highly recommend David Granjon's [Outstanding User Interfaces with Shiny](https://unleash-shiny.rinterface.com/index.html).
+
+## Summary
+
+This chapter has given you the tools you need to make complex and attractive Shiny apps.
+You've learned the Shiny functions that allow you to layout single and multi-page apps (like `fluidPage()` and `tabsetPanel()`) and how to customise the overall visual appearance with themes.
+You've also learned a little bit about what's going on under the hood: you know that Shiny uses Bootstrap, and that the input and output functions just return HTML, which you can also create yourself.
+
+In the next chapter you'll learn more about another important visual component of your app: graphics.

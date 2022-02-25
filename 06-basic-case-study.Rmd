@@ -1,0 +1,344 @@
+# Case study: ER injuries {#basic-case-study}
+
+```{r include=FALSE}
+source("_common.R")
+source("demo.R")
+options(tibble.print_min = 6, tibble.print_max = 6)
+
+fs::dir_create("demos/basic-case-study")
+case_study_screenshot <- function(name) {
+  app_path <- paste0("neiss/", name, ".R")
+  png_path <- paste0("demos/basic-case-study/", name, ".png")
+  
+  if (!fs::file_exists(png_path)) {
+    app <- shinytest::ShinyDriver$new(app_path)
+    app$setWindowSize(800, 600)
+    app$waitForShiny()
+    app$takeScreenshot(png_path)
+  }
+  
+  knitr::include_graphics(png_path, dpi = screenshot_dpi())  
+}
+
+case_study_deploy <- function(name) {
+  tmp <- dir_create(file_temp())
+ 
+  data <- c("injuries.tsv.gz", "population.tsv", "products.tsv")
+  file_copy(path("neiss", data), tmp)
+  file_copy(paste0("neiss/", name, ".R"), path(tmp, "app.R"))
+  
+  rsconnect::deployApp(
+    appDir = tmp,
+    appName = paste0("ms-", name),
+    appTitle = paste0("Mastering Shiny: ", name),
+    server = "shinyapps.io",
+    forceUpdate = TRUE,
+    logLevel = "quiet",
+    launch.browser = FALSE
+  )
+}
+if (FALSE) {
+  case_study_deploy("narrative")
+  case_study_deploy("polish-tables")
+  case_study_deploy("prototype")
+  case_study_deploy("rate-vs-count")
+}
+
+```
+**CAPÍTULO EN PROCESO DE TRADUCCIÓN**
+
+## Introduction
+
+I've introduced you to a bunch of new concepts in the last three chapters.
+So to help them sink in, we'll now walk through a richer Shiny app that explores a fun dataset and pulls together many of the ideas that you've seen so far.
+We'll start by doing a little data analysis outside of Shiny, then turn it into an app, starting simply, then progressively layering on more detail.
+
+In this chapter, we'll supplement Shiny with vroom (for fast file reading) and the tidyverse (for general data analysis).
+
+```{r setup, message = FALSE}
+library(shiny)
+library(vroom)
+library(tidyverse)
+```
+
+## The data
+
+We're going to explore data from the National Electronic Injury Surveillance System (NEISS), collected by the Consumer Product Safety Commission.
+This is a long-term study that records all accidents seen in a representative sample of hospitals in the United States.
+It's an interesting dataset to explore because every one is already familiar with the domain, and each observation is accompanied by a short narrative that explains how the accident occurred.
+You can find out more about this dataset at <https://github.com/hadley/neiss>.
+
+In this chapter, I'm going to focus on just the data from 2017.
+This keeps the data small enough (\~10 MB) that it's easy to store in git (along with the rest of the book), which means we don't need to think about sophisticated strategies for importing the data quickly (we'll come back to those later in the book).
+You can see the code I used to create the extract for this chapter at <https://github.com/hadley/mastering-shiny/blob/master/neiss/data.R>.
+
+If you want to get the data on to your own computer, run this code:
+
+```{r, eval = "FALSE"}
+dir.create("neiss")
+download <- function(name) {
+  url <- "https://github.com/hadley/mastering-shiny/raw/master/neiss/"
+  download.file(paste0(url, name), paste0("neiss/", name), quiet = TRUE)
+}
+download("injuries.tsv.gz")
+download("population.tsv")
+download("products.tsv")
+```
+
+The main dataset we'll use is `injuries`, which contains around 250,000 observations:
+
+```{r, message = FALSE}
+injuries <- vroom::vroom("neiss/injuries.tsv.gz")
+injuries
+```
+
+Each row represents a single accident with 10 variables:
+
+-   `trmt_date` is date the person was seen in the hospital (not when the accident occurred).
+
+-   `age`, `sex`, and `race` give demographic information about the person who experienced the accident.
+
+-   `body_part` is the location of the injury on the body (like ankle or ear); `location` is the place where the accident occurred (like home or school).
+
+-   `diag` gives the basic diagnosis of the injury (like fracture or laceration).
+
+-   `prod_code` is the primary product associated with the injury.
+
+-   `weight` is statistical weight giving the estimated number of people who would suffer this injury if this dataset was scaled to the entire population of the US.
+
+-   `narrative` is a brief story about how the accident occurred.
+
+We'll pair it with two other data frames for additional context: `products` lets us look up the product name from the product code, and `population` tells us the total US population in 2017 for each combination of age and sex.
+
+```{r, message = FALSE}
+products <- vroom::vroom("neiss/products.tsv")
+products
+
+population <- vroom::vroom("neiss/population.tsv")
+population
+```
+
+## Exploration
+
+Before we create the app, let's explore the data a little.
+We'll start by looking at a product with an interesting story: 649, "toilets".
+First we'll pull out the injuries associated with this product:
+
+```{r}
+selected <- injuries %>% filter(prod_code == 649)
+nrow(selected)
+```
+
+Next we'll perform some basic summaries looking at the location, body part, and diagnosis of toilet related injuries.
+Note that I weight by the `weight` variable so that the counts can be interpreted as estimated total injuries across the whole US.
+
+```{r}
+selected %>% count(location, wt = weight, sort = TRUE)
+
+selected %>% count(body_part, wt = weight, sort = TRUE)
+
+selected %>% count(diag, wt = weight, sort = TRUE)
+```
+
+As you might expect, injuries involving toilets most often occur at home.
+The most common body parts involved possibly suggest that these are falls (since the head and face are not usually involved in routine toilet usage), and the diagnoses seem rather varied.
+
+We can also explore the pattern across age and sex.
+We have enough data here that a table is not that useful, and so I make a plot, Figure \@ref(fig:toilets-raw), that makes the patterns more obvious.
+
+```{r toilets-raw, out.width = "100%", fig.asp = 1/2, fig.cap = "Estimated number of injuries caused by toilets, broken down by age and sex"}
+summary <- selected %>% 
+  count(age, sex, wt = weight)
+summary
+
+summary %>% 
+  ggplot(aes(age, n, colour = sex)) + 
+  geom_line() + 
+  labs(y = "Estimated number of injuries")
+```
+
+We see a spike for young boys peaking at age 3, and then an increase (particularly for women) starting around middle age, and a gradual decline after age 80.
+I suspect the peak is because boys usually use the toilet standing up, and the increase for women is due to osteoporosis (i.e. I suspect women and men have injuries at the same rate, but more women end up in the ER because they are at higher risk of fractures).
+
+One problem with interpreting this pattern is that we know that there are fewer older people than younger people, so the population available to be injured is smaller.
+We can control for this by comparing the number of people injured with the total population and calculating an injury rate.
+Here I use a rate per 10,000.
+
+```{r}
+summary <- selected %>% 
+  count(age, sex, wt = weight) %>% 
+  left_join(population, by = c("age", "sex")) %>% 
+  mutate(rate = n / population * 1e4)
+
+summary
+```
+
+Plotting the rate, Figure \@ref(fig:toilets-rate), yields a strikingly different trend after age 50: the difference between men and women is much smaller, and we no longer see a decrease.
+This is because women tend to live longer than men, so at older ages there are simply more women alive to be injured by toilets.
+
+```{r toilets-rate, out.width = "100%", fig.asp = 1/2, fig.cap = "Estimated rate of injuries per 10,000 people, broken down by age and sex"}
+summary %>% 
+  ggplot(aes(age, rate, colour = sex)) + 
+  geom_line(na.rm = TRUE) + 
+  labs(y = "Injuries per 10,000 people")
+```
+
+(Note that the rates only go up to age 80 because I couldn't find population data for ages over 80.)
+
+Finally, we can look at some of the narratives.
+Browsing through these is an informal way to check our hypotheses, and generate new ideas for further exploration.
+Here I pull out a random sample of 10:
+
+```{r, echo = FALSE}
+# Ensure that narratives don't overflow
+if (knitr::is_latex_output()) {
+  pad <- nchar("#> [1] ''")
+  selected$narrative <- str_trunc(selected$narrative, width = 81 - pad)
+}
+```
+
+```{r}
+selected %>% 
+  sample_n(10) %>% 
+  pull(narrative)
+```
+
+Having done this exploration for one product, it would be very nice if we could easily do it for other products, without having to retype the code.
+So let's make a Shiny app!
+
+## Prototype
+
+When building a complex app, I strongly recommend starting as simple as possible, so that you can confirm the basic mechanics work before you start doing something more complicated.
+Here I'll start with one input (the product code), three tables, and one plot.
+
+When designing a first prototype, the challenge is in making it "as simple *as possible*".
+There's a tension between getting the basics working quickly and planning for the future of the app.
+Either extreme can be bad: if you design too narrowly, you'll spend a lot of time later on reworking your app; if you design too rigorously, you'll spend a bunch of time writing code that later ends up on the cutting floor.
+To help get the balance right, I often do a few pencil-and-paper sketches to rapidly explore the UI and reactive graph before committing to code.
+
+Here I decided to have one row for the inputs (accepting that I'm probably going to add more inputs before this app is done), one row for all three tables (giving each table 4 columns, 1/3 of the 12 column width), and then one row for the plot:
+
+```{r code = section_get("neiss/prototype.R", "ui")}
+```
+
+We haven't talked about `fluidRow()` and `column()` yet, but you should be able to guess what they do from the context, and we'll come back to talk about them in Section \@ref(multi-row).
+Also note the use of `setNames()` in the `selectInput()` `choices`: this shows the product name in the UI and returns the product code to the server.
+
+The server function is relatively straightforward.
+I first convert the `selected` and `summary` variables created in the previous section to reactive expressions.
+This is a reasonable general pattern: you create variables in your data analysis to decompose the analysis into steps, and to avoid recomputing things multiple times, and reactive expressions play the same role in Shiny apps.
+
+Often it's a good idea to spend a little time cleaning up your analysis code before you start your Shiny app, so you can think about these problems in regular R code, before you add the additional complexity of reactivity.
+
+```{r code = section_get("neiss/prototype.R", "server")}
+```
+
+Note that creating the `summary` reactive isn't strictly necessary here, as it's only used by a single reactive consumer.
+But it's good practice to keep computing and plotting separate as it makes the flow of the app easier to understand, and will make it easier to generalise in the future.
+
+A screenshot of the resulting app is shown in Figure \@ref(fig:prototype).
+You can find the source code at <https://github.com/hadley/mastering-shiny/tree/master/neiss/prototype.R> and try out a live version of the app at <https://hadley.shinyapps.io/ms-prototype/>.
+
+```{r prototype, echo = FALSE, out.width = "100%", fig.cap="First prototype of NEISS exploration app"}
+case_study_screenshot("prototype")
+```
+
+## Polish tables
+
+Now that we have the basic components in place and working, we can progressively improve our app.
+The first problem with this app is that it shows a lot of information in the tables, where we probably just want the highlights.
+To fix this we need to first figure out how to truncate the tables.
+I've chosen to do that with a combination of forcats functions: I convert the variable to a factor, order by the frequency of the levels, and then lump together all levels after the top 5.
+
+```{r}
+injuries %>%
+  mutate(diag = fct_lump(fct_infreq(diag), n = 5)) %>%
+  group_by(diag) %>%
+  summarise(n = as.integer(sum(weight)))
+```
+
+Because I knew how to do it, I wrote a little function to automate this for any variable.
+The details aren't really important here, but we'll come back to them in Chapter \@ref(action-tidy).
+You could also solve the problem with copy and paste, so don't worry if the code looks totally foreign.
+
+```{r, code = section_get("neiss/polish-tables.R", "count_top")}
+```
+
+I then use this in the server function:
+
+```{r, code = section_get("neiss/polish-tables.R", "tables"), eval = FALSE}
+```
+
+I made one other change to improve the aesthetics of the app: I forced all tables to take up the maximum width (i.e. fill the column that they appear in).
+This makes the output more aesthetically pleasing because it reduces the amount of incidental variation.
+
+A screenshot of the resulting app is shown in Figure \@ref(fig:polish-tables).
+You can find the source code at <https://github.com/hadley/mastering-shiny/tree/master/neiss/polish-tables.R> and try out a live version of the app at <https://hadley.shinyapps.io/ms-polish-tables>.
+
+```{r polish-tables, echo = FALSE, out.width = "100%", fig.cap="The second iteration of the app improves the display by only showing the most frequent rows in the summary tables"}
+case_study_screenshot("polish-tables")
+```
+
+## Rate vs count
+
+So far, we're displaying only a single plot, but we'd like to give the user the choice between visualising the number of injuries or the population-standardised rate.
+First I add a control to the UI.
+Here I've chosen to use a `selectInput()` because it makes both states explicit, and it would be easy to add new states in the future:
+
+```{r, code = section_get("neiss/rate-vs-count.R", "first-row"), eval = FALSE}
+```
+
+(I default to `rate` because I think it's safer; you don't need to understand the population distribution in order to correctly interpret the plot.)
+
+Then I condition on that input when generating the plot:
+
+```{r, code = section_get("neiss/rate-vs-count.R", "plot"), eval = FALSE}
+```
+
+A screenshot of the resulting app is shown in Figure \@ref(fig:rate-vs-count).
+You can find the source code at <https://github.com/hadley/mastering-shiny/tree/master/neiss/rate-vs-count.R> and try out a live version of the app at <https://hadley.shinyapps.io/ms-rate-vs-count>.
+
+```{r rate-vs-count, echo = FALSE, out.width = "100%", fig.cap = "In this iteration, we give the user the ability to switch between displaying the count or the population standardised rate on the y-axis."}
+case_study_screenshot("rate-vs-count")
+```
+
+## Narrative
+
+Finally, I want to provide some way to access the narratives because they are so interesting, and they give an informal way to cross-check the hypotheses you come up with when looking at the plots.
+In the R code, I sample multiple narratives at once, but there's no reason to do that in an app where you can explore interactively.
+
+There are two parts to the solution.
+First we add a new row to the bottom of the UI.
+I use an action button to trigger a new story, and put the narrative in a `textOutput()`:
+
+```{r, code = section_get("neiss/narrative.R", "narrative-ui"), eval = FALSE}
+```
+
+I then use `eventReactive()` to create a reactive that only updates when the button is clicked or the underlying data changes.
+
+```{r, code = section_get("neiss/narrative.R", "narrative-server"), eval = FALSE}
+```
+
+A screenshot of the resulting app is shown in Figure \@ref(fig:narrative).
+You can find the source code at <https://github.com/hadley/mastering-shiny/tree/master/neiss/narrative.R> and try out a live version of the app at <https://hadley.shinyapps.io/ms-narrative>.
+
+```{r narrative, echo = FALSE, out.width = "100%", fig.cap = "The final iteration adds the ability to pull out a random narrative from the selected rows"}
+case_study_screenshot("narrative")
+```
+
+## Exercises
+
+1.  Draw the reactive graph for each app.
+
+2.  What happens if you flip `fct_infreq()` and `fct_lump()` in the code that reduces the summary tables?
+
+3.  Add an input control that lets the user decide how many rows to show in the summary tables.
+
+4.  Provide a way to step through every narrative systematically with forward and backward buttons.
+
+    Advanced: Make the list of narratives "circular" so that advancing forward from the last narrative takes you to the first.
+
+## Summary
+
+Now that you have the basics of Shiny apps under your belt, the following seven chapters will give you a grab bag of important techniques.
+Once you've read the next chapter on workflow, I recommend skimming the remaining chapters so you get a good sense of what they cover, then dip your toes back in as you need the techniques for an app.

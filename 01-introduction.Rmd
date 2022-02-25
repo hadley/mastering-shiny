@@ -3,6 +3,7 @@
 ```{r include = FALSE}
 source("_common.R")
 ```
+**CAPÍTULO EN PROCESO DE TRADUCCIÓN**
 
 ## What is Shiny?
 
