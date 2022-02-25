@@ -4,6 +4,7 @@
 source("common.R")
 source("demo.R")
 ```
+**CAPÍTULO EN PROCESO DE TRADUCCIÓN**
 
 By default, Shiny apps have one major drawback compared to most web sites: you can't bookmark the app to return to the same place in the future or share your work with someone else with a link in an email.
 That's because, by default, Shiny does not expose the current state of the app in its URL.

@@ -4,6 +4,7 @@
 source("common.R")
 options(tibble.print_min = 6, tibble.print_max = 6)
 ```
+**CAPÍTULO EN PROCESO DE TRADUCCIÓN**
 
 For simple apps, it's easy enough to remember how the app is supposed to work, so that when you make changes to add new features, you don't accidentally break existing capabilities.
 However, as your app gets more complicated it becomes impossible to hold it all in your head simultaneously.

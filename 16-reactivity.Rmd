@@ -1,17 +1,17 @@
-# (PART\*) Mastering reactivity {.unnumbered}
+# (PART\*) Dominando la reactividad {.unnumbered}
 
-# Introduction {#reactivity-intro .unnumbered}
+# Introducción {#reactivity-intro .unnumbered}
 
-You now have a bundle of useful techniques under your belt, giving you the ability to create a wide range of useful apps.
-Next we'll turn our attention to the theory of reactivity that underlies the magic of Shiny:
+Ya tienes a tu haber una serie de técnicas prácticas que te permiten crear una amplia gama de aplicaciones útiles.
 
--   In Chapter \@ref(reactive-motivation) you'll learn why the reactivity programming model is needed, and a little bit about the history of reactive programming outside of R.
+A continuación enfocaremos nuestra atención a la teoría de la reactividad que subyace a la magia de Shiny:
 
--   In Chapter \@ref(reactive-graph), you'll learn the full details of the reactive graph, which determines exactly when reactive components are updated.
+-   En el capítulo \@ref(reactive-motivation) aprenderás por qué el modelo de programación reactiva es necesario y un poco acerca de la historia de la programación reactiva fuera de R. 
 
--   In Chapter \@ref(reactivity-objects), you'll learn about the underlying building blocks, particularly observers and timed invalidation.
+-   En el capítulo \@ref(reactive-graph), aprenderás sobre todos los detalles de un gráfico reactivo que determinan cuándo exactamente los componentes reactivos se actualizan. 
 
--   In Chapter \@ref(reactivity-components), you'll learn how to escape the constraints of the reactive graph using `reactiveVal()` and `observe()`.
+-   En el capítulo \@ref(reactivity-objects), aprenderás sobre los bloques de construcción subyacentes, particularmente acerca de observadores (_observers_) e invalidaciones cronometradas (_timed invalidations_).
 
-You certainly don't need to understand all these details for routine development of Shiny apps.
-But improving your understanding will help you write correct apps from the get go, and when something behaves unexpectedly you can more quickly narrow in on the underlying issue.
+-   En el capítulo \@ref(reactivity-components), aprenderás sobre cómo escapar de las constricciones del gráfico reactivo usando  `reactiveVal()` y `observe()`.
+
+Ciertamente, no es necesario entender todos estos detalles para el desarrollo rutinario de aplicaciones Shiny. Sin embargo, mejorar tu comprensión sobre ellos te ayudará a escribir aplicaciones correctas desde el principio. De este modo, cuando algo se comporte de manera inesperada, podrás concentrarte de manera más rápida en el problema subyacente. 

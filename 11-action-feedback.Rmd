@@ -4,6 +4,7 @@
 source("common.R")
 source("demo.R")
 ```
+**CAPÍTULO EN PROCESO DE TRADUCCIÓN**
 
 You can often make your app more usable by giving the user more insight into what is happening.
 This might take the form of better messages when inputs don't make sense, or progress bars for operations that take a long time.

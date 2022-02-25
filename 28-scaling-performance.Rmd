@@ -4,6 +4,7 @@
 source("common.R")
 options(tibble.print_min = 6, tibble.print_max = 6)
 ```
+**CAPÍTULO EN PROCESO DE TRADUCCIÓN**
 
 A Shiny app can support thousands or tens of thousands of users, if developed the right way.
 But most Shiny apps are quickly thrown together to solve a pressing analytic need, and typically begin life with poor performance.

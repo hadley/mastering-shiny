@@ -3,6 +3,7 @@
 ```{r, include = FALSE}
 source("common.R")
 ```
+**CAPÍTULO EN PROCESO DE TRADUCCIÓN**
 
 Most Shiny apps are deployed within a company firewall and since you can generally assume that your colleagues aren't going to try and hack your app[^scaling-security-1], you don't need to think about security.
 If, however, your app contains data that only some of your colleagues should be able to access, or you want to expose your app to the public, you will need to spend some time on security.

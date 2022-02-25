@@ -3,6 +3,7 @@
 ```{r, include = FALSE}
 source("common.R")
 ```
+**CAPÍTULO EN PROCESO DE TRADUCCIÓN**
 
 As your app gets bigger, it will get harder and harder to hold all the pieces in your head, making it harder and harder to understand.
 In turn, this makes it harder to add new features, and harder to find a solution when something goes wrong (i.e. it's harder to debug).

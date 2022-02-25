@@ -1,32 +1,31 @@
-# (PART\*) Best practices {.unnumbered}
+# (PART\*) Mejores prácticas {.unnumbered}
 
-# Introduction {#scaling-intro .unnumbered}
+# Introducción {#scaling-intro .unnumbered}
 
-When you start using Shiny, it'll take you a long time to make even small apps, because you have to learn the fundamentals.
-Over time, however, you'll become more comfortable with the basic interface of the package and the key ideas of reactivity, and you'll be able to create larger, more complex applications.
-As you start to write larger apps, you'll encounter a new set of challenges: keeping a complex and growing code-base organized, stable, and maintainable.
-This will include problems like:
+Cuando comienzas a utilizar Shiny, usualmente toma un tiempo largo hacer incluso aplicaciones pequeñas, ya que es necesario aprender los fundamentos. Sin embargo, con el paso del tiempo sentirás mayor comodidad con la interfaz básica de este paquete y con las ideas claves sobre reactividad. Esto te permitirá crear aplicaciones más largas y complejas. 
 
--   "I can't find the code I'm looking for in this huge file."
+A medida que comiences a escribir aplicaciones más largas, encontrarás una nueva serie de desafíos: conservar de forma organizada, estable y mantenible una compleja y creciente base de código. Esto incluirá problemas como: 
 
--   "I haven't worked on this code in 6 months and I'm afraid I'm going to break it if I make any changes."
+-   "No puedo encontrar el código que estoy buscando en este archivo enorme."
 
--   "Someone else started working with me on the application and we keep standing on each others toes."
+-   "No he trabajado en este código en seis meses y temo romperlo si hago algún cambio."
 
--   "The app works on my computer but doesn't work on my collaborator's or in production."
+-   "Alguien más empezó a trabajar conmigo en esta aplicación y constantemente nos estorbamos."
 
-In this, the "best practices", part of the book, you'll learn some key concepts and tools from software engineering that will help you overcome these challenges:
+-   "La aplicación funciona en mi computador, pero no en el de mis colaboradores o en producción."
 
--   In Chapter \@ref(best-practices), I'll briefly introduce you to the big ideas of software engineering.
+En esta parte del libro, enfocada en "mejores prácticas", aprenderás algunos conceptos clave y herramientas de ingeniería de software que te ayudarán a sobreponerte a algunos de estos desafíos. 
 
--   In Chapter \@ref(scaling-functions), I'll show you how to extract code out of your Shiny app in to independent apps, and discuss why you might want to do so.
+-   En el capítulo \@ref(best-practices), presentaré brevemente las grandes ideas de la ingeniería de software.
 
--   In Chapter \@ref(scaling-modules), you'll learn about Shiny's module system, which allows you to extract coupled UI and server code into isolated and reusable components.
+-   En el capítulo \@ref(scaling-functions), mostraré cómo extraer el código de tu aplicación Shiny hacia aplicaciones independientes y discutiremos por qué es algo que querrías hacer. 
 
--   In Chapter \@ref(scaling-packaging), I'll show you how to turn your app in R package, and motivate why that investment will pay off for bigger apps.
+-   En el capítulo \@ref(scaling-modules), aprenderás sobre el sistema de módulos de Shiny, que te permite extraer el código de una interfaz de usuario y de su servidor en componentes aislados y reutilizables.
 
--   In Chapter \@ref(scaling-testing), you'll learn how to turn your existing informal tests into automated test that can easily be re-run whenever your app changes.
+-   En el capítulo \@ref(scaling-packaging), te mostraré cómo convertir tu aplicación en un paquete de R y explicaré por qué esta inversión vale la pena en el caso de aplicaciones más grandes. 
 
--   In Chapter \@ref(performance), you'll learn how to identify and resolve performance bottlenecks in your apps, ensuring they remain speedy even when used by hundreds of users.
+-   En el capítulo \@ref(scaling-testing), aprenderás a convertir los test informales que ya tienes en test automáticos que puedan ser fácilmente ejecutados cada vez que tu aplicación cambia. 
 
-Of course you can't learn everything about software engineering in one part of one book, so I'll also point you to good places to learn more.
+-   En el capítulo \@ref(performance), aprenderás a indentificar y resolver cuellos de botella en la performance de tus aplicaciones, para asegurarte que estas permanezcan rápidas incluso cuando son utilizadas por cientos de personas. 
+
+Obviamente, no es posible aprender todo sobre ingeniería de software en una única parte de un libro, por lo que que también te sugiriré dónde puedes aprender más sobre el tema. 

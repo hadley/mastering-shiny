@@ -4,6 +4,7 @@
 source("common.R")
 source("demo.R")
 ```
+**CAPÍTULO EN PROCESO DE TRADUCCIÓN**
 
 Transferring files to and from the user is a common feature of apps.
 You can use it to upload data for analysis, or download the results as a dataset or as a report.

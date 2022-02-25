@@ -1,5 +1,7 @@
 # General guidelines {#best-practices}
 
+**CAPÍTULO EN PROCESO DE TRADUCCIÓN**
+
 ## Introduction
 
 This chapter introduces the most important software engineering skills you'll need when writing Shiny apps: code organisation, testing, dependency management, source code control, continuous integration, and code reviews.

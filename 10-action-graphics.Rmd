@@ -4,6 +4,7 @@
 source("common.R")
 source("demo.R")
 ```
+**CAPÍTULO EN PROCESO DE TRADUCCIÓN**
 
 We talked briefly about `renderPlot()` in Chapter \@ref(basic-ui); it's a powerful tool for displaying graphics in your app.
 This chapter will show you how to use it to its full extent to create interactive plots, plots that respond to mouse events.

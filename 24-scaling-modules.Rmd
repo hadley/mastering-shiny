@@ -4,6 +4,7 @@
 source("common.R")
 source("demo.R")
 ```
+**CAPÍTULO EN PROCESO DE TRADUCCIÓN**
 
 In the last chapter we used functions to decompose parts of your Shiny app into independent pieces.
 Functions work well for code that is either completely on the server side or completely on the client side.

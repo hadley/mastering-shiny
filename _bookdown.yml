@@ -3,8 +3,39 @@ new_session: yes
 
 rmd_files: [
   "index.Rmd",
+
   "01-introduction.Rmd",
-  "02-basic.Rmd"
+
+  "02-basic.Rmd",
+  "03-basic-app.Rmd",
+  "04-basic-ui.Rmd",
+  "05-basic-reactivity.Rmd",
+  "06-basic-case-study.Rmd",
+
+  "07-action.Rmd",
+  "08-action-workflow.Rmd",
+  "09-action-layout.Rmd",
+  "10-action-graphics.Rmd",
+  "11-action-feedback.Rmd",
+  "12-action-transfer.Rmd",
+  "13-action-dynamic.Rmd",
+  "14-action-bookmark.Rmd",
+  "15-action-tidy.Rmd",
+
+  "16-reactivity.Rmd",
+  "17-reactivity-motivation.Rmd",
+  "18-reactivity-graph.Rmd",
+  "19-reactivity-foundations.Rmd",
+  "20-reactivity-escaping.Rmd",
+
+  "21-scaling.Rmd",
+  "22-scaling-general.Rmd",
+  "23-scaling-functions.Rmd",
+  "24-scaling-modules.Rmd",
+  "25-scaling-packages.Rmd",
+  "26-scaling-testing.Rmd",
+  "27-scaling-security.Rmd",
+  "28-scaling-performance.Rmd"
 ]
 
 before_chapter_script: "_common.R"

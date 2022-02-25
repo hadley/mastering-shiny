@@ -1,25 +1,24 @@
-# (PART\*) Shiny in action {.unnumbered}
+# (PART\*) Shiny en acción {.unnumbered}
 
-# Introduction {#action-intro .unnumbered}
+# Introducción {#action-intro .unnumbered}
 
-The following chapters give you a grab bag of useful techniques.
-I think everyone should start with Chapter \@ref(workflow), because it gives you important tools for developing and debugging apps, and getting help when you're stuck.
+Los siguientes capítulos te brindarán una serie de técnicas útiles. Pienso que todo el mundo debería comenzar por el capítulo \@ref(workflow), porque entrega herramientas importantes tanto para desarrollar y depurar aplicaciones, como para obtener ayuda cuando te atasques. 
 
-After that, there's no prescribed order and relatively few connections between the chapters: I'd suggest quickly skimming to get the lay of the land (and so you might remember these tools if related problems crop up in the future), and otherwise only deeply reading the bits that you currently need.
-Here's a quick run down of the main topics:
+Luego de esto, no hay un orden prescrito y las conexiones entre los capítulos son pocas. Sugeriría hojearlos rápidamente para conocer el terreno (para que así puedas recordar estas herramientas si es que surgen problemas relacionados en el futuro) y solo leer en profundidad los fragmentos que necesitas actualmente. 
 
--   Chapter \@ref(action-layout) details the various ways you can layout input and output components on a page, and how you can customise their appearance with themes.
+Aquí hay un resumen rápido de los temas principales:
+-   El capítulo \@ref(action-layout) detalla las diferentes maneras en que puedes diseñar los componentes de input y output en una página y cómo puedes personalizar su apariencia utilizando temas.  
 
--   Chapter \@ref(action-graphics) shows you how to add direct interaction to your plot and how to display images generated in other ways.
+-   El capítulo \@ref(action-graphics) te muestra cómo añadir interacción direacta a tu gráfico y cómo mostrar imágenes que fueron generadas de otras maneras.
 
--   Chapter \@ref(action-feedback) covers a family of techniques (including inline errors, notifications, progress bars, and dialog boxes) for giving feedback to your users while you app runs.
+-   El capítulo \@ref(action-feedback) aborda una familia de técnicas (entre las que se incluye errores en línea, notificaciones, barras de progreso y cajas de diálogo) para dar retroalimentación a usuarios y usuarias mientras una aplicación se ejecuta. 
 
--   Chapter \@ref(action-transfer) discusses how to transfer files to and from your app.
+-   El capítulo \@ref(action-transfer) discute cómo transferir archivos hacia y desde tu aplicación.  
 
--   Chapter \@ref(action-dynamic) shows you how to dynamic modify your apps user interface while it runs.
+-   El capítulo \@ref(action-dynamic) muestra cómo modificar de forma dinámica la interfaz de usuario de tus aplicaciones mientras estas se ejecutan. 
 
--   Chapter \@ref(action-bookmark) shows how to record app state in such a way that your users can bookmark it.
+-   El capítulo \@ref(action-bookmark) muestra cómo grabar un estado particular de una aplicación de modo tal que usuarios y usuarias puedan marcarla como favorito en su navegador.
 
--   Chapter \@ref(action-tidy) shows you how to allow users to select variables when working with tidyverse packages.
+-   El capítulo \@ref(action-tidy) muestra cómo permitir a quienes usan la aplicación seleccionar variables cuando se está trabajando con paquetes del tidyverse. 
 
-Let's begin by working on your workflow for developing apps.
+Partamos trabajando en tu flujo de trabajo para desarrollar aplicaciones. 

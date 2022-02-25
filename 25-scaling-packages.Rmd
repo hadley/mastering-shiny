@@ -4,6 +4,7 @@
 source("common.R")
 options(tibble.print_min = 6, tibble.print_max = 6)
 ```
+**CAPÍTULO EN PROCESO DE TRADUCCIÓN**
 
 If you are creating a large or long-term Shiny app, I highly recommend that you organise your app in the same way as an R package.
 This means that you:

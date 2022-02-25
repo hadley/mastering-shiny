@@ -3,6 +3,7 @@
 ```{r setup, include=FALSE}
 source("common.R")
 ```
+**CAPÍTULO EN PROCESO DE TRADUCCIÓN**
 
 Now that you understand the theory underpinning the reactive graph and you have some practical experience, it is a good time to talk in more detail about how reactivity fits into R the programming language.
 There are three fundamental building blocks of reactive programming: reactive values, reactive expressions, and observers.

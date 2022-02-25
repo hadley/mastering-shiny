@@ -7,6 +7,7 @@ options(tibble.print_min = 6, tibble.print_max = 6)
 
 diamonds <- ggplot2::diamonds
 ```
+**CAPÍTULO EN PROCESO DE TRADUCCIÓN**
 
 If you are using Shiny with the tidyverse, you will almost certainly encounter the challenge of programming with tidy evaluation.
 Tidy evaluation is used throughout the tidyverse to make interactive data exploration more fluid, but it comes with a cost: it's hard to refer to variables indirectly, and hence harder to program with.

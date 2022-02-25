@@ -4,6 +4,7 @@
 source("common.R")
 source("demo.R")
 ```
+**CAPÍTULO EN PROCESO DE TRADUCCIÓN**
 
 So far, we've seen a clean separation between the user interface and the server function: the user interface is defined statically when the app is launched so it can't respond to anything that happens in the app.
 In this chapter, you'll learn how to create **dynamic** user interfaces, changing the UI using code run in the server function.
