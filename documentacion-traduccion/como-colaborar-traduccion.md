@@ -5,8 +5,7 @@ El siguiente documento tiene por objetivo explicar cómo enviar una traducción 
 ## Requerimientos
 
 * Una cuenta en [GitHub](https://github.com/)
-* [Tener instalado Git en tu computador]
-(https://happygitwithr.com/install-git.html)
+* [Tener instalado Git en tu computador](https://happygitwithr.com/install-git.html)
 * Haber habilitado [un token de acceso](https://happygitwithr.com/https-pat.html) en tu computador para poder interactuar con tu cuenta de GitHub
 * Asegurarte que [tienes conectado RStudio y Git](https://happygitwithr.com/rstudio-git-github.html)
 * Tener instalado el paquete `usethis`
@@ -15,38 +14,49 @@ El siguiente documento tiene por objetivo explicar cómo enviar una traducción 
 
 ### Paso 1: hacer un _fork_ del repositorio con la traducción del libro
 
-En [https://github.com/cienciadedatos/mastering-shiny](https://github.com/cienciadedatos/mastering-shiny), haz clic en _Fork_ (esquina superior derecha). Esto creará una copia del repositorio principal en tu propia cuenta de GitHub.
+En [https://github.com/cienciadedatos/mastering-shiny](https://github.com/cienciadedatos/mastering-shiny) haz clic en _Fork_ (esquina superior derecha). Esto creará una copia del repositorio principal en tu propia cuenta de GitHub.
 
-[INSERTAR CAPTURA REPO CIENCIA DE DATOS]
+<p align="center">
+<img src="capturas-de-pantalla/01-repo-cienciadedatos.png"/>
+</p>
 
 Si todo sale bien, deberías ver ahora el _fork_ del repositorio principal en tu propia cuenta.
 
-[INSERTAR CAPTURA FORK]
-
+<p align="center">
+<img src="capturas-de-pantalla/02-repo-fork.png"/>
+</p>
 
 ### Paso 2: Crea una copia local de tu _fork_
 
-Ahora, necesitas crear una copia local de tu _fork_ en tu computador. Para ello, primero debes copiar la url de tu repositorio. Puedes hacerlo desplegando el botón verde que dice _Code_. 
+A continuación, necesitas crear una copia local de tu _fork_ en tu computador. Para ello, primero debes copiar la url de tu repositorio. Puedes hacerlo desplegando el botón verde que dice _Code_. 
 
-[INSERTAR CAPTURA COPIA URL]
+<p align="center">
+<img src="capturas-de-pantalla/03-url-repositorio.png"/>
+</p>
 
-Luego, ya en RStudio, anda a **File > New Project...**, elije la opción _Version Control_. 
+Luego, ya en RStudio, anda a **File > New Project...** y elije la opción _Version Control_. 
 
-[INSERTAR CAPTURA NUEVO PROYECTO 1]
+<p align="center">
+<img src="capturas-de-pantalla/04-new-project.png" width="600"/>
+</p>
 
-Luego selecciona la opción GIT.
+Luego, selecciona la opción Git.
 
-[INSERTAR CAPTURA NUEVO PROYECTO 2]
-
+<p align="center">
+<img src="capturas-de-pantalla/05-new-project-git.png" width="600"/>
+</p>
 
 Cuando te pregunte por la url del repositorio, pega la que copiaste anteriormente. Debiese ser algo así: `https://github.com/tu-id-de-github/mastering-shiny.git`. Debes indicar también en qué parte de tu computador quieres guardar esa carpeta.
 
-[INSERTAR CAPTURA CONFIGURACIÓN NUEVO PROYECTO]
+<p align="center">
+<img src="capturas-de-pantalla/06-configuracion-proyecto.png" width="600"/>
+</p>
 
-Al hacer clic en "Create" se reiniciará tu sesión de RStudio y verás ahora el proyecto que acabas de crear. Puedes chequear que está todo bien si en la esquina superior derecha dice "mastering-shiny".
+Al hacer clic en "Create" se reiniciará tu sesión de RStudio y verás ahora el proyecto que acabas de crear. Puedes chequear que está todo bien si en la esquina superior derecha dice `mastering-shiny`.
 
-[INSERTAR CAPTURA PANTALLAZO PROYECTO CREADO]
-
+<p align="center">
+<img src="capturas-de-pantalla/07-nuevo-proyecto.png" width="600"/>
+</p>
 
 ### Paso 3: configurar los repositorios remotos
 
@@ -54,7 +64,7 @@ Ejecuta en la consola `usethis::git_remotes()`. Deberías ver un resultado parec
 
 ```
 > usethis::git_remotes()
-✓ Setting active project to '/home/ciruelo/Dropbox/0.R4DS/mastering-shiny'
+✓ Setting active project to '/home/ciruelo/Escritorio/mastering-shiny'
 $origin
 [1] "https://github.com/rivaquiroga/mastering-shiny.git"
 
@@ -79,7 +89,7 @@ $upstream
 
 ```
 
-Es decir, ahora tenemos dos remotos, uno que apunta al que tiene la traducción (_upstream_) y otro a tu _fork_ (_origin_). 
+Ahora tenemos dos remotos: uno que apunta al que tiene la traducción (_upstream_) y otro a tu _fork_ (_origin_). 
 
 Con este último paso queda todo configurado para que puedas empezar con la traducción.
 
@@ -102,23 +112,30 @@ Ahora que ya tienes seguridad de que tu repositorio está actualizado respecto d
 • Use `pr_push()` to create a PR.
 ```
 
-¡Listo! Ya puedes empezar a traducir editando directamente el archivo .Rmd del capítulo correspondiente. Revisa el documento con las orientaciones para la traducción, que contiene los lineamientos que seguiremos durante este proceso.
+¡Listo! Ya puedes empezar a traducir editando directamente el archivo .Rmd del capítulo correspondiente. Revisa [el documento con las orientaciones para la traducción](https://github.com/cienciadedatos/mastering-shiny/blob/traduccion/documentacion-traduccion/orientaciones-traduccion.md), que contiene los lineamientos que seguiremos durante este proceso.
 
 ## Enviar la traducción
 
 Una vez que tengas lista la traducción, haz _commit_ a tu avance en el panel de Git disponible en RStudio. El único archivo que debería aparecerte es el .Rmd que acabas de traducir. (Si te aparece otro, significa que hiciste alguna modificación que sería mejor no incluir en el _pull request_ que vas a crear ahora.)
 En el panel de Git, haz clic en "Commit".
-[INSERTAR CAPTURA PANEL GIT]
+
+<p align="center">
+<img src="capturas-de-pantalla/08-panel-git.png" width="600"/>
+</p>
 
 Se abrirá una nueva ventana. Selecciona ahí el archivo que tradujiste (solo ese) y luego haz clic en "Stage". Escribe un mensaje para tu commit y haz clic en Commit. 
 
-[INSERTAR CAPTURA COMMIT]
+<p align="center">
+<img src="capturas-de-pantalla/09-commit-traduccion.png" width="600"/>
+</p>
 
-Finalmente, en tu consola, ejecuta `usethis::pr_push()`
+Finalmente, en ejecuta en la consola `usethis::pr_push()`
 
 Ese comando abrirá tu navegador y te mostrará la comparación entre tu archivo y el que se encuentra actualmente en el repositorio.
 
-[INSERTAR CAPTURA COMPARACIÓN RAMAS]
+<p align="center">
+<img src="capturas-de-pantalla/10-create-pull-request.png"/>
+</p>
 
 Chequea que las dos ramas que se están comparando son la de `cienciadedatos` y la de tu fork. A la izquierda como _base repository_ debe aparecer `cienciadedatos/mastering-shiny` y como _base_ `traduccion`. A la derecha como _head repository_ deberías ver tu fork y como _compare_ la rama que creaste para tu traducción. 
 Si todo se ve bien, haz clic en el botón verde "Create Pull Request".
@@ -126,17 +143,23 @@ Si todo se ve bien, haz clic en el botón verde "Create Pull Request".
 
 ## Revisión e incorporación de cambios
 
-La revisión de los archivos la haremos directamente en GitHub. Quienes revisen tu traducción hará los comentario en las líneas correspondientes, como se muestra en el siguiente ejemplo:
+La revisión de los archivos la haremos directamente en GitHub. Quienes revisen tu traducción hará los comentario en las líneas correspondientes directamente en el _pull request_, como se muestra en el siguiente ejemplo:
 
-[INSERTAR CAPTURA COMENTARIO GITHUB]
+<p align="center">
+<img src="capturas-de-pantalla/11-comentario-github.png"/>
+</p>
 
-Una vez que el archivo haya sido comentado, debes incorporar los cambios directamente en tu archivo local en RStudio. 
+Una vez que el archivo haya sido comentado, debes incorporar los cambios en tu archivo local en RStudio. 
 
-[INSERTAR CAPTURA EDICIÓN EN RSTUDIO]
+<p align="center">
+<img src="capturas-de-pantalla/12-rstudio-edicion.png"/>
+</p>
 
 Cuando hayas completado la edición, solo debes volver a hacerle _commit_ a tu trabajo y luego hacer _push_ para que los cambios se envíen a tu pull request. Para ello, haz clic en la flecha verde en tu panel de Git, luego de hacer el _commit_. 
 
-[INSERTAR CAPTURA PUSH]
+<p align="center">
+<img src="capturas-de-pantalla/13-commit-edicion.png" width="600"/>
+</p>
 
 ¡Listo! Puede que este último paso lo tengas que repetir un par de veces en caso de que haya más de una ronda de revisión. 
 
