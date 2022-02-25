@@ -1,7 +1,7 @@
 # Basic UI
 
 ```{r, include = FALSE}
-source("common.R")
+source("_common.R")
 source("demo.R")
 ```
 **CAPÍTULO EN PROCESO DE TRADUCCIÓN**

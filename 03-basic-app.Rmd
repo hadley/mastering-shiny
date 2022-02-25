@@ -1,7 +1,7 @@
 # Your first Shiny app {#basic-app}
 
 ```{r, include = FALSE}
-source("common.R")
+source("_common.R")
 source("demo.R")
 ```
 **CAPÍTULO EN PROCESO DE TRADUCCIÓN**

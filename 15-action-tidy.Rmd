@@ -1,7 +1,7 @@
 # Tidy evaluation {#action-tidy}
 
 ```{r, include = FALSE}
-source("common.R")
+source("_common.R")
 source("demo.R")
 options(tibble.print_min = 6, tibble.print_max = 6)
 

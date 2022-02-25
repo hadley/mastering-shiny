@@ -1,7 +1,7 @@
 # Reactive building blocks {#reactivity-objects}
 
 ```{r setup, include=FALSE}
-source("common.R")
+source("_common.R")
 ```
 **CAPÍTULO EN PROCESO DE TRADUCCIÓN**
 

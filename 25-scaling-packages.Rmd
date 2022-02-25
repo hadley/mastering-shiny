@@ -1,7 +1,7 @@
 # Packages {#scaling-packaging}
 
 ```{r, include = FALSE}
-source("common.R")
+source("_common.R")
 options(tibble.print_min = 6, tibble.print_max = 6)
 ```
 **CAPÍTULO EN PROCESO DE TRADUCCIÓN**

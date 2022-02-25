@@ -1,7 +1,7 @@
 # Case study: ER injuries {#basic-case-study}
 
 ```{r include=FALSE}
-source("common.R")
+source("_common.R")
 source("demo.R")
 options(tibble.print_min = 6, tibble.print_max = 6)
 

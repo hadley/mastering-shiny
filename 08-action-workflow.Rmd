@@ -1,7 +1,7 @@
 # Workflow {#action-workflow}
 
 ```{r, include = FALSE}
-source("common.R")
+source("_common.R")
 options(tibble.print_min = 4, tibble.print_max = 4)
 ```
 **CAPÍTULO EN PROCESO DE TRADUCCIÓN**

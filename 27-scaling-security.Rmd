@@ -1,7 +1,7 @@
 # Security {#scaling-security}
 
 ```{r, include = FALSE}
-source("common.R")
+source("_common.R")
 ```
 **CAPÍTULO EN PROCESO DE TRADUCCIÓN**
 
