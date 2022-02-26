@@ -58,12 +58,13 @@ Pese a que hay términos que traduciremos al español, es importante que quien t
 
 | término en inglés | traducción a utilizar |
 | ----------- | ----------- |
-| click | hacer clic |
+| app | aplicación |
+| click (como verbo) | hacer clic |
 | console | consola |
-| debugging | depurar |
+| debug | depurar |
 | dataset | conjunto de datos / set de datos |
 | input | input (la palabra existe como anglicismo en español, no se traduce) |
-| ... | ... |
+| output | output (la palabra existe como anglicismo en español, no se traduce) |
 
 
 #### Términos técnicos que se mantienen
@@ -73,7 +74,6 @@ Estos términos irán _en cursiva_. De ser pertinente, se debe ofrecer una posib
 | ----------------------------|
 | back end |
 | front end |
-
 
 [Las Carpentries](https://github.com/Carpentries-ES/board/blob/master/Convenciones_Traduccion.md) tienen algunas convenciones que podemos ir revisando y ver si se adecuan al propósito de la traducción que estamos realizando.
 
