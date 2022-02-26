@@ -35,12 +35,6 @@ jobs:
           echo "::set-output name=version::$(Rscript -e 'cat(as.character(getRversion()))')"
         shell: bash
 
-      - name: Cache R packages
-        uses: actions/cache@v2
-        with:
-          path: ${{ env.R_LIBS_USER }}
-          key: ${{ runner.os }}-${{ steps.get-r-version.outputs.version }}-3-
-
       - name: Install pak
         run: |
           install.packages("pak", repos = "https://r-lib.github.io/p/pak/dev/")
@@ -50,13 +44,6 @@ jobs:
         run: |
           pak::local_install_dev_deps()
         shell: Rscript {0}
-
-      - name: Cache bookdown results
-        uses: actions/cache@v2
-        with:
-          path: _bookdown_files
-          key: bookdown-3-${{ hashFiles('**/*Rmd') }}
-          restore-keys: bookdown-3-
 
       - name: Build site
         run: |
