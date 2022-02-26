@@ -138,7 +138,7 @@ Ese comando abrirá tu navegador y te mostrará la comparación entre tu archivo
 </p>
 
 Chequea que las dos ramas que se están comparando son la de `cienciadedatos` y la de tu fork. A la izquierda como _base repository_ debe aparecer `cienciadedatos/mastering-shiny` y como _base_ `traduccion`. A la derecha como _head repository_ deberías ver tu fork y como _compare_ la rama que creaste para tu traducción. 
-Si todo se ve bien, haz clic en el botón verde "Create Pull Request".
+Si todo se ve bien, haz clic en el botón verde "Create Pull Request". Al _pull request_ ponle como nombre "Traducción" + el nombre del archivo. Por ejemplo: "Traducción Index.Rmd".
 
 
 ## Revisión e incorporación de cambios
