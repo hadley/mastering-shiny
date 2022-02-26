@@ -12,7 +12,7 @@ __2. La variedad dialectal del español que ocuparemos en la traducción es la d
 * Evitaremos expresiones o usos locales/regionales, es decir, que no están extendidos en toda Latinoamérica.
 * No utilizaremos el voseo (_vos/vosotros_). El libro está dirigido a una segunda persona, así que para cautelar la neutralidad la traduciremos como _tú_ (... _you'll learn_ > ... _aprenderás_).
 
-__3. Género gramatical.__ A diferencia del inglés, el español tiene género gramatical (masculino, femenino y muy, pero muy pocos neutros). En general, como el libro está dirigido a un _tú_ y se habla de datos, variables y funciones, hay pocas situaciones en las que haya que tomar una decisión respecto de cómo manejar este tema; pero las hay. La primera opción será ajustar la redacción para evitar tener que asignar un género. Por ejemplo, _the students_ se podría traducir como _el estudiantado_. O _for data scientists_ como _para personas que trabajan en ciencia de datos_ o _para quienes hacen ciencia de datos_. Si el fragmento hace dífil elegir esta opción, entonces duplicaremos el género: _para científicos y científicas de datos_. 
+__3. Género gramatical.__ A diferencia del inglés, el español tiene género gramatical (masculino, femenino y muy, pero muy pocos neutros). En general, como el libro está dirigido a un _tú_ y se habla de datos, variables y funciones, hay pocas situaciones en las que haya que tomar una decisión respecto de cómo manejar este tema; pero las hay. La primera opción será ajustar la redacción para evitar tener que asignar un género. Por ejemplo, _the students_ se podría traducir como _el estudiantado_. O _for data scientists_ como _para personas que trabajan en ciencia de datos_ o _para quienes hacen ciencia de datos_. Si el fragmento hace díficil elegir esta opción, entonces duplicaremos el género: _para científicos y científicas de datos_. 
 
 __4. El español es una lengua menos repetitiva que el inglés.__ Como los verbos tienen marca de persona, género y número, tenemos la flexibilidad de poder omitir el sujeto, ya que por contexto se suele entender a qué nos estamos refiriendo.
 
@@ -61,10 +61,12 @@ Pese a que hay términos que traduciremos al español, es importante que quien t
 | app | aplicación |
 | click (como verbo) | hacer clic |
 | console | consola |
-| debug | depurar |
 | dataset | conjunto de datos / set de datos |
+| debug | depurar |
+| deploy | ... |
 | input | input (la palabra existe como anglicismo en español, no se traduce) |
 | output | output (la palabra existe como anglicismo en español, no se traduce) |
+| user interface | interfaz de usuario |
 
 
 #### Términos técnicos que se mantienen
@@ -74,6 +76,8 @@ Estos términos irán _en cursiva_. De ser pertinente, se debe ofrecer una posib
 | ----------------------------|
 | back end |
 | front end |
+| UI |
+
 
 [Las Carpentries](https://github.com/Carpentries-ES/board/blob/master/Convenciones_Traduccion.md) tienen algunas convenciones que podemos ir revisando y ver si se adecuan al propósito de la traducción que estamos realizando.
 
@@ -81,10 +85,11 @@ Estos términos irán _en cursiva_. De ser pertinente, se debe ofrecer una posib
 
 Experiencia anteriores de traducción nos han enseñado que es mejor traducir el código al final. Así que por el momento, los bloques de código no debes modificarlos, salvo los comentarios explicativos que contengan.
 
-## IV. Aspectos de formato
+## IV. Aspectos de formato en RMarkdown
 
 * Los nombres de los paquetes van __en negrita__.
 * Los términos en inglés van _en cursiva_.
+* **Es muy importante no modificar las referencias internas dentro de los archivos ni los anclajes de los títulos.**
 
 
 ## V. Aspectos de ortografía / gramática del español
