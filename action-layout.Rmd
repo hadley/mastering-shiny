@@ -47,9 +47,9 @@ Focus on the hierarchy of the function calls:
 fluidPage(
   titlePanel(),
   sidebarLayout(
-    sidebarPanel(),
-    mainPanel()
-  )
+    sidebarPanel()
+  ),
+  mainPanel()
 )
 ```
 
