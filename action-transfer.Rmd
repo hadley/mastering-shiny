@@ -322,7 +322,7 @@ There are a couple of other tricks worth knowing about:
       output$report <- downloadHandler(
         filename = "report.html",
         content = function(file) {
-          params <- list(n = input$slider)
+          params <- list(n = input$n)
           callr::r(
             render_report,
             list(input = report_path, output = file, params = params)
