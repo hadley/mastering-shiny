@@ -276,7 +276,7 @@ You end up doing a lot of hard work to analyse the flow of events in your app, r
 
 It's informative to compare the two reactive graphs.
 Figure \@ref(fig:anti-pattern) shows the graph from the first example.
-It's misleading because it doesn't look like `nrows` is connected to `df()`.
+It's misleading because it doesn't look like `nrows` is connected to `df`.
 Using a reactive, as in Figure \@ref(fig:pattern), makes the precise connection easy to see.
 Having a reactive graph that is as simple as possible is important for both humans and for Shiny.
 A simple graph is easier for humans to understand, and a simple graph is easier for Shiny to optimise.
