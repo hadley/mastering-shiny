@@ -204,7 +204,7 @@ server <- function(input, output, session) {
 }
 ```
 
-Notice in this case we can't easily use `observeEvent()` because we perform different actions depending on whether `running()` is `TRUE` or `FALSE`.
+Notice in this case we can't easily use `observeEvent()` because we perform different actions depending on whether `r$running` is `TRUE` or `FALSE`.
 Since we can't use `observeEvent()`, we must use `isolate()` --- if we don't this observer would also take a reactive dependency on `n`, which it updates, so it would get stuck in an infinite loop.
 
 Hopefully these examples start to give you a flavour of what programming with `reactiveValues()` and `observe()` feels like.
