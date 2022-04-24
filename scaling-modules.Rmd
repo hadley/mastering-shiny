@@ -649,7 +649,7 @@ histogramApp <- function() {
 
   server <- function(input, output, session) {
     data <- datasetServer("data")
-    c(value, name) %<-% selectVarServer("var", data)
+    c(name, value) %<-% selectVarServer("var", data)
     histogramServer("hist", value, name)
   }
   shinyApp(ui, server)
