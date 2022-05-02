@@ -978,7 +978,7 @@ wizardApp <- function(...) {
 }
 ```
 
-Unfortunately we need to repeat ourselves slightly when using the module, and we need to make sure that the `n` argument to `wizardServer()` is consistent with the `pages` argument to `wizardUi()`.
+Unfortunately we need to repeat ourselves slightly when using the module, and we need to make sure that the `n` argument to `wizardServer()` is consistent with the `pages` argument to `wizardUI()`.
 This is a principled limitation of the module system which we'll discuss in more detail in Section \@ref(module-objects).
 
 Now let's use the wizard in a slightly more realistic app that has inputs and outputs, and yields Figure \@ref(fig:wizard-module).
