@@ -71,14 +71,14 @@ knitr::include_graphics("images/action-layout/fluid-page.png", dpi = 300)
 ```
 
 In addition to `fluidPage()`, Shiny provides a couple of other page functions that can come in handy in more specialised situations: `fixedPage()` and `fillPage()`.
-`fixedPage()` works like `fluidPage()` but has a fixed maximum width, which stops your apps from becoming unreasonable wide on bigger screens.
+`fixedPage()` works like `fluidPage()` but has a fixed maximum width, which stops your apps from becoming unreasonably wide on bigger screens.
 `fillPage()` fills the full height of the browser and is useful if you want to make a plot that occupies the whole screen.
 You can find the details in their documentation.
 
 ### Page with sidebar
 
-To make more complex layouts, you'll need call layout functions inside of `fluidPage()`.
-For example, to make a two-column layout with inputs on the left and outputs on the right you can use `sidebarLayout()` (along with it's friends `titlePanel()`, `sidebarPanel()`, and `mainPanel()`).
+To make more complex layouts, you'll need to call layout functions inside of `fluidPage()`.
+For example, to make a two-column layout with inputs on the left and outputs on the right you can use `sidebarLayout()` (along with its friends `titlePanel()`, `sidebarPanel()`, and `mainPanel()`).
 The following code shows the basic structure to generate Figure \@ref(fig:ui-sidebar).
 
 ```{r, eval = FALSE}
@@ -101,7 +101,7 @@ fluidPage(
 knitr::include_graphics("diagrams/action-layout/sidebar.png", dpi = 300)
 ```
 
-To make it more realistic, lets add an input and output to create a very simple app that demonstrates the Central Limit Theorem, as shown in Figure \@ref(fig:clt).
+To make it more realistic, let's add an input and output to create a very simple app that demonstrates the Central Limit Theorem, as shown in Figure \@ref(fig:clt).
 If you run this app yourself, you can increase the number of samples to see the distribution become more normal.
 
 ```{r}
