@@ -13,7 +13,7 @@ The goal of this chapter is to help you improve three important Shiny workflows:
 
 -   The basic development cycle of creating apps, making changes, and experimenting with the results.
 
--   Debugging, the workflow where you figure out what's gone wrong with your code and then brainstorm solutions to fix it.
+-   Debugging the workflow where you figure out what's gone wrong with your code and then brainstorm solutions to fix it.
 
 -   Writing reprexes, self-contained chunks of code that illustrate a problem.
     Reprexes are a powerful debugging technique, and they are essential if you want to get help from someone else.
