@@ -13,7 +13,7 @@ bookdown::gitbook:
       collapse: section
       before: |
         <li><a href="./">Mastering Shiny</a></li>
-    edit: https://github.com/hadley/mastering-shiny/edit/master/%s
+    edit: https://github.com/hadley/mastering-shiny/edit/main/%s
     download: []
     sharing:
       facebook: no
