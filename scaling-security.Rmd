@@ -184,3 +184,5 @@ find_student("Robert'); DROP TABLE Students; --")
 ```
 
 It's a little hard to tell at first glance, but this is safe, because SQL's equivalent of `\'` is `''` so the query returns all rows of the `Students` table where the name is literally "Robert'); DROP TABLE Students; --".
+
+In the next chapter you'll learn out how to figure out what's making your apps slow, and some techniques for making them faster.
