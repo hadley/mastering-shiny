@@ -30,9 +30,6 @@ jobs:
 
       - uses: r-lib/actions/setup-r-dependencies@v2
 
-      - name: Install PhantomJS
-        run: R -e 'webshot::install_phantomjs()'
-
       - name: Build book
         run: Rscript -e 'bookdown::render_book("index.Rmd", quiet = TRUE)'
 
