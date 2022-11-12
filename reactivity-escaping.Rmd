@@ -268,7 +268,7 @@ But there are still two drawbacks:
 
 -   If the table or plot are in tabs that are not currently visible, the observer will still draw/plot them.
 
--   If the `head()` throws an error, the `observe()` will terminate the app, but `reactive()` will propagate it so it's displayed reactive throws an error, it won't get propagated.
+-   If the `head()` throws an error, the `observe()` will terminate the app, but `reactive()` will propagate it so it's displayed.
 
 And things will get progressively worse as the app gets more complicated.
 It's very easy to revert to the event-driven programming situation described in Section \@ref(event-driven).
