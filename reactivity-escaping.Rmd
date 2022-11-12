@@ -204,7 +204,7 @@ server <- function(input, output, session) {
 }
 ```
 
-Notice in this case we can't easily use `observeEvent()` because we perform different actions depending on whether `running()` is `TRUE` or `FALSE`.
+Notice in this case we can't easily use `observeEvent()` because we perform different actions depending on whether `r$running` is `TRUE` or `FALSE`.
 Since we can't use `observeEvent()`, we must use `isolate()` --- if we don't this observer would also take a reactive dependency on `n`, which it updates, so it would get stuck in an infinite loop.
 
 Hopefully these examples start to give you a flavour of what programming with `reactiveValues()` and `observe()` feels like.
@@ -276,7 +276,7 @@ You end up doing a lot of hard work to analyse the flow of events in your app, r
 
 It's informative to compare the two reactive graphs.
 Figure \@ref(fig:anti-pattern) shows the graph from the first example.
-It's misleading because it doesn't look like `nrows` is connected to `df()`.
+It's misleading because it doesn't look like `nrows` is connected to `df`.
 Using a reactive, as in Figure \@ref(fig:pattern), makes the precise connection easy to see.
 Having a reactive graph that is as simple as possible is important for both humans and for Shiny.
 A simple graph is easier for humans to understand, and a simple graph is easier for Shiny to optimise.
