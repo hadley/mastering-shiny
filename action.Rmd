@@ -3,7 +3,7 @@
 # Introduction {#action-intro .unnumbered}
 
 The following chapters give you a grab bag of useful techniques.
-I think everyone should start with Chapter \@ref(workflow), because it gives you important tools for developing and debugging apps, and getting help when you're stuck.
+I think everyone should start with Chapter \@ref(action-workflow), because it gives you important tools for developing and debugging apps, and getting help when you're stuck.
 
 After that, there's no prescribed order and relatively few connections between the chapters: I'd suggest quickly skimming to get the lay of the land (and so you might remember these tools if related problems crop up in the future), and otherwise only deeply reading the bits that you currently need.
 Here's a quick run down of the main topics:
