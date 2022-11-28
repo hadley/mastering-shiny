@@ -320,8 +320,7 @@ If you want to deploy your app to RStudio Connect or Shiny[^scaling-packages-1] 
 
 [^scaling-packages-1]: I'd expect most other ways of deploying Shiny apps would also work since `app.R` is the most common way of structuring apps.
 
--   You'll need an `app.R` that tells the deployment server how to run your app.
-    The easiest way is to load the code with pkgload:
+-   You'll need an `app.R` in your main directory that tells the deployment server how to run your app. This is in addition to the `app.R` as in your `R/` directory. The easiest way is to load the code with pkgload:
 
     ```{r, eval = FALSE}
     pkgload::load_all(".")
