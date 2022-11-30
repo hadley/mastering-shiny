@@ -948,7 +948,7 @@ demo$deploy()
 
 ### Dialog boxes
 
-Before we finish up, wanted to mention a related technique: dialog boxes.
+Before we finish up, I wanted to mention a related technique: dialog boxes.
 You've seen them already in Section \@ref(feedback-modal), where the contents of the dialog was a fixed text string.
 But because `modalDialog()` is called from within the server function, you can actually dynamically generate content in the same way as `renderUI()`.
 This is a useful technique to have in your back pocket if you want to force the user to make some decision before continuing on with the regular app flow.
@@ -1015,4 +1015,4 @@ Now you've learned how to both modify the user interface and completely recreate
 A dynamic user interface will dramatically increases the complexity of your app, so don't be surprised if you find yourself struggling to debug what's going in.
 Always remember to use to the simplest technique that solves your problem, and fall back to the debugging advice in Section \@ref(debugging).
 
-The next chapter switches tack to talk about bookmarking, make it possible to share the current state of an app with others.
+The next chapter switches back to talk about bookmarking, making it possible to share the current state of an app with others.
