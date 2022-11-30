@@ -1012,7 +1012,7 @@ This is a useful technique to have in your back pocket if you want to force the 
 
 Before reading this chapter, you were limited to creating the user interface statically, before the server function was run.
 Now you've learned how to both modify the user interface and completely recreate it in response to user actions.
-A dynamic user interface will dramatically increases the complexity of your app, so don't be surprised if you find yourself struggling to debug what's going in.
+A dynamic user interface will dramatically increase the complexity of your app, so don't be surprised if you find yourself struggling to debug what's going in.
 Always remember to use to the simplest technique that solves your problem, and fall back to the debugging advice in Section \@ref(debugging).
 
 The next chapter switches tack to talk about bookmarking, make it possible to share the current state of an app with others.
