@@ -69,7 +69,7 @@ You can find out more about this dataset at <https://github.com/hadley/neiss>.
 
 In this chapter, I'm going to focus on just the data from 2017.
 This keeps the data small enough (\~10 MB) that it's easy to store in git (along with the rest of the book), which means we don't need to think about sophisticated strategies for importing the data quickly (we'll come back to those later in the book).
-You can see the code I used to create the extract for this chapter at <https://github.com/hadley/mastering-shiny/blob/master/neiss/data.R>.
+You can see the code I used to create the extract for this chapter at <https://github.com/hadley/mastering-shiny/blob/main/neiss/data.R>.
 
 If you want to get the data on to your own computer, run this code:
 
