@@ -332,7 +332,7 @@ There are a couple of other tricks worth knowing about:
     }
     ```
 
-You can see all these pieces put together in [`rmarkdown-report/`](https://github.com/hadley/mastering-shiny/tree/master/rmarkdown-report), found inside the Mastering Shiny GitHub repo.
+You can see all these pieces put together in [`rmarkdown-report/`](https://github.com/hadley/mastering-shiny/tree/main/rmarkdown-report), found inside the Mastering Shiny GitHub repo.
 
 The [shinymeta](https://github.com/rstudio/shinymeta) package solves a related problem: sometimes you need to be able to turn the current state of a Shiny app into a reproducible report that can be re-run in the future.
 Learn more about it in Joe Cheng's useR!

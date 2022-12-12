@@ -225,7 +225,7 @@ knitr::include_graphics(c(s1, s2, s3))
 demo$deploy()
 ```
 
-Try out this simple example at `r demo$link()`, or see a more fully fleshed out application at <https://github.com/hadley/mastering-shiny/tree/master/sales-dashboard>.
+Try out this simple example at `r demo$link()`, or see a more fully fleshed out application at <https://github.com/hadley/mastering-shiny/tree/main/sales-dashboard>.
 
 ### Freezing reactive inputs
 
