@@ -383,7 +383,7 @@ The server function will have two arguments:
     }
     ```
 
-Then the module server uses `observeEvent()` to update the `inputSelect` choices when the data changes, and returns a reactive that provides the values of the selected variable.
+Then the module server uses `observeEvent()` to update the `selectInput` choices when the data changes, and returns a reactive that provides the values of the selected variable.
 
 ```{r}
 selectVarServer <- function(id, data, filter = is.numeric) {
