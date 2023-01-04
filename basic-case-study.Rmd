@@ -76,7 +76,7 @@ If you want to get the data on to your own computer, run this code:
 ```{r, eval = "FALSE"}
 dir.create("neiss")
 download <- function(name) {
-  url <- "https://github.com/hadley/mastering-shiny/raw/main/neiss/"
+  url <- "https://github.com/hadley/mastering-shiny/tree/main/neiss/"
   download.file(paste0(url, name), paste0("neiss/", name), quiet = TRUE)
 }
 download("injuries.tsv.gz")
