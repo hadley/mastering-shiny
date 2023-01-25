@@ -71,7 +71,7 @@ knitr::include_graphics("images/action-layout/fluid-page.png", dpi = 300)
 ```
 
 In addition to `fluidPage()`, Shiny provides a couple of other page functions that can come in handy in more specialised situations: `fixedPage()` and `fillPage()`.
-`fixedPage()` works like `fluidPage()` but has a fixed maximum width, which stops your apps from becoming unreasonable wide on bigger screens.
+`fixedPage()` works like `fluidPage()` but has a fixed maximum width, which stops your apps from becoming unreasonably wide on bigger screens.
 `fillPage()` fills the full height of the browser and is useful if you want to make a plot that occupies the whole screen.
 You can find the details in their documentation.
 
