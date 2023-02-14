@@ -411,7 +411,7 @@ output$text <- renderText(slow_function2(input$z)) %>%
   bindCache(input$z)
 ```
 
-The additional arguments are are the cache keys --- these are the values that are used to determine if a computation has been seen before.
+The additional arguments are the cache keys --- these are the values that are used to determine if a computation has been seen before.
 We'll discuss the cache keys in more details after showing a couple of practical uses.
 
 ### Caching a reactive
@@ -522,7 +522,7 @@ The defaults are carefully chosen to "just work" in most cases, but if needed yo
 It's worth talking briefly about the cache key: the set of values used to figure out whether or not the computation has been previously performed.
 These values are also used to determine the reactive dependencies, much like the *first* argument of `observeEvent()` or `eventReactive()`.
 That means if you use the wrong cache key you can get very confusing results.
-For example, image that I have this cached reactive:
+For example, imagine that I have this cached reactive:
 
 ```{r, eval = FALSE}
 r <- reactive(input$x + input$y) %>% bindCache(input$x)
