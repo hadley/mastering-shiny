@@ -2,7 +2,7 @@
 [![Build Status](https://github.com/hadley/mastering-shiny/workflows/.github/workflows/build-book.yaml/badge.svg)](https://github.com/hadley/mastering-shiny/actions?workflow=.github/workflows/build-book.yaml)
 <!-- badges: end -->
 
-This is the work-in-progress repo for the book _Mastering Shiny_ by Hadley Wickham. It is licensed under the Creative Commons [Attribution-NonCommercial-NoDerivatives 4.0 International License](http://creativecommons.org/licenses/by-nc-nd/4.0/). 
+This is the repo for the book _Mastering Shiny_ by Hadley Wickham. It is licensed under the Creative Commons [Attribution-NonCommercial-NoDerivatives 4.0 International License](http://creativecommons.org/licenses/by-nc-nd/4.0/). 
 
 Built with [bookdown](https://bookdown.org/yihui/bookdown/).
 
