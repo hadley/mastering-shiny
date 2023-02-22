@@ -188,7 +188,7 @@ demo <- demoApp$new("action-bookmark/bookmark-server", ui, server, bookmark = "s
 demo$deploy()
 ```
 
-shinyapps.io doesn't currently supported server side bookmarking, so you'll need to try this out locally.
+shinyapps.io doesn't currently support server side bookmarking, so you'll need to try this out locally.
 If you do so, you'll see that the bookmark button generates URLs like:
 
 -   `http://127.0.0.1:4087/?_state_id_=0d645f1b28f05c97`
