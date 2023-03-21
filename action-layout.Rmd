@@ -78,7 +78,7 @@ You can find the details in their documentation.
 ### Page with sidebar
 
 To make more complex layouts, you'll need call layout functions inside of `fluidPage()`.
-For example, to make a two-column layout with inputs on the left and outputs on the right you can use `sidebarLayout()` (along with it's friends `titlePanel()`, `sidebarPanel()`, and `mainPanel()`).
+For example, to make a two-column layout with inputs on the left and outputs on the right you can use `sidebarLayout()` (along with its friends `titlePanel()`, `sidebarPanel()`, and `mainPanel()`).
 The following code shows the basic structure to generate Figure \@ref(fig:ui-sidebar).
 
 ```{r, eval = FALSE}
