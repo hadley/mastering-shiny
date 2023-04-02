@@ -326,7 +326,7 @@ But it's good to know that Bootstrap exists because then:
 
 -   You can use the `class` argument to customise some layouts, inputs, and outputs using Bootstrap class names, as you saw in Section \@ref(action-buttons).
 
--   You can make your own functions to generate Bootstrap components that Shiny doesn't provide, as explained in "[Utility classes](https://rstudio.github.io/bslib/articles/theming.html#utility-classes)".
+-   You can make your own functions to generate Bootstrap components that Shiny doesn't provide, as explained in "[Utility classes](https://rstudio.github.io/bslib/articles/utility-classes.html)".
 
 It's also possible to use a completely different CSS framework.
 A number of existing R packages make this easy by wrapping popular alternatives to Bootstrap:
