@@ -18,7 +18,7 @@ This tends to have slightly different flavours for UI and server components:
     Pulling out a reactive into a separate function, even if that function is only called in one place, makes it substantially easier to debug, because you can experiment with computation independent of reactivity.
 
 Functions have another important role in Shiny apps: they allow you to spread out your app code across multiple files.
-While you certainly can have one giant `app.R` file, it's much easier to manage when spread across multiple files.
+While you can certainly have one giant `app.R` file, it's much easier to manage when spread across multiple files.
 
 I assume that you're already familiar with the basics of functions[^scaling-functions-1].
 The goal of this chapter is to activate your existing skills, showing you some specific cases where using functions can substantially improve the clarity of your app.
@@ -273,7 +273,7 @@ server <- function(input, output, session) {
 }
 ```
 
-This doesn't make testing or debugging any easier, but it does reduce duplicated code in.
+This doesn't make testing or debugging any easier, but it does reduce duplicate code.
 
 We could of course add `session` to the arguments of the function:
 
@@ -295,9 +295,9 @@ But this feels weird as the function is still fundamentally coupled to this app 
 ## Summary
 
 As your apps get bigger, extracting non-reactive functions out of the flow of the app will make your life substantially easier.
-Functions allow you to reactive and non-reactive code and spread your code out over multiple files.
+Functions allow you to simplify(?) reactive and non-reactive code and spread your code out over multiple files.
 This often makes it much easier to see the big picture shape of your app, and by moving complex logic out of the app into regular R code it makes it much easier to experiment, iterate, and test.
-When you start extracting out function, it's likely to feel a bit slow and frustrating, but over time you'll get faster and faster, and soon it will become a key tool in your toolbox.
+When you start extracting out functions, it's likely to feel a bit slow and frustrating, but over time you'll get faster and faster, and soon it will become a key tool in your toolbox.
 
-This functions in this chapter have one important drawback --- they can generate only UI or server components, not both.
+The functions in this chapter have one important drawback --- they can generate only UI or server components, not both.
 In the next chapter, you'll learn how to create Shiny modules, which coordinate UI and server code into a single object.
