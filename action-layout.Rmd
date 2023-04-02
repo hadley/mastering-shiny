@@ -425,7 +425,7 @@ theme <- bslib::bs_theme(
 ```
 
 An easy way to preview and customise your theme is to use `bslib::bs_theme_preview(theme)`.
-This will open a Shiny app that shows what the theme looks like when applied many standard controls, and also provides you with interactive controls for customising the most important parameters.
+This will open a Shiny app that shows what the theme looks like when applied to many standard controls, and also provides you with interactive controls for customising the most important parameters.
 
 ### Plot themes
 
