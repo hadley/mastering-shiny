@@ -428,7 +428,7 @@ summaryServer <- function(id, var) {
 ```
 
 We'll use `testServer()` as above, but the call is a little different.
-As before the first argument is the server function (now the the module server), but now we also need to supply additional arguments in a list called `args`.
+As before the first argument is the server function (now the module server), but now we also need to supply additional arguments in a list called `args`.
 This takes a list of arguments to the module server (the `id` argument is optional; `testServer()` will fill it in automatically if omitted).
 Then we finish up with the code to run:
 
