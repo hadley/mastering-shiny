@@ -512,7 +512,7 @@ ui <- fluidPage(
 )
 ```
 
-If you're a HTML/CSS expert, you might be interested to know that can skip `fluidPage()` altogether and supply raw HTML.
+If you're a HTML/CSS expert, you might be interested to know that you can skip `fluidPage()` altogether and supply raw HTML.
 See "[Build your entire UI with HTML](https://shiny.rstudio.com/articles/html-ui.html)" for more details.
 
 Alternatively, you can use of the HTML helper that Shiny provides.
