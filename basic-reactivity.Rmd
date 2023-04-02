@@ -307,7 +307,7 @@ Hopefully, the shapes will help you remember how the components fit together.
 
 ### Execution order
 
-It's important to understand that the order your code run is solely determined by the reactive graph.
+It's important to understand that the order your code runs is solely determined by the reactive graph.
 This is different from most R code where the execution order is determined by the order of lines.
 For example, we could flip the order of the two lines in our simple server function:
 
