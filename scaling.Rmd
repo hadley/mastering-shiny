@@ -11,7 +11,7 @@ This will include problems like:
 
 -   "I haven't worked on this code in 6 months and I'm afraid I'm going to break it if I make any changes."
 
--   "Someone else started working with me on the application and we keep standing on each others toes."
+-   "Someone else started working with me on the application and we keep stepping on each others toes."
 
 -   "The app works on my computer but doesn't work on my collaborator's or in production."
 
@@ -23,9 +23,9 @@ In this, the "best practices", part of the book, you'll learn some key concepts 
 
 -   In Chapter \@ref(scaling-modules), you'll learn about Shiny's module system, which allows you to extract coupled UI and server code into isolated and reusable components.
 
--   In Chapter \@ref(scaling-packaging), I'll show you how to turn your app in R package, and motivate why that investment will pay off for bigger apps.
+-   In Chapter \@ref(scaling-packaging), I'll show you how to turn your app into an R package, and explain why that investment will pay off for bigger apps.
 
--   In Chapter \@ref(scaling-testing), you'll learn how to turn your existing informal tests into automated test that can easily be re-run whenever your app changes.
+-   In Chapter \@ref(scaling-testing), you'll learn how to turn your existing informal tests into automated tests that can easily be re-run whenever your app changes.
 
 -   In Chapter \@ref(performance), you'll learn how to identify and resolve performance bottlenecks in your apps, ensuring they remain speedy even when used by hundreds of users.
 
