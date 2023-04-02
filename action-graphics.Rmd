@@ -75,7 +75,7 @@ I'll then give a couple of examples of updating the plot with the results of the
 
 The point events return a relatively rich list containing a lot of information.
 The most important components are `x` and `y`, which give the location of the event in data coordinates.
-But I'm not going to talk about this data structure, since you'll only need in relatively rare situations (If you do want the details, use [this app](https://gallery.shinyapps.io/095-plot-interaction-advanced/) in the Shiny gallery).
+But I'm not going to talk about this data structure, since you'll only need it in relatively rare situations (If you do want the details, use [this app](https://gallery.shinyapps.io/095-plot-interaction-advanced/) in the Shiny gallery).
 Instead, you'll use the `nearPoints()` helper, which returns a data frame containing rows near[^action-graphics-2] the click, taking care of a bunch of fiddly details.
 
 [^action-graphics-2]: Note that it's not called `nearestPoints()`; it won't return any thing if you don't click near an existing data point.
