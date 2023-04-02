@@ -278,7 +278,7 @@ if (interactive()) {
 }
 ```
 
-The easiest was to find and open your `.Rprofile` is to run `usethis::edit_r_profile()`.
+The easiest way to find and open your `.Rprofile` is to run `usethis::edit_r_profile()`.
 
 ### Sharing
 
