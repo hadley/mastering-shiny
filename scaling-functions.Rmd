@@ -295,7 +295,7 @@ But this feels weird as the function is still fundamentally coupled to this app 
 ## Summary
 
 As your apps get bigger, extracting non-reactive functions out of the flow of the app will make your life substantially easier.
-Functions allow you to reactive and non-reactive code and spread your code out over multiple files.
+Functions allow you to write reactive and non-reactive code and spread your code out over multiple files.
 This often makes it much easier to see the big picture shape of your app, and by moving complex logic out of the app into regular R code it makes it much easier to experiment, iterate, and test.
 When you start extracting out function, it's likely to feel a bit slow and frustrating, but over time you'll get faster and faster, and soon it will become a key tool in your toolbox.
 
