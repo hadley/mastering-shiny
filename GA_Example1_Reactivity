@@ -1,0 +1,201 @@
+# Vocabulary Quiz Text String Example of Reactivity
+# Solution not found in Chapters 3, 13, 15 of Mastering Shiny.  
+
+  #---------------------------------------------------------------------------------------------------------------------------------------------------
+  # Version One - the word does not update in renderText because NextWord is not defined as a reactive value.  The message shows the word is changing.
+  #---------------------------------------------------------------------------------------------------------------------------------------------------
+library(shiny)
+  
+# Example Vocabulary List  
+Word = c( 'advocate',  'antipathy',  'audacious', 'bolster',  'cacophony', 'corroborate', 'deride', 'desiccate',
+            'dissonance', 'ephemeral', 'equivocal', 'erudite', 'fervid',  'garrulous', 'homogenous','ingenuous',
+            'laconic',  'laudable', 'lethargic',  'lucid',  'malleable','misanthrope',  'ostentation', 'prodigal', 'venerate')
+  
+ # Length of word list for random word selection
+ numwords <- length(Word)
+  
+  # Sample one quiz word randomly
+  NextWord <- Word[sample(seq(1:numwords), size = 1)]
+ 
+ # Simplified app outputs the random quiz words only (without definition choices)
+  ui <- fluidPage(
+    fluidRow(column(12,
+                    br(),
+                    h4("Vocabulary Word:"),
+                    em(h2(textOutput("Vocabulary_Word"))),
+                    h4(""),
+    ),
+    ),
+    br(),    
+    fluidRow(column(8,
+                    actionButton("Next", "<<< BEGIN VOCABULARY QUIZ >>>", class = "btn-block")
+    )
+    )
+  )
+    
+  server <- function(input, output, session) {
+       
+    observeEvent(input$Next, {
+      NextWord <- Word[sample(seq(1:numwords), size = 1)]
+      message(NextWord)
+      updateActionButton(inputId = "Next", label = " >>>  Next Word >>> ")
+    })      
+ 
+    output$Vocabulary_Word <- renderText({
+      NextWord
+    })  
+}
+  
+  shinyApp(ui, server)   
+  
+  #----------------------------------------------------------------------------------------------------------------
+  # Version Two server - the random word is a reactive so new quiz words appear when the Next button is clicked
+  #----------------------------------------------------------------------------------------------------------------
+  
+   server <- function(input, output, session) {
+   
+    observeEvent(input$Next, {
+      updateActionButton(inputId = "Next", label = " >>>  Next Word >>> ")
+    }) 
+    
+    NextWord  <- eventReactive(input$Next, {
+      Word[sample(seq(1:numwords), size = 1)]
+    })
+ 
+    output$Vocabulary_Word <- renderText({
+      NextWord()
+    })     
+  }
+  
+  #---------------------------------------------------------------------------------------------------------------------------------
+  # Version Three - quiz with answer choices - following framework of version 2, the code runs fine but its structure is convoluted
+  #---------------------------------------------------------------------------------------------------------------------------------  
+  
+  library(shiny)
+  library(data.table)
+  library(dplyr)
+  
+  VocabList <- as.data.table(data.frame(
+    Word = c( 'advocate',  'antipathy',  'audacious', 'bolster',  'cacophony', 'corroborate', 'deride', 'desiccate',
+              'dissonance', 'ephemeral', 'equivocal', 'erudite', 'fervid',  'garrulous', 'homogenous','ingenuous',
+              'laconic',  'laudable', 'lethargic',  'lucid',  'malleable','misanthrope',  'ostentation', 'prodigal', 'venerate'),
+    
+    Definition = c(
+      'publicly recommend or support',
+      'a strong feeling of dislike',
+      'a willingness to take bold risks',
+      'to support or strengthen',
+      'a harsh, unpleasant mixture of sounds',
+      'to confirm or make more certain',
+      'to express contempt for',
+      'remove the moisture from',
+      'a lack of harmony or agreement',
+      'lasting for a very short time',
+      'not easily understood or explained',
+      'having or showing great knowledge',
+      'intensely enthusiastic',
+      'excessively talkative',
+      'of the same or similar kind',
+      'innocent and unsuspecting',
+      'using few words',
+      'deserving praise and commendation',
+      'lacking energy',
+      'very clear and easy to understand',
+      'easily influenced; pliable',
+      'a person who dislikes humankind',
+      'excessive display of wealth',
+      'wastefully extravagant',
+      'regard with great respect')
+  ))
+  
+  # Label the data frame rows with Key/Index 'Entry'
+  VocabList$Entry <- as.integer(row.names(VocabList))
+  VocabList
+  
+   # Length of word list for random word selection
+  numwords <- nrow(VocabList)
+  
+  # Sample one quiz word randomly
+  NextWord <- VocabList$Word[sample(seq(1:numwords), size = 1)]
+  
+  # Begin with a blank app until the "Begin/Next" button is clicked.
+  ui <- fluidPage(
+    fluidRow(column(12,
+                    br(),
+                    h4("Vocabulary Word:"),
+                    em(h2(textOutput("Vocabulary_Word"))),
+                    h4(""),
+  ),
+  ),
+  br(),
+  
+fluidRow(column(12,
+                radioButtons("definition", "Choose the closest definition.",choices = c('A', 'B', 'C', 'D'), width = '100%', selected = character(0))
+),
+),   
+    fluidRow(column(8,
+                    actionButton("Next", "<<< BEGIN VOCABULARY QUIZ >>>", class = "btn-block")
+    )
+    )
+  )
+  
+  # NextEntry (the new word with definition) and NextRands (four random definition choices) are eventReactive to the Next button. 
+  
+  server <- function(input, output, session) {
+       
+    NextEntry  <- eventReactive(input$Next, {
+      sample(seq(1:numwords), size = 1)
+    })
+    
+    NextRands  <- eventReactive(input$Next, {
+      sample(seq(1:numwords), size = 4, replace = FALSE)
+    })
+    
+    # If the new word is not one of the four random words, then one of the four is replaced.  
+    observeEvent(input$Next, {
+      randlistfour <- filter(VocabList, Entry %in% NextRands())
+      randwordpick <- ceiling(4*runif(1))
+      if(!(NextEntry() %in% randlistfour$Entry)){
+        randlistfour[randwordpick, ] <- filter(VocabList, Entry == NextEntry())
+      }
+      updateRadioButtons(inputId = "definition", label = "Choose the closest definition.", choices =  randlistfour$Definition, selected = character(0))
+      updateActionButton(inputId = "Next", label = " >>>  Next Word >>> ")
+    }) 
+    
+    output$Vocabulary_Word <- renderText({
+      VocabList$Word[NextEntry()]
+    })   
+  }
+  
+  shinyApp(ui, server)   
+  
+  
+  #------------------------------------------------------------------------------------------------------------------------
+  # Version Four server - updated from Version Three - code is streamlined but again the vocabulary word does not change
+  #------------------------------------------------------------------------------------------------------------------------   
+  
+  # Set NextWord() randomly as a reactiveVal() before the ui.
+  NextWord <-  reactiveVal(VocabList[ceiling(numwords*runif(1)),]$Word)
+  
+  server <- function(input, output, session) {
+
+   # Update the NextWord() reactiveVal() within observEvent() when the Next button is clicked.
+   observeEvent(input$Next, {
+      randlistfour <- VocabList[sample(seq(1:numwords), size = 4, replace = FALSE)]
+      randwordpick <- ceiling(4*runif(1))
+      NextWord <- reactiveVal( randlistfour[randwordpick,]$Word )
+      message(randlistfour[randwordpick,]$Word)
+      updateRadioButtons(inputId = "definition", label = "Choose the closest definition.", choices =  randlistfour$Definition, selected = character(0))
+      updateActionButton(inputId = "Next", label = " >>>  Next Word >>> ")
+    }) 
+    
+    output$Vocabulary_Word <- renderText({
+      NextWord()
+    })  
+  }
+  
+  shinyApp(ui, server)   
+  
+  
+  
+    
