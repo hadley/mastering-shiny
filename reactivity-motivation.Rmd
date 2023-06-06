@@ -26,7 +26,7 @@ This is quite different from most R code, which typically deals with fairly stat
 
 For Shiny apps to be maximally useful, we need reactive expressions and outputs to update if and only if their inputs change.
 We want outputs to stay in sync with inputs, while ensuring that we never do more work than necessary.
-To see why reactivity is so helpful here, we'll take a stab a solving a simple problem without reactivity.
+To see why reactivity is so helpful here, we'll take a stab at solving a simple problem without reactivity.
 
 ### Why can't you use variables?
 

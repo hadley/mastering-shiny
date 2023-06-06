@@ -278,8 +278,8 @@ This doesn't make testing or debugging any easier, but it does reduce duplicated
 We could of course add `session` to the arguments of the function:
 
 ```{r}
-switch_page <- function(i) {
-  updateTabsetPanel(input = "wizard", selected = paste0("page_", i))
+switch_page <- function(i, session) {
+  updateTabsetPanel(session = session, input = "wizard", selected = paste0("page_", i))
 }
 
 server <- function(input, output, session) {
