@@ -361,8 +361,8 @@ fluidPage(
 ```
 
 If not specified, Shiny will use the classic Bootstrap v3 theme that it has used basically since it was created.
-By default, `bslib::bs_theme()`, will use Bootstrap v4.
-Using Bootstrap v4 instead of v3 will not cause problems if you only use built-in components.
+By default, `bslib::bs_theme()`, will use Bootstrap v5.
+Using Bootstrap v5 instead of v3 will not cause problems if you only use built-in components.
 There is a possibility that it might cause problems if you've used custom HTML, so you can force it to stay with v3 with `version = 3`.
 
 ### Shiny themes
