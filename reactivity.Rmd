@@ -14,4 +14,4 @@ Next we'll turn our attention to the theory of reactivity that underlies the mag
 -   In Chapter \@ref(reactivity-components), you'll learn how to escape the constraints of the reactive graph using `reactiveVal()` and `observe()`.
 
 You certainly don't need to understand all these details for routine development of Shiny apps.
-But improving your understanding will help you write correct apps from the get go, and when something behaves unexpectedly you can more quickly narrow in on the underlying issue.
+But improving your understanding will help you write correct apps from the get-go, and when something behaves unexpectedly you can more quickly narrow in on the underlying issue.
