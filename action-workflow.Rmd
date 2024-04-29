@@ -311,7 +311,7 @@ If you're new to debugging in R, you might want to read the [Debugging chapter](
 > Once you eliminate the impossible, whatever remains, no matter how improbable, must be the truth --- Sherlock Holmes
 
 To demonstrate the basic debugging approach, I'll show you a little problem I encountered when writing Section \@ref(hierarchical-select).
-I'll first show you the basic context, then you'll see a problem I resolved without interactive debugging tools, a problem that required interactive debugging, and discover a final suprise.
+I'll first show you the basic context, then you'll see a problem I resolved without interactive debugging tools, a problem that required interactive debugging, and discover a final surprise.
 
 The initial goal is pretty simple: I have a dataset of sales, and I want to filter it by territory.
 Here's what the data looks like:
