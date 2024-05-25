@@ -75,8 +75,7 @@ There are also a number of important topics specific to Shiny that I don't cover
 
 -   This book only covers the built-in user interface toolkit.
     This doesn't provide the sexiest possible design, but it's simple to learn and gets you a long way.
-    If you have additional needs (or just get bored with the defaults), there are number of other packages that provide alternative front ends.
-    See Section \@ref(other-tools) for more details.
+    If you have additional needs (or just get bored with the defaults), there are other packages that provide alternative front ends.
 
 -   Deployment of Shiny apps.
     Putting Shiny "into production" is outside the scope of this book because it hugely varies from company to company, and much of it is unrelated to R (the majority of challenges tend to be cultural or organisational, not technical).
