@@ -258,7 +258,7 @@ demo$deploy()
 ```
 
 If you try out the live app at `r demo$link()`, you'll notice that when you switch datasets the summary output will briefly flicker.
-That's because `updateSelectInput()` only has an affect after all outputs and observers have run, so there's temporarily a state where you have dataset B and a variable from dataset A, so that the output contains `summary(NULL)`.
+That's because `updateSelectInput()` only has an effect after all outputs and observers have run, so there's temporarily a state where you have dataset B and a variable from dataset A, so that the output contains `summary(NULL)`.
 
 You can resolve this problem by "freezing" the input with `freezeReactiveValue()`.
 This ensures that any reactives or outputs that use the input won't be updated until the next full round of invalidation[^action-dynamic-3].
