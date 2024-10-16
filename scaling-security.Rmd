@@ -106,7 +106,7 @@ Similarly, you should never `source()` an uploaded `.R` file, or `rmarkdown::ren
 
 [^scaling-security-3]: The only exception is if they don't involve user-supplied data in any way.
 
-The bigger challenge arises because are a number of functions that `parse()`, `eval()`, or both, in a way that you're not aware of.
+The bigger challenge arises because there are a number of functions that `parse()`, `eval()`, or both, in a way that you're not aware of.
 Here are the most common:
 
 -   **Model formulas**.
