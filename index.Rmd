@@ -12,7 +12,7 @@ suppress-bibliography: true
 
 # Welcome {.unnumbered}
 
-<img src="cover.png" class="cover" width="250" height="328"/>This is the online version of *Mastering Shiny*, a book **currently under early development** and intended for a late 2020 release by [O'Reilly Media](https://www.oreilly.com/).
+<img src="cover.png" class="cover" width="250" height="328"/>This is the online version of *Mastering Shiny* by Hadley Wickham, published by [O'Reilly Media](https://www.oreilly.com/) in April 2021.
 
 [Shiny](https://shiny.rstudio.com/) is a framework for creating web applications using R code.
 It is designed primarily with data scientists in mind, and to that end, you can create pretty complicated Shiny apps with no knowledge of HTML, CSS, or JavaScript.
