@@ -175,7 +175,7 @@ The difference is largely superficial for this simple app, but `moduleServer()` 
 Now that we have a complete app, let's circle back and talk about namespacing some more.
 The key idea that makes modules work is that the name of each control (i.e. its `id`) is now determined by two pieces:
 
--   The first piece comes from the module **user**, the developer who calls `histogramServer()`.
+-   The first piece comes from the module **user**, the developer who calls `histogramUI()`.
 -   The second piece comes from the module **author**, the developer who wrote `histogramServer()`.
 
 This two-part specification means that you, the module author, don't need to worry about clashing with other UI components created by the user.
