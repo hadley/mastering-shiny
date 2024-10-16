@@ -141,7 +141,7 @@ Here are the most common:
     glue::glue_safe("{title}-{print('Hi'); number}")
     ```
 
--   **Variable transformation.** There's no way to safely allow a use to provide code snippets to transform a variable for dplyr or ggplot2.
+-   **Variable transformation.** There's no way to safely allow a user to provide code snippets to transform a variable for dplyr or ggplot2.
     You might expect they'll write `log10(x)` but they could write `{print("Hi"); log10(x)}`
 
     This also means that you should never use the older `ggplot2::aes_string()` with user supplied input.
