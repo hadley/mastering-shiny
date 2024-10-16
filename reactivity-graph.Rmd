@@ -265,8 +265,10 @@ The neat thing about this process is that Shiny has done the minimum amount of w
 
     ```{r, eval = FALSE}
     x <- reactiveVal(1)
-    y <- reactive(x + y())
-    y()
+    y <- reactive(x() + y())
+    observe({
+      print(y())
+    })
     ```
 
 ## Dynamism
