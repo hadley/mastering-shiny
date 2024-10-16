@@ -12,7 +12,7 @@ If you are using Shiny with the tidyverse, you will almost certainly encounter t
 Tidy evaluation is used throughout the tidyverse to make interactive data exploration more fluid, but it comes with a cost: it's hard to refer to variables indirectly, and hence harder to program with.
 
 In this chapter, you'll learn how to wrap ggplot2 and dplyr functions in a Shiny app.
-(If you don't use the tidyverse, you can skip this chapter 😄.) The techniques for wrapping ggplot2 and dplyr functions in a function and/or a package, are a a little different and covered in other resources like [*Using ggplot2 in packages*](http://ggplot2.tidyverse.org/dev/articles/ggplot2-in-packages.html) or [*Programming with dplyr*](http://dplyr.tidyverse.org/articles/programming.html).
+(If you don't use the tidyverse, you can skip this chapter 😄.) The techniques for wrapping ggplot2 and dplyr functions in a function and/or a package, are a little different and covered in other resources like [*Using ggplot2 in packages*](http://ggplot2.tidyverse.org/dev/articles/ggplot2-in-packages.html) or [*Programming with dplyr*](http://dplyr.tidyverse.org/articles/programming.html).
 
 ```{r setup}
 library(shiny)
@@ -53,7 +53,7 @@ That sentence might have made intuitive sense to you, but it's a bit confusing b
 It's going to be easier to understand what's happening if we can disambiguate the two uses by introducing two new terms:
 
 -   An **env-variable** (environment variable) is a "programming" variable that you create with `<-`.
-    `input$var` is a env-variable.
+    `input$var` is an env-variable.
 
 -   A **data-variable** (data frame variables) is "statistical" variable that lives inside a data frame or tibble.
     `carat` is a data-variable.
