@@ -41,7 +41,7 @@ Alternatively, you may have data that is user-specific.
 If you need to **authenticate** users, i.e. identify them through a user name and password, never attempt to roll a solution yourself.
 There are just too many things that might go wrong.
 Instead, you'll need to work with your IT team to design a secure access mechanism.
-You can see some best practices at <https://solutions.rstudio.com/sys-admin/auth/kerberos/> and <https://db.rstudio.com/best-practices/deployment/>.
+You can see some best practices at <https://solutions.posit.co/secure-access/auth/kerberos/index.html> and <https://solutions.posit.co/connections/db/best-practices/deployment/>.
 Note that code within `server()` is isolated so there's no way for one user session to see data from another.
 The only exception is if you use caching --- see Section \@ref(cache-scope) for details.
 
