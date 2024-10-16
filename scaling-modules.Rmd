@@ -929,7 +929,7 @@ demo$takeScreenshot("3")
 
 The code to create the tabset panel requires a little explanation: unfortunately `tabsetPanel()` doesn't allow us to pass in a list of tabs.
 So instead we need to do a little `do.call()` magic to make it work.
-`do.call(function_name, list(arg1, arg2, …)` is equivalent to `function_name(arg1, arg2, …)`, so here we're creating a call like `tabstPanel(pages[[1]], pages[[2]], …, id = NS(id, "wizard"), type = "hidden")`.
+`do.call(function_name, list(arg1, arg2, …)` is equivalent to `function_name(arg1, arg2, …)`, so here we're creating a call like `tabsetPanel(pages[[1]], pages[[2]], …, id = NS(id, "wizard"), type = "hidden")`.
 Hopefully this will be simplified in a future version of Shiny.
 
 Now that we've completed the module UI, we need to turn our attention to the module server.
@@ -983,7 +983,7 @@ This is a principled limitation of the module system which we'll discuss in more
 
 Now let's use the wizard in a slightly more realistic app that has inputs and outputs, and yields Figure \@ref(fig:wizard-module).
 The main point to notice is that even though the pages are displayed by the module, their ids are controlled by the user of the module.
-It's the developer who creators the control who controls its name; it doesn't matter who ends up assembling the control for final display on the webpage.
+It's the developer who creates the control who controls its name; it doesn't matter who ends up assembling the control for final display on the webpage.
 
 ```{r}
 page1 <- tagList(
