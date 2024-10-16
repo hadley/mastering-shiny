@@ -106,7 +106,7 @@ Here are a few ideas to get your creative juices flowing:
     ```{r}
     iconRadioButtons <- function(inputId, label, choices, selected = NULL) {
       names <- lapply(choices, icon)
-      values <- if (is.null(names(choices))) names(choices) else choices
+      values <- if (!is.null(names(choices))) names(choices) else choices
       radioButtons(inputId,
         label = label,
         choiceNames = names, choiceValues = values, selected = selected
