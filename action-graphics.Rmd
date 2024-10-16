@@ -343,7 +343,7 @@ The basic flow is something like this:
 4.  `plotOutput()` generates a new PNG and sends it to the browser.
 
 For local apps, the bottleneck tends to be the time taken to draw the plot.
-Depending on how complex the plot is, this may take a signficant fraction of a second.
+Depending on how complex the plot is, this may take a significant fraction of a second.
 But for hosted apps, you also have to take into account the time needed to transmit the event from the browser to R, and then the rendered plot back from R to the browser.
 
 In general, this means that it's not possible to create Shiny apps where action and response is percieved as instanteous (i.e. the plot appears to update simultaneously with your action upon it).
