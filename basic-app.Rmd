@@ -376,7 +376,7 @@ knitr::include_graphics("images/basic-app/cheatsheet.png", dpi = 300)
       dataset <- reactive({
         get(input$dataset, "package:ggplot2")
       })
-      output$summmry <- renderPrint({
+      output$summary <- renderPrint({
         summary(dataset())
       })
       output$plot <- renderPlot({
