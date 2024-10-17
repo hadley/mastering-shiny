@@ -7,7 +7,7 @@ source("demo.R")
 
 We talked briefly about `renderPlot()` in Chapter \@ref(basic-ui); it's a powerful tool for displaying graphics in your app.
 This chapter will show you how to use it to its full extent to create interactive plots, plots that respond to mouse events.
-You'll also learn a couple of other useful techniques, including making plots with dynamic width and height and displaying images with the `renderImage()`.
+You'll also learn a couple of other useful techniques, including making plots with dynamic width and height and displaying images with `renderImage()`.
 
 In this chapter, we'll need ggplot2 as well as Shiny, since that's what I'll use for the majority of the graphics.
 
