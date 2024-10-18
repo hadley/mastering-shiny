@@ -18,7 +18,7 @@ If you haven't already installed Shiny, install it now with:
 install.packages("shiny")
 ```
 
-If you've already installed Shiny, use `packageVersion("shiny")` to check that you have version 1.5.0 or greater.
+If you've already installed Shiny, use `packageVersion("shiny")` to check that you have version 1.6.0 or greater.
 
 Then load in your current R session:
 
