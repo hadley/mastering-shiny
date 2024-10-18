@@ -659,7 +659,7 @@ histogramApp <- function() {
 ### Exercises
 
 1.  Rewrite `selectVarServer()` so that both `data` and `filter` are reactive.
-    Then use it with an app function that lets the user pick the dataset with the `dataset` module and filtering function using `inputSelect()`.
+    Then use it with an app function that lets the user pick the dataset with the `dataset` module and filtering function using `selectInput()`.
     Give the user the ability to filter numeric, character, or factor variables.
 
 2.  The following code defines output and server components of a module that takes a numeric input and produces a bulleted list of three summary statistics.
