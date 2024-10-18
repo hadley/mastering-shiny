@@ -360,7 +360,7 @@ head(sales$TERRITORY == "EMEA", 25)
 ```
 
 These missing values become missing rows when I use them to subset the `sales` data frame with `[`; any missing values in input will be preserved in the output.
-There are lots of way to resolve this problem but I decided to use `subset()`[^action-workflow-3] because automatically removes missing values and reduces the number of times I need to type `sales`. I then double checked this actually worked:
+There are lots of ways to resolve this problem, but I decided to use `subset()`[^action-workflow-3] because it automatically removes missing values and reduces the number of times I need to type `sales`. I then double checked this actually worked:
 
 [^action-workflow-3]: I'm using `subset()` so that my app doesn't require any other packages.
     In a bigger app, I'd probably prefer `dplyr::filter()` just because I'm a little more familiar with its behaviour.
