@@ -45,7 +45,7 @@ ui <- fluidPage(
 server <- function(input, output, session) {
   observeEvent(input$min, {
     updateSliderInput(inputId = "n", min = input$min)
-  })  
+  })
   observeEvent(input$max, {
     updateSliderInput(inputId = "n", max = input$max)
   })
@@ -140,7 +140,7 @@ I'll illustrate their usage with some imaginary data for a sales dashboard that 
 
 ```{r}
 sales <- vroom::vroom("sales-dashboard/sales_data_sample.csv", col_types = list(), na = "")
-sales %>% 
+sales %>%
   select(TERRITORY, CUSTOMERNAME, ORDERNUMBER, everything()) %>%
   arrange(ORDERNUMBER)
 ```
@@ -190,9 +190,9 @@ server <- function(input, output, session) {
   })
   observeEvent(territory(), {
     choices <- unique(territory()$CUSTOMERNAME)
-    updateSelectInput(inputId = "customername", choices = choices) 
+    updateSelectInput(inputId = "customername", choices = choices)
   })
-  
+
   customer <- reactive({
     req(input$customername)
     filter(territory(), CUSTOMERNAME == input$customername)
@@ -201,11 +201,11 @@ server <- function(input, output, session) {
     choices <- unique(customer()$ORDERNUMBER)
     updateSelectInput(inputId = "ordernumber", choices = choices)
   })
-  
+
   output$data <- renderTable({
     req(input$ordernumber)
-    customer() %>% 
-      filter(ORDERNUMBER == input$ordernumber) %>% 
+    customer() %>%
+      filter(ORDERNUMBER == input$ordernumber) %>%
       select(QUANTITYORDERED, PRICEEACH, PRODUCTCODE)
   })
 }
@@ -225,7 +225,7 @@ knitr::include_graphics(c(s1, s2, s3))
 demo$deploy()
 ```
 
-Try out this simple example at `r demo$link()`, or see a more fully fleshed out application at <https://github.com/hadley/mastering-shiny/tree/master/sales-dashboard>.
+Try out this simple example at `r demo$link()`, or see a more fully fleshed out application at <https://github.com/hadley/mastering-shiny/tree/main/sales-dashboard>.
 
 ### Freezing reactive inputs
 
@@ -241,11 +241,11 @@ ui <- fluidPage(
 
 server <- function(input, output, session) {
   dataset <- reactive(get(input$dataset, "package:datasets"))
-  
+
   observeEvent(input$dataset, {
     updateSelectInput(inputId = "column", choices = names(dataset()))
   })
-  
+
   output$summary <- renderPrint({
     summary(dataset()[[input$column]])
   })
@@ -258,7 +258,7 @@ demo$deploy()
 ```
 
 If you try out the live app at `r demo$link()`, you'll notice that when you switch datasets the summary output will briefly flicker.
-That's because `updateSelectInput()` only has an affect after all outputs and observers have run, so there's temporarily a state where you have dataset B and a variable from dataset A, so that the output contains `summary(NULL)`.
+That's because `updateSelectInput()` only has an effect after all outputs and observers have run, so there's temporarily a state where you have dataset B and a variable from dataset A, so that the output contains `summary(NULL)`.
 
 You can resolve this problem by "freezing" the input with `freezeReactiveValue()`.
 This ensures that any reactives or outputs that use the input won't be updated until the next full round of invalidation[^action-dynamic-3].
@@ -268,12 +268,12 @@ This ensures that any reactives or outputs that use the input won't be updated u
 ```{r}
 server <- function(input, output, session) {
   dataset <- reactive(get(input$dataset, "package:datasets"))
-  
+
   observeEvent(input$dataset, {
     freezeReactiveValue(input, "column")
     updateSelectInput(inputId = "column", choices = names(dataset()))
   })
-  
+
   output$summary <- renderPrint({
     summary(dataset()[[input$column]])
   })
@@ -329,7 +329,7 @@ server <- function(input, output, session) {
     c <- round((input$temp_f - 32) * 5 / 9)
     updateNumericInput(inputId = "temp_c", value = c)
   })
-  
+
   observeEvent(input$temp_c, {
     f <- round((input$temp_c * 9 / 5) + 32)
     updateNumericInput(inputId = "temp_f", value = f)
@@ -386,7 +386,7 @@ In general, you are better off avoiding these situations, unless you are willing
     continents <- unique(gapminder$continent)
 
     ui <- fluidPage(
-      selectInput("continent", "Continent", choices = continents), 
+      selectInput("continent", "Continent", choices = continents),
       selectInput("country", "Country", choices = NULL),
       tableOutput("data")
     )
@@ -462,7 +462,7 @@ parameter_tabs <- tabsetPanel(
     numericInput("mean", "mean", value = 1),
     numericInput("sd", "standard deviation", min = 0, value = 1)
   ),
-  tabPanel("uniform", 
+  tabPanel("uniform",
     numericInput("min", "min", value = 0),
     numericInput("max", "max", value = 1)
   ),
@@ -478,7 +478,7 @@ I'll then embed that inside a fuller UI which allows the user to pick the number
 ui <- fluidPage(
   sidebarLayout(
     sidebarPanel(
-      selectInput("dist", "Distribution", 
+      selectInput("dist", "Distribution",
         choices = c("normal", "uniform", "exponential")
       ),
       numericInput("n", "Number of samples", value = 100),
@@ -500,8 +500,8 @@ See the final result in Figure \@ref(fig:dynamic-conditional).
 server <- function(input, output, session) {
   observeEvent(input$dist, {
     updateTabsetPanel(inputId = "params", selected = input$dist)
-  }) 
-  
+  })
+
   sample <- reactive({
     switch(input$dist,
       normal = rnorm(input$n, input$mean, input$sd),
@@ -539,16 +539,16 @@ ui <- fluidPage(
   tabsetPanel(
     id = "wizard",
     type = "hidden",
-    tabPanel("page_1", 
+    tabPanel("page_1",
       "Welcome!",
       actionButton("page_12", "next")
     ),
-    tabPanel("page_2", 
+    tabPanel("page_2",
       "Only one page to go",
       actionButton("page_21", "prev"),
       actionButton("page_23", "next")
     ),
-    tabPanel("page_3", 
+    tabPanel("page_3",
       "You're done!",
       actionButton("page_32", "prev")
     )
@@ -559,7 +559,7 @@ server <- function(input, output, session) {
   switch_page <- function(i) {
     updateTabsetPanel(inputId = "wizard", selected = paste0("page_", i))
   }
-  
+
   observeEvent(input$page_12, switch_page(2))
   observeEvent(input$page_21, switch_page(1))
   observeEvent(input$page_23, switch_page(3))
@@ -621,7 +621,7 @@ server <- function(input, output, session) {
     if (input$type == "slider") {
       sliderInput("dynamic", input$label, value = 0, min = 0, max = 10)
     } else {
-      numericInput("dynamic", input$label, value = 0, min = 0, max = 10) 
+      numericInput("dynamic", input$label, value = 0, min = 0, max = 10)
     }
   })
 }
@@ -696,11 +696,11 @@ The server function is short but contains some big ideas:
 ```{r}
 server <- function(input, output, session) {
   col_names <- reactive(paste0("col", seq_len(input$n)))
-  
+
   output$col <- renderUI({
     map(col_names(), ~ textInput(.x, NULL))
   })
-  
+
   output$palette <- renderText({
     map_chr(col_names(), ~ input[[.x]] %||% "")
   })
@@ -748,27 +748,27 @@ ui <- fluidPage(
       uiOutput("col"),
     ),
     mainPanel(
-      plotOutput("plot")  
+      plotOutput("plot")
     )
   )
 )
 
 server <- function(input, output, session) {
   col_names <- reactive(paste0("col", seq_len(input$n)))
-  
+
   output$col <- renderUI({
     map(col_names(), ~ textInput(.x, NULL, value = isolate(input[[.x]])))
   })
-  
+
   output$plot <- renderPlot({
     cols <- map_chr(col_names(), ~ input[[.x]] %||% "")
     # convert empty inputs to transparent
     cols[cols == ""] <- NA
-    
+
     barplot(
-      rep(1, length(cols)), 
+      rep(1, length(cols)),
       col = cols,
-      space = 0, 
+      space = 0,
       axes = FALSE
     )
   }, res = 96)
@@ -779,9 +779,9 @@ server <- function(input, output, session) {
 demo <- demoApp$new("action-dynamic/render-palette-full", ui, server)
 demo$resize(800)
 demo$setInputs(
-  col1 = "red", 
-  col2 = "yellow", 
-  col3 = "orange", 
+  col1 = "red",
+  col2 = "yellow",
+  col3 = "orange",
   col4 = "green",
   col5 = "blue"
 )
@@ -852,7 +852,7 @@ server <- function(input, output, session) {
       filter_var(iris$Sepal.Width, input$Sepal.Width) &
       filter_var(iris$Species, input$Species)
   })
-  
+
   output$data <- renderTable(head(iris[selected(), ], 12))
 }
 ```
@@ -890,7 +890,7 @@ server <- function(input, output, session) {
     each_var <- map(names(iris), ~ filter_var(iris[[.x]], input[[.x]]))
     reduce(each_var, ~ .x & .y)
   })
-  
+
   output$data <- renderTable(head(iris[selected(), ], 12))
 }
 ```
@@ -924,16 +924,16 @@ server <- function(input, output, session) {
     get(input$dataset, "package:datasets")
   })
   vars <- reactive(names(data()))
-  
+
   output$filter <- renderUI(
     map(vars(), ~ make_ui(data()[[.x]], .x))
   )
-  
+
   selected <- reactive({
     each_var <- map(vars(), ~ filter_var(data()[[.x]], input[[.x]]))
     reduce(each_var, `&`)
   })
-  
+
   output$data <- renderTable(head(data()[selected(), ], 12))
 }
 ```
@@ -948,7 +948,7 @@ demo$deploy()
 
 ### Dialog boxes
 
-Before we finish up, wanted to mention a related technique: dialog boxes.
+Before we finish up, I wanted to mention a related technique: dialog boxes.
 You've seen them already in Section \@ref(feedback-modal), where the contents of the dialog was a fixed text string.
 But because `modalDialog()` is called from within the server function, you can actually dynamically generate content in the same way as `renderUI()`.
 This is a useful technique to have in your back pocket if you want to force the user to make some decision before continuing on with the regular app flow.
@@ -967,7 +967,7 @@ This is a useful technique to have in your back pocket if you want to force the 
         if (input$type == "slider") {
           sliderInput("n", "n", value = 0, min = 0, max = 100)
         } else {
-          numericInput("n", "n", value = 0, min = 0, max = 100)  
+          numericInput("n", "n", value = 0, min = 0, max = 100)
         }
       })
     }
@@ -991,7 +991,7 @@ This is a useful technique to have in your back pocket if you want to force the 
           title = "Please enter your password"
         ))
       })
-      
+
       output$text <- renderText({
         if (!isTruthy(input$password)) {
           "No password"
@@ -1012,7 +1012,7 @@ This is a useful technique to have in your back pocket if you want to force the 
 
 Before reading this chapter, you were limited to creating the user interface statically, before the server function was run.
 Now you've learned how to both modify the user interface and completely recreate it in response to user actions.
-A dynamic user interface will dramatically increases the complexity of your app, so don't be surprised if you find yourself struggling to debug what's going in.
+A dynamic user interface will dramatically increase the complexity of your app, so don't be surprised if you find yourself struggling to debug what's going in.
 Always remember to use to the simplest technique that solves your problem, and fall back to the debugging advice in Section \@ref(debugging).
 
 The next chapter switches tack to talk about bookmarking, make it possible to share the current state of an app with others.

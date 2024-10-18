@@ -175,7 +175,7 @@ The difference is largely superficial for this simple app, but `moduleServer()` 
 Now that we have a complete app, let's circle back and talk about namespacing some more.
 The key idea that makes modules work is that the name of each control (i.e. its `id`) is now determined by two pieces:
 
--   The first piece comes from the module **user**, the developer who calls `histogramServer()`.
+-   The first piece comes from the module **user**, the developer who calls `histogramUI()`.
 -   The second piece comes from the module **author**, the developer who wrote `histogramServer()`.
 
 This two-part specification means that you, the module author, don't need to worry about clashing with other UI components created by the user.
@@ -239,7 +239,7 @@ This base name is then used in a variety of places:
     }
     ```
 
-3.  The following module generate a new random number every time you click go:
+3.  The following module generates a new random number every time you click go:
 
     ```{r}
     randomUI <- function(id) {
@@ -317,7 +317,7 @@ datasetInput <- function(id, filter = NULL) {
 
 The module server is also simple: we just use `get()` to retrieve the dataset with its name.
 There's one new idea here: like a function and unlike a regular `server()`, this module server returns a value.
-Here we take advantage of the usual rule that last expression processed in the function becomes the return value[^scaling-modules-2].
+Here we take advantage of the usual rule that the last expression processed in the function becomes the return value[^scaling-modules-2].
 This value should always be a reactive.
 
 [^scaling-modules-2]: The tidyverse style guide, <https://style.tidyverse.org/functions.html#return>, recommends reserving `return()` only for cases where you are returning early.
@@ -383,7 +383,7 @@ The server function will have two arguments:
     }
     ```
 
-Then the module server uses `observeEvent()` to update the `inputSelect` choices when the data changes, and returns a reactive that provides the values of the selected variable.
+Then the module server uses `observeEvent()` to update the `selectInput` choices when the data changes, and returns a reactive that provides the values of the selected variable.
 
 ```{r}
 selectVarServer <- function(id, data, filter = is.numeric) {
@@ -929,7 +929,7 @@ demo$takeScreenshot("3")
 
 The code to create the tabset panel requires a little explanation: unfortunately `tabsetPanel()` doesn't allow us to pass in a list of tabs.
 So instead we need to do a little `do.call()` magic to make it work.
-`do.call(function_name, list(arg1, arg2, …)` is equivalent to `function_name(arg1, arg2, …)`, so here we're creating a call like `tabstPanel(pages[[1]], pages[[2]], …, id = NS(id, "wizard"), type = "hidden")`.
+`do.call(function_name, list(arg1, arg2, …)` is equivalent to `function_name(arg1, arg2, …)`, so here we're creating a call like `tabsetPanel(pages[[1]], pages[[2]], …, id = NS(id, "wizard"), type = "hidden")`.
 Hopefully this will be simplified in a future version of Shiny.
 
 Now that we've completed the module UI, we need to turn our attention to the module server.
@@ -983,7 +983,7 @@ This is a principled limitation of the module system which we'll discuss in more
 
 Now let's use the wizard in a slightly more realistic app that has inputs and outputs, and yields Figure \@ref(fig:wizard-module).
 The main point to notice is that even though the pages are displayed by the module, their ids are controlled by the user of the module.
-It's the developer who creators the control who controls its name; it doesn't matter who ends up assembling the control for final display on the webpage.
+It's the developer who creates the control who controls its name; it doesn't matter who ends up assembling the control for final display on the webpage.
 
 ```{r}
 page1 <- tagList(

@@ -278,7 +278,7 @@ if (interactive()) {
 }
 ```
 
-The easiest was to find and open your `.Rprofile` is to run `usethis::edit_r_profile()`.
+The easiest way to find and open your `.Rprofile` is to run `usethis::edit_r_profile()`.
 
 ### Sharing
 
@@ -328,6 +328,8 @@ If you want to deploy your app to RStudio Connect or Shiny[^scaling-packages-1] 
     myApp()
     ```
 
+    This file calling `load_all()` **may not** be placed under the package's `R` directory - this would result in an 
+    infinite loop when loading! The root directory of the package is the right place.
     (You can see other techniques at <https://engineering-shiny.org/deploy.html>).
 
 -   Normally when you deploy an app, the rsconnect package automatically figures out all of the packages your code uses.

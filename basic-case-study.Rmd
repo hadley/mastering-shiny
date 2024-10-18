@@ -69,14 +69,14 @@ You can find out more about this dataset at <https://github.com/hadley/neiss>.
 
 In this chapter, I'm going to focus on just the data from 2017.
 This keeps the data small enough (\~10 MB) that it's easy to store in git (along with the rest of the book), which means we don't need to think about sophisticated strategies for importing the data quickly (we'll come back to those later in the book).
-You can see the code I used to create the extract for this chapter at <https://github.com/hadley/mastering-shiny/blob/master/neiss/data.R>.
+You can see the code I used to create the extract for this chapter at <https://github.com/hadley/mastering-shiny/blob/main/neiss/data.R>.
 
 If you want to get the data on to your own computer, run this code:
 
 ```{r, eval = "FALSE"}
 dir.create("neiss")
 download <- function(name) {
-  url <- "https://github.com/hadley/mastering-shiny/raw/master/neiss/"
+  url <- "https://raw.github.com/hadley/mastering-shiny/main/neiss/"
   download.file(paste0(url, name), paste0("neiss/", name), quiet = TRUE)
 }
 download("injuries.tsv.gz")
@@ -236,7 +236,7 @@ Note that creating the `summary` reactive isn't strictly necessary here, as it's
 But it's good practice to keep computing and plotting separate as it makes the flow of the app easier to understand, and will make it easier to generalise in the future.
 
 A screenshot of the resulting app is shown in Figure \@ref(fig:prototype).
-You can find the source code at <https://github.com/hadley/mastering-shiny/tree/master/neiss/prototype.R> and try out a live version of the app at <https://hadley.shinyapps.io/ms-prototype/>.
+You can find the source code at <https://github.com/hadley/mastering-shiny/tree/main/neiss/prototype.R> and try out a live version of the app at <https://hadley.shinyapps.io/ms-prototype/>.
 
 ```{r prototype, echo = FALSE, out.width = "100%", fig.cap="First prototype of NEISS exploration app"}
 case_study_screenshot("prototype")
@@ -272,7 +272,7 @@ I made one other change to improve the aesthetics of the app: I forced all table
 This makes the output more aesthetically pleasing because it reduces the amount of incidental variation.
 
 A screenshot of the resulting app is shown in Figure \@ref(fig:polish-tables).
-You can find the source code at <https://github.com/hadley/mastering-shiny/tree/master/neiss/polish-tables.R> and try out a live version of the app at <https://hadley.shinyapps.io/ms-polish-tables>.
+You can find the source code at <https://github.com/hadley/mastering-shiny/tree/main/neiss/polish-tables.R> and try out a live version of the app at <https://hadley.shinyapps.io/ms-polish-tables>.
 
 ```{r polish-tables, echo = FALSE, out.width = "100%", fig.cap="The second iteration of the app improves the display by only showing the most frequent rows in the summary tables"}
 case_study_screenshot("polish-tables")
@@ -295,7 +295,7 @@ Then I condition on that input when generating the plot:
 ```
 
 A screenshot of the resulting app is shown in Figure \@ref(fig:rate-vs-count).
-You can find the source code at <https://github.com/hadley/mastering-shiny/tree/master/neiss/rate-vs-count.R> and try out a live version of the app at <https://hadley.shinyapps.io/ms-rate-vs-count>.
+You can find the source code at <https://github.com/hadley/mastering-shiny/tree/main/neiss/rate-vs-count.R> and try out a live version of the app at <https://hadley.shinyapps.io/ms-rate-vs-count>.
 
 ```{r rate-vs-count, echo = FALSE, out.width = "100%", fig.cap = "In this iteration, we give the user the ability to switch between displaying the count or the population standardised rate on the y-axis."}
 case_study_screenshot("rate-vs-count")
@@ -319,7 +319,7 @@ I then use `eventReactive()` to create a reactive that only updates when the but
 ```
 
 A screenshot of the resulting app is shown in Figure \@ref(fig:narrative).
-You can find the source code at <https://github.com/hadley/mastering-shiny/tree/master/neiss/narrative.R> and try out a live version of the app at <https://hadley.shinyapps.io/ms-narrative>.
+You can find the source code at <https://github.com/hadley/mastering-shiny/tree/main/neiss/narrative.R> and try out a live version of the app at <https://hadley.shinyapps.io/ms-narrative>.
 
 ```{r narrative, echo = FALSE, out.width = "100%", fig.cap = "The final iteration adds the ability to pull out a random narrative from the selected rows"}
 case_study_screenshot("narrative")
