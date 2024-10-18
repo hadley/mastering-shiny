@@ -594,7 +594,7 @@ server <- function(input, output, session) {
 ```
 
 ```{r, echo = FALSE, message = FALSE}
-demo <- demoApp$new("action-feedback/waiter", ui, server, packages = "waiter", before = ~ waiter::use_waitress())
+demo <- demoApp$new("action-feedback/waiter", ui, server, packages = "waiter", before = ~ waiter::use_waitress()) # is waiter package returning the wrong link?
 demo$deploy()
 ```
 
