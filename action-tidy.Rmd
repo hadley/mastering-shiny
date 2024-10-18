@@ -11,8 +11,8 @@ diamonds <- ggplot2::diamonds
 If you are using Shiny with the tidyverse, you will almost certainly encounter the challenge of programming with tidy evaluation.
 Tidy evaluation is used throughout the tidyverse to make interactive data exploration more fluid, but it comes with a cost: it's hard to refer to variables indirectly, and hence harder to program with.
 
-In this chapter, you'll learn how to wrap ggplot2 and dplyr function in a Shiny app.
-(If you don't use the tidyverse, you can skip this chapter 😄.) The techniques for wrapping ggplot2 and dplyr functions in a functions and package, are a a little different and covered in other resources like [*Using ggplot2 in packages*](http://ggplot2.tidyverse.org/dev/articles/ggplot2-in-packages.html) or [*Programming with dplyr*](http://dplyr.tidyverse.org/articles/programming.html).
+In this chapter, you'll learn how to wrap ggplot2 and dplyr functions in a Shiny app.
+(If you don't use the tidyverse, you can skip this chapter 😄.) The techniques for wrapping ggplot2 and dplyr functions in a function and/or a package, are a little different and covered in other resources like [*Using ggplot2 in packages*](http://ggplot2.tidyverse.org/dev/articles/ggplot2-in-packages.html) or [*Programming with dplyr*](http://dplyr.tidyverse.org/articles/programming.html).
 
 ```{r setup}
 library(shiny)
@@ -52,14 +52,14 @@ But now you want to refer to it indirectly: the variable (`carat`) is stored ins
 That sentence might have made intuitive sense to you, but it's a bit confusing because I'm using "variable" to mean two slightly different things.
 It's going to be easier to understand what's happening if we can disambiguate the two uses by introducing two new terms:
 
--   An **env-variable** (environment variable) is a "programming" variables that you create with `<-`.
-    `input$var` is a env-variable.
+-   An **env-variable** (environment variable) is a "programming" variable that you create with `<-`.
+    `input$var` is an env-variable.
 
--   A **data-variable** (data frame variables) is "statistical" variable that lives inside a data frame.
+-   A **data-variable** (data frame variables) is "statistical" variable that lives inside a data frame or tibble.
     `carat` is a data-variable.
 
 With these new terms we can make the problem of indirection more clear: we have a data-variable (`carat`) stored inside an env-variable (`input$var`), and we need some way to tell dplyr this.
-There are two slightly different ways to do this depending on whether the function you're working with is a "data-masking" function or a "tidy-selection" function.
+There are two slightly different ways to inform dplyr depending on whether the function you're working with is a "data-masking" function or a "tidy-selection" function.
 
 ## Data-masking
 
@@ -89,7 +89,7 @@ It also makes it straightforward to use indirection[^action-tidy-2] because you 
     `subset()` uses data-masking, but not through tidy evaluation, so unfortunately the techniques discussed in this chapter don't apply to it.
 
 [^action-tidy-2]: In Shiny apps, the most common form of indirection is having the name of data-variable stored in a reactive value.
-    There's another form of indirection that happens when you're writing functions which is solved using `{{ x }}`, called embracing.
+    Another form of indirection that is useful when you're writing functions is denoted by double curly-brackets `{{ x }}`, also called embracing.
     You can learn more about that in [*Programming with dplyr*](http://dplyr.tidyverse.org/dev/articles/programming.html).
 
 ```{r, results = FALSE}
@@ -455,8 +455,8 @@ We'll come back that idea in Chapter \@ref(scaling-security).
 ## Summary
 
 In this chapter you've learned how to create Shiny apps that lets the user choose which variables will be fed into tidyverse functions like `dplyr::filter()` and `ggplot2::aes()`.
-This requires getting your head around a key distinction that you haven't had to think about before: the different between a data-variable and an env-variable.
+Sucess requires getting your head around a key distinction that you haven't had to think about before: the different between a data-variable and an env-variable.
 It will take some practice before this comes second nature, but once you master the ideas you unlock the power to expose the data analysis powers of the tidyverse to non-R users.
 
-This is the last chapter in the "Shiny in Action" part of the book.
+This chapter is the last chapter in the "Shiny in Action" part of the book.
 Now that you have the tools you need to make a range of useful apps, I'm going to focus on improving your understanding of the theory that underlies Shiny.

@@ -71,14 +71,14 @@ knitr::include_graphics("images/action-layout/fluid-page.png", dpi = 300)
 ```
 
 In addition to `fluidPage()`, Shiny provides a couple of other page functions that can come in handy in more specialised situations: `fixedPage()` and `fillPage()`.
-`fixedPage()` works like `fluidPage()` but has a fixed maximum width, which stops your apps from becoming unreasonable wide on bigger screens.
+`fixedPage()` works like `fluidPage()` but has a fixed maximum width, which stops your apps from becoming unreasonably wide on bigger screens.
 `fillPage()` fills the full height of the browser and is useful if you want to make a plot that occupies the whole screen.
 You can find the details in their documentation.
 
 ### Page with sidebar
 
 To make more complex layouts, you'll need call layout functions inside of `fluidPage()`.
-For example, to make a two-column layout with inputs on the left and outputs on the right you can use `sidebarLayout()` (along with it's friends `titlePanel()`, `sidebarPanel()`, and `mainPanel()`).
+For example, to make a two-column layout with inputs on the left and outputs on the right you can use `sidebarLayout()` (along with its friends `titlePanel()`, `sidebarPanel()`, and `mainPanel()`).
 The following code shows the basic structure to generate Figure \@ref(fig:ui-sidebar).
 
 ```{r, eval = FALSE}
@@ -326,12 +326,12 @@ But it's good to know that Bootstrap exists because then:
 
 -   You can use the `class` argument to customise some layouts, inputs, and outputs using Bootstrap class names, as you saw in Section \@ref(action-buttons).
 
--   You can make your own functions to generate Bootstrap components that Shiny doesn't provide, as explained in "[Utility classes](https://rstudio.github.io/bslib/articles/theming.html#utility-classes)".
+-   You can make your own functions to generate Bootstrap components that Shiny doesn't provide, as explained in "[Utility classes](https://rstudio.github.io/bslib/articles/utility-classes.html)".
 
 It's also possible to use a completely different CSS framework.
 A number of existing R packages make this easy by wrapping popular alternatives to Bootstrap:
 
--   [shiny.semantic](https://appsilon.github.io/shiny.semantic/), by [Appsilon](https://appsilon.com/), builds on top of [formantic UI](https://fomantic-ui.com).
+-   [shiny.semantic](https://appsilon.github.io/shiny.semantic/), by [Appsilon](https://appsilon.com/), builds on top of [Fomantic UI](https://fomantic-ui.com).
 
 -   [shinyMobile](https://github.com/RinteRface/shinyMobile), by [RInterface](https://rinterface.com), builds on top of [framework 7](https://framework7.io), and is specifically designed for mobile apps.
 
@@ -361,8 +361,8 @@ fluidPage(
 ```
 
 If not specified, Shiny will use the classic Bootstrap v3 theme that it has used basically since it was created.
-By default, `bslib::bs_theme()`, will use Bootstrap v4.
-Using Bootstrap v4 instead of v3 will not cause problems if you only use built-in components.
+By default, `bslib::bs_theme()`, will use Bootstrap v5.
+Using Bootstrap v5 instead of v3 will not cause problems if you only use built-in components.
 There is a possibility that it might cause problems if you've used custom HTML, so you can force it to stay with v3 with `version = 3`.
 
 ### Shiny themes
@@ -425,7 +425,7 @@ theme <- bslib::bs_theme(
 ```
 
 An easy way to preview and customise your theme is to use `bslib::bs_theme_preview(theme)`.
-This will open a Shiny app that shows what the theme looks like when applied many standard controls, and also provides you with interactive controls for customising the most important parameters.
+This will open a Shiny app that shows what the theme looks like when applied to many standard controls, and also provides you with interactive controls for customising the most important parameters.
 
 ### Plot themes
 
@@ -512,10 +512,10 @@ ui <- fluidPage(
 )
 ```
 
-If you're a HTML/CSS expert, you might be interested to know that can skip `fluidPage()` altogether and supply raw HTML.
+If you're a HTML/CSS expert, you might be interested to know that you can skip `fluidPage()` altogether and supply raw HTML.
 See "[Build your entire UI with HTML](https://shiny.rstudio.com/articles/html-ui.html)" for more details.
 
-Alternatively, you can use of the HTML helper that Shiny provides.
+Alternatively, you can make use of the HTML helper that Shiny provides.
 There are regular functions for the most important elements like `h1()` and `p()`, and all others can be accessed via the other tags helper.
 Named arguments become attributes and unnamed arguments become children, so we can recreate the above HTML as:
 

@@ -68,7 +68,7 @@ This gives you the following development workflow:
 4.  Close the app.
 5.  Go to 1.
 
-Another way to increase your iteration speed still further is to turn autoreload on and run the app in a background job, as described in <https://github.com/sol-eng/background-jobs/tree/master/shiny-job>.
+Another way to increase your iteration speed still further is to turn autoreload on and run the app in a background job, as described in <https://github.com/sol-eng/background-jobs/tree/main/shiny-job>.
 With this workflow as soon as you save a file, your app will relaunch: no need to close and restart.
 This leads to an even faster workflow:
 
@@ -147,7 +147,7 @@ If this code errors, as below:
 f("a")
 ```
 
-You can call `traceback()` to find the sequence of calls that to the problem:
+You can call `traceback()` to find the sequence of calls that lead to the problem:
 
 ```{r, eval = FALSE}
 traceback()
@@ -220,7 +220,7 @@ To understand what's going on we again start by flipping it upside down, so you 
 
 There are three basic parts to the call stack:
 
--   The first few calls start the app in this case you just see `runApp()` but depending on how you start the app, you might see something more complicated.
+-   The first few calls start the app. In this case, you just see `runApp()`, but depending on how you start the app, you might see something more complicated.
     For example, if you called `source()` to run the app, you might see this:
 
         1: source
@@ -311,7 +311,7 @@ If you're new to debugging in R, you might want to read the [Debugging chapter](
 > Once you eliminate the impossible, whatever remains, no matter how improbable, must be the truth --- Sherlock Holmes
 
 To demonstrate the basic debugging approach, I'll show you a little problem I encountered when writing Section \@ref(hierarchical-select).
-I'll first show you the basic context, then you'll see a problem I resolved without interactive debugging tools, a problem that required interactive debugging, and discover a final suprise.
+I'll first show you the basic context, then you'll see a problem I resolved without interactive debugging tools, a problem that required interactive debugging, and discover a final surprise.
 
 The initial goal is pretty simple: I have a dataset of sales, and I want to filter it by territory.
 Here's what the data looks like:
@@ -359,7 +359,7 @@ I'd forgotten that `TERRITORY` contained a bunch of missing values which means t
 head(sales$TERRITORY == "EMEA", 25)
 ```
 
-These missing values become missing rows when I use them to subset the `sales` data frame with `[` any missing values in input will be preserved in the output.
+These missing values become missing rows when I use them to subset the `sales` data frame with `[`; any missing values in input will be preserved in the output.
 There are lots of ways to resolve this problem, but I decided to use `subset()`[^action-workflow-3] because it automatically removes missing values and reduces the number of times I need to type `sales`. I then double checked this actually worked:
 
 [^action-workflow-3]: I'm using `subset()` so that my app doesn't require any other packages.
@@ -393,7 +393,7 @@ So I updated the app and tried again.
 It still didn't work!
 When I selected "NA" in the drop down, I didn't see any rows.
 
-At this point, I figured I'd done everything I could on the console, and I needed to perform an experiment to figure out why the code inside of Shiny was working the way I expected.
+At this point, I figured I'd done everything I could on the console, and I needed to perform an experiment to figure out why the code inside of Shiny wasn't working the way I expected.
 I guessed that the most likely source of the problem would be in the `selected` reactive, so I added a `browser()` statement there.
 (This made it a two-line reactive, so I also needed to wrap it in `{}`.)
 
@@ -413,7 +413,7 @@ It returned an empty data frame, so I knew I was where I needed to be.
 If I hadn't seen the problem, I would have typed `c` to let the app continuing running, then interacted with some more in order it to get to the failing state.
 
 I then checked that inputs to `subset()` were as I expected.
-I first double-check that that the `sales` dataset looked ok.
+I first double-checked that the `sales` dataset looked ok.
 I didn't really expect it to be corrupted, since nothing in the app touches it, but it's safest to carefully check every assumption that you're making.
 `sales` looked ok, so the problem must be in `TERRITORY %in% input$territory`.
 Since `TERRITORY` is part of `sales`, I started by inspecting `input$territory`:
@@ -506,13 +506,13 @@ server <- function(input, output, session) {
     message(glue("Updating y from {input$y} to {input$x * 2}"))
     updateSliderInput(session, "y", value = input$x * 2)
   })
-  
+
   total <- reactive({
     total <- input$x + input$y + input$z
     message(glue("New total is {total}"))
     total
   })
-  
+
   output$total <- renderText({
     total()
   })
@@ -601,8 +601,8 @@ There are three useful patterns:
     Once you have that code, you can put this in your reprex to generate `mydata`:
 
     ```{r}
-    mydata <- structure(list(x = 1:5, y = structure(1:5, .Label = c("a", "b", 
-    "c", "d", "e"), class = "factor")), class = "data.frame", row.names = c(NA, 
+    mydata <- structure(list(x = 1:5, y = structure(1:5, .Label = c("a", "b",
+    "c", "d", "e"), class = "factor")), class = "data.frame", row.names = c(NA,
     -5L))
     ```
 
@@ -685,7 +685,7 @@ server <- function(input, output, session) {
     var3 = c(2, 11, 9, 7, 14, 1)
   )
 
-  timeSeries <- as.xts(df[, 2:4], 
+  timeSeries <- as.xts(df[, 2:4],
     order.by = strptime(df[, 1], format = "%Y-%m-%d %H:%M:%S")
   )
   print(paste(min(time(timeSeries)), is.POSIXt(min(time(timeSeries))), sep = " "))
@@ -741,12 +741,12 @@ server <- function(input, output, session) {
       value = c(min, max)
     )
   })
-  
+
   brks <- reactive({
     req(input$slider)
     seq(input$slider[1], input$slider[2], length.out = 10)
   })
-  
+
   output$breaks <- brks
 }
 ```

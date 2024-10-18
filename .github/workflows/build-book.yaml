@@ -1,10 +1,10 @@
 on:
   push:
     branches:
-      - master
+      - main
   pull_request:
     branches:
-      - master
+      - main
   schedule:
     # run every day at 11 PM
     - cron: '0 23 * * *'
@@ -18,38 +18,17 @@ jobs:
   build:
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
-    runs-on: macOS-latest
+    runs-on: ubuntu-latest
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@master
+      - uses: actions/checkout@v3
 
-      - name: Setup R
-        id: install-r
-        uses: r-lib/actions/setup-r@master
+      - uses: r-lib/actions/setup-pandoc@v2
 
-      - name: Setup pandoc
-        uses: r-lib/actions/setup-pandoc@master
-
-      - name: Install pak and query dependencies
-        run: |
-          install.packages("pak", repos = "https://r-lib.github.io/p/pak/dev/")
-          saveRDS(pak::local_dev_deps_tree(), ".github/r-depends.rds")
-        shell: Rscript {0}
-
-      - name: Cache R packages
-        uses: actions/cache@v2
+      - uses: r-lib/actions/setup-r@v2
         with:
-          path: ${{ env.R_LIBS_USER }}
-          key: ${{ runner.os }}-${{ steps.install-r.outputs.installed-r-version }}-1-${{ hashFiles('.github/r-depends.rds') }}
-          restore-keys: ${{ runner.os }}-${{ steps.install-r.outputs.installed-r-version }}-1-
+          use-public-rspm: true
 
-      - name: Install dependencies
-        run: |
-          pak::local_install_dev_deps(upgrade = TRUE)
-        shell: Rscript {0}
-
-      - name: Install PhantomJS
-        run: R -e 'webshot::install_phantomjs()'
+      - uses: r-lib/actions/setup-r-dependencies@v2
 
       - name: Build book
         run: Rscript -e 'bookdown::render_book("index.Rmd", quiet = TRUE)'

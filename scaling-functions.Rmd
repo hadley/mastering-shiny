@@ -106,7 +106,7 @@ Here are a few ideas to get your creative juices flowing:
     ```{r}
     iconRadioButtons <- function(inputId, label, choices, selected = NULL) {
       names <- lapply(choices, icon)
-      values <- if (is.null(names(choices))) names(choices) else choices
+      values <- if (!is.null(names(choices))) names(choices) else choices
       radioButtons(inputId,
         label = label,
         choiceNames = names, choiceValues = values, selected = selected
@@ -177,7 +177,7 @@ sliders <- pmap(vars, mySliderInput)
 
 Don't worry if this code looks like gibberish to you: you can continue to use copy and paste.
 But in the long-run, I'd recommend learning more about functional programming, because it gives you such a wonderful ability to concisely express otherwise long-winded concepts.
-You can see other examples See Section \@ref(programming-ui) for more examples of using these techniques to generate dynamic UI in response to user actions.
+See Section \@ref(programming-ui) for more examples of using these techniques to generate dynamic UI in response to user actions.
 
 ## Server functions
 
@@ -273,13 +273,13 @@ server <- function(input, output, session) {
 }
 ```
 
-This doesn't make testing or debugging any easier, but it does reduce duplicated code in.
+This doesn't make testing or debugging any easier, but it does reduce duplicated code in the server function.
 
 We could of course add `session` to the arguments of the function:
 
 ```{r}
-switch_page <- function(i) {
-  updateTabsetPanel(input = "wizard", selected = paste0("page_", i))
+switch_page <- function(i, session) {
+  updateTabsetPanel(session = session, input = "wizard", selected = paste0("page_", i))
 }
 
 server <- function(input, output, session) {
@@ -295,7 +295,7 @@ But this feels weird as the function is still fundamentally coupled to this app 
 ## Summary
 
 As your apps get bigger, extracting non-reactive functions out of the flow of the app will make your life substantially easier.
-Functions allow you to reactive and non-reactive code and spread your code out over multiple files.
+Functions allow you to separate reactive and non-reactive code and spread your code out over multiple files.
 This often makes it much easier to see the big picture shape of your app, and by moving complex logic out of the app into regular R code it makes it much easier to experiment, iterate, and test.
 When you start extracting out function, it's likely to feel a bit slow and frustrating, but over time you'll get faster and faster, and soon it will become a key tool in your toolbox.
 

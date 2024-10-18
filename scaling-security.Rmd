@@ -41,7 +41,7 @@ Alternatively, you may have data that is user-specific.
 If you need to **authenticate** users, i.e. identify them through a user name and password, never attempt to roll a solution yourself.
 There are just too many things that might go wrong.
 Instead, you'll need to work with your IT team to design a secure access mechanism.
-You can see some best practices at <https://solutions.rstudio.com/sys-admin/auth/kerberos/> and <https://db.rstudio.com/best-practices/deployment/>.
+You can see some best practices at <https://solutions.posit.co/secure-access/auth/kerberos/index.html> and <https://solutions.posit.co/connections/db/best-practices/deployment/>.
 Note that code within `server()` is isolated so there's no way for one user session to see data from another.
 The only exception is if you use caching --- see Section \@ref(cache-scope) for details.
 
@@ -106,7 +106,7 @@ Similarly, you should never `source()` an uploaded `.R` file, or `rmarkdown::ren
 
 [^scaling-security-3]: The only exception is if they don't involve user-supplied data in any way.
 
-The bigger challenge arises because are a number of functions that `parse()`, `eval()`, or both, in a way that you're not aware of.
+The bigger challenge arises because there are a number of functions that `parse()`, `eval()`, or both, in a way that you're not aware of.
 Here are the most common:
 
 -   **Model formulas**.
@@ -141,7 +141,7 @@ Here are the most common:
     glue::glue_safe("{title}-{print('Hi'); number}")
     ```
 
--   **Variable transformation.** There's no way to safely allow a use to provide code snippets to transform a variable for dplyr or ggplot2.
+-   **Variable transformation.** There's no way to safely allow a user to provide code snippets to transform a variable for dplyr or ggplot2.
     You might expect they'll write `log10(x)` but they could write `{print("Hi"); log10(x)}`
 
     This also means that you should never use the older `ggplot2::aes_string()` with user supplied input.

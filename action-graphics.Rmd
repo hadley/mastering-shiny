@@ -7,7 +7,7 @@ source("demo.R")
 
 We talked briefly about `renderPlot()` in Chapter \@ref(basic-ui); it's a powerful tool for displaying graphics in your app.
 This chapter will show you how to use it to its full extent to create interactive plots, plots that respond to mouse events.
-You'll also learn a couple of other useful techniques, including making plots with dynamic width and height and displaying images with the `renderImage()`.
+You'll also learn a couple of other useful techniques, including making plots with dynamic width and height and displaying images with `renderImage()`.
 
 In this chapter, we'll need ggplot2 as well as Shiny, since that's what I'll use for the majority of the graphics.
 
@@ -75,7 +75,7 @@ I'll then give a couple of examples of updating the plot with the results of the
 
 The point events return a relatively rich list containing a lot of information.
 The most important components are `x` and `y`, which give the location of the event in data coordinates.
-But I'm not going to talk about this data structure, since you'll only need in relatively rare situations (If you do want the details, use [this app](https://gallery.shinyapps.io/095-plot-interaction-advanced/) in the Shiny gallery).
+But I'm not going to talk about this data structure, since you'll only need it in relatively rare situations (If you do want the details, use [this app](https://gallery.shinyapps.io/095-plot-interaction-advanced/) in the Shiny gallery).
 Instead, you'll use the `nearPoints()` helper, which returns a data frame containing rows near[^action-graphics-2] the click, taking care of a bunch of fiddly details.
 
 [^action-graphics-2]: Note that it's not called `nearestPoints()`; it won't return any thing if you don't click near an existing data point.
@@ -242,7 +242,7 @@ val()
 ```
 
 Unfortunately if you actually try to run this code in the console you'll get an error because it has to be run in an reactive environment.
-That makes experimentation and debugging more challenging because you'll need to `browser()` or similar to pause execution within the call to `shinyApp()`.
+That makes experimentation and debugging more challenging because you'll need to use `browser()` or something similar to pause execution within the call to `shinyApp()`.
 This is one of the challenges we'll come back to later in Chapter \@ref(reactivity-components).
 
 For now, let's put the challenges of learning `reactiveVal()` aside, and show you why you might bother.
@@ -285,7 +285,7 @@ knitr::include_graphics("images/action-graphics/modifying-size-1.png", dpi = 300
 There are two important ggplot2 techniques to note here:
 
 -   I add the distances to the data frame before plotting. I think it's good practice to put related variables together in a data frame before visualising it.
--   I set the `limits` to `scale_size_area()` to ensure that sizes are comparable across clicks. To find the correct range I did a little interactive experimentation, but you can work out the exact details if needed (see the exercises at the end of the chapter).
+-   I set the `limits` to `scale_size_area()` to ensure that sizes are comparable across clicks. To find the correct range I did a little interactive experimentation, but you can work out the exact details if needed.
 
 Here's a more complicated idea.
 I want to use a brush to progressively add points to a selection.
@@ -343,7 +343,7 @@ The basic flow is something like this:
 4.  `plotOutput()` generates a new PNG and sends it to the browser.
 
 For local apps, the bottleneck tends to be the time taken to draw the plot.
-Depending on how complex the plot is, this may take a signficant fraction of a second.
+Depending on how complex the plot is, this may take a significant fraction of a second.
 But for hosted apps, you also have to take into account the time needed to transmit the event from the browser to R, and then the rendered plot back from R to the browser.
 
 In general, this means that it's not possible to create Shiny apps where action and response is percieved as instanteous (i.e. the plot appears to update simultaneously with your action upon it).

@@ -343,9 +343,9 @@ demo <- demoApp$new("basic-ui/output-text", ui, server)
 demo$takeScreenshot()
 ```
 
-Note that the `{}` are only required in render functions if need to run multiple lines of code.
+Note that the `{}` are only required in render functions if you need to run multiple lines of code.
 As you'll learn shortly, you should do as little computation in your render functions as possible, which means you can often omit them.
-Here's what the server function above would look like if written more compactly::
+Here's what the server function above would look like if written more compactly:
 
 ```{r}
 server <- function(input, output, session) {
@@ -454,7 +454,7 @@ These require new techniques in the server function, so we'll come back to that 
 2.  Re-create the Shiny app from Section \@ref(plots), this time setting height to 300px and width to 700px.
     Set the plot "alt" text so that a visually impaired user can tell that its a scatterplot of five random numbers.
 
-3.  Update the options in the call to `renderDataTable()` below so that the data is displayed, but all other controls are suppress (i.e. remove the search, ordering, and filtering commands).
+3.  Update the options in the call to `renderDataTable()` below so that the data is displayed, but all other controls are suppressed (i.e., remove the search, ordering, and filtering commands).
     You'll need to read `?renderDataTable` and review the options at <https://datatables.net/reference/option/>.
 
     ```{r}
