@@ -1,4 +1,4 @@
-/# Shiny modules {#scaling-modules}
+# Shiny modules {#scaling-modules}
 
 ```{r, include = FALSE}
 source("common.R")
