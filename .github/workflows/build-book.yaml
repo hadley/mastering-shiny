@@ -5,6 +5,7 @@ on:
   pull_request:
     branches:
       - main
+  workflow_dispatch:
   schedule:
     # run every day at 11 PM
     - cron: "0 23 * * *"
