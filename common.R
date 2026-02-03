@@ -46,7 +46,12 @@ reactive_console_funs <- list(
   reactiveVal = function(value = NULL, label = NULL) {
     if (missing(label)) {
       call <- sys.call()
-      label <- shiny:::rvalSrcrefToLabel(attr(call, "srcref", exact = TRUE))
+      call_srcref <- attr(call, "srcref", exact = TRUE)
+      if (packageVersion("shiny") < "1.12.0") {
+        label <- shiny:::rvalSrcrefToLabel(call_srcref)
+      } else {
+        label <- shiny:::rassignSrcrefToLabel(call_srcref, "reactiveValAnonymous")
+      }
     }
 
     rv <- shiny::reactiveVal(value, label)
