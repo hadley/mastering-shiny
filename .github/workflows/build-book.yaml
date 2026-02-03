@@ -35,13 +35,15 @@ jobs:
         run: Rscript -e 'bookdown::render_book("index.Rmd", quiet = TRUE)'
 
       - name: Upload website artifact
-        if: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master' }}
+        if: ${{ github.ref == 'refs/heads/main' && github.event.pull_request.head.repo.fork == false }}
         uses: actions/upload-pages-artifact@v3
         with:
           path: "_book"
 
   deploy:
     needs: build
+
+    if: ${{ github.ref == 'refs/heads/main' && github.event.pull_request.head.repo.fork == false }}
 
     permissions:
       pages: write # to deploy to Pages
