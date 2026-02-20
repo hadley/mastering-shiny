@@ -325,7 +325,7 @@ knitr::include_graphics("images/basic-app/cheatsheet.png", dpi = 300)
 
 4.  Take the following app which adds some additional functionality to the last app described in the last exercise.
     What's new?
-    How could you reduce the amount of duplicated code in the app by using a reactive expression.
+    How could you reduce the amount of duplicated code in the app by using a reactive expression?
 
     ```{r}
     library(shiny)
