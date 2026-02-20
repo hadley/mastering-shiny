@@ -156,7 +156,7 @@ Another way to use `nearPoints()` is with `allRows = TRUE` and `addDist = TRUE`.
 That will return the original data frame with two new columns:
 
 -   `dist_` gives the distance between the row and the event (in pixels).
--   `selected_` says whether or not it's near the click event (i.e. whether or not its a row that would be returned when `allRows = FALSE)`.
+-   `selected_` says whether or not it's near the click event (i.e. whether or not it's a row that would be returned when `allRows = FALSE)`.
 
 We'll see an example of that a little later.
 

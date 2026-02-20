@@ -70,7 +70,7 @@ None of these actions change the reactive graph, so it remains as in Figure \@re
 
 ## Case studies
 
-Next, lets take a look at a few useful cases where you might combine `reactiveValues()` and `observeEvent()` or `observe()` to solve problems that are otherwise very challenging (if not impossible).
+Next, let's take a look at a few useful cases where you might combine `reactiveValues()` and `observeEvent()` or `observe()` to solve problems that are otherwise very challenging (if not impossible).
 These are useful templates for your own apps.
 
 ### One output modified by multiple inputs
