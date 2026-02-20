@@ -302,7 +302,7 @@ profvis::profvis(f())
 After the code has completed, profvis will pop up an interactive visualisation, Figure \@ref(fig:profvis-raw).
 You'll notice that it looks very similar to the graphs that I drew by hand, but the timings aren't exactly the same.
 That's because R's profiler works by stopping execution every 10ms and recording the call stack.
-Unfortunately, we can't always stop at exactly the we want because R might be in the middle of something that can't be interrupted.
+Unfortunately, we can't always stop at exactly the time we want because R might be in the middle of something that can't be interrupted.
 This means that the results are subject to a small amount of random variation; if you re-profiled this code, you'd get another slightly different result.
 
 ```{r profvis-raw, echo = FALSE, out.width = NULL, fig.align = "center", fig.cap="Results of profiling `f()` with profvis. X-axis shows elapsed time in ms, y-axis shows depth of call stack."}
