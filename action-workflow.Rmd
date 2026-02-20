@@ -531,7 +531,7 @@ And if I drag the `x` slider to `3` I see
     New total is 12
 
 Don't worry if you find the results a little surprising.
-You'll learn more about what's going on in Chapter \@ref(action-feedback) and Chapter \@ref(the-reactive-graph).
+You'll learn more about what's going on in Chapter \@ref(action-feedback) and Chapter \@ref(reactive-graph).
 
 ## Getting help
 
