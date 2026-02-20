@@ -63,7 +63,7 @@ b2$x
 
 We'll come back to why you might create your own reactive values in Chapter \@ref(reactivity-components).
 Otherwise, most of the reactive values you'll encounter will come from the `input` argument to the server function.
-These are a little different to the `reactiveValues()` that you create yourself because they're read-only: you're can't modify the values because Shiny automatically updates them based on user actions in the browser.
+These are a little different to the `reactiveValues()` that you create yourself because they're read-only: you can't modify the values because Shiny automatically updates them based on user actions in the browser.
 
 ### Exercises
 
