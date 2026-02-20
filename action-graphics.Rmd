@@ -323,7 +323,7 @@ demo <- demoApp$new("action-graphics/persistent", ui, server)
 demo$deploy()
 ```
 
-```{r persistent, fig.cap = "This app makes the brush \"persisent\", so that dragging it adds to the current selection.", echo = FALSE, out.width = NULL}
+```{r persistent, fig.cap = "This app makes the brush &quot;persistent&quot;, so that dragging it adds to the current selection.", echo = FALSE, out.width = NULL, fig.show = 'hold'}
 knitr::include_graphics(c(
   "images/action-graphics/persistent-1.png",
   "images/action-graphics/persistent-3.png"
