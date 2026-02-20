@@ -807,7 +807,10 @@ make_ui <- function(x, var) {
     sliderInput(var, var, min = rng[1], max = rng[2], value = rng)
   } else if (is.factor(x)) {
     levs <- levels(x)
-    selectInput(var, var, choices = levs, selected = levs, multiple = TRUE)
+	  checkboxGroupInput(var, var,
+            selected = levs, inline = TRUE,
+            choiceNames = levs, choiceValues = levs
+        )
   } else {
     # Not supported
     NULL
