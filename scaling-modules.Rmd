@@ -54,7 +54,7 @@ knitr::include_graphics("diagrams/scaling-modules/after.png", dpi = 300)
 
 ## Module basics
 
-To create your first module, we'll pull a module out of a very simple app that draws a histogram:
+Read the small Shiny application below. We will then extract its simple functionality into a module.
 
 ```{r}
 ui <- fluidPage(
